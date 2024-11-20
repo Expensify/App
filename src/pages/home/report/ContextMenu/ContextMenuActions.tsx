@@ -301,16 +301,18 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom}) => {
+        shouldShow: ({reportAction, isArchivedRoom, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
-            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction);
+            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
             const isParentReportAction = ReportUtils.isParentReportAction(reportAction);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
             const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);
             const isTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
-            return !subscribed && !isWhisperAction && !isTaskAction && !isExpenseReportAction && !isParentReportAction && (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom));
+            return (
+                !subscribed && !isWhisperAction && !isTaskAction && !isExpenseReportAction && !isParentReportAction && (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
