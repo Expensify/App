@@ -28,7 +28,7 @@ resolveIsReadyPromise?.();
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
-const requestThrottle = new RequestThrottle();
+const sequentialQueueRequestThrottle = new RequestThrottle();
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -100,7 +100,7 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-            requestThrottle.clear();
+            sequentialQueueRequestThrottle.clear();
             return process();
         })
         .catch((error: RequestError) => {
@@ -109,18 +109,18 @@ function process(): Promise<void> {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                requestThrottle.clear();
+                sequentialQueueRequestThrottle.clear();
                 return process();
             }
             PersistedRequests.rollbackOngoingRequest();
-            return requestThrottle
+            return sequentialQueueRequestThrottle
                 .sleep(error, requestToProcess.command)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                    requestThrottle.clear();
+                    sequentialQueueRequestThrottle.clear();
                     return process();
                 });
         });
@@ -283,5 +283,5 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue};
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
 export type {RequestError};
