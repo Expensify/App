@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export PROJECT_ROOT
+export PROJECT_ROOT_PATH
 
 BUILD="$1"
 NEW_DOT_FLAG="false"
@@ -48,10 +48,10 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
     APP_ID="org.me.mobiexpensifyg"
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
-    PROJECT_ROOT="Mobile-Expensify/"
+    PROJECT_ROOT_PATH="Mobile-Expensify/"
 else
     echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
-    PROJECT_ROOT="./"
+    PROJECT_ROOT_PATH="./"
 fi
 
 # Check if the argument is one of the desired values
