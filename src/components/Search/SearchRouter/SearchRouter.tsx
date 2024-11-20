@@ -2,6 +2,7 @@ import {useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,9 +47,10 @@ import type {AutocompleteItemData} from './SearchRouterList';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
+    shouldHideInputCaret?: TextInputProps['caretHidden'];
 };
 
-function SearchRouter({onRouterClose}: SearchRouterProps) {
+function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -396,6 +398,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 onSubmit={() => {
                     onSearchSubmit(textInputValue);
                 }}
+                caretHidden={shouldHideInputCaret}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
                 wrapperStyle={[styles.border, styles.alignItemsCenter]}
