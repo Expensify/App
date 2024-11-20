@@ -1232,6 +1232,14 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
+            // These properties are available in browser only
+            ...(Browser.getBrowser()
+                ? {
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: theme.text,
+                      caretColor: theme.text,
+                  }
+                : {}),
         },
 
         textInputMultiline: {
