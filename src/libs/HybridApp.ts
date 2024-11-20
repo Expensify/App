@@ -64,12 +64,17 @@ Onyx.connect({
             if (hybridApp?.oldDotSignInError) {
                 setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FAILED_AGAIN);
             } else {
+                console.debug('Closing, but why', {currentHybridApp, hybridApp});
                 NativeModules.HybridAppModule.closeReactNativeApp(false, true);
             }
         }
 
         console.log('[Hybridapp] should use old app', shouldUseOldApp(tryNewDot));
-        if (hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED && shouldUseOldApp(tryNewDot)) {
+        if (
+            currentHybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED &&
+            hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED &&
+            shouldUseOldApp(tryNewDot)
+        ) {
             if (hybridApp?.oldDotSignInError) {
                 return;
             }
