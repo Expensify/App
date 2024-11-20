@@ -47,14 +47,14 @@ function getSkippedSteps(skipAccountTypeStep: boolean, skipAccountHolderInformat
 function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, isAccountLoading}: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
+    const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
+
     const values = useMemo(
-        () => getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country),
-        [privatePersonalDetails, corpayFields, bankAccountList, draftValues, country],
+        () => getSubstepValues(privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap),
+        [privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, fieldsMap],
     );
 
     const initialAccountHolderDetailsValues = useMemo(() => getInitialPersonalDetailsValues(privatePersonalDetails), [privatePersonalDetails]);
-
-    const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
 
     const startFrom = useMemo(() => getInitialSubstep(values, fieldsMap), [fieldsMap, values]);
 

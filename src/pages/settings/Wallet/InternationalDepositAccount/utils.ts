@@ -39,8 +39,10 @@ function getSubstepValues(
     bankAccountList: OnyxEntry<BankAccountList>,
     internationalBankAccountDraft: OnyxEntry<InternationalBankAccountForm>,
     country: OnyxEntry<string>,
+    fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>,
 ): InternationalBankAccountForm {
     const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const personalDetailsFieldMap = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION];
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     const firstName = privatePersonalDetails?.legalFirstName ?? '';
@@ -51,13 +53,15 @@ function getSubstepValues(
         ...internationalBankAccountDraft,
         bankCountry: internationalBankAccountDraft?.bankCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? '',
         bankCurrency: internationalBankAccountDraft?.bankCurrency ?? corpayFields?.bankCurrency,
-        accountHolderName: internationalBankAccountDraft?.accountHolderName ?? fullName,
-        accountHolderAddress1: internationalBankAccountDraft?.accountHolderAddress1 ?? street1,
-        accountHolderAddress2: internationalBankAccountDraft?.accountHolderAddress2 ?? street2,
-        accountHolderCity: internationalBankAccountDraft?.accountHolderCity ?? address?.city,
-        accountHolderCountry: internationalBankAccountDraft?.accountHolderCountry ?? address?.country,
-        accountHolderPostal: internationalBankAccountDraft?.accountHolderPostal ?? address?.zip,
-        accountHolderPhoneNumber: internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber,
+        accountHolderName: !isEmptyObject(personalDetailsFieldMap?.accountHolderName) ? internationalBankAccountDraft?.accountHolderName ?? fullName : undefined,
+        accountHolderAddress1: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress1) ? internationalBankAccountDraft?.accountHolderAddress1 ?? street1 : undefined,
+        accountHolderAddress2: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress2) ? internationalBankAccountDraft?.accountHolderAddress2 ?? street2 : undefined,
+        accountHolderCity: !isEmptyObject(personalDetailsFieldMap?.accountHolderCity) ? internationalBankAccountDraft?.accountHolderCity ?? address?.city : undefined,
+        accountHolderCountry: !isEmptyObject(personalDetailsFieldMap?.accountHolderCountry) ? internationalBankAccountDraft?.accountHolderCountry ?? address?.country : undefined,
+        accountHolderPostal: !isEmptyObject(personalDetailsFieldMap?.accountHolderPostal) ? internationalBankAccountDraft?.accountHolderPostal ?? address?.zip : undefined,
+        accountHolderPhoneNumber: !isEmptyObject(personalDetailsFieldMap?.accountHolderPhoneNumber)
+            ? internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber
+            : undefined,
     } as unknown as InternationalBankAccountForm;
 }
 
