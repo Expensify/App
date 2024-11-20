@@ -9,6 +9,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchQueryString} from '@components/Search/types';
+import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -19,7 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -34,6 +36,35 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import SearchRouterInput from './SearchRouterInput';
 import SearchRouterList from './SearchRouterList';
+
+function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
+    }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
+    }
+}
+
+function getContextualSearchQuery(item: SearchQueryItem) {
+    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
+    let additionalQuery = '';
+
+    switch (item.roomType) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            }
+            break;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            break;
+    }
+    return baseQuery + additionalQuery;
+}
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -59,7 +90,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     // The actual input text that the user sees
     const [textInputValue, debouncedInputValue, setTextInputValue] = useDebouncedState('', 500);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
-    const [autocompleteInputValue, setAutocompleteInputValue] = useState(textInputValue);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
 
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state?.routes.at(-1)?.params?.reportID;
@@ -124,7 +155,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         let autocompleteID = reportForContextualSearch.reportID;
         if (reportForContextualSearch.isInvoiceRoom) {
             roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
-            // Todo understand why this typecasting is needed here
             const report = reportForContextualSearch as SearchOption<Report>;
             if (report.item && report.item?.invoiceReceiver && report.item.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 autocompleteID = report.item.invoiceReceiver.accountID.toString();
@@ -185,15 +215,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            const prevParsedQuery = parseForAutocomplete(textInputValue);
-
-            let updatedUserQuery = userQuery;
-            // If the prev value was query with autocomplete, and the current query ends with a comma, then we allow to continue autocompleting the next value
-            if (prevParsedQuery?.autocomplete && userQuery.endsWith(',')) {
-                updatedUserQuery = `${userQuery.slice(0, userQuery.length - 1).trim()},`;
-            }
+            const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
-            setAutocompleteInputValue(updatedUserQuery);
+            setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
@@ -207,7 +231,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
     );
 
-    const onSearchSubmit = useCallback(
+    const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
             const queryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
@@ -222,15 +246,63 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
 
             setTextInputValue('');
-            setAutocompleteInputValue('');
+            setAutocompleteQueryValue('');
         },
         [autocompleteSubstitutions, onRouterClose, setTextInputValue],
     );
 
-    const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteID: string) => {
-        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: autocompleteID};
+    const onListItemPress = (item: OptionData | SearchQueryItem) => {
+        if (isSearchQueryItem(item)) {
+            if (!item.searchQuery) {
+                return;
+            }
 
-        setAutocompleteSubstitutions(substitutions);
+            if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                const searchQuery = getContextualSearchQuery(item);
+                onSearchQueryChange(`${searchQuery} `);
+
+                const autocompleteKey = getContextualSearchAutocompleteKey(item);
+                if (autocompleteKey && item.autocompleteID) {
+                    const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
+
+                    setAutocompleteSubstitutions(substitutions);
+                }
+            } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
+                onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
+
+                if (item.text && item.autocompleteID) {
+                    const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+
+                    setAutocompleteSubstitutions(substitutions);
+                }
+            } else {
+                submitSearch(item.searchQuery);
+            }
+        } else {
+            onRouterClose();
+
+            if (item?.reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+            } else if ('login' in item) {
+                ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
+            }
+        }
+    };
+
+    const onListItemFocus = (focusedItem: SearchQueryItem) => {
+        if (!focusedItem.searchQuery) {
+            return;
+        }
+
+        const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
+        setTextInputValue(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
+
+        if (focusedItem.autocompleteID && focusedItem.text) {
+            const substitutions = {...autocompleteSubstitutions, [focusedItem.text]: focusedItem.autocompleteID};
+
+            setAutocompleteSubstitutions(substitutions);
+        }
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
@@ -255,7 +327,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 isFullWidth={shouldUseNarrowLayout}
                 onSearchQueryChange={onSearchQueryChange}
                 onSubmit={() => {
-                    onSearchSubmit(textInputValue);
+                    submitSearch(textInputValue);
                 }}
                 caretHidden={shouldHideInputCaret}
                 routerListRef={listRef}
@@ -266,14 +338,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 isSearchingForReports={isSearchingForReports}
             />
             <SearchRouterList
-                textInputValue={autocompleteInputValue}
+                autocompleteQueryValue={autocompleteQueryValue}
                 searchQueryItem={searchQueryItem}
                 additionalSections={sections}
-                setTextInputValue={setTextInputValue}
-                onSearchQueryChange={onSearchQueryChange}
-                onSearchSubmit={onSearchSubmit}
-                closeRouter={onRouterClose}
-                onAutocompleteSuggestionClick={onAutocompleteSuggestionClick}
+                onListItemPress={onListItemPress}
+                onListItemFocus={onListItemFocus}
                 ref={listRef}
             />
         </View>

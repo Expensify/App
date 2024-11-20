@@ -7,7 +7,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
-import SearchQueryListItem from '@components/SelectionList/Search/SearchQueryListItem';
+import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -17,7 +17,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -28,15 +27,11 @@ import {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as ReportUserActions from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
 
@@ -48,7 +43,7 @@ type AutocompleteItemData = {
 
 type SearchRouterListProps = {
     /** Value of TextInput */
-    textInputValue: string;
+    autocompleteQueryValue: string;
 
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
@@ -56,50 +51,19 @@ type SearchRouterListProps = {
     /** Any extra sections that should be displayed in the router list */
     additionalSections?: Array<SectionListDataType<OptionData | SearchQueryItem>>;
 
-    /** Callback to update text input value along with autocomplete suggestions */
-    onSearchQueryChange: (newValue: string) => void;
+    shouldPreventDefault?: boolean;
 
-    /** Callback to update text input value */
-    setTextInputValue: (text: string) => void;
+    /** Callback to call when an item is clicked/selected */
+    onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
-    /** Callback to submit query when selecting a list item */
-    onSearchSubmit: (query: SearchQueryString) => void;
-
-    /** Callback to run when user clicks a suggestion item that contains autocomplete data */
-    onAutocompleteSuggestionClick: (autocompleteKey: string, autocompleteID: string) => void;
-
-    /** Callback to close and clear SearchRouter */
-    closeRouter: () => void;
+    /** Callback to call when an item is focused via arrow buttons */
+    onListItemFocus: (item: SearchQueryItem) => void;
 };
 
 const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.OPEN_SEARCH);
     Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
 };
-
-function getContextualSearchQuery(item: SearchQueryItem) {
-    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
-    let additionalQuery = '';
-
-    switch (item.roomType) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
-            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
-            }
-            break;
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-        default:
-            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
-            break;
-    }
-    return baseQuery + additionalQuery;
-}
-
-function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
-    return 'searchItemType' in item;
-}
 
 function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     return isSearchQueryItem(listItem.item);
@@ -134,7 +98,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {textInputValue, searchQueryItem, additionalSections, onSearchQueryChange, setTextInputValue, onSearchSubmit, onAutocompleteSuggestionClick, closeRouter}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, additionalSections, shouldPreventDefault = true, onListItemFocus, onListItemPress}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -192,7 +156,7 @@ function SearchRouterList(
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
-        const autocompleteParsedQuery = parseForAutocomplete(textInputValue);
+        const autocompleteParsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
         const autocompleteKey = autocomplete?.key;
         const autocompleteValue = autocomplete?.value ?? '';
@@ -330,7 +294,7 @@ function SearchRouterList(
             }
         }
     }, [
-        textInputValue,
+        autocompleteQueryValue,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -371,87 +335,30 @@ function SearchRouterList(
         sections.push(...additionalSections);
     }
 
-    const onSelectRow = useCallback(
-        (item: OptionData | SearchQueryItem) => {
-            if (isSearchQueryItem(item)) {
-                if (!item.searchQuery) {
-                    return;
-                }
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item);
-                    onSearchQueryChange(`${searchQuery} `);
+    const onArrowFocus = (focusedItem: OptionData | SearchQueryItem) => {
+        if (!isSearchQueryItem(focusedItem) || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+            return;
+        }
 
-                    if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                        const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
-                        onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
-                    }
-                    if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT && item.autocompleteID) {
-                        const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
-                        onAutocompleteSuggestionClick(autocompleteKey, item.autocompleteID);
-                    }
-                    return;
-                }
-                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                    const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-                    // Fixme
-                    // even though onSearchQueryChange cleans the autocompleteMap internally,
-                    // the `onAutocompleteSuggestionClick` still carries old autocompleteMap in its closure
-                    // as a result the autocompleteMap will never get cleaned
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
-
-                    if (item.autocompleteID && item.text) {
-                        onAutocompleteSuggestionClick(item.text, item.autocompleteID);
-                    }
-                    return;
-                }
-
-                onSearchSubmit(item.searchQuery);
-            }
-
-            // Todo cleanup this onSelectRow, move reportID to Router
-            // Handle selection of "Recent chat"
-            closeRouter();
-            if ('reportID' in item && item?.reportID) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-            } else if ('login' in item) {
-                ReportUserActions.navigateToAndOpenReport(item.login ? [item.login] : [], false);
-            }
-        },
-        [closeRouter, textInputValue, onSearchSubmit, onSearchQueryChange, onAutocompleteSuggestionClick],
-    );
-
-    const onArrowFocus = useCallback(
-        (focusedItem: OptionData | SearchQueryItem) => {
-            if (!isSearchQueryItem(focusedItem) || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION || !focusedItem.searchQuery) {
-                return;
-            }
-
-            const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-
-            setTextInputValue(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
-
-            if (focusedItem.autocompleteID && focusedItem.text) {
-                onAutocompleteSuggestionClick(focusedItem.text, focusedItem.autocompleteID);
-            }
-        },
-        [setTextInputValue, textInputValue, onAutocompleteSuggestionClick],
-    );
+        onListItemFocus(focusedItem);
+    };
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
             sections={sections}
-            onSelectRow={onSelectRow}
+            onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
             sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={setPerformanceTimersEnd}
-            ref={ref}
             showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
+            shouldPreventDefault={shouldPreventDefault}
+            ref={ref}
         />
     );
 }

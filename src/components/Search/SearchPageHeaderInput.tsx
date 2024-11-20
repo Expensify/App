@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Header from '@components/Header';
@@ -6,7 +6,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
+import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +16,8 @@ import * as SearchActions from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -24,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {buildSubstitutionsMap} from './SearchRouter/buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './SearchRouter/getUpdatedSubstitutionsMap';
@@ -61,40 +64,37 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const taxRates = useMemo(() => getAllTaxRates(), []);
+    const [cardList = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState('');
-    // The input text that was last used for autocomplete; needed for the SearchRouterLiteList when browsing list via arrow keys
-    const [autocompleteInputValue, setAutocompleteInputValue] = useState(textInputValue);
+    // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
 
-    const [displayAutocompleteList, setDisplayAutocompleteList] = useState(true);
+    const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
 
-    const {type} = queryJSON;
+    const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
     const queryText = SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates);
 
     useEffect(() => {
-        // Todo handle setting a new text
-        // const foobar = buildSubstitutionsMap(queryText);
         setTextInputValue(queryText);
     }, [queryText]);
 
+    useEffect(() => {
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, cardList, reports, taxRates);
+        setAutocompleteSubstitutions(substitutionsMap);
+    }, [originalInputQuery, cardList, personalDetails, reports, taxRates]);
+
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            const prevParsedQuery = parseForAutocomplete(textInputValue);
-
-            let updatedUserQuery = userQuery;
-            // If the prev value was query with autocomplete, and the current query ends with a comma, then we allow to continue autocompleting the next value
-            if (prevParsedQuery?.autocomplete && userQuery.endsWith(',')) {
-                updatedUserQuery = `${userQuery.slice(0, userQuery.length - 1).trim()},`;
-            }
+            const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
-            setAutocompleteInputValue(updatedUserQuery);
+            setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
@@ -108,46 +108,75 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
     );
 
-    const onSearchSubmit = useCallback(
+    const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
-            if (!inputQueryJSON) {
+            if (!queryString) {
                 return;
             }
 
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(inputQueryJSON, SearchQueryUtils.getUpdatedAmountValue);
+            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const userQueryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
+
+            if (!userQueryJSON) {
+                Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+                return;
+            }
+
+            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(userQueryJSON, SearchQueryUtils.getUpdatedAmountValue);
             const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
+
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
 
-            SearchActions.clearAllFilters();
-            setTextInputValue('');
-            setAutocompleteInputValue('');
-            setDisplayAutocompleteList(false);
-
-            // Todo Old
-            // const inputQueryJSON = SearchQueryUtils.buildSearchQueryJSON('');
-            // if (inputQueryJSON) {
-            //     // Todo traverse the tree to update all the display values into id values; this is only temporary until autocomplete code from SearchRouter is implement here
-            //     // After https://github.com/Expensify/App/pull/51633 is merged, autocomplete functionality will be included into this component, and `getFindIDFromDisplayValue` can be removed
-            //     const computeNodeValueFn = SearchQueryUtils.getFindIDFromDisplayValue(cardList, taxRates);
-            //     const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(inputQueryJSON, computeNodeValueFn);
-            //     const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-            // } else {
-            //     Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
-            // }
+            if (query !== originalInputQuery) {
+                SearchActions.clearAllFilters();
+                setTextInputValue('');
+                setAutocompleteQueryValue('');
+                setIsAutocompleteListVisible(false);
+            }
         },
-        [autocompleteSubstitutions],
+        [autocompleteSubstitutions, originalInputQuery],
     );
 
-    const onAutocompleteSuggestionClick = (autocompleteKey: string, autocompleteID: string) => {
-        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: autocompleteID};
+    const onListItemClick = (item: OptionData | SearchQueryItem) => {
+        if (!isSearchQueryItem(item)) {
+            return;
+        }
 
-        setAutocompleteSubstitutions(substitutions);
+        if (!item.searchQuery) {
+            return;
+        }
+
+        if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+            const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
+            onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
+
+            if (item.text && item.autocompleteID) {
+                const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+
+                setAutocompleteSubstitutions(substitutions);
+            }
+        } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
+            submitSearch(item.searchQuery);
+        }
     };
 
-    const hideAutocompleteList = () => setDisplayAutocompleteList(false);
-    const showAutocompleteList = () => setDisplayAutocompleteList(true);
+    const onListItemFocus = (focusedItem: SearchQueryItem) => {
+        if (!focusedItem.searchQuery) {
+            return;
+        }
+
+        const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
+        setTextInputValue(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
+
+        if (focusedItem.autocompleteID && focusedItem.text) {
+            const substitutions = {...autocompleteSubstitutions, [focusedItem.text]: focusedItem.autocompleteID};
+
+            setAutocompleteSubstitutions(substitutions);
+        }
+    };
+
+    const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
+    const showAutocompleteList = () => setIsAutocompleteListVisible(true);
 
     if (isCannedQuery) {
         const headerIcon = getHeaderContent(type).icon;
@@ -174,9 +203,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         );
     }
 
-    const autocompleteParsedQuery = parseForAutocomplete(autocompleteInputValue);
-    const isListVisible = !!autocompleteParsedQuery?.autocomplete && displayAutocompleteList;
-
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
@@ -188,6 +214,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
+    const listTopPosition = variables.contentHeaderHeight;
+    const shouldShowAutocompleteList = isAutocompleteListVisible && !!textInputValue;
+
     return (
         <View
             dataSet={{dragArea: false}}
@@ -198,7 +227,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 onSearchQueryChange={onSearchQueryChange}
                 isFullWidth
                 onSubmit={() => {
-                    onSearchSubmit(textInputValue);
+                    submitSearch(textInputValue);
                 }}
                 autoFocus={false}
                 onFocus={showAutocompleteList}
@@ -214,19 +243,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     styles.pAbsolute,
                     styles.appBG,
                     styles.pt2,
-                    !isListVisible && styles.dNone,
-                    isListVisible && styles.border,
-                    {top: variables.contentHeaderHeight - 9, left: 20, right: 20},
+                    {top: listTopPosition, left: 20, right: 20},
+                    !shouldShowAutocompleteList && styles.dNone,
+                    shouldShowAutocompleteList && styles.border,
                 ]}
             >
                 <SearchRouterList
-                    textInputValue={autocompleteInputValue}
+                    autocompleteQueryValue={autocompleteQueryValue}
                     searchQueryItem={searchQueryItem}
-                    setTextInputValue={setTextInputValue}
-                    onSearchQueryChange={onSearchQueryChange}
-                    onSearchSubmit={onSearchSubmit}
-                    closeRouter={hideAutocompleteList}
-                    onAutocompleteSuggestionClick={onAutocompleteSuggestionClick}
+                    onListItemPress={onListItemClick}
+                    onListItemFocus={onListItemFocus}
                     ref={listRef}
                 />
             </View>
