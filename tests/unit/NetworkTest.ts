@@ -17,7 +17,6 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as OnyxSession} from '@src/types/onyx';
-import type OnyxNetwork from '@src/types/onyx/Network';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -48,17 +47,9 @@ beforeEach(() => {
     Network.clearProcessQueueInterval();
     SequentialQueue.resetQueue();
 
-    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()])
-        .then(() => {
-            return waitForBatchedUpdates();
-        })
-        .then(
-            () =>
-                // Wait for all async operations to complete
-                new Promise((resolve) => {
-                    setTimeout(resolve, 100);
-                }),
-        );
+    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()]).then(() => {
+        return waitForBatchedUpdates();
+    });
 });
 
 afterEach(() => {
@@ -155,17 +146,11 @@ describe('NetworkTests', () => {
         const defaultTimeout = 1000;
 
         let sessionState: OnyxEntry<OnyxSession>;
-        let networkState: OnyxEntry<OnyxNetwork>;
 
         // Set up listeners for session and network state changes
         Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (sessionState = val),
-        });
-
-        Onyx.connect({
-            key: ONYXKEYS.NETWORK,
-            callback: (val) => (networkState = val),
         });
 
         // Sign in test user and wait for updates
@@ -186,11 +171,6 @@ describe('NetworkTests', () => {
             )
             // Second mock: Authenticate with network check and delay
             .mockImplementationOnce(() => {
-                // Check network state immediately
-                if (networkState?.isOffline) {
-                    return Promise.reject(new Error('Network request failed'));
-                }
-
                 // create a delayed response. Timeout will expire after the second App.reconnectApp();
                 return new Promise((_, reject) => {
                     setTimeout(() => {
