@@ -222,7 +222,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (updatedUserQuery) {
+            if (updatedUserQuery || textInputValue.length > 0) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);

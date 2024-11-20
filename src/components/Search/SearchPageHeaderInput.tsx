@@ -99,7 +99,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (updatedUserQuery) {
+            if (updatedUserQuery || textInputValue.length > 0) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
@@ -214,7 +214,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
-    const listTopPosition = variables.contentHeaderHeight;
+    const listTopPosition = variables.contentHeaderDesktopHeight;
     const shouldShowAutocompleteList = isAutocompleteListVisible && !!textInputValue;
 
     return (

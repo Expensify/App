@@ -10,7 +10,7 @@ jest.mock('@libs/ReportUtils', () => {
         parseReportRouteParams: jest.fn(() => ({})),
         // The `getReportName` method is quite complex, and we don't need to test it, we just want to test the logic around generating subsitutionsMap
         getReportName(report: OnyxTypes.Report) {
-            return report.displayName;
+            return report.reportName;
         },
     };
 });
@@ -52,11 +52,11 @@ const cardListMock = {
 const reportsMock = {
     [`${ONYXKEYS.COLLECTION.REPORT}rep123`]: {
         reportID: 'rep123',
-        displayName: 'Report 1',
+        reportName: 'Report 1',
     },
     [`${ONYXKEYS.COLLECTION.REPORT}rep456`]: {
         reportID: 'rep456',
-        displayName: 'Report 2',
+        reportName: 'Report 2',
     },
 } as OnyxCollection<OnyxTypes.Report>;
 

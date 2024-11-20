@@ -2571,7 +2571,7 @@ const styles = (theme: ThemeColors) =>
         searchResultsHeaderBar: {
             display: 'flex',
             justifyContent: 'center',
-            height: variables.contentHeaderHeight,
+            height: variables.contentHeaderDesktopHeight,
             zIndex: variables.popoverzIndex,
             position: 'relative',
             paddingHorizontal: 20,

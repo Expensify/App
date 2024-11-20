@@ -1,11 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useCallback, useMemo} from 'react';
+import React, {forwardRef, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -18,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -58,6 +58,14 @@ type SearchRouterListProps = {
 
     /** Callback to call when an item is focused via arrow buttons */
     onListItemFocus: (item: SearchQueryItem) => void;
+};
+
+const defaultListOptions = {
+    userToInvite: null,
+    recentReports: [],
+    personalDetails: [],
+    currentUserOption: null,
+    categoryOptions: [],
 };
 
 const setPerformanceTimersEnd = () => {
@@ -112,7 +120,7 @@ function SearchRouterList(
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return defaultListOptions;
         }
         return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);
@@ -123,19 +131,44 @@ function SearchRouterList(
 
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const cardAutocompleteList = Object.values(cardList);
-    const personalDetailsForParticipants = usePersonalDetails();
-    const participantsAutocompleteList = useMemo(
-        () =>
-            Object.values(personalDetailsForParticipants)
-                .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
-                .map((details) => ({
+
+    const participantsAutocompleteList = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return [];
+        }
+
+        const filteredOptions = OptionsListUtils.getFilteredOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: 0,
+            includeSelfDM: true,
+        });
+
+        // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
+        const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);
+        const autocompleteOptions = Object.values(personalDetailsFromOptions)
+            .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
+            .map((details) => {
+                return {
                     name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                    accountID: details?.accountID.toString(),
-                })),
-        [personalDetailsForParticipants],
-    );
+                    accountID: details.accountID.toString(),
+                };
+            });
+        const currentUser = (filteredOptions.currentUserOption as SearchOption<PersonalDetails>).item;
+        if (currentUser) {
+            autocompleteOptions.push({
+                name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
+                accountID: currentUser.accountID?.toString() ?? '-1',
+            });
+        }
+
+        return autocompleteOptions;
+    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+
     const taxRates = getAllTaxRates();
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
+
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const categoryAutocompleteList = useMemo(() => {
@@ -219,7 +252,6 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
                 const filteredParticipants = participantsAutocompleteList
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .sort()
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
@@ -231,7 +263,6 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
                 const filteredParticipants = participantsAutocompleteList
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .sort()
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
@@ -242,8 +273,7 @@ function SearchRouterList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filteredChats = searchOptions.recentReports
-                    .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()))
-                    .sort((chatA, chatB) => (chatA > chatB ? 1 : -1))
+                    .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredChats.map((chat) => ({
@@ -279,7 +309,10 @@ function SearchRouterList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
-                    .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(card.bank.toLowerCase()))
+                    .filter(
+                        (card) =>
+                            card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(CardUtils.getCardDescription(card.cardID).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
