@@ -1,5 +1,5 @@
-import * as NavigationBar from 'expo-navigation-bar';
 import {findFocusedRoute} from '@react-navigation/native';
+import * as NavigationBar from 'expo-navigation-bar';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
