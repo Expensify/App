@@ -7737,8 +7737,8 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
 /**
  * Check if Report has any held expenses
  */
-function hasHeldExpenses(iouReportID?: string): boolean {
-    const transactions = reportsTransactions[iouReportID ?? ''] ?? [];
+function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+    const transactions = allReportTransactions ?? reportsTransactions[iouReportID ?? ''] ?? [];
     return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 }
 

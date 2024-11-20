@@ -17,6 +17,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
+import * as ReportUtils from '@libs/ReportUtils';
 
 let currentUserEmail: string;
 Onyx.connect({
@@ -47,6 +48,20 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     // The transactionID is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
+    const data = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data ?? {}) as SearchResults['data'];
+    const allReportTransactions = (
+        isReportListItemType(item)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value as SearchTransaction)?.reportID === item.reportID)
+                  .map((report) => report[1])
+            : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]
+    ) as SearchTransaction[];
+
+    const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
+    if (hasHeldExpense) {
+        goToItem();
+        return;
+    }
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
