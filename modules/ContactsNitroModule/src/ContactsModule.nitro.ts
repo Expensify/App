@@ -4,7 +4,7 @@ interface StringHolder {
   value: string
 }
 
-interface Contact {
+export interface Contact {
   firstName?: string
   lastName?: string
   middleName?: string
