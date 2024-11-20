@@ -397,6 +397,7 @@ function getOptionData({
         undefined,
         ReportUtils.isSelfDM(report),
     );
+
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
