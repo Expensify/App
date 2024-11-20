@@ -57,6 +57,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     useEffect(() => {
         UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+        Report.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
