@@ -49,7 +49,7 @@
 		<false/>
 	</dict>
   <key>NSContactsUsageDescription</key>
-  <string>App users your contacts</string>
+  <string>Import contacts from your phone so your favorite people are always a tap away.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
