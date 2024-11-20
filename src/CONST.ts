@@ -134,7 +134,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -172,7 +172,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -619,6 +619,31 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
+        },
+        BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_BENEFICIAL_OWNER: 1,
+                IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
+                BENEFICIAL_OWNER_DETAILS_FORM: 3,
+                ARE_THERE_MORE_BENEFICIAL_OWNERS: 4,
+                OWNERSHIP_CHART: 5,
+                BENEFICIAL_OWNERS_LIST: 6,
+            },
+            BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
+                PREFIX: 'beneficialOwner',
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+                COUNTRY: 'country',
+            },
+            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
@@ -1620,6 +1645,7 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
+        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
         ADMIN: 'admin@expensify.com',
         BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
@@ -2082,6 +2108,7 @@ const CONST = {
 
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
+        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? 10903701),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
         BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
         CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
@@ -3026,6 +3053,7 @@ const CONST = {
     get EXPENSIFY_EMAILS() {
         return [
             this.EMAIL.ACCOUNTING,
+            this.EMAIL.ACCOUNTS_PAYABLE,
             this.EMAIL.ADMIN,
             this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
@@ -3046,6 +3074,7 @@ const CONST = {
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ACCOUNTS_PAYABLE,
             this.ACCOUNT_ID.ADMIN,
             this.ACCOUNT_ID.BILLS,
             this.ACCOUNT_ID.CHRONOS,
@@ -4821,7 +4850,6 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
@@ -4897,7 +4925,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
@@ -4930,7 +4958,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
@@ -4949,7 +4977,7 @@ const CONST = {
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click More features.\n' +
@@ -4968,7 +4996,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *More features*.\n' +
@@ -4987,7 +5015,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
@@ -5074,7 +5102,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up your bank account:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
@@ -5108,7 +5136,7 @@ const CONST = {
                     description:
                         "Here's how to review and update your workspace settings:" +
                         '\n' +
-                        '1. Click your profile picture.' +
+                        '1. Click the settings tab.' +
                         '2. Click *Workspaces* > [Your workspace].' +
                         '\n' +
                         "Make any changes there and we'll track them in the #admins room.",
@@ -5867,6 +5895,12 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+        BENEFIT: {
+            CHATTING_DIRECTLY: 'chattingDirectly',
+            EVERYTHING_MOBILE: 'everythingMobile',
+            TRAVEL_EXPENSE: 'travelExpense',
+        },
+        BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
     SESSION_STORAGE_KEYS: {
@@ -6080,6 +6114,16 @@ const CONST = {
         ANIMATION: 'animation',
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
+    },
+    REPORT_FIELDS_FEATURE: {
+        qbo: {
+            classes: 'report-fields-qbo-classes',
+            customers: 'report-fields-qbo-customers',
+            locations: 'report-fields-qbo-locations',
+        },
+        xero: {
+            mapping: 'report-fields-mapping',
+        },
     },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
