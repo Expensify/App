@@ -49,6 +49,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
     PROJECT_ROOT_PATH="Mobile-Expensify/"
+    export CUSTOM_APK_NAME="Expensify-debug.apk"
 else
     echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
     PROJECT_ROOT_PATH="./"

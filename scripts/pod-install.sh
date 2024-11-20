@@ -56,7 +56,7 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Navigate to the OldDot repository, and run bundle install and pod install
     cd Mobile-Expensify/ios
     bundle install
-    bundle exec pod install
+    bundle exec pod install --repo-update
     exit 0
 fi
 
