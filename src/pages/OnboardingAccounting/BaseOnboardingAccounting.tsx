@@ -25,13 +25,13 @@ import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import type {OnboardingAccountingType} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type OnboardingListItem = ListItem & {
-    keyForList: OnboardingAccountingType;
+    keyForList: OnboardingAccounting;
 };
 
 function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
@@ -51,7 +51,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccountingType | undefined>(undefined);
+    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 

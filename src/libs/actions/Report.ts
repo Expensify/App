@@ -89,15 +89,18 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccountingType, OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    Onboarding,
+    OnboardingPurpose,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -115,7 +118,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import navigateFromNotification from './navigateFromNotification';
-import {createUpdateCommentMatcher, resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from './RequestConflictUtils';
+import {
+    createUpdateCommentMatcher,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveOpenReportDuplicationConflictAction,
+} from './RequestConflictUtils';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
@@ -271,8 +280,24 @@ Onyx.connect({
     callback: (val) => (quickAction = val),
 });
 
-let allReportDraftComments: Record<string, string | undefined> = {};
+let onboarding: OnyxEntry<Onboarding>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => {
+        if (Array.isArray(val)) {
+            return;
+        }
+        onboarding = val;
+    },
+});
 
+let introSelected: OnyxEntry<IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
+});
+
+let allReportDraftComments: Record<string, string | undefined> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     waitForCollectionCallback: true,
@@ -843,6 +868,42 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
+
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
+    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete) {
+        const {choice, inviteType} = introSelected;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
+                const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
+                onboardingMessage.tasks = updatedTasks;
+            }
+
+            const onboardingData = prepareOnboardingOptimisticData(choice, onboardingMessage);
+
+            optimisticData.push(...onboardingData.optimisticData, {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                },
+            });
+
+            successData.push(...onboardingData.successData);
+
+            failureData.push(...onboardingData.failureData);
+
+            parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
+        }
+    }
+
     const isGroupChat = ReportUtils.isGroupChat(newReportObject);
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
@@ -993,8 +1054,7 @@ function openReport(
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
-            checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
 }
@@ -3412,16 +3472,13 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding(
-    engagementChoice: OnboardingPurposeType,
+function prepareOnboardingOptimisticData(
+    engagementChoice: OnboardingPurpose,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
-    firstName = '',
-    lastName = '',
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
-    paymentSelected?: string,
-    companySize?: OnboardingCompanySizeType,
-    userReportedIntegration?: OnboardingAccountingType,
+    userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (Permissions.canUseCombinedTrackSubmit()) {
@@ -3440,15 +3497,6 @@ function completeOnboarding(
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-
-    // Introductory message
-    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
-    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
-    const introductionMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: introductionCommentAction.reportActionID,
-        reportComment: introductionComment.commentText,
-    };
 
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
@@ -3472,7 +3520,11 @@ function completeOnboarding(
     }
     const tasksData = data.tasks
         .filter((task) => {
-            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+            if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
+                return false;
+            }
+
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
             return true;
@@ -3488,6 +3540,7 @@ function completeOnboarding(
                           navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
                           workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                       })
                     : task.description;
             const taskTitle =
@@ -3691,7 +3744,6 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
@@ -3700,19 +3752,20 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
-        {
+    );
+    if (!wasInvited) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: true},
-        },
-    );
+        });
+    }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
         value: {
-            [introductionCommentAction.reportActionID]: {pendingAction: null},
             [textCommentAction.reportActionID]: {pendingAction: null},
         },
     });
@@ -3747,9 +3800,6 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
                 [textCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
@@ -3760,12 +3810,15 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
         },
-        {
+    );
+
+    if (!wasInvited) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: false},
-        },
-    );
+        });
+    }
 
     if (userReportedIntegration) {
         optimisticData.push({
@@ -3799,10 +3852,7 @@ function completeOnboarding(
         });
     }
 
-    const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...introductionMessage},
-        {type: 'message', ...textMessage},
-    ];
+    const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
 
     if ('video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
@@ -3835,6 +3885,30 @@ function completeOnboarding(
     }
 
     guidedSetupData.push(...tasksForParameters);
+
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+}
+
+function completeOnboarding(
+    engagementChoice: OnboardingPurpose,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    firstName = '',
+    lastName = '',
+    adminsChatReportID?: string,
+    onboardingPolicyID?: string,
+    paymentSelected?: string,
+    companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
+) {
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
+        engagementChoice,
+        data,
+        adminsChatReportID,
+        onboardingPolicyID,
+        userReportedIntegration,
+        wasInvited,
+    );
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,

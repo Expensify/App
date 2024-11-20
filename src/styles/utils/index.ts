@@ -1125,19 +1125,19 @@ function getAmountWidth(amount: string): number {
  * Single true value will give result accordingly.
  */
 function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
-    let backgroundColor;
-
     if (isSelected) {
-        backgroundColor = selectedBG;
-    } else if (isDisabled) {
-        backgroundColor = undefined;
-    } else if (isFocused) {
-        backgroundColor = focusedBG;
+        return {backgroundColor: selectedBG};
     }
 
-    return {
-        backgroundColor,
-    };
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
 }
 
 const staticStyleUtils = {
