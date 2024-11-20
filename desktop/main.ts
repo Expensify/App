@@ -515,6 +515,7 @@ const mainWindow = (): Promise<void> => {
                 // open the default browser instead of a new electron window
                 browserWindow.webContents.setWindowOpenHandler(({url}) => {
                     const denial = {action: 'deny'} as const;
+
                     // Make sure local urls stay in electron perimeter
                     if (url.slice(0, 'file://'.length).toLowerCase() === 'file://') {
                         return denial;
