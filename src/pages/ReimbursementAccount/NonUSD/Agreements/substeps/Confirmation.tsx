@@ -31,8 +31,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
-            {/* TODO: Add link to terms and conditions */}
-            <TextLink href="">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>
+            <TextLink href="https://cross-border.corpay.com/tc/">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>
         </Text>
     );
 }
