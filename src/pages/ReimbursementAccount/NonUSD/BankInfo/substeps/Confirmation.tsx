@@ -22,8 +22,8 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = useMemo(() => {
         const keys: Record<string, keyof ReimbursementAccountForm> = {};
-        corpayFields.forEach((field) => {
-            keys[field.id] = field.id;
+        corpayFields?.forEach((field) => {
+            keys[field.id] = field.id as keyof ReimbursementAccountForm;
         });
         return keys;
     }, [corpayFields]);
@@ -32,11 +32,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const items = useMemo(
         () => (
             <>
-                {corpayFields.map((field) => {
+                {corpayFields?.map((field) => {
                     return (
                         <MenuItemWithTopDescription
                             description={field.label}
-                            title={values[field.id] ? String(values[field.id]) : ''}
+                            title={values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : ''}
                             shouldShowRightIcon
                             onPress={() => {
                                 onMove(0);
