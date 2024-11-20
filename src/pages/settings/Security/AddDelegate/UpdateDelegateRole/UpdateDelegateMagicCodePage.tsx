@@ -52,21 +52,19 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             offlineIndicatorStyle={styles.mtAuto}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                        <HeaderWithBackButton
-                            title={translate('delegate.makeSureItIsYou')}
-                            onBackButtonPress={onBackButtonPress}
-                        />
-                        <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
-                        <ValidateCodeForm
-                            ref={validateCodeFormRef}
-                            delegate={login}
-                            role={role}
-                            wrapperStyle={safeAreaPaddingBottomStyle}
-                        />
-                    </DelegateNoAccessWrapper>
-                </>
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        title={translate('delegate.makeSureItIsYou')}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    <Text style={[styles.mb3, styles.ph5]}>{translate('delegate.enterMagicCodeUpdate', {contactMethod: account?.primaryLogin ?? ''})}</Text>
+                    <ValidateCodeForm
+                        ref={validateCodeFormRef}
+                        delegate={login}
+                        role={role}
+                        wrapperStyle={safeAreaPaddingBottomStyle}
+                    />
+                </DelegateNoAccessWrapper>
             )}
         </ScreenWrapper>
     );

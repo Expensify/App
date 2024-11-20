@@ -41,9 +41,9 @@ function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScre
         const accessDeniedFunction = DENIED_ACCESS_VARIANTS[variant];
         return acc || accessDeniedFunction(account);
     }, false);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (isPageAccessDenied) {
-        const {shouldUseNarrowLayout} = useResponsiveLayout();
         return (
             <FullPageNotFoundView
                 shouldShow
