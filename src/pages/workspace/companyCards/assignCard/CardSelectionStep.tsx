@@ -77,8 +77,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeLarge}
-                width={variables.iconSizeExtraLarge}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
                 additionalStyles={styles.mr3}
             />
         ),
@@ -110,7 +110,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeLarge}
+                height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
             />
