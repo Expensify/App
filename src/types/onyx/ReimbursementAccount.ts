@@ -129,6 +129,18 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
     /** Bank statement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
+
+    /** Is user also an owner */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
+
+    /** Are the more owners */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
+
+    /** Stringified array of owners data */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+
+    /** Entity chart files */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]?: FileObject[];
 };
 
 /** Model of Additional data */
@@ -144,7 +156,7 @@ type AdditionalData = {
     /** Account holder address - zip code */
     [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
     /** Account holder address - country */
-    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_COUNTRY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: string;
     /** Country user selects in first step */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
     /** Corpay fields */
