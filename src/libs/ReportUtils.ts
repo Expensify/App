@@ -489,7 +489,7 @@ type OptionData = {
     searchText?: string;
     isIOUReportOwner?: boolean | null;
     shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean | null;
+    isPolicyExpenseChat?: boolean;
     isMoneyRequestReport?: boolean | null;
     isInvoiceReport?: boolean;
     isExpenseRequest?: boolean | null;
@@ -525,6 +525,7 @@ type OptionData = {
     participantsList?: PersonalDetails[];
     icons?: Icon[];
     iouReportAmount?: number;
+    displayName?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -1055,8 +1056,8 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxInputOrEntry<Report> | Participant): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
+function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
+    return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ?? (option && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat) ?? false;
 }
 
 function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -6454,13 +6455,11 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
-    const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
-        reportErrors,
         ...reportErrorFields,
         ...reportActionErrors,
     };
@@ -7946,6 +7945,30 @@ function getOptimisticDataForParentReportAction(reportID: string, lastVisibleAct
     });
 }
 
+function getQuickActionDetails(
+    quickActionReport: Report,
+    personalDetails: PersonalDetailsList | undefined,
+    policyChatForActivePolicy: Report | undefined,
+    reportNameValuePairs: ReportNameValuePairs,
+): {quickActionAvatars: Icon[]; hideQABSubtitle: boolean} {
+    const isValidQuickActionReport = !(isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport, reportNameValuePairs));
+    let hideQABSubtitle = false;
+    let quickActionAvatars: Icon[] = [];
+    if (isValidQuickActionReport) {
+        const avatars = getIcons(quickActionReport, personalDetails);
+        quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserAccountID);
+    } else {
+        hideQABSubtitle = true;
+    }
+    if (!isEmptyObject(policyChatForActivePolicy)) {
+        quickActionAvatars = getIcons(policyChatForActivePolicy, personalDetails);
+    }
+    return {
+        quickActionAvatars,
+        hideQABSubtitle,
+    };
+}
+
 function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
     if (isEmptyObject(policy)) {
         return false;
@@ -8440,10 +8463,6 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
 }
 
-function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false;
-}
-
 function hasInvoiceReports() {
     const allReports = Object.values(ReportConnection.getAllReports() ?? {});
     return allReports.some((report) => isInvoiceReport(report));
@@ -8606,6 +8625,7 @@ export {
     getInvoicePayerName,
     getInvoicesChatName,
     getPayeeName,
+    getQuickActionDetails,
     hasActionsWithErrors,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
@@ -8652,7 +8672,6 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isExpenseReportWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,

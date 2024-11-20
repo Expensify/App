@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
@@ -7,18 +8,24 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type BeneficialOwnerCheckUBOProps = {
+type YesNoStepProps = {
     /** The title of the question */
     title: string;
+
+    /** The description of the question */
+    description: string;
 
     /** The default value of the radio button */
     defaultValue: boolean;
 
     /** Callback when the value is selected */
     onSelectedValue: (value: boolean) => void;
+
+    /** The style of the submit button */
+    submitButtonStyles?: StyleProp<ViewStyle>;
 };
 
-function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: BeneficialOwnerCheckUBOProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
@@ -26,7 +33,7 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
     const handleSubmit = () => {
         onSelectedValue(value);
     };
-    const handleSelectUBOValue = (newValue: string) => setValue(newValue === 'true');
+    const handleSelectValue = (newValue: string) => setValue(newValue === 'true');
     const options = useMemo<Choice[]>(
         () => [
             {
@@ -47,13 +54,13 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
+            submitButtonStyles={submitButtonStyles}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
-            <Text style={[styles.pv3, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+            <Text style={[styles.pv3, styles.textSupporting]}>{description}</Text>
             <RadioButtons
                 items={options}
-                onPress={handleSelectUBOValue}
+                onPress={handleSelectValue}
                 defaultCheckedValue={defaultValue.toString()}
                 radioButtonStyle={[styles.mb6]}
             />
@@ -61,6 +68,6 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
     );
 }
 
-BeneficialOwnerCheckUBO.displayName = 'BeneficialOwnerCheckUBO';
+YesNoStep.displayName = 'YesNoStep';
 
-export default BeneficialOwnerCheckUBO;
+export default YesNoStep;

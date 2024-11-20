@@ -130,6 +130,7 @@ type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
     reportPreviewReportActionID?: string;
+    adminsChatReportID: string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -2563,7 +2564,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
 
-    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID};
+    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID, adminsChatReportID};
 }
 
 function enablePolicyConnections(policyID: string, enabled: boolean) {
