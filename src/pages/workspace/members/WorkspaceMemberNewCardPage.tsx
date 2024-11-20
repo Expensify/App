@@ -88,7 +88,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
+                height={variables.iconSizeLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
             />

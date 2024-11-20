@@ -54,7 +54,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
+                height={variables.iconSizeLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
             />
