@@ -29,23 +29,28 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
+            const cardName = CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN);
+            const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
                 <OfflineWithFeedback
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
                     errorRowStyles={styles.ph5}
                     errors={item.errors}
+                    pendingAction={item.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                         accessibilityLabel="row"
                         hoverStyle={styles.hoveredComponentBG}
+                        disabled={isCardDeleted}
                         onPress={() => {
                             if (!cardID || !item?.accountID) {
                                 return;
@@ -55,14 +60,14 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={item?.cardNumber ?? ''}
-                            name={item.nameValuePairs?.cardTitle ?? ''}
+                            cardNumber={CardUtils.maskCardNumber(cardName, item.bank)}
+                            name={customCardNames?.[item.cardID] ?? ''}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [cardsList, personalDetails, policyID, styles],
+        [cardsList, customCardNames, personalDetails, policyID, styles],
     );
 
     const renderListHeader = useCallback(

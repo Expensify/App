@@ -2,10 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Type of export card */
-type ExportCompanyCard = {
-    [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-};
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -47,6 +43,18 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
+    /** Card name */
+    cardName?: string;
+
+    /** Related policy account id */
+    fundID?: string;
+
+    /** Transaction start date */
+    scrapeMinDate?: string;
+
+    /** Last updated time */
+    lastScrape?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
@@ -63,9 +71,6 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
-
-        /** Type of export card */
-        exportAccountDetails?: ExportCompanyCard;
 
         /** User-defined nickname for the card */
         cardTitle?: string;
@@ -102,7 +107,11 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
-    }>;
+    }> &
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Type of export card */
+            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
+        }>;
 }>;
 
 /** Model of Expensify card details */
@@ -154,10 +163,22 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the request is being processed */
+    isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    isSuccessful?: boolean;
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card>;
+type WorkspaceCardsList = Record<string, Card> & {
+    /** List of cards to assign */
+    cardList?: Record<string, string>;
+};
 
 export default Card;
 export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

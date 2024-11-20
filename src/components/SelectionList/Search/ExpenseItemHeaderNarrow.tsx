@@ -7,7 +7,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -50,12 +50,12 @@ function ExpenseItemHeaderNarrow({
     const theme = useTheme();
 
     // It might happen that we are missing display names for `From` or `To`, we only display arrow icon if both names exist
-    const shouldDisplayArrowIcon = SearchUtils.isCorrectSearchUserName(participantFromDisplayName) && SearchUtils.isCorrectSearchUserName(participantToDisplayName);
+    const shouldDisplayArrowIcon = SearchUIUtils.isCorrectSearchUserName(participantFromDisplayName) && SearchUIUtils.isCorrectSearchUserName(participantToDisplayName);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3, styles.gap2, containerStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
-                {canSelectMultiple && (
+                {!!canSelectMultiple && (
                     <PressableWithFeedback
                         accessibilityLabel={text ?? ''}
                         role={CONST.ROLE.BUTTON}
@@ -64,7 +64,7 @@ function ExpenseItemHeaderNarrow({
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     >
                         <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!isSelected, !!isDisabled)]}>
-                            {isSelected && (
+                            {!!isSelected && (
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     fill={theme.textLight}
@@ -81,7 +81,7 @@ function ExpenseItemHeaderNarrow({
                         displayName={participantFromDisplayName}
                     />
                 </View>
-                {shouldDisplayArrowIcon && (
+                {!!shouldDisplayArrowIcon && (
                     <Icon
                         src={Expensicons.ArrowRightLong}
                         width={variables.iconSizeXXSmall}

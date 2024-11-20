@@ -19,6 +19,9 @@ function BaseImportOnyxState({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     return (
@@ -36,7 +39,7 @@ function BaseImportOnyxState({
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: onFileRead,
+                                    onPicked: (data) => onFileRead(data.at(0) ?? {}),
                                 });
                             }}
                         />

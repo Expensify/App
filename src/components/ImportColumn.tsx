@@ -163,6 +163,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
 
     const colName = findColumnName(column.at(0) ?? '');
     const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
+    const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
 
     useEffect(() => {
         if (defaultSelectedIndex === -1) {
@@ -201,7 +202,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
                         onOptionSelected={(option) => {
                             setColumnName(columnIndex, option.value);
                         }}
-                        defaultSelectedIndex={defaultSelectedIndex}
+                        defaultSelectedIndex={finalIndex}
                         options={options}
                     />
                 </View>

@@ -85,7 +85,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                 title={title}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backTo)}
-                shouldDisplaySearchRouter
             />
             {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

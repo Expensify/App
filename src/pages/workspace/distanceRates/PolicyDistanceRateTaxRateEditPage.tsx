@@ -6,7 +6,8 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -24,22 +25,24 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
-    const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
-    const taxRateExternalID = rate.attributes?.taxRateExternalID;
+    const taxRateExternalID = rate?.attributes?.taxRateExternalID;
     const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID ?? '');
 
-    const onTaxRateChange = (newTaxRate: OptionsListUtils.TaxRatesOption) => {
+    const onTaxRateChange = (newTaxRate: TaxOptionsListUtils.TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {
             Navigation.goBack();
+            return;
+        }
+        if (!customUnit) {
             return;
         }
         DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
-                    ...rate.attributes,
+                    ...rate?.attributes,
                     taxRateExternalID: newTaxRate.code,
                 },
             },

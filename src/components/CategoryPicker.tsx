@@ -44,25 +44,19 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const categories = policyCategories ?? policyCategoriesDraft ?? {};
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-        const {categoryOptions} = OptionsListUtils.getFilteredOptions(
-            [],
-            [],
-            [],
-            debouncedSearchValue,
+        const {categoryOptions} = OptionsListUtils.getFilteredOptions({
+            searchValue: debouncedSearchValue,
             selectedOptions,
-            [],
-            false,
-            false,
-            true,
+            includeP2P: false,
+            includeCategories: true,
             categories,
-            validPolicyRecentlyUsedCategories,
-            false,
-        );
+            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+        });
 
         const categoryData = categoryOptions?.at(0)?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
         const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
-        const isCategoriesCountBelowThreshold = categoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+        const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];

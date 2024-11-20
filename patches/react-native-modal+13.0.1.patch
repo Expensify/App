@@ -11,7 +11,7 @@ index b63bcfc..bd6419e 100644
      buildPanResponder: () => void;
      getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 80f4e75..5a58eae 100644
+index 80f4e75..46277ea 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
 @@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
@@ -28,7 +28,18 @@ index 80f4e75..5a58eae 100644
          this.shouldPropagateSwipe = (evt, gestureState) => {
              return typeof this.props.propagateSwipe === 'function'
                  ? this.props.propagateSwipe(evt, gestureState)
-@@ -453,10 +460,18 @@ export class ReactNativeModal extends React.Component {
+@@ -383,7 +390,9 @@ export class ReactNativeModal extends React.Component {
+                             this.setState({
+                                 isVisible: false,
+                             }, () => {
+-                                this.props.onModalHide();
++                                if (Platform.OS !== 'ios') {
++                                    this.props.onModalHide();
++                                }
+                             });
+                         });
+                     }
+@@ -453,10 +462,18 @@ export class ReactNativeModal extends React.Component {
          if (this.state.isVisible) {
              this.open();
          }
@@ -48,7 +59,7 @@ index 80f4e75..5a58eae 100644
          if (this.didUpdateDimensionsEmitter) {
              this.didUpdateDimensionsEmitter.remove();
          }
-@@ -464,6 +479,9 @@ export class ReactNativeModal extends React.Component {
+@@ -464,6 +481,9 @@ export class ReactNativeModal extends React.Component {
              InteractionManager.clearInteractionHandle(this.interactionHandle);
              this.interactionHandle = null;
          }
@@ -58,9 +69,21 @@ index 80f4e75..5a58eae 100644
      }
      componentDidUpdate(prevProps) {
          // If the animations have been changed then rebuild them to make sure we're
-@@ -525,7 +543,7 @@ export class ReactNativeModal extends React.Component {
+@@ -490,7 +510,7 @@ export class ReactNativeModal extends React.Component {
+     }
+     render() {
+         /* eslint-disable @typescript-eslint/no-unused-vars */
+-        const { animationIn, animationInTiming, animationOut, animationOutTiming, avoidKeyboard, coverScreen, hasBackdrop, backdropColor, backdropOpacity, backdropTransitionInTiming, backdropTransitionOutTiming, customBackdrop, children, isVisible, onModalShow, onBackButtonPress, useNativeDriver, propagateSwipe, style, ...otherProps } = this.props;
++        const { animationIn, animationInTiming, animationOut, animationOutTiming, avoidKeyboard, coverScreen, hasBackdrop, backdropColor, backdropOpacity, backdropTransitionInTiming, backdropTransitionOutTiming, customBackdrop, children, isVisible, onModalShow, onBackButtonPress, useNativeDriver, propagateSwipe, style, onDismiss, ...otherProps } = this.props;
+         const { testID, ...containerProps } = otherProps;
+         const computedStyle = [
+             { margin: this.getDeviceWidth() * 0.05, transform: [{ translateY: 0 }] },
+@@ -523,9 +543,9 @@ export class ReactNativeModal extends React.Component {
+                 this.makeBackdrop(),
+                 containerView));
          }
-         return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
+-        return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
++        return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress, onDismiss: () => {onDismiss();if (Platform.OS === 'ios'){this.props.onModalHide();}} }, otherProps),
              this.makeBackdrop(),
 -            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: Platform.OS === 'ios' ? 'padding' : undefined, pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
 +            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: 'padding', pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));

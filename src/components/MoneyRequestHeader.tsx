@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -17,6 +18,7 @@ import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -44,7 +46,10 @@ type MoneyRequestHeaderProps = {
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
@@ -61,6 +66,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const reportID = report?.reportID;
+
+    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
 
@@ -154,7 +162,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                     onBackButtonPress={onBackButtonPress}
                 >
                     {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
@@ -198,7 +206,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         />
                     </View>
                 )}
-                {statusBarProps && (
+                {!!statusBarProps && (
                     <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}

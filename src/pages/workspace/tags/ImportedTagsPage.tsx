@@ -30,10 +30,12 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -116,7 +118,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingTags(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
@@ -126,7 +128,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

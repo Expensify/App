@@ -13,11 +13,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,12 +37,12 @@ function WorkspaceCompanyCardsSettingsPage({
     const workspaceAccountID = policy?.workspaceAccountID ?? -1;
     const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
-    // TODO: use data form onyx instead of mocked one when API is implemented
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
-    const liabilityType = cardFeeds?.companyCards?.[lastSelectedFeed]?.liabilityType;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
@@ -49,15 +50,21 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
-        Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, lastSelectedFeed);
+        if (selectedFeed) {
+            CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed);
+        }
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
-        Policy.setWorkspaceCompanyCardTransactionLiability(
+        if (!selectedFeed) {
+            return;
+        }
+        CompanyCards.setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
-            lastSelectedFeed,
+            policyID,
+            selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
         );
     };
@@ -101,7 +108,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         isVisible={deleteCompanyCardConfirmModalVisible}
                         onConfirm={deleteCompanyCardFeed}
                         onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
+                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
                         prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}

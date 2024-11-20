@@ -46,6 +46,7 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW
+    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
@@ -77,7 +78,8 @@ export default function <TProps extends WithPolicyProps, TRef>(
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
 
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        // Disable reuseConnection to temporarily fix the infinite loading status after Onyx.set(null). Reference: https://github.com/Expensify/App/issues/52640
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {reuseConnection: false});
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
 

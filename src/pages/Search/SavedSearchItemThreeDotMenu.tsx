@@ -34,6 +34,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem}: SavedSearchIte
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                iconStyles={styles.wAuto}
             />
         </View>
     );

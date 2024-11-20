@@ -30,7 +30,6 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
-import Performance from './libs/Performance';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -89,12 +88,12 @@ function Expensify() {
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE);
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED);
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION);
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {
@@ -138,7 +137,6 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {

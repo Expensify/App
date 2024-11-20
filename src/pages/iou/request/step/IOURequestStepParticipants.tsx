@@ -1,10 +1,8 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -26,13 +24,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepParticipantsOnyxProps = {
-    /** Whether the confirmation step should be skipped */
-    skipConfirmation: OnyxEntry<boolean>;
-};
-
-type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
+type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
 function IOURequestStepParticipants({
@@ -40,13 +32,12 @@ function IOURequestStepParticipants({
         params: {iouType, reportID, transactionID, action},
     },
     transaction,
-    skipConfirmation,
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -76,7 +67,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
-    const shouldDisplayTrackExpenseButton = !!selfDMReportID && action === CONST.IOU.ACTION.CREATE;
+    const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -98,7 +89,7 @@ function IOURequestStepParticipants({
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipantReportID = val.at(0)?.reportID ?? '';
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID, !canUseP2PDistanceRequests);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
 
@@ -115,7 +106,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [iouType, reportID, transactionID, canUseP2PDistanceRequests],
+        [iouType, reportID, transactionID],
     );
 
     const goToNextStep = useCallback(() => {
@@ -161,6 +152,8 @@ function IOURequestStepParticipants({
             return;
         }
 
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
@@ -183,7 +176,7 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {skipConfirmation && (
+            {!!skipConfirmation && (
                 <FormHelpMessage
                     style={[styles.ph4, styles.mb4]}
                     isError={false}
@@ -197,7 +190,6 @@ function IOURequestStepParticipants({
                 onFinish={goToNextStep}
                 onTrackExpensePress={trackExpense}
                 iouType={iouType}
-                iouRequestType={iouRequestType}
                 action={action}
                 shouldDisplayTrackExpenseButton={shouldDisplayTrackExpenseButton}
             />
@@ -207,13 +199,4 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
-const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-})(IOURequestStepParticipants);
-
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipantsWithOnyx));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));

@@ -6,8 +6,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +15,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import DebugTabView from './DebugTabView';
 
 type BottomTabBarProps = {
     selectedTab: string | undefined;
@@ -42,7 +43,7 @@ type BottomTabBarProps = {
  * Otherwise policyID will be inserted into query
  */
 function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
-    const queryJSON = SearchUtils.buildSearchQueryJSON(query);
+    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
     if (!queryJSON) {
         return query;
     }
@@ -57,7 +58,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
         queryJSON.policyID = policyID;
     }
 
-    return SearchUtils.buildSearchQueryString(queryJSON);
+    return SearchQueryUtils.buildSearchQueryString(queryJSON);
 }
 
 function BottomTabBar({selectedTab}: BottomTabBarProps) {
@@ -65,12 +66,23 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const transactionViolations = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+    const {currentReportID} = useCurrentReportID() ?? {currentReportID: null};
+    const [user] = useOnyx(ONYXKEYS.USER);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(
+        getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
+    );
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
-    }, [activeWorkspaceID, transactionViolations]);
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportActions is added as a dependency here
+    }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
@@ -101,7 +113,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 return;
             }
 
-            const defaultCannedQuery = SearchUtils.buildCannedSearchQuery();
+            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
@@ -109,8 +121,21 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     }, [activeWorkspaceID, selectedTab]);
 
     return (
-        <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.inbox')}>
+        <>
+            {!!user?.isDebugModeEnabled && (
+                <DebugTabView
+                    selectedTab={selectedTab}
+                    chatTabBrickRoad={chatTabBrickRoad}
+                    activeWorkspaceID={activeWorkspaceID}
+                    reports={reports}
+                    currentReportID={currentReportID}
+                    betas={betas}
+                    policies={policies}
+                    transactionViolations={transactionViolations}
+                    priorityMode={priorityMode}
+                />
+            )}
+            <View style={styles.bottomTabBarContainer}>
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
@@ -125,7 +150,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {chatTabBrickRoad && (
+                        {!!chatTabBrickRoad && (
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
@@ -135,8 +160,6 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         {translate('common.inbox')}
                     </Text>
                 </PressableWithFeedback>
-            </Tooltip>
-            <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}
@@ -164,12 +187,12 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         {translate('common.search')}
                     </Text>
                 </PressableWithFeedback>
-            </Tooltip>
-            <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
-            <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                <BottomTabBarFloatingActionButton />
+                <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
+                <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                    <BottomTabBarFloatingActionButton />
+                </View>
             </View>
-        </View>
+        </>
     );
 }
 

@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -13,28 +12,26 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type AvailableCompanyCardTypes = {
-    isAmexAvailable?: boolean;
     translate: LocaleContextProps['translate'];
-    typeSelected?: ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
+    typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
 };
 
-function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected, styles}: AvailableCompanyCardTypes) {
-    const defaultTypes = [
+function getAvailableCompanyCardTypes({translate, typeSelected, styles}: AvailableCompanyCardTypes) {
+    return [
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.mastercard'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.MASTERCARD,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
                 <Icon
                     src={Illustrations.MasterCardCompanyCardDetail}
@@ -45,10 +42,10 @@ function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected,
             ),
         },
         {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.visa'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.VISA,
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.vcf'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (
                 <Icon
                     src={Illustrations.VisaCompanyCardDetail}
@@ -59,38 +56,18 @@ function getAvailableCompanyCardTypes({isAmexAvailable, translate, typeSelected,
             ),
         },
     ];
-
-    if (!isAmexAvailable) {
-        return defaultTypes;
-    }
-
-    return [
-        {
-            value: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            text: translate('workspace.companyCards.addNewCard.cardProviders.amex'),
-            keyForList: CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.CARD_TYPE.AMEX,
-            leftElement: (
-                <Icon
-                    src={Illustrations.AmexCardCompanyCardDetail}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles}
-                />
-            ),
-        },
-        ...defaultTypes,
-    ];
 }
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>>();
-    const {canUseDirectFeeds} = usePermissions();
+    const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({isAmexAvailable: !canUseDirectFeeds, translate, typeSelected, styles: styles.mr3});
+    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3});
+    const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
+    const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
+    const isNewCardTypeSelected = typeSelected !== feedType;
 
     const submit = () => {
         if (!typeSelected) {
@@ -99,7 +76,8 @@ function CardTypeStep() {
             CompanyCards.setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
-                    cardType: typeSelected,
+                    feedType: typeSelected,
+                    bankName: isNewCardTypeSelected && isOtherBankSelected ? '' : bankName,
                 },
                 isEditing: false,
             });
@@ -107,15 +85,11 @@ function CardTypeStep() {
     };
 
     useEffect(() => {
-        setTypeSelected(addNewCard?.data.cardType);
-    }, [addNewCard?.data.cardType]);
+        setTypeSelected(addNewCard?.data.feedType);
+    }, [addNewCard?.data.feedType]);
 
     const handleBackButtonPress = () => {
-        if (canUseDirectFeeds) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
-        } else {
-            Navigation.goBack();
-        }
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     return (
@@ -139,7 +113,7 @@ function CardTypeStep() {
                 }}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.cardType}
+                initiallyFocusedOptionKey={addNewCard?.data.feedType}
                 shouldUpdateFocusedIndex
                 showConfirmButton
                 confirmButtonText={translate('common.next')}

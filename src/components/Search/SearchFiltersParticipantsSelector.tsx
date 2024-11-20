@@ -26,8 +26,6 @@ const defaultListOptions = {
     currentUserOption: null,
     headerMessage: '',
     categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
 };
 
 function getSelectedOptionData(option: Option): OptionData {
@@ -57,28 +55,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getFilteredOptions(
-            options.reports,
-            options.personalDetails,
-            undefined,
-            '',
+        return OptionsListUtils.getFilteredOptions({
+            reports: options.reports,
+            personalDetails: options.personalDetails,
             selectedOptions,
-            CONST.EXPENSIFY_EMAILS,
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-            undefined,
-            false,
-        );
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: 0,
+        });
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {

@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
-index a77e5b4..5e58ec4 100644
+index 6c4bbb2..770dfee 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
-@@ -455,6 +455,21 @@ export type NativeProps = $ReadOnly<{|
+@@ -462,6 +462,21 @@ export type NativeProps = $ReadOnly<{|
      |}>,
    >,
  
@@ -24,7 +24,7 @@ index a77e5b4..5e58ec4 100644
    /**
     * The string that will be rendered before text input has been entered.
     */
-@@ -658,6 +673,9 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+@@ -668,6 +683,9 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
      topScroll: {
        registrationName: 'onScroll',
      },
@@ -34,7 +34,7 @@ index a77e5b4..5e58ec4 100644
    },
    validAttributes: {
      maxFontSizeMultiplier: true,
-@@ -711,6 +729,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
+@@ -722,6 +740,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig = {
      secureTextEntry: true,
      textBreakStrategy: true,
      onScroll: true,
@@ -43,7 +43,7 @@ index a77e5b4..5e58ec4 100644
      disableFullscreenUI: true,
      includeFontPadding: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
-index 3bfe22c..1cb122f 100644
+index 8326797..dbfe5d5 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 @@ -88,6 +88,9 @@ const RCTTextInputViewConfig = {
@@ -56,7 +56,7 @@ index 3bfe22c..1cb122f 100644
    },
    validAttributes: {
      fontSize: true,
-@@ -153,6 +156,7 @@ const RCTTextInputViewConfig = {
+@@ -154,6 +157,7 @@ const RCTTextInputViewConfig = {
        onSelectionChange: true,
        onContentSizeChange: true,
        onScroll: true,
@@ -170,7 +170,7 @@ index a94fb19..8cfde15 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index d5e2e22..a11679a 100644
+index d5e2e22..065a819 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -13,6 +13,10 @@
@@ -184,7 +184,7 @@ index d5e2e22..a11679a 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -172,7 +176,32 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -172,7 +176,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -197,8 +197,7 @@ index d5e2e22..a11679a 100644
 +          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
-+            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSString *filePath = RCTTempFilePath(fileExtension, nil);
 +            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
 +            NSData *fileData = [clipboard dataForPasteboardType:identifier];
 +            [fileData writeToFile:filePath atomically:YES];
@@ -218,7 +217,7 @@ index d5e2e22..a11679a 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -264,6 +293,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -264,6 +292,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -346,7 +345,7 @@ index f58f147..e367394 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 0318671..bb165d7 100644
+index 0318671..667e646 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -12,6 +12,10 @@
@@ -371,7 +370,7 @@ index 0318671..bb165d7 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -222,7 +230,32 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -222,7 +230,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -384,8 +383,7 @@ index 0318671..bb165d7 100644
 +          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *fileName = [NSString stringWithFormat:@"%@.%@", [[NSUUID UUID] UUIDString], fileExtension];
-+            NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
++            NSString *filePath = RCTTempFilePath(fileExtension, nil);
 +            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
 +            NSData *fileData = [clipboard dataForPasteboardType:identifier];
 +            [fileData writeToFile:filePath atomically:YES];

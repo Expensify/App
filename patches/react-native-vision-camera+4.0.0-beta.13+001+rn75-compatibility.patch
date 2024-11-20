@@ -729,10 +729,10 @@ index 25e1f55..33b9dd3 100644
 +  }
  }
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
-index f2b284c..e348e5c 100644
+index f2b284c..4bb2ebc 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
 +++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
-@@ -4,7 +4,10 @@ import com.facebook.react.bridge.ReadableMap
+@@ -4,8 +4,18 @@ import com.facebook.react.bridge.ReadableMap
  import com.facebook.react.common.MapBuilder
  import com.facebook.react.uimanager.ThemedReactContext
  import com.facebook.react.uimanager.ViewGroupManager
@@ -740,10 +740,18 @@ index f2b284c..e348e5c 100644
  import com.facebook.react.uimanager.annotations.ReactProp
 +import com.facebook.react.viewmanagers.CameraViewManagerDelegate
 +import com.facebook.react.viewmanagers.CameraViewManagerInterface
++import com.mrousavy.camera.types.CameraCodeScannedEvent
  import com.mrousavy.camera.types.CameraDeviceFormat
++import com.mrousavy.camera.types.CameraErrorEvent
++import com.mrousavy.camera.types.CameraInitializedEvent
++import com.mrousavy.camera.types.CameraShutterEvent
++import com.mrousavy.camera.types.CameraStartedEvent
++import com.mrousavy.camera.types.CameraStoppedEvent
++import com.mrousavy.camera.types.CameraViewReadyEvent
  import com.mrousavy.camera.types.CodeScannerOptions
  import com.mrousavy.camera.types.Orientation
-@@ -16,10 +19,19 @@ import com.mrousavy.camera.types.Torch
+ import com.mrousavy.camera.types.PixelFormat
+@@ -16,10 +26,19 @@ import com.mrousavy.camera.types.Torch
  import com.mrousavy.camera.types.VideoStabilizationMode
  
  @Suppress("unused")
@@ -764,7 +772,28 @@ index f2b284c..e348e5c 100644
    public override fun createViewInstance(context: ThemedReactContext): CameraView = CameraView(context)
  
    override fun onAfterUpdateTransaction(view: CameraView) {
-@@ -46,37 +58,37 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -29,13 +48,13 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+ 
+   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any>? =
+     MapBuilder.builder<String, Any>()
+-      .put("cameraViewReady", MapBuilder.of("registrationName", "onViewReady"))
+-      .put("cameraInitialized", MapBuilder.of("registrationName", "onInitialized"))
+-      .put("cameraStarted", MapBuilder.of("registrationName", "onStarted"))
+-      .put("cameraStopped", MapBuilder.of("registrationName", "onStopped"))
+-      .put("cameraShutter", MapBuilder.of("registrationName", "onShutter"))
+-      .put("cameraError", MapBuilder.of("registrationName", "onError"))
+-      .put("cameraCodeScanned", MapBuilder.of("registrationName", "onCodeScanned"))
++      .put(CameraViewReadyEvent.EVENT_NAME, MapBuilder.of("registrationName", "onViewReady"))
++      .put(CameraInitializedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onInitialized"))
++      .put(CameraStartedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onStarted"))
++      .put(CameraStoppedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onStopped"))
++      .put(CameraShutterEvent.EVENT_NAME, MapBuilder.of("registrationName", "onShutter"))
++      .put(CameraErrorEvent.EVENT_NAME, MapBuilder.of("registrationName", "onError"))
++      .put(CameraCodeScannedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCodeScanned"))
+       .build()
+ 
+   override fun getName(): String = TAG
+@@ -46,37 +65,37 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "cameraId")
@@ -809,7 +838,7 @@ index f2b284c..e348e5c 100644
      if (pixelFormat != null) {
        val newPixelFormat = PixelFormat.fromUnionValue(pixelFormat)
        view.pixelFormat = newPixelFormat
-@@ -86,27 +98,27 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -86,27 +105,27 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "enableDepthData")
@@ -842,7 +871,7 @@ index f2b284c..e348e5c 100644
      if (videoStabilizationMode != null) {
        val newMode = VideoStabilizationMode.fromUnionValue(videoStabilizationMode)
        view.videoStabilizationMode = newMode
-@@ -116,12 +128,12 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -116,12 +135,12 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "enablePortraitEffectsMatteDelivery")
@@ -857,7 +886,7 @@ index f2b284c..e348e5c 100644
      if (format != null) {
        val newFormat = CameraDeviceFormat.fromJSValue(format)
        view.format = newFormat
-@@ -131,7 +143,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -131,7 +150,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "resizeMode")
@@ -866,7 +895,7 @@ index f2b284c..e348e5c 100644
      if (resizeMode != null) {
        val newMode = ResizeMode.fromUnionValue(resizeMode)
        view.resizeMode = newMode
-@@ -141,7 +153,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -141,7 +160,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "androidPreviewViewType")
@@ -875,7 +904,7 @@ index f2b284c..e348e5c 100644
      if (androidPreviewViewType != null) {
        val newMode = PreviewViewType.fromUnionValue(androidPreviewViewType)
        view.androidPreviewViewType = newMode
-@@ -154,17 +166,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -154,17 +173,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    // We're treating -1 as "null" here, because when I make the fps parameter
    // of type "Int?" the react bridge throws an error.
    @ReactProp(name = "fps", defaultInt = -1)
@@ -896,7 +925,7 @@ index f2b284c..e348e5c 100644
      if (photoQualityBalance != null) {
        val newMode = QualityBalance.fromUnionValue(photoQualityBalance)
        view.photoQualityBalance = newMode
-@@ -174,22 +186,22 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -174,22 +193,22 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "videoHdr")
@@ -923,7 +952,7 @@ index f2b284c..e348e5c 100644
      if (torch != null) {
        val newMode = Torch.fromUnionValue(torch)
        view.torch = newMode
-@@ -199,17 +211,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -199,17 +218,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "zoom")
@@ -944,7 +973,7 @@ index f2b284c..e348e5c 100644
      if (orientation != null) {
        val newMode = Orientation.fromUnionValue(orientation)
        view.orientation = newMode
-@@ -219,7 +231,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -219,7 +238,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "codeScannerOptions")
@@ -953,7 +982,7 @@ index f2b284c..e348e5c 100644
      if (codeScannerOptions != null) {
        val newCodeScannerOptions = CodeScannerOptions.fromJSValue(codeScannerOptions)
        view.codeScannerOptions = newCodeScannerOptions
-@@ -227,4 +239,8 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -227,4 +246,8 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
        view.codeScannerOptions = null
      }
    }
@@ -981,6 +1010,79 @@ index b9d3f67..cb70963 100644
  @Suppress("KotlinJniMissingFunction") // we use fbjni.
  class VisionCameraProxy(private val reactContext: ReactApplicationContext) {
    companion object {
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/types/Events.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/types/Events.kt
+index 1ed0355..b8ff7cf 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/types/Events.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/types/Events.kt
+@@ -3,39 +3,61 @@ package com.mrousavy.camera.types
+ import com.facebook.react.bridge.Arguments
+ import com.facebook.react.bridge.WritableMap
+ import com.facebook.react.uimanager.events.Event
++import com.mrousavy.camera.types.CameraInitializedEvent.Companion.EVENT_NAME
+ 
+ class CameraInitializedEvent(surfaceId: Int, viewId: Int) : Event<CameraInitializedEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraInitialized"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData(): WritableMap = Arguments.createMap()
++  companion object {
++    const val EVENT_NAME = "topInitialized"
++  }
+ }
+ 
+ class CameraStartedEvent(surfaceId: Int, viewId: Int) : Event<CameraStartedEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraStarted"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData(): WritableMap = Arguments.createMap()
++  companion object {
++    const val EVENT_NAME = "topStarted"
++  }
+ }
+ 
+ class CameraStoppedEvent(surfaceId: Int, viewId: Int) : Event<CameraStoppedEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraStopped"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData(): WritableMap = Arguments.createMap()
++  companion object {
++    const val EVENT_NAME = "topStopped"
++  }
+ }
+ 
+ class CameraShutterEvent(surfaceId: Int, viewId: Int, private val data: WritableMap) : Event<CameraShutterEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraShutter"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData() = data
++  companion object {
++    const val EVENT_NAME = "topShutter"
++  }
+ }
+ 
+ class CameraErrorEvent(surfaceId: Int, viewId: Int, private val data: WritableMap) : Event<CameraErrorEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraError"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData() = data
++  companion object {
++    const val EVENT_NAME = "topError"
++  }
+ }
+ 
+ class CameraViewReadyEvent(surfaceId: Int, viewId: Int) : Event<CameraViewReadyEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraViewReady"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData(): WritableMap = Arguments.createMap()
++  companion object {
++    const val EVENT_NAME = "topViewReady"
++  }
+ }
+ 
+ class CameraCodeScannedEvent(surfaceId: Int, viewId: Int, private val data: WritableMap) :
+   Event<CameraCodeScannedEvent>(surfaceId, viewId) {
+-  override fun getEventName() = "cameraCodeScanned"
++  override fun getEventName() = EVENT_NAME
+   override fun getEventData() = data
++  companion object {
++    const val EVENT_NAME = "topCodeScanned"
++  }
+ }
 diff --git a/node_modules/react-native-vision-camera/ios/.swift-version b/node_modules/react-native-vision-camera/ios/.swift-version
 new file mode 100644
 index 0000000..ef425ca

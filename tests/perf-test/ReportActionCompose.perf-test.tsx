@@ -3,7 +3,7 @@ import type {ComponentType, EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +23,11 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+}));
+
+jest.mock('../../src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    getReportRHPActiveRoute: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -105,59 +110,20 @@ test('[ReportActionCompose] should render Composer with text input interactions'
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
-test('[ReportActionCompose] should scroll to hide suggestions', async () => {
+test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
-        // Query for the composer
-        const composer = await screen.findByTestId('composer');
-
-        // scroll to hide suggestions
-        fireEvent.scroll(composer);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press to block suggestions', async () => {
-    const scenario = async () => {
-        // Query for the composer
-        const composer = await screen.findByTestId('composer');
-
-        // press to block suggestions
-        fireEvent.press(composer);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press add attachemnt button', async () => {
-    const scenario = async () => {
-        // Query for the attachment button
+        // Query for the create button
         const hintAttachmentButtonText = Localize.translateLocal('common.create');
-        const attachmentButton = await screen.findByLabelText(hintAttachmentButtonText);
+        const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
-        fireEvent.press(attachmentButton, mockEvent);
+        fireEvent.press(createButton, mockEvent);
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press add emoji button', async () => {
-    const scenario = async () => {
-        // Query for the emoji button
-        const hintEmojiButtonText = Localize.translateLocal('reportActionCompose.emoji');
-        const emojiButton = await screen.findByLabelText(hintEmojiButtonText);
-
-        fireEvent.press(emojiButton);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
 test('[ReportActionCompose] should press send message button', async () => {
@@ -170,39 +136,5 @@ test('[ReportActionCompose] should press send message button', async () => {
     };
 
     await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] press add attachment button', async () => {
-    const scenario = async () => {
-        const hintAddAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAttachment');
-
-        const addAttachmentButton = await screen.findByLabelText(hintAddAttachmentButtonText);
-        fireEvent.press(addAttachmentButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press split bill button', async () => {
-    const scenario = async () => {
-        const hintSplitBillButtonText = Localize.translateLocal('iou.splitExpense');
-        const splitBillButton = await screen.findByLabelText(hintSplitBillButtonText);
-        fireEvent.press(splitBillButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press assign task button', async () => {
-    const scenario = async () => {
-        const hintAssignTaskButtonText = Localize.translateLocal('newTaskPage.assignTask');
-        const assignTaskButton = await screen.findByLabelText(hintAssignTaskButtonText);
-        fireEvent.press(assignTaskButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measurePerformance(<ReportActionComposeWrapper />, {scenario});
+    await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });

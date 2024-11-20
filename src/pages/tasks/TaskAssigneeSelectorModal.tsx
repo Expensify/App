@@ -40,30 +40,19 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            optionsList.reports,
-            optionsList.personalDetails,
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
+            reports: optionsList.reports,
+            personalDetails: optionsList.personalDetails,
             betas,
-            '',
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-        );
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+
+            maxRecentReportsToShow: 0,
+        });
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 
         if (isLoading) {
+            // eslint-disable-next-line react-compiler/react-compiler
             setIsLoading(false);
         }
 
@@ -74,8 +63,6 @@ function useOptions() {
             currentUserOption,
             headerMessage,
             categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 

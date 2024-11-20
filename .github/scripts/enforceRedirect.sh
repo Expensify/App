@@ -13,13 +13,13 @@ declare -r REDIRECTS_FILE="docs/redirects.csv"
 hasRenamedOrDeletedArticle=false
 hasModifiedRedirect=false
 
-if git log origin/main..HEAD --name-status --pretty=format: $ARTICLES_DIRECTORY | grep -q -E "^(R|D)"
+if git diff origin/main..HEAD --name-status --pretty=format: $ARTICLES_DIRECTORY | grep -q -E "^(R|D)"
 then
     echo "Articles have been renamed/moved/deleted"
     hasRenamedOrDeletedArticle=true
 fi
 
-if git log origin/main..HEAD --name-status --pretty=format: $REDIRECTS_FILE | grep -q -E "^(M)"
+if git diff origin/main..HEAD --name-status --pretty=format: $REDIRECTS_FILE | grep -q -E "^(M)"
 then
     echo "Redirects.csv has been modified"
     hasModifiedRedirect=true

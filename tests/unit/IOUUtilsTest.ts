@@ -146,3 +146,19 @@ describe('isValidMoneyRequestType', () => {
         expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
     });
 });
+
+describe('Check valid amount for IOU/Expense request', () => {
+    test('IOU amount should be positive', () => {
+        const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+        const iouTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+        const iouAmount = TransactionUtils.getAmount(iouTransaction, false, false);
+        expect(iouAmount).toBeGreaterThan(0);
+    });
+
+    test('Expense amount should be negative', () => {
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+        const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+        const expenseAmount = TransactionUtils.getAmount(expenseTransaction, true, false);
+        expect(expenseAmount).toBeLessThan(0);
+    });
+});

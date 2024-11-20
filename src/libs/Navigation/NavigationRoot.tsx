@@ -108,7 +108,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        if (!lastVisitedPath) {
+        // The same applies to HybridApp, as we always define the route to which we want to transition.
+        if (!lastVisitedPath || NativeModules.HybridAppModule) {
             return undefined;
         }
 

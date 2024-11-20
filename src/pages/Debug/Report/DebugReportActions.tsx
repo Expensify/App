@@ -37,10 +37,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         </PressableWithFeedback>
     );
     return (
-        <ScrollView
-            style={styles.mt5}
-            contentContainerStyle={styles.pb5}
-        >
+        <ScrollView style={styles.mv5}>
             <Button
                 success
                 large
@@ -51,6 +48,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             <FlatList
                 data={sortedAllReportActions}
                 renderItem={renderItem}
+                scrollEnabled={false}
             />
         </ScrollView>
     );

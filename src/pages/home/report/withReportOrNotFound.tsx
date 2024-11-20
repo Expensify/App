@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import type {RouteProp} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -60,6 +61,7 @@ export default function (
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+            const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
@@ -85,7 +87,8 @@ export default function (
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                if (shouldShowNotFoundPage && contentShown.current) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
                     return null;
                 }
 
@@ -98,7 +101,9 @@ export default function (
                 }
             }
 
+            // eslint-disable-next-line react-compiler/react-compiler
             if (!contentShown.current) {
+                // eslint-disable-next-line react-compiler/react-compiler
                 contentShown.current = true;
             }
 

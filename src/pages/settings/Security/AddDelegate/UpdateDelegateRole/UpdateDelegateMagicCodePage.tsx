@@ -28,15 +28,16 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
+    const updateDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
 
     useEffect(() => {
-        if (!currentDelegate || !!currentDelegate.pendingFields?.role || !!currentDelegate.errorFields?.updateDelegateRole) {
+        if (!currentDelegate || !!currentDelegate.pendingFields?.role || !!updateDelegateErrors) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.dismissModal();
-    }, [login, currentDelegate, role]);
+    }, [login, currentDelegate, role, updateDelegateErrors]);
 
     const onBackButtonPress = () => {
         Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, role));

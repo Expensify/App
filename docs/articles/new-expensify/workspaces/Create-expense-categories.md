@@ -110,6 +110,7 @@ GL codes and payroll codes can be exported to a CSV export. They are not display
 6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
 7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
 
+![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/workspace_gl_payroll_codes.png){:width="100%"}
 
 # Apply categories to expenses automatically
 

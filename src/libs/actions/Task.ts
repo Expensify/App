@@ -232,6 +232,19 @@ function createTaskAndNavigate(
         },
     );
 
+    const shouldUpdateNotificationPreference = !isEmptyObject(parentReport) && ReportUtils.getReportNotificationPreference(parentReport) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (shouldUpdateNotificationPreference) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            },
+        });
+    }
+
     // FOR QUICK ACTION NVP
     optimisticData.push({
         onyxMethod: Onyx.METHOD.SET,
@@ -298,6 +311,10 @@ function createTaskAndNavigate(
     };
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
+
+    ReportConnection.updateReportData(parentReportID, {
+        lastReadTime: currentTime,
+    });
 
     if (!isCreatedUsingMarkdown) {
         clearOutTaskInfo();

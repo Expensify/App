@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -244,9 +245,20 @@ function FormProvider(
         setErrors({});
     }, [formID]);
 
+    const resetFormFieldError = useCallback(
+        (inputID: keyof Form) => {
+            const newErrors = {...errors};
+            delete newErrors[inputID];
+            FormActions.setErrors(formID, newErrors as Errors);
+            setErrors(newErrors);
+        },
+        [errors, formID],
+    );
+
     useImperativeHandle(forwardedRef, () => ({
         resetForm,
         resetErrors,
+        resetFormFieldError,
     }));
 
     const registerInput = useCallback<RegisterInput>(

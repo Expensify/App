@@ -691,6 +691,12 @@ describe('ReportUtils', () => {
                     owner: '',
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            email: currentUserEmail,
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 };
                 Promise.all([
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
@@ -698,6 +704,8 @@ describe('ReportUtils', () => {
                         reportID: '101',
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                         isOwnPolicyExpenseChat: true,
+                        policyID: paidPolicy.id,
+                        ownerAccountID: currentUserAccountID,
                     }),
                 ]).then(() => {
                     const report = {
@@ -708,6 +716,7 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                         managerID: currentUserAccountID,
+                        ownerAccountID: currentUserAccountID,
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? -1]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -963,6 +972,28 @@ describe('ReportUtils', () => {
                 reportID: '8011',
             };
             expect(ReportUtils.isChatUsedForOnboarding(report2)).toBeFalsy();
+        });
+    });
+
+    describe('getQuickActionDetails', () => {
+        it('if the report is archived, the quick action will hide the subtitle and avatar', () => {
+            // Create a fake archived report as quick action report
+            const archivedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+
+            // Get the quick action detail
+            const quickActionDetails = ReportUtils.getQuickActionDetails(archivedReport, undefined, undefined, reportNameValuePairs);
+
+            // Expect the quickActionAvatars is empty array and hideQABSubtitle is true since the quick action report is archived
+            expect(quickActionDetails.quickActionAvatars.length).toEqual(0);
+            expect(quickActionDetails.hideQABSubtitle).toEqual(true);
         });
     });
 

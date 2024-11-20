@@ -21,6 +21,7 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
 
     return (
         <Animated.Text
+            // eslint-disable-next-line react-compiler/react-compiler
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
             style={[styles.textInputLabel, styles.textInputLabelTransformation(labelTranslateY, labelScale), styles.pointerEventsNone]}

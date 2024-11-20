@@ -158,7 +158,7 @@ function WorkspaceEditTaxPage({
                             }}
                         />
                     </OfflineWithFeedback>
-                    {shouldShowDeleteMenuItem && (
+                    {!!shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
