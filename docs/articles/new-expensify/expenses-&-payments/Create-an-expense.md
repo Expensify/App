@@ -56,9 +56,7 @@ If the Continue button doesn't open the camera on your mobile web browser,
 it might be because you denied camera permission. Learn how to enable camera permission in your browser [here](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#faq).
 {% include end-info.html %}
 
-{% include info.html %}
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
-{% include end-info.html %}
 
 # Manually add an expense
 
