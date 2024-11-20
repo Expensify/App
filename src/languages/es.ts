@@ -784,7 +784,7 @@ const translations = {
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
-        deniedCameraAccess: 'Si aún no se ha concedido el acceso a la cámara, siga ',
+        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
         deniedCameraAccessInstructions: 'estas instrucciones',
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
