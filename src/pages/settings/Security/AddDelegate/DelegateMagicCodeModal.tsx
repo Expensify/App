@@ -56,7 +56,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             sendValidateCode={() => User.requestValidateCodeAction()}
             hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
             handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
-            description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );
 }

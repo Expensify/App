@@ -28,7 +28,6 @@ const INPUT_IDS = {
     NOTIFICATION_PREFERENCE: 'notificationPreference',
     OLD_POLICY_NAME: 'oldPolicyName',
     OWNER_ACCOUNT_ID: 'ownerAccountID',
-    PARTICIPANT_ACCOUNT_IDS: 'participantAccountIDs',
     PARTICIPANTS: 'participants',
     PERMISSIONS: 'permissions',
     POLICY_AVATAR: 'policyAvatar',
@@ -78,7 +77,6 @@ type DebugReportForm = Form<
         [INPUT_IDS.NOTIFICATION_PREFERENCE]: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
         [INPUT_IDS.OLD_POLICY_NAME]: string;
         [INPUT_IDS.OWNER_ACCOUNT_ID]: string;
-        [INPUT_IDS.PARTICIPANT_ACCOUNT_IDS]: string;
         [INPUT_IDS.PARTICIPANTS]: string;
         [INPUT_IDS.PERMISSIONS]: string;
         [INPUT_IDS.POLICY_AVATAR]: string;
