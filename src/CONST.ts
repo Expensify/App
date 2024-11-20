@@ -2815,6 +2815,7 @@ const CONST = {
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
             BUSINESS: 'American Express Business Cards',
+            PERSONAL: 'American Express Personal Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',

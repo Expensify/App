@@ -3227,6 +3227,7 @@ const translations = {
                 },
                 amexCorporate: 'Select this if the front of your cards say “Corporate”',
                 amexBusiness: 'Select this if the front of your cards say “Business”',
+                amexPersonal: 'Select this if your cards are personal',
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',

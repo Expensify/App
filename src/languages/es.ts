@@ -3268,6 +3268,7 @@ const translations = {
                 },
                 amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
                 amexBusiness: 'Seleccione esta opción si el frente de sus tarjetas dice “Negocios”',
+                amexPersonal: 'Seleccione esta opción si sus tarjetas son personales.',
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
