@@ -15,10 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import DomUtils from '@libs/DomUtils';
-import getPlatform from '@libs/getPlatform';
 // eslint-disable-next-line no-restricted-imports
-import themes from '@styles/theme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
