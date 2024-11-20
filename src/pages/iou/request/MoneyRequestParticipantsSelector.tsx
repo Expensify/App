@@ -3,7 +3,7 @@ import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {Linking, View} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -99,7 +99,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [contacts, setContacts] = useState<Array<OptionsListUtils.SearchOption<PersonalDetails>>>([]);
-    const [isContactPermissionBlocked, setContactPermissionBlocked] = useState(false);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState(softPermissionModalVisible);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -541,7 +541,10 @@ function MoneyRequestParticipantsSelector({
                     }}
                     onGrant={() => {
                         setSoftPermissionModalVisible(false);
-                        onRequestContacts();
+                        InteractionManager.runAfterInteractions(() => {
+                            onRequestContacts();
+                        });
+                        setTextInputAutoFocus(true);
                     }}
                     onDeny={() => {
                         setSoftPermissionModalVisible(false);
@@ -568,7 +571,7 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!softPermissionModalVisible}
+                textInputAutoFocus={textInputAutoFocus}
             />
         </>
     );
