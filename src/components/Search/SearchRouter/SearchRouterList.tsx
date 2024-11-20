@@ -124,7 +124,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     }
     return (
         <UserListItem
-            pressableStyle={[styles.br2]}
+            pressableStyle={[styles.br2, styles.ph3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
@@ -305,7 +305,7 @@ function SearchRouterList(
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
             sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
-            listItemWrapperStyle={[styles.pr3, styles.pl3]}
+            listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={setPerformanceTimersEnd}
             ref={ref}
