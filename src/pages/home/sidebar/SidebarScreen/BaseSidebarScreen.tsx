@@ -12,6 +12,7 @@ import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -24,6 +25,7 @@ function BaseSidebarScreen() {
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useEffect(() => {
