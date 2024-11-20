@@ -11,7 +11,9 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 
 const DENIED_ACCESS_VARIANTS = {
+    // To Restrict All Delegates From Accessing The Page.
     [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]: (account: OnyxEntry<Account>) => isDelegate(account),
+    // To Restrict Only Limited Access Delegates From Accessing The Page.
     [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]: (account: OnyxEntry<Account>) => isSubmitter(account),
 } as const satisfies Record<string, (account: OnyxEntry<Account>) => boolean>;
 
