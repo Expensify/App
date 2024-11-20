@@ -1177,6 +1177,7 @@ type MoneyRequestNavigatorParamList = {
         /** Link to previous page */
         backTo: ExpensifyRoute;
 
+        /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
@@ -1616,6 +1617,7 @@ type SearchReportParamList = {
         /** Link to previous page */
         backTo: ExpensifyRoute;
 
+        /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
 };
