@@ -63,6 +63,7 @@ function AddressSearch(
         onBlur,
         onInputChange,
         onPress,
+        onCountryChange,
         predefinedPlaces = [],
         preferredLocale,
         renamedInputKeys = {
@@ -193,7 +194,7 @@ function AddressSearch(
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US) {
+        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 
@@ -242,6 +243,7 @@ function AddressSearch(
             onInputChange?.(values);
         }
 
+        onCountryChange?.(values.country);
         onPress?.(values);
     };
 

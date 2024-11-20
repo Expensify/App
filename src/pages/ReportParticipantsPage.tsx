@@ -18,7 +18,6 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -67,18 +66,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-
-    useEffect(
-        () => () => {
-            UserSearchPhraseActions.clearUserSearchPhrase();
-        },
-        [],
-    );
-
-    useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+    const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
         if (isFocused) {
@@ -103,7 +91,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     });
 
     // Include the search bar when there are 8 or more active members in the selection list
-    const shouldShowTextInput = activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+    const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     useEffect(() => {
         if (!isFocused) {
@@ -424,9 +412,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            setSearchValue(value);
-                        }}
+                        onChangeText={setSearchValue}
                         headerMessage={headerMessage}
                         ListItem={TableListItem}
                         onSelectRow={openMemberDetails}

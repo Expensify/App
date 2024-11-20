@@ -61,7 +61,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allCardsList] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
@@ -81,7 +82,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(cardFeeds?.settings?.companyCards ?? {}).filter((feed) => !feed.pending).length > 0;
+    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
     const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     useEffect(() => {
@@ -89,11 +90,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!allCardsList) {
+        if (!cards && !expensifyCards) {
             return [];
         }
-        return Object.values(allCardsList ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
-    }, [allCardsList, accountID, workspaceAccountID]);
+        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
+        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
+        const cardIDs = new Set();
+        const uniqueObjects = allCards.filter((obj) => {
+            if (cardIDs.has(obj.cardID)) {
+                return false;
+            }
+            cardIDs.add(obj.cardID);
+            return true;
+        });
+
+        return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
+    }, [accountID, workspaceAccountID, cards, expensifyCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
@@ -207,7 +219,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) ?? (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
 
     return (
         <AccessOrNotFoundWrapper
@@ -303,25 +315,38 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {memberCards.map((memberCard) => (
-                                                <MenuItem
-                                                    key={memberCard.cardID}
-                                                    title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
-                                                    badgeText={
-                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK
-                                                            ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
-                                                            : ''
-                                                    }
-                                                    icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
-                                                    displayInDefaultIconColor
-                                                    iconStyles={styles.cardIcon}
-                                                    contentFit="contain"
-                                                    iconWidth={variables.cardIconWidth}
-                                                    iconHeight={variables.cardIconHeight}
-                                                    onPress={() => navigateToDetails(memberCard)}
-                                                    shouldShowRightIcon
-                                                />
-                                            ))}
+                                            {(memberCards as MemberCard[]).map((memberCard) => {
+                                                const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                                                return (
+                                                    <OfflineWithFeedback
+                                                        key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                        errorRowStyles={styles.ph5}
+                                                        errors={memberCard.errors}
+                                                        pendingAction={memberCard.pendingAction}
+                                                    >
+                                                        <MenuItem
+                                                            key={memberCard.cardID}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
+                                                            badgeText={
+                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                                    ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
+                                                                    : ''
+                                                            }
+                                                            icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
+                                                            displayInDefaultIconColor
+                                                            iconStyles={styles.cardIcon}
+                                                            contentFit="contain"
+                                                            iconWidth={variables.iconSizeExtraLarge}
+                                                            iconHeight={variables.iconSizeExtraLarge}
+                                                            onPress={() => navigateToDetails(memberCard)}
+                                                            shouldRemoveHoverBackground={isCardDeleted}
+                                                            disabled={isCardDeleted}
+                                                            shouldShowRightIcon={!isCardDeleted}
+                                                            style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                        />
+                                                    </OfflineWithFeedback>
+                                                );
+                                            })}
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}

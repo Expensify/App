@@ -27,7 +27,7 @@ defaultFilter
       if (!value) {
         autocomplete = {
           key,
-          value: null,
+          value: '',
           start: location().end.offset,
           length: 0,
         };
@@ -41,14 +41,13 @@ defaultFilter
 
       return value
         .filter((filter) => filter.length > 0)
-        .map(({ start, length }) => ({
+        .map((filter) => ({
           key,
-          start,
-          length,
+          ...filter,
         }));
     }
 
-freeTextFilter = _ identifier _ { autocomplete = null; }
+freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
@@ -62,6 +61,7 @@ autocompleteKey "key"
       / "expenseType"
       / "type"
       / "status"
+      / "cardID"
     )
 
 identifier

@@ -9,8 +9,11 @@ type AssignCardData = {
     /** The email address of the assignee */
     email: string;
 
-    /** Number of the selected card */
+    /** Encrypted number of the selected card */
     encryptedCardNumber: string;
+
+    /** Number of the selected card */
+    cardNumber: string;
 
     /** The name of the feed */
     bankName: string;

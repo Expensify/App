@@ -13,6 +13,62 @@ const tests = [
         },
     },
     {
+        query: ',',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: [','],
+            },
+        },
+    },
+    {
+        query: 'currency:,',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['currency:,'],
+            },
+        },
+    },
+    {
+        query: 'tag:,,travel,',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'tag',
+                right: 'travel',
+            },
+        },
+    },
+    {
+        query: 'category:',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['category:'],
+            },
+        },
+    },
+    {
         query: 'in:123333 currency:USD merchant:marriott',
         expected: {
             type: 'expense',

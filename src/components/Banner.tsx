@@ -83,7 +83,7 @@ function Banner({
                         ]}
                     >
                         <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && icon && (
+                            {shouldShowIcon && !!icon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={icon}

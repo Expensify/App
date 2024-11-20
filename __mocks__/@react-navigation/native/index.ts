@@ -16,9 +16,10 @@ const {triggerTransitionEnd, addListener} = isJestEnv
           addListener: () => {},
       };
 
+const realOrMockedUseNavigation = isJestEnv ? realReactNavigation.useNavigation : {};
 const useNavigation = () => ({
-    ...realReactNavigation.useNavigation,
-    navigate: jest.fn(),
+    ...realOrMockedUseNavigation,
+    navigate: isJestEnv ? jest.fn() : () => {},
     getState: () => ({
         routes: [],
     }),
@@ -30,17 +31,20 @@ type NativeNavigationMock = typeof ReactNavigation & {
 };
 
 export * from '@react-navigation/core';
-const Link = realReactNavigation.Link;
-const LinkingContext = realReactNavigation.LinkingContext;
-const NavigationContainer = realReactNavigation.NavigationContainer;
-const ServerContainer = realReactNavigation.ServerContainer;
-const DarkTheme = realReactNavigation.DarkTheme;
-const DefaultTheme = realReactNavigation.DefaultTheme;
-const ThemeProvider = realReactNavigation.ThemeProvider;
-const useLinkBuilder = realReactNavigation.useLinkBuilder;
-const useLinkProps = realReactNavigation.useLinkProps;
-const useLinkTo = realReactNavigation.useLinkTo;
-const useScrollToTop = realReactNavigation.useScrollToTop;
+const Link = isJestEnv ? realReactNavigation.Link : () => null;
+const LinkingContext = isJestEnv ? realReactNavigation.LinkingContext : () => null;
+const NavigationContainer = isJestEnv ? realReactNavigation.NavigationContainer : () => null;
+const ServerContainer = isJestEnv ? realReactNavigation.ServerContainer : () => null;
+const DarkTheme = isJestEnv ? realReactNavigation.DarkTheme : {};
+const DefaultTheme = isJestEnv ? realReactNavigation.DefaultTheme : {};
+const ThemeProvider = isJestEnv ? realReactNavigation.ThemeProvider : () => null;
+const useLinkBuilder = isJestEnv ? realReactNavigation.useLinkBuilder : () => null;
+const useLinkProps = isJestEnv ? realReactNavigation.useLinkProps : () => null;
+const useLinkTo = isJestEnv ? realReactNavigation.useLinkTo : () => null;
+const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => null;
+const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
+const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
+
 export {
     // Overriden modules
     useIsFocused,
@@ -60,6 +64,8 @@ export {
     useLinkProps,
     useLinkTo,
     useScrollToTop,
+    useRoute,
+    useFocusEffect,
 };
 
 export type {NativeNavigationMock};

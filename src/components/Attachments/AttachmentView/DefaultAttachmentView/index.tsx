@@ -47,7 +47,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100, isDeleted && styles.lineThrough]}>{fileName}</Text>
-            {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
+            {!shouldShowLoadingSpinnerIcon && !!shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
                         <Icon

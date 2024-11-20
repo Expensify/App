@@ -52,11 +52,11 @@ function CreateReportFieldsPage({
             ReportField.createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
-                initialValue: values[INPUT_IDS.INITIAL_VALUE],
+                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
             });
             Navigation.goBack();
         },
-        [policyID],
+        [availableListValuesLength, policyID],
     );
 
     const validateForm = useCallback(

@@ -1,4 +1,4 @@
-import searchCountryOptions from '@libs/searchCountryOptions';
+import searchOptions from '@libs/searchOptions';
 
 describe('searchCountryOptions', () => {
     test('when the search term is a country code, the country with that code should be prioritized', () => {
@@ -49,7 +49,7 @@ describe('searchCountryOptions', () => {
                 searchValue: 'auaustralia',
             },
         ];
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when the search term contains diacritics the country names that exactly match should be prioritized', () => {
@@ -93,7 +93,7 @@ describe('searchCountryOptions', () => {
                 searchValue: 'alalbania',
             },
         ];
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when the search term contains diacritics the country names that exactly match should be prioritized, test case #2', () => {
@@ -144,7 +144,7 @@ describe('searchCountryOptions', () => {
                 searchValue: 'usunitedstates',
             },
         ];
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when the search term contains no diacritics, countries with diacritics should still be searched by their sanitized names', () => {
@@ -188,7 +188,7 @@ describe('searchCountryOptions', () => {
                 searchValue: 'axalandislands',
             },
         ];
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when a search term exactly matches the beginning of a countries name, that country should be prioritized', () => {
@@ -239,7 +239,7 @@ describe('searchCountryOptions', () => {
                 searchValue: 'agantiguaandbarbuda',
             },
         ];
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when the search term is empty, all countries should be returned', () => {
@@ -275,7 +275,7 @@ describe('searchCountryOptions', () => {
             },
         ];
         const expected = countriesData;
-        const actual = searchCountryOptions(searchValue, countriesData);
+        const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
 });

@@ -34,7 +34,7 @@ function SessionExpiredPage() {
                             onPress={() => {
                                 if (!NativeModules.HybridAppModule) {
                                     Session.clearSignInData();
-                                    Navigation.navigate();
+                                    Navigation.goBack();
                                     return;
                                 }
                                 NativeModules.HybridAppModule.closeReactNativeApp(true, false);
