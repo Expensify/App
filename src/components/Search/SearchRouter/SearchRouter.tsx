@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -47,9 +48,10 @@ import type {AutocompleteItemData} from './SearchRouterList';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
+    shouldHideInputCaret?: TextInputProps['caretHidden'];
 };
 
-function SearchRouter({onRouterClose}: SearchRouterProps) {
+function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -73,7 +75,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: []};
         }
         return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
     }, [areOptionsInitialized, betas, options]);
@@ -401,6 +403,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 onSubmit={() => {
                     onSearchSubmit(textInputValue);
                 }}
+                caretHidden={shouldHideInputCaret}
                 routerListRef={listRef}
                 shouldShowOfflineMessage
                 wrapperStyle={[styles.border, styles.alignItemsCenter]}

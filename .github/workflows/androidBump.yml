@@ -1,6 +1,7 @@
 name: Android Rollout Bumper
 
 on:
+  workflow_dispatch:
   schedule:
     # Runs at midnight every day
     - cron: '0 0 * * *'
