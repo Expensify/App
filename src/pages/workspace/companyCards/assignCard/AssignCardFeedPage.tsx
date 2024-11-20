@@ -52,8 +52,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         default:
             return <AssigneeStep policy={policy} />;
     }
-
-    return <AssigneeStep policy={policy} />;
 }
 
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);
