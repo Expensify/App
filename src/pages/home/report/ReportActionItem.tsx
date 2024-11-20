@@ -784,7 +784,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action, reportID);
+        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')

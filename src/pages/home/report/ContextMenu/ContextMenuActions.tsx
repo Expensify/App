@@ -301,12 +301,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, reportID}) => {
+        shouldShow: ({reportAction, isArchivedRoom}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
-            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
+            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction);
             const subscribed = childReportNotificationPreference !== 'hidden';
-            const isThreadFirstChat = ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isThreadFirstChat = ReportUtils.isThreadFirstChat(reportAction);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
             const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);
             const isTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
