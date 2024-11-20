@@ -620,6 +620,31 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_BENEFICIAL_OWNER: 1,
+                IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
+                BENEFICIAL_OWNER_DETAILS_FORM: 3,
+                ARE_THERE_MORE_BENEFICIAL_OWNERS: 4,
+                OWNERSHIP_CHART: 5,
+                BENEFICIAL_OWNERS_LIST: 6,
+            },
+            BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
+                PREFIX: 'beneficialOwner',
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+                COUNTRY: 'country',
+            },
+            CURRENT_USER_KEY: 'currentUser',
+        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
@@ -850,6 +875,7 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    DEFAULT_NUMBER_ID: 0,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -1620,6 +1646,7 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
+        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
         ADMIN: 'admin@expensify.com',
         BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
@@ -2083,6 +2110,7 @@ const CONST = {
 
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
+        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? 10903701),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
         BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
         CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
@@ -3028,6 +3056,7 @@ const CONST = {
     get EXPENSIFY_EMAILS() {
         return [
             this.EMAIL.ACCOUNTING,
+            this.EMAIL.ACCOUNTS_PAYABLE,
             this.EMAIL.ADMIN,
             this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
@@ -3048,6 +3077,7 @@ const CONST = {
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ACCOUNTS_PAYABLE,
             this.ACCOUNT_ID.ADMIN,
             this.ACCOUNT_ID.BILLS,
             this.ACCOUNT_ID.CHRONOS,
