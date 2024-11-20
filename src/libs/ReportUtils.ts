@@ -1460,18 +1460,15 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedRoom(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !!report?.private_isArchived;
+function isArchivedRoom(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+    return !!reportNameValuePairs?.private_isArchived;
 }
 
 /**
  * Whether the report with the provided reportID is an archived room
  */
 function isArchivedRoomWithID(reportID?: string) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
-    return isArchivedRoom(report, getReportNameValuePairs(reportID));
+    return isArchivedRoom(getReportNameValuePairs(reportID));
 }
 
 /**
