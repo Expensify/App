@@ -91,7 +91,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                         onPress={() => {
                             ExitSurvey.switchToOldDot();
                             Navigation.dismissModal();
-                            Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                         }}
                         isDisabled={isOffline}
                     />
