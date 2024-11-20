@@ -2310,16 +2310,4 @@ export {
     hasReportErrors,
 };
 
-export type {
-    MemberForList,
-    CategorySection,
-    CategoryTreeSection,
-    Options,
-    OptionList,
-    SearchOption,
-    PayeePersonalDetails,
-    Category,
-    Option,
-    OptionTree,
-    GetUserToInviteConfig,
-};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Option, OptionTree, GetUserToInviteConfig};
