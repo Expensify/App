@@ -36,6 +36,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Sta
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    const policy = PolicyUtils.getPolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -46,6 +47,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -78,7 +80,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(cardFeeds?.settings?.companyCards ?? {}) as CompanyCardFeed[]).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
         value: key,
         text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
         keyForList: key,
@@ -93,25 +95,26 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         ),
     }));
 
-    const feeds = workspaceAccountID
-        ? [
-              ...companyCardFeeds,
-              {
-                  value: CONST.EXPENSIFY_CARD.NAME,
-                  text: translate('workspace.common.expensifyCard'),
-                  keyForList: CONST.EXPENSIFY_CARD.NAME,
-                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                  leftElement: (
-                      <Icon
-                          src={ExpensifyCardImage}
-                          width={variables.cardIconWidth}
-                          height={variables.cardIconHeight}
-                          additionalStyles={[styles.cardIcon, styles.mr3]}
-                      />
-                  ),
-              },
-          ]
-        : companyCardFeeds;
+    const feeds =
+        workspaceAccountID && policy?.areExpensifyCardsEnabled
+            ? [
+                  ...companyCardFeeds,
+                  {
+                      value: CONST.EXPENSIFY_CARD.NAME,
+                      text: translate('workspace.common.expensifyCard'),
+                      keyForList: CONST.EXPENSIFY_CARD.NAME,
+                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                      leftElement: (
+                          <Icon
+                              src={ExpensifyCardImage}
+                              width={variables.cardIconWidth}
+                              height={variables.cardIconHeight}
+                              additionalStyles={[styles.cardIcon, styles.mr3]}
+                          />
+                      ),
+                  },
+              ]
+            : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 

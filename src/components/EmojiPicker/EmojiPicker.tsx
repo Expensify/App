@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
@@ -117,7 +118,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             if (currOnModalHide) {
                 currOnModalHide(!!isNavigating);
             }
-            // eslint-disable-next-line react-compiler/react-compiler
+
             emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);

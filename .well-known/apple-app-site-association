@@ -2,7 +2,7 @@
     "applinks": {
         "details": [
             {
-                "appIDs": ["368M544MTT.com.chat.expensify.chat"],
+                "appIDs": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"],
                 "components": [
                     {
                        "/": "/r/*",
@@ -105,6 +105,6 @@
         ]
     },
     "webcredentials": {
-        "apps": ["368M544MTT.com.chat.expensify.chat"]
+        "apps": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"]
     }
 }

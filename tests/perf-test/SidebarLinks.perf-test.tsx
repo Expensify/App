@@ -1,7 +1,6 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -72,70 +71,6 @@ describe('SidebarLinks', () => {
             await waitFor(async () => {
                 // Query for the sidebar
                 await screen.findByTestId('lhn-options-list');
-            });
-        };
-
-        await waitForBatchedUpdates();
-
-        Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-            ...mockedResponseMap,
-        });
-
-        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
-    });
-
-    test('[SidebarLinks] should render list itmes', async () => {
-        const scenario = async () => {
-            await waitFor(async () => {
-                /**
-                 * Query for display names of participants [1, 2].
-                 * This will ensure that the sidebar renders a list of items.
-                 */
-                await screen.findAllByText('Email Two');
-            });
-        };
-
-        await waitForBatchedUpdates();
-
-        Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-            ...mockedResponseMap,
-        });
-
-        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
-    });
-
-    test('[SidebarLinks] should scroll through the list of items ', async () => {
-        const scenario = async () => {
-            const eventData = {
-                nativeEvent: {
-                    contentOffset: {
-                        y: variables.optionRowHeight * 5,
-                    },
-                    contentSize: {
-                        // Dimensions of the scrollable content
-                        height: variables.optionRowHeight * 10,
-                        width: 100,
-                    },
-                    layoutMeasurement: {
-                        // Dimensions of the device
-                        height: variables.optionRowHeight * 5,
-                        width: 100,
-                    },
-                },
-            };
-
-            await wrapInAct(async () => {
-                const lhnOptionsList = await screen.findByTestId('lhn-options-list');
-
-                fireEvent.scroll(lhnOptionsList, eventData);
             });
         };
 

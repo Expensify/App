@@ -2,12 +2,14 @@ import {NativeModules} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {OnboardingCompanySizeType, OnboardingPurposeType} from '@src/CONST';
+import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as OnboardingFlow from './OnboardingFlow';
 
 type OnboardingData = Onboarding | [] | undefined;
@@ -41,7 +43,7 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        if (Array.isArray(onboarding) || isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
         }
@@ -89,15 +91,15 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingCustomChoices(value: OnboardingPurposeType[]) {
+function setOnboardingCustomChoices(value: OnboardingPurpose[]) {
     Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
 }
 
-function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
+function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
-function setOnboardingCompanySize(value: OnboardingCompanySizeType) {
+function setOnboardingCompanySize(value: OnboardingCompanySize) {
     Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, value);
 }
 
@@ -183,6 +185,20 @@ function resetAllChecks() {
     OnboardingFlow.clearInitialPath();
 }
 
+function setSelfTourViewed() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                selfTourViewed: true,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
@@ -195,4 +211,5 @@ export {
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
+    setSelfTourViewed,
 };

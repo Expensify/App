@@ -289,15 +289,15 @@ function Button(
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
-                        {icon && (
-                            <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
+                        {!!icon && (
+                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    hasText={!!text}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             </View>
                         )}
@@ -312,6 +312,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             ) : (
                                 <Icon
@@ -320,6 +321,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             )}
                         </View>

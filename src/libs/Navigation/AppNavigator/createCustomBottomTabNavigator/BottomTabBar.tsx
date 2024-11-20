@@ -7,6 +7,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,15 +66,23 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {currentReportID} = useCurrentReportID() ?? {currentReportID: null};
     const [user] = useOnyx(ONYXKEYS.USER);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(getChatTabBrickRoad(activeWorkspaceID));
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(
+        getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
+    );
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID));
-    }, [activeWorkspaceID, transactionViolations, reports, reportActions]);
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
+        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportActions is added as a dependency here
+    }, [activeWorkspaceID, transactionViolations, reports, reportActions, betas, policies, priorityMode, currentReportID]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === SCREENS.HOME) {
@@ -113,11 +122,17 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
 
     return (
         <>
-            {user?.isDebugModeEnabled && (
+            {!!user?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
                     activeWorkspaceID={activeWorkspaceID}
+                    reports={reports}
+                    currentReportID={currentReportID}
+                    betas={betas}
+                    policies={policies}
+                    transactionViolations={transactionViolations}
+                    priorityMode={priorityMode}
                 />
             )}
             <View style={styles.bottomTabBarContainer}>
@@ -135,7 +150,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {chatTabBrickRoad && (
+                        {!!chatTabBrickRoad && (
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>

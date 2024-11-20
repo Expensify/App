@@ -362,6 +362,12 @@ type OriginalMessageModifiedExpense = {
 
     /** The ID of moved report */
     movedToReportID?: string;
+
+    /** The old stringify list of attendees */
+    oldAttendees?: string;
+
+    /** The stringify list of attendees */
+    attendees?: string;
 };
 
 /** Model of `reimbursement queued` report action */

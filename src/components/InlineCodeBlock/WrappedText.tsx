@@ -1,9 +1,11 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -40,14 +42,58 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
+/**
+ * Takes a long word and splits it into an array of sub-strings.
+ *
+ * The function tests whether the length of the provided word exceeds the provided maximum length.
+ * If the word's length is less than or equal to `maxLength`, it returns an array with the original word.
+ * If the word's length exceeds 'maxLength', it utilizes a regular expression to split the word into
+ * substrings with a specified 'maxLength' and returns them as an array of strings.
+ *
+ * @param word The original word to be split.
+ * @param maxLength The maximum length of each substring.
+ * @return An array of substrings derived from the original word.
+ *
+ * @example
+ * splitLongWord('longteststring', 4);
+ * // Output: ['long', 'test', 'stri', 'ng']
+ */
+function splitLongWord(word: string, maxLength: number): string[] {
+    if (word.length <= maxLength) {
+        return [word];
+    }
+
+    return word.match(new RegExp(`.{1,${maxLength}}`, 'g')) ?? [];
+}
+
+function getFontSizeFromStyles(textStyles: StyleProp<TextStyle>): number {
+    if (Array.isArray(textStyles)) {
+        for (const style of textStyles) {
+            if (style && 'fontSize' in style && style.fontSize) {
+                return style.fontSize;
+            }
+        }
+    } else if (textStyles && 'fontSize' in textStyles && textStyles.fontSize) {
+        return textStyles.fontSize;
+    }
+
+    // if we cannot infer fontSize from styles, a default value is returned
+    return variables.fontSizeLabel;
+}
+
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
+
+    const fontSize = useMemo(() => getFontSizeFromStyles(textStyles), [textStyles]);
+    const childrenString = typeof children === 'string' ? children : '';
+    const charsPerLine = useMemo(() => Math.floor(windowWidth / (fontSize * variables.fontSizeToWidthRatio)), [windowWidth, fontSize]);
+
+    const textMatrix = getTextMatrix(childrenString).map((row) => row.flatMap((word) => splitLongWord(word, charsPerLine)));
 
     if (typeof children !== 'string') {
         return null;
     }
-
-    const textMatrix = getTextMatrix(children);
 
     return textMatrix.map((rowText, rowIndex) => (
         <Fragment
@@ -87,3 +133,5 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
 WrappedText.displayName = 'WrappedText';
 
 export default WrappedText;
+
+export {splitLongWord};

@@ -59,7 +59,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             return {
                 value: bankAccountID,
                 text: bankAccount.title,
-                leftElement: icon && (
+                leftElement: !!icon && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
                         <Icon
                             src={icon}
@@ -106,7 +106,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {isUsedContinuousReconciliation && (
+                            {!!isUsedContinuousReconciliation && (
                                 <Text style={[styles.mh5, styles.mb6]}>
                                     <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
                                     <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>

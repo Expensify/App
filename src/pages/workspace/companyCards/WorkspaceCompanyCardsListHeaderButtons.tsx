@@ -16,7 +16,6 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -37,13 +36,15 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const feedName = cardFeeds?.settings?.companyCardNicknames?.[selectedFeed] ?? CardUtils.getCardFeedName(selectedFeed);
-    const isCustomFeed =
-        CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.VISA === selectedFeed || CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX === selectedFeed;
+    const feedName = CardUtils.getCardFeedName(selectedFeed);
+    const formattedFeedName = translate('workspace.companyCards.feedName', {feedName});
+    const isCustomFeed = CardUtils.isCustomFeed(selectedFeed);
+    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const currentFeedData = companyFeeds?.[selectedFeed];
 
     return (
         <OfflineWithFeedback
-            errors={cardFeeds?.settings?.companyCards?.[selectedFeed]?.errors}
+            errors={currentFeedData?.errors}
             canDismissError={false}
             errorRowStyles={styles.ph5}
         >
@@ -51,7 +52,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <PressableWithFeedback
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
-                    accessibilityLabel={feedName}
+                    accessibilityLabel={formattedFeedName}
                 >
                     <Icon
                         src={CardUtils.getCardFeedIcon(selectedFeed)}
@@ -61,9 +62,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
                             <CaretWrapper>
-                                <Text style={styles.textStrong}>{feedName}</Text>
+                                <Text style={styles.textStrong}>{formattedFeedName}</Text>
                             </CaretWrapper>
-                            {PolicyUtils.hasPolicyFeedsError(cardFeeds?.settings?.companyCards ?? {}, selectedFeed) && (
+                            {PolicyUtils.hasPolicyFeedsError(companyFeeds, selectedFeed) && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}
@@ -77,7 +78,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 <View style={[styles.flexRow, styles.gap2]}>
                     <Button
                         success
-                        isDisabled={!!cardFeeds?.settings?.companyCards?.[selectedFeed].pending || !!cardFeeds?.settings?.companyCards?.[selectedFeed].errors}
+                        isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
                         icon={Expensicons.Plus}
                         text={translate('workspace.companyCards.assignCard')}

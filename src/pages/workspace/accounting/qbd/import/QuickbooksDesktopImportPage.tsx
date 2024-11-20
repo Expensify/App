@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -24,7 +23,6 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const {mappings, pendingFields, errorFields} = policy?.connections?.quickbooksDesktop?.config ?? {};
-    const {canUseNewDotQBD} = usePermissions();
 
     const sections: QBDSectionType[] = [
         {
@@ -57,12 +55,11 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
             displayName={QuickbooksDesktopImportPage.displayName}
             headerTitle="workspace.accounting.import"
             title="workspace.qbd.importDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >

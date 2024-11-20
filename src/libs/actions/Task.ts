@@ -312,6 +312,10 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
+    ReportConnection.updateReportData(parentReportID, {
+        lastReadTime: currentTime,
+    });
+
     if (!isCreatedUsingMarkdown) {
         clearOutTaskInfo();
         Navigation.dismissModal(parentReportID);

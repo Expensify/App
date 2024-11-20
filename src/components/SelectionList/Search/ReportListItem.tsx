@@ -89,7 +89,6 @@ function ReportListItem<TItem extends ListItem>({
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
-        isFocused && styles.sidebarLinkActive,
         styles.mh0,
     ];
 
@@ -171,7 +170,7 @@ function ReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            {canSelectMultiple && (
+                            {!!canSelectMultiple && (
                                 <Checkbox
                                     onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}

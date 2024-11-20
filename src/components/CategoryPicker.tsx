@@ -56,7 +56,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
         const categoryData = categoryOptions?.at(0)?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
         const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
-        const isCategoriesCountBelowThreshold = categoriesCount < CONST.CATEGORY_LIST_THRESHOLD;
+        const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];

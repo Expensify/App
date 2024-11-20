@@ -50,6 +50,7 @@ function BaseGenericTooltip({
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
+                // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
                 currentSize: animation,
                 windowWidth,

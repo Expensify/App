@@ -1,5 +1,6 @@
 import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 
 type CompanyCardBankConnection = {
@@ -10,22 +11,20 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-// TODO remove this when BE will support bank UI callbacks
-const bankUrl = 'https://secure.chase.com/web/auth/#/logon/logon/chaseOnline?redirect_url=';
-
-export default function getCompanyCardBankConnection(bankName?: string, domainName?: string, scrapeMinDate?: string) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: string, scrapeMinDate?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
-    // TODO remove this when BE will support bank UI callbacks
-    if (!domainName) {
-        return bankUrl;
-    }
-
-    if (!bankName || !bankConnection) {
+    if (!bankName || !bankConnection || !policyID) {
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
-    const params: CompanyCardBankConnection = {authToken: authToken ?? '', isNewDot: 'true', domainName: domainName ?? '', isCorporate: 'true', scrapeMinDate: scrapeMinDate ?? ''};
+    const params: CompanyCardBankConnection = {
+        authToken: authToken ?? '',
+        isNewDot: 'true',
+        domainName: PolicyUtils.getDomainNameForPolicy(policyID),
+        isCorporate: 'true',
+        scrapeMinDate: scrapeMinDate ?? '',
+    };
     const commandURL = getApiRoot({
         shouldSkipWebProxy: true,
         command: '',

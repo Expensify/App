@@ -27,6 +27,7 @@
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
+* [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
 
 ----
 
@@ -274,7 +275,7 @@ web: `npm run symbolicate-release:web`
     - Perfetto UI (https://ui.perfetto.dev/)
     - Google Chrome's Tracing UI (chrome://tracing)
 
----
+----
 
 # App Structure and Conventions
 

@@ -75,6 +75,7 @@ export default {
     iconSizeXXSmall: 8,
     iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
+    iconSizeSemiSmall: 14,
     iconSizeSmall: 16,
     iconSizeMedium: 18,
     iconSizeNormal: 20,
@@ -83,6 +84,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 80,
+    iconSizeMenuItem: 32,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
     iconHeader: 48,
@@ -159,7 +161,7 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
-    tabSelectorButtonHeight: 42,
+    tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
@@ -214,6 +216,7 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
+    fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -263,6 +266,7 @@ export default {
     h20: 20,
     h28: 28,
     h36: 36,
+    h40: 40,
     h112: 112,
     h172: 172,
     w20: 20,
@@ -270,6 +274,7 @@ export default {
     w36: 36,
     w40: 40,
     w44: 44,
+    w46: 46,
     w52: 52,
     w80: 80,
     w92: 92,

@@ -1,9 +1,10 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import Balance from '@components/Balance';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type WorkspaceInvoiceBalanceSectionProps = {
@@ -21,11 +22,17 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             title={translate('workspace.invoices.invoiceBalance')}
             subtitle={translate('workspace.invoices.invoiceBalanceSubtitle')}
             isCentralPane
-            titleStyles={styles.textStrong}
+            titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
             subtitleMuted
         >
-            <Balance balance={policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0} />
+            <MenuItemWithTopDescription
+                description={translate('walletPage.balance')}
+                title={CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0)}
+                titleStyle={styles.textHeadlineH2}
+                interactive={false}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
         </Section>
     );
 }

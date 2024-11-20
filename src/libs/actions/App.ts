@@ -28,7 +28,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import * as PersistedRequests from './PersistedRequests';
 import * as Policy from './Policy/Policy';
-import resolveDuplicationConflictAction from './RequestConflictUtils';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -179,7 +179,8 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 }
 
 let appState: AppStateStatus;

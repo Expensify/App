@@ -1116,6 +1116,17 @@ const styles = (theme: ThemeColors) =>
             height: 25,
         },
 
+        deletedAttachmentIndicator: {
+            zIndex: 20,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        },
+
+        deletedIndicatorOverlay: {
+            opacity: 0.8,
+        },
+
         // Actions
         actionAvatar: {
             borderRadius: 20,
@@ -1787,6 +1798,13 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        popoverIconCircle: {
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: variables.buttonBorderRadius,
+            height: variables.h40,
+            width: variables.w46,
+        },
+
         rightLabelMenuItem: {
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
@@ -2301,7 +2319,7 @@ const styles = (theme: ThemeColors) =>
             height: 32,
             width: 32,
             padding: 6,
-            margin: 3,
+            marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
@@ -2891,8 +2909,9 @@ const styles = (theme: ThemeColors) =>
 
         sectionMenuItem: {
             borderRadius: 8,
-            paddingHorizontal: 8,
-            height: 56,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            height: 52,
             alignItems: 'center',
         },
 
@@ -2994,6 +3013,13 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             ...spacing.mh5,
             ...spacing.mv3,
+        },
+
+        sectionDividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            ...spacing.mh5,
+            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3099,9 +3125,9 @@ const styles = (theme: ThemeColors) =>
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
-            borderRadius: 10,
-            height: 20,
-            width: 20,
+            borderRadius: 14,
+            height: 28,
+            width: 28,
             borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
@@ -4310,8 +4336,8 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: variables.lineHeightNormal,
-                fontSize: variables.fontSizeNormal,
+                lineHeight: variables.lineHeightLarge,
+                fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
@@ -5252,6 +5278,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        integrationIcon: {
+            overflow: 'hidden',
+            borderRadius: variables.buttonBorderRadius,
+        },
+
         colorGreenSuccess: {
             color: colors.green400,
         },
@@ -5281,6 +5312,14 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
             borderColor: theme.border,
             padding: 16,
+        },
+        liDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: theme.text,
+            marginHorizontal: 8,
+            alignSelf: 'center',
         },
     } satisfies Styles);
 
