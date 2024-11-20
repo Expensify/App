@@ -533,7 +533,6 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
             // The output should correctly filter out the actionable whisper types for "join," "invite," and "create room" because the report is archived.
             // Taking these actions not only doesn't make sense from a UX standpoint,  but also leads to server errors since such actions are not possible.
-            // eslint-disable-next-line rulesdir/prefer-at
             const expectedOutput: ReportAction[] = input.filter(
                 (action) =>
                     action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER &&
