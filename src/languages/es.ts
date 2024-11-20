@@ -1172,7 +1172,9 @@ const translations = {
     updateRequiredView: {
         updateRequired: 'Actualización requerida',
         pleaseInstall: 'Por favor, actualiza a la última versión de Nuevo Expensify',
+        pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
         toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
+        newAppNotAvailable: 'La nueva aplicación de Expensify ya no está disponible.',
     },
     initialSettingsPage: {
         about: 'Acerca de',

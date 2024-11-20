@@ -40,10 +40,14 @@ function UpdateRequiredView() {
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                     <View style={styles.updateRequiredViewTextContainer}>
                         <View style={[styles.mb3]}>
-                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>{translate('updateRequiredView.pleaseInstall')}</Text>
+                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>
+                                {isProduction ? translate('updateRequiredView.pleaseInstallExpensifyClassic') : translate('updateRequiredView.pleaseInstall')}
+                            </Text>
                         </View>
                         <View style={styles.mb5}>
-                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('updateRequiredView.toGetLatestChanges')}</Text>
+                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                                {isProduction ? translate('updateRequiredView.newAppNotAvailable') : translate('updateRequiredView.toGetLatestChanges')}
+                            </Text>
                         </View>
                     </View>
                 </View>
