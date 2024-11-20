@@ -191,7 +191,6 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
-        ,
         hasSeenTour,
         viewTourTaskReport,
     ]);
