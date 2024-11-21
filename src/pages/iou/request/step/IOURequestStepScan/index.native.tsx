@@ -631,7 +631,6 @@ function IOURequestStepScan({
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
-                                orientation="portrait"
                             />
                             <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                         </View>
