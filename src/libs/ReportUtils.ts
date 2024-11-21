@@ -7270,9 +7270,7 @@ function getOriginalReportID(reportID: string, reportAction: OnyxInputOrEntry<Re
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
     const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
     if (Object.keys(currentReportAction ?? {}).length === 0) {
-        return isThreadReportParentAction
-            ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
-            : transactionThreadReportID ?? reportID;
+        return isThreadReportParentAction ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
     }
     return reportID;
 }

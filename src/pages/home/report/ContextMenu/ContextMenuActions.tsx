@@ -310,7 +310,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
             const isExpenseReportAction = ReportActionsUtils.isMoneyRequestAction(reportAction) || ReportActionsUtils.isReportPreviewAction(reportAction);
             const isTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
-            return !subscribed && !isWhisperAction && !isTaskAction && !isExpenseReportAction && !isThreadReportParentAction && (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom));
+            return (
+                !subscribed &&
+                !isWhisperAction &&
+                !isTaskAction &&
+                !isExpenseReportAction &&
+                !isThreadReportParentAction &&
+                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
