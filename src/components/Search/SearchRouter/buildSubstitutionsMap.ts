@@ -9,15 +9,20 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
 /**
- * Given a plaintext query and data
- * this function will build from scratch
+ * Given a plaintext query and specific entities data,
+ * this function will build the substitutions map from scratch for this query
  *
  * Ex:
- * query: `Test from:John1`
- * substitutions: {
- *     from:SomeOtherJohn: 12345
+ * query: `Test from:12345 to:9876`
+ * personalDetails: {
+ *     12345: JohnDoe
+ *     98765: SomeoneElse
  * }
- * return: {}
+ *
+ * return: {
+ *     from:JohnDoe: 12345,
+ *     to:SomeoneElse: 98765,
+ * }
  */
 function buildSubstitutionsMap(
     query: string,

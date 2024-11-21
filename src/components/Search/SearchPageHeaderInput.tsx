@@ -137,7 +137,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         [autocompleteSubstitutions, originalInputQuery],
     );
 
-    const onListItemClick = (item: OptionData | SearchQueryItem) => {
+    const onListItemPress = (item: OptionData | SearchQueryItem) => {
         if (!isSearchQueryItem(item)) {
             return;
         }
@@ -214,47 +214,43 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
-    const listTopPosition = variables.contentHeaderDesktopHeight;
     const shouldShowAutocompleteList = isAutocompleteListVisible && !!textInputValue;
+
+    const topPosition = (variables.contentHeaderDesktopHeight - variables.componentSizeLarge) / 2;
+    const activeStyles = shouldShowAutocompleteList ? [styles.appBG, styles.border, styles.pAbsolute, {top: topPosition, left: 20, right: 20}] : [];
+    const inputWrapperActiveStyle = shouldShowAutocompleteList ? styles.ph2 : null;
 
     return (
         <View
             dataSet={{dragArea: false}}
-            style={styles.searchResultsHeaderBar}
+            style={[styles.searchResultsHeaderBar, styles.mh85vh]}
         >
-            <SearchRouterInput
-                value={textInputValue}
-                onSearchQueryChange={onSearchQueryChange}
-                isFullWidth
-                onSubmit={() => {
-                    submitSearch(textInputValue);
-                }}
-                autoFocus={false}
-                onFocus={showAutocompleteList}
-                onBlur={hideAutocompleteList}
-                wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                rightComponent={children}
-                routerListRef={listRef}
-            />
-            <View
-                style={[
-                    styles.mh85vh,
-                    styles.pAbsolute,
-                    styles.appBG,
-                    styles.pt2,
-                    {top: listTopPosition, left: 20, right: 20},
-                    !shouldShowAutocompleteList && styles.dNone,
-                    shouldShowAutocompleteList && styles.border,
-                ]}
-            >
-                <SearchRouterList
-                    autocompleteQueryValue={autocompleteQueryValue}
-                    searchQueryItem={searchQueryItem}
-                    onListItemPress={onListItemClick}
-                    onListItemFocus={onListItemFocus}
-                    ref={listRef}
+            <View style={[styles.appBG, styles.pt2, ...activeStyles]}>
+                <SearchRouterInput
+                    value={textInputValue}
+                    onSearchQueryChange={onSearchQueryChange}
+                    isFullWidth
+                    onSubmit={() => {
+                        submitSearch(textInputValue);
+                    }}
+                    autoFocus={false}
+                    onFocus={showAutocompleteList}
+                    onBlur={hideAutocompleteList}
+                    wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
+                    wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
+                    outerWrapperStyle={inputWrapperActiveStyle}
+                    rightComponent={children}
+                    routerListRef={listRef}
                 />
+                <View style={[styles.pt2, !shouldShowAutocompleteList && styles.dNone]}>
+                    <SearchRouterList
+                        autocompleteQueryValue={autocompleteQueryValue}
+                        searchQueryItem={searchQueryItem}
+                        onListItemPress={onListItemPress}
+                        onListItemFocus={onListItemFocus}
+                        ref={listRef}
+                    />
+                </View>
             </View>
         </View>
     );
