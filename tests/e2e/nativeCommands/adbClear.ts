@@ -6,7 +6,8 @@ const adbClear = (): Promise<boolean> => {
     return execAsync(`
       function clear_input() {
           adb shell input keyevent KEYCODE_MOVE_END
-          adb shell input keyevent --longpress $(printf 'KEYCODE_DEL %.0s' {1..250})
+          # delete up to 2 characters per 1 press, so 1..3 will delete up to 6 characters
+          adb shell input keyevent --longpress $(printf 'KEYCODE_DEL %.0s' {1..3})
       }
 
       clear_input
