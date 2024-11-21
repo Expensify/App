@@ -14,7 +14,7 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::contacts { enum class ContactFields; }
 
-#include <future>
+#include <NitroModules/Promise.hpp>
 #include <vector>
 #include "Contact.hpp"
 #include <NitroModules/JPromise.hpp>
@@ -47,7 +47,7 @@ namespace margelo::nitro::contacts {
   
 
   // Methods
-  std::future<std::vector<Contact>> JHybridContactsModuleSpec::getAll(const std::vector<ContactFields>& keys) {
+  std::shared_ptr<Promise<std::vector<Contact>>> JHybridContactsModuleSpec::getAll(const std::vector<ContactFields>& keys) {
     static const auto method = _javaPart->getClass()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("getAll");
     auto __result = method(_javaPart, [&]() {
       size_t __size = keys.size();
@@ -59,10 +59,10 @@ namespace margelo::nitro::contacts {
       return __array;
     }());
     return [&]() {
-      auto __promise = std::make_shared<std::promise<std::vector<Contact>>>();
+      auto __promise = Promise<std::vector<Contact>>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
         auto __result = jni::static_ref_cast<jni::JArrayClass<JContact>>(__boxedResult);
-        __promise->set_value([&]() {
+        __promise->resolve([&]() {
           size_t __size = __result->size();
           std::vector<Contact> __vector;
           __vector.reserve(__size);
@@ -73,11 +73,11 @@ namespace margelo::nitro::contacts {
           return __vector;
         }());
       });
-      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JString>& __message) {
-        std::runtime_error __error(__message->toStdString());
-        __promise->set_exception(std::make_exception_ptr(__error));
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::move(__jniError));
       });
-      return __promise->get_future();
+      return __promise;
     }();
   }
 

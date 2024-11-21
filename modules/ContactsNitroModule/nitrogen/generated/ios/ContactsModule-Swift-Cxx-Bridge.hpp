@@ -26,8 +26,9 @@ namespace ContactsModule { class HybridContactsModuleSpecCxx; }
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "StringHolder.hpp"
-#include <NitroModules/PromiseHolder.hpp>
-#include <future>
+#include <NitroModules/Promise.hpp>
+#include <exception>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -79,13 +80,69 @@ namespace margelo::nitro::contacts::bridge::swift {
     return vector;
   }
   
-  // pragma MARK: PromiseHolder<std::vector<Contact>>
+  // pragma MARK: std::shared_ptr<Promise<std::vector<Contact>>>
   /**
-   * Specialized version of `PromiseHolder<std::vector<Contact>>`.
+   * Specialized version of `std::shared_ptr<Promise<std::vector<Contact>>>`.
    */
-  using PromiseHolder_std__vector_Contact__ = PromiseHolder<std::vector<Contact>>;
-  inline PromiseHolder<std::vector<Contact>> create_PromiseHolder_std__vector_Contact__() {
-    return PromiseHolder<std::vector<Contact>>();
+  using std__shared_ptr_Promise_std__vector_Contact___ = std::shared_ptr<Promise<std::vector<Contact>>>;
+  inline std::shared_ptr<Promise<std::vector<Contact>>> create_std__shared_ptr_Promise_std__vector_Contact___() {
+    return Promise<std::vector<Contact>>::create();
+  }
+  
+  // pragma MARK: std::function<void(const std::vector<Contact>& /* result */)>
+  /**
+   * Specialized version of `std::function<void(const std::vector<Contact>&)>`.
+   */
+  using Func_void_std__vector_Contact_ = std::function<void(const std::vector<Contact>& /* result */)>;
+  /**
+   * Wrapper class for a `std::function<void(const std::vector<Contact>& / * result * /)>`, this can be used from Swift.
+   */
+  class Func_void_std__vector_Contact__Wrapper final {
+  public:
+    explicit Func_void_std__vector_Contact__Wrapper(const std::function<void(const std::vector<Contact>& /* result */)>& func): _function(func) {}
+    explicit Func_void_std__vector_Contact__Wrapper(std::function<void(const std::vector<Contact>& /* result */)>&& func): _function(std::move(func)) {}
+    inline void call(std::vector<Contact> result) const {
+      _function(result);
+    }
+  private:
+    std::function<void(const std::vector<Contact>& /* result */)> _function;
+  };
+  inline Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull closureHolder, void(* _Nonnull call)(void* _Nonnull /* closureHolder */, std::vector<Contact>), void(* _Nonnull destroy)(void* _Nonnull)) {
+    std::shared_ptr<void> sharedClosureHolder(closureHolder, destroy);
+    return Func_void_std__vector_Contact_([sharedClosureHolder, call](const std::vector<Contact>& result) -> void {
+      call(sharedClosureHolder.get(), result);
+    });
+  }
+  inline std::shared_ptr<Func_void_std__vector_Contact__Wrapper> share_Func_void_std__vector_Contact_(const Func_void_std__vector_Contact_& value) {
+    return std::make_shared<Func_void_std__vector_Contact__Wrapper>(value);
+  }
+  
+  // pragma MARK: std::function<void(const std::exception& /* error */)>
+  /**
+   * Specialized version of `std::function<void(const std::exception&)>`.
+   */
+  using Func_void_std__exception = std::function<void(const std::exception& /* error */)>;
+  /**
+   * Wrapper class for a `std::function<void(const std::exception& / * error * /)>`, this can be used from Swift.
+   */
+  class Func_void_std__exception_Wrapper final {
+  public:
+    explicit Func_void_std__exception_Wrapper(const std::function<void(const std::exception& /* error */)>& func): _function(func) {}
+    explicit Func_void_std__exception_Wrapper(std::function<void(const std::exception& /* error */)>&& func): _function(std::move(func)) {}
+    inline void call(std::exception error) const {
+      _function(error);
+    }
+  private:
+    std::function<void(const std::exception& /* error */)> _function;
+  };
+  inline Func_void_std__exception create_Func_void_std__exception(void* _Nonnull closureHolder, void(* _Nonnull call)(void* _Nonnull /* closureHolder */, std::exception), void(* _Nonnull destroy)(void* _Nonnull)) {
+    std::shared_ptr<void> sharedClosureHolder(closureHolder, destroy);
+    return Func_void_std__exception([sharedClosureHolder, call](const std::exception& error) -> void {
+      call(sharedClosureHolder.get(), error);
+    });
+  }
+  inline std::shared_ptr<Func_void_std__exception_Wrapper> share_Func_void_std__exception(const Func_void_std__exception& value) {
+    return std::make_shared<Func_void_std__exception_Wrapper>(value);
   }
   
   // pragma MARK: std::vector<ContactFields>

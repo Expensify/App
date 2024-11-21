@@ -99,21 +99,21 @@ public class HybridContactsModuleSpecCxx {
 
   // Methods
   @inline(__always)
-  public func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.PromiseHolder_std__vector_Contact__ {
+  public func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.std__shared_ptr_Promise_std__vector_Contact___ {
     do {
       let __result = try self.__implementation.getAll(keys: keys.map({ __item in __item }))
-      return { () -> bridge.PromiseHolder_std__vector_Contact__ in
-        let __promiseHolder = bridge.create_PromiseHolder_std__vector_Contact__()
+      return { () -> bridge.std__shared_ptr_Promise_std__vector_Contact___ in
+        let __promise = bridge.create_std__shared_ptr_Promise_std__vector_Contact___()
         __result
-          .then({ __result in __promiseHolder.resolve({ () -> bridge.std__vector_Contact_ in
+          .then({ __result in __promise.pointee.resolve({ () -> bridge.std__vector_Contact_ in
         var __vector = bridge.create_std__vector_Contact_(__result.count)
         for __item in __result {
           __vector.push_back(__item)
         }
         return __vector
       }()) })
-          .catch({ __error in __promiseHolder.reject(std.string(String(describing: __error))) })
-        return __promiseHolder
+          .catch({ __error in __promise.pointee.reject(__error.toCpp()) })
+        return __promise
       }()
     } catch {
       let __message = "\(error.localizedDescription)"

@@ -19,10 +19,9 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::contacts { enum class ContactFields; }
 
-#include <future>
+#include <NitroModules/Promise.hpp>
 #include <vector>
 #include "Contact.hpp"
-#include <NitroModules/PromiseHolder.hpp>
 #include <optional>
 #include <string>
 #include "StringHolder.hpp"
@@ -71,9 +70,9 @@ namespace margelo::nitro::contacts {
 
   public:
     // Methods
-    inline std::future<std::vector<Contact>> getAll(const std::vector<ContactFields>& keys) override {
+    inline std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) override {
       auto __result = _swiftPart.getAll(keys);
-      return __result.getFuture();
+      return __result;
     }
 
   private:

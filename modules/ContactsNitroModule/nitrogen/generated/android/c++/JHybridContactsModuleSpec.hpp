@@ -51,7 +51,7 @@ namespace margelo::nitro::contacts {
 
   public:
     // Methods
-    std::future<std::vector<Contact>> getAll(const std::vector<ContactFields>& keys) override;
+    std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) override;
 
   private:
     friend HybridBase;

@@ -22,7 +22,7 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "StringHolder.hpp"
-#include <future>
+#include <NitroModules/Promise.hpp>
 #include <memory>
 #include <optional>
 #include <string>
@@ -35,7 +35,7 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 #include <NitroModules/ArrayBufferHolder.hpp>
 #include <NitroModules/AnyMapHolder.hpp>
 #include <NitroModules/HybridContext.hpp>
-#include <NitroModules/PromiseHolder.hpp>
+#include <NitroModules/RuntimeError.hpp>
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpecCxx` to properly resolve imports.

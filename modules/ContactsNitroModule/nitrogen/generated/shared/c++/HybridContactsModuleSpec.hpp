@@ -18,7 +18,7 @@ namespace margelo::nitro::contacts { struct Contact; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::contacts { enum class ContactFields; }
 
-#include <future>
+#include <NitroModules/Promise.hpp>
 #include <vector>
 #include "Contact.hpp"
 #include "ContactFields.hpp"
@@ -54,7 +54,7 @@ namespace margelo::nitro::contacts {
 
     public:
       // Methods
-      virtual std::future<std::vector<Contact>> getAll(const std::vector<ContactFields>& keys) = 0;
+      virtual std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) = 0;
 
     protected:
       // Hybrid Setup

@@ -13,6 +13,7 @@
 
 #include "JHybridContactsModuleSpec.hpp"
 #include <NitroModules/JNISharedPtr.hpp>
+#include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::contacts {
 
@@ -29,15 +30,8 @@ int initialize(JavaVM* vm) {
     HybridObjectRegistry::registerHybridObjectConstructor(
       "ContactsModule",
       []() -> std::shared_ptr<HybridObject> {
-        static auto javaClass = jni::findClassStatic("com/margelo/nitro/contacts/HybridContactsModule");
-        static auto defaultConstructor = javaClass->getConstructor<JHybridContactsModuleSpec::javaobject()>();
-    
-        auto instance = javaClass->newObject(defaultConstructor);
-    #ifdef NITRO_DEBUG
-        if (instance == nullptr) [[unlikely]] {
-          throw std::runtime_error("Failed to create an instance of \"JHybridContactsModuleSpec\" - the constructor returned null!");
-        }
-    #endif
+        static DefaultConstructableObject<JHybridContactsModuleSpec::javaobject> object("com/margelo/nitro/contacts/HybridContactsModule");
+        auto instance = object.create();
         auto globalRef = jni::make_global(instance);
         return JNISharedPtr::make_shared_from_jni<JHybridContactsModuleSpec>(globalRef);
       }
