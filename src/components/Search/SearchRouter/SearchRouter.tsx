@@ -411,7 +411,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
                 />
             )}
 
-            {(isDataLoaded || !!textInputValue) && (
+            {(isDataLoaded || !!debouncedInputValue) && (
                 <>
                     <SearchRouterInput
                         value={textInputValue}
