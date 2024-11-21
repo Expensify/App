@@ -430,8 +430,8 @@ function MoneyRequestPreviewContent({
                                             </View>
                                         )}
                                     </View>
-                                    {(!!tag || !!category) && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0]} />}
-                                    <View style={[styles.flexRow, styles.pv2, styles.alignItemsCenter]}>
+                                    {(!!tag || !!category) && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
+                                    <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
                                         {!!category && (
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, tag && styles.mw50, tag && styles.pr1, styles.flexShrink1]}>
                                                 <Icon
