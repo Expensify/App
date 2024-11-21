@@ -417,7 +417,7 @@ function getOptionData({
 
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
+        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, personalDetails, policy);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
