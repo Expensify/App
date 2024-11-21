@@ -13,7 +13,7 @@ type AppNavigatorProps = {
 };
 
 function shouldUseOldApp(tryNewDot?: TryNewDot) {
-    return tryNewDot?.classicRedirect.dismissed === true || tryNewDot?.classicRedirect.dismissed === 'true';
+    return tryNewDot?.classicRedirect.dismissed === true;
 }
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
