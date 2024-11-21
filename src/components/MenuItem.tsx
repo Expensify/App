@@ -251,6 +251,9 @@ type MenuItemBaseProps = {
     /** Should we remove the background color of the menu item */
     shouldRemoveBackground?: boolean;
 
+    /** Should we remove the hover background color of the menu item */
+    shouldRemoveHoverBackground?: boolean;
+
     /** Should we use default cursor for disabled content */
     shouldUseDefaultCursorWhenDisabled?: boolean;
 
@@ -411,6 +414,7 @@ function MenuItem(
         shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldRemoveBackground = false,
+        shouldRemoveHoverBackground = false,
         shouldUseDefaultCursorWhenDisabled = false,
         shouldShowLoadingSpinnerIcon = false,
         isAnonymousAction = false,
@@ -594,7 +598,7 @@ function MenuItem(
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && styles.hoveredComponentBG,
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

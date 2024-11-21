@@ -17,9 +17,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 type SidebarLinksProps = {
-    /** Toggles the navigation menu open and closed */
-    onLinkClick: () => void;
-
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
 
@@ -40,7 +37,7 @@ type SidebarLinksProps = {
     activeWorkspaceID: string | undefined;
 };
 
-function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {updateLocale} = useLocalize();
@@ -75,9 +72,8 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
-            onLinkClick();
         },
-        [shouldUseNarrowLayout, isActiveReport, onLinkClick],
+        [shouldUseNarrowLayout, isActiveReport],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;

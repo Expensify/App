@@ -149,7 +149,7 @@ button,
 input,
 select,
 textarea {
-    line-height: 1.4;
+    line-height: 1.33;
     font-weight: 400;
     font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
@@ -374,6 +374,18 @@ button {
             }
         }
 
+        li {
+            padding-bottom: 4px;
+        }
+
+        ol {
+            li {
+                ul {
+                    padding-bottom: 0;
+                }
+            }
+        }
+
         table {
             margin-bottom: 20px;
             border-radius: 8px;
@@ -415,6 +427,12 @@ button {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
+        }
+
+        h1,
+        h2,
+        h3 {
+            line-height: 1.2;
         }
 
         h1,

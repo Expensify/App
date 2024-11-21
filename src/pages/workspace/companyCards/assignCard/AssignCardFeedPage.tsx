@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import AssigneeStep from './AssigneeStep';
+import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
@@ -39,6 +40,8 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
             return <TransactionStartDateStep />;
+        case CONST.COMPANY_CARD.STEP.CARD_NAME:
+            return <CardNameStep policyID={policyID} />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
             return (
                 <ConfirmationStep

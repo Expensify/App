@@ -43,6 +43,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
+                shouldEnableKeyboardAvoidingView={false}
                 testID={CategorySelectorModal.displayName}
             >
                 <HeaderWithBackButton

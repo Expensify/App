@@ -2,7 +2,6 @@ import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,25 +52,6 @@ const policies = createCollection<Policy>(
 
 const mockedBetas = Object.values(CONST.BETAS);
 
-const allReportActions = Object.fromEntries(
-    Object.keys(reportActions).map((key) => [
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`,
-        [
-            {
-                errors: reportActions[key].errors ?? [],
-                message: [
-                    {
-                        moderationDecision: {
-                            decision: getReportActionMessage(reportActions[key])?.moderationDecision?.decision,
-                        },
-                    },
-                ],
-                reportActionID: reportActions[key].reportActionID,
-            },
-        ],
-    ]),
-) as unknown as OnyxCollection<ReportAction[]>;
-
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
@@ -114,13 +94,11 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations),
-        );
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, allReportActions, transactionViolations));
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
     });
 });

@@ -7,8 +7,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {CountryData} from '@libs/searchCountryOptions';
-import searchCountryOptions from '@libs/searchCountryOptions';
+import type {Option} from '@libs/searchOptions';
+import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
@@ -38,11 +38,11 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countries);
+    const searchResults = searchOptions(searchValue, countries);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(
-        (option: CountryData) => {
+        (option: Option) => {
             const backTo = route.params.backTo ?? '';
             // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && !backTo) {

@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,21 +16,18 @@ import * as ExitSurvey from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
+import type {ExitReason, ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyReasonPageOnyxProps = {
-    draftReason: ExitReason | null;
-};
-
-function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
+function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null});
 
-    const [reason, setReason] = useState<ExitReason | null>(draftReason);
+    const [reason, setReason] = useState<ExitReason | null>(draftReason ?? null);
     useEffect(() => {
         // disabling lint because || is fine to use as a logical operator (as opposed to being used to define a default value)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -69,7 +67,7 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
                         return;
                     }
                     ExitSurvey.saveExitReason(reason);
-                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON));
+                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
                 }}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
@@ -97,9 +95,4 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
 
 ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
 
-export default withOnyx<ExitSurveyReasonPageOnyxProps, ExitSurveyReasonPageOnyxProps>({
-    draftReason: {
-        key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
-        selector: (value) => value?.[INPUT_IDS.REASON] ?? null,
-    },
-})(ExitSurveyReasonPage);
+export default ExitSurveyReasonPage;

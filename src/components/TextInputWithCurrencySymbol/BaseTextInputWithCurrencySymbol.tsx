@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
-import type TextInputWithCurrencySymbolProps from './types';
+import type BaseTextInputWithCurrencySymbolProps from './types';
 
 function BaseTextInputWithCurrencySymbol(
     {
@@ -24,7 +24,7 @@ function BaseTextInputWithCurrencySymbol(
         extraSymbol,
         style,
         ...rest
-    }: TextInputWithCurrencySymbolProps,
+    }: BaseTextInputWithCurrencySymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();

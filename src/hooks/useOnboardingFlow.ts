@@ -21,12 +21,23 @@ function useOnboardingFlowRouter() {
         selector: hasCompletedHybridAppOnboardingFlowSelector,
     });
 
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+            return;
+        }
+
+        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
             return;
         }
 
         if (NativeModules.HybridAppModule) {
+            // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
+            if (isSingleNewDotEntry) {
+                return;
+            }
+
             // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
             if (isHybridAppOnboardingCompleted === false) {
                 Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
@@ -43,7 +54,7 @@ function useOnboardingFlowRouter() {
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
             OnboardingFlow.startOnboardingFlow();
         }
-    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata]);
+    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata, isSingleNewDotEntry]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
 }
