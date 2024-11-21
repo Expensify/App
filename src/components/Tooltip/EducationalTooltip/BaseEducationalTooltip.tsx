@@ -17,7 +17,7 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
     const removeActiveTooltipRef = useRef(() => {});
-    const removePendingToltipRef = useRef(() => {});
+    const removePendingTooltipRef = useRef(() => {});
 
     const didShow = useRef(false);
 
@@ -62,14 +62,14 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
-            removePendingToltipRef.current();
+            removePendingTooltipRef.current();
             show.current?.();
             didShow.current = true;
             removeActiveTooltipRef.current = TooltipManager.addActiveTooltip(closeTooltip);
         }, 500);
-        removePendingToltipRef.current = TooltipManager.addPendingTooltip(timerID);
+        removePendingTooltipRef.current = TooltipManager.addPendingTooltip(timerID);
         return () => {
-            removePendingToltipRef.current();
+            removePendingTooltipRef.current();
             clearTimeout(timerID);
         };
     }, [shouldMeasure, shouldRender, closeTooltip]);
