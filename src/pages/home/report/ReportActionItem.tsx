@@ -321,7 +321,7 @@ function ReportActionItem({
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
-    const isArchivedRoom = ReportUtils.isArchivedRoomWithID(originalReportID);
+    const isArchivedRoom = ReportUtils.isArchivedNonExpenseReportWithID(originalReportID);
     const disabledActions = useMemo(() => (!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
     const isChronosReport = ReportUtils.chatIncludesChronosWithID(originalReportID);
     /**

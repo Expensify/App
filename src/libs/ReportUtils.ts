@@ -1483,7 +1483,7 @@ function isArchivedAnyReport(report: OnyxInputOrEntry<Report>, reportNameValuePa
 /**
  * Whether the report with the provided reportID is an archived room
  */
-function isArchivedRoomWithID(reportID?: string) {
+function isArchivedNonExpenseReportWithID(reportID?: string) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
     return isArchivedNonExpenseReport(report, getReportNameValuePairs(reportID));
@@ -8635,7 +8635,7 @@ export {
     isArchivedNonExpenseReport,
     isArchivedExpenseReport,
     isArchivedAnyReport,
-    isArchivedRoomWithID,
+    isArchivedNonExpenseReportWithID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,

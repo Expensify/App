@@ -184,7 +184,7 @@ function ReportPreview({
     }
 
     const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport);
-    const isArchivedReport = ReportUtils.isArchivedRoomWithID(iouReportID);
+    const isArchivedReport = ReportUtils.isArchivedNonExpenseReportWithID(iouReportID);
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowSubmitButton =

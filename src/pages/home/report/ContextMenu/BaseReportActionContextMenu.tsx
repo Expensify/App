@@ -276,7 +276,7 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.isArchivedNonExpenseReportWithID(originalReportID),
             ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
