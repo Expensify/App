@@ -47,11 +47,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const policy = PolicyUtils.getPolicy(policyID);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
+    const filteredCardList = CardUtils.getFilteredCardList(list);
 
     const handleAssignCard = () => {
         const data: Partial<AssignCardData> = {

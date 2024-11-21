@@ -51,11 +51,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
+    const filteredCardList = CardUtils.getFilteredCardList(list);
 
     const handleSubmit = () => {
         if (!selectedFeed) {

@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -38,11 +39,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${assignCard?.data?.bankName ?? ''}`);
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
+    const filteredCardList = CardUtils.getFilteredCardList(list);
 
     const isEditing = assignCard?.isEditing;
 

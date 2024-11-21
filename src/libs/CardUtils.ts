@@ -352,6 +352,12 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function getFilteredCardList(list?: WorkspaceCardsList) {
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    return Object.fromEntries(Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))));
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -378,4 +384,5 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getFilteredCardList,
 };
