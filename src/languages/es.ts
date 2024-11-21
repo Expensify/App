@@ -4311,7 +4311,7 @@ const translations = {
                 note: 'Obtén acceso a todas nuestras funciones más avanzadas, incluyendo:',
                 benefits: {
                     note: 'El plan Controlar comienza en $9 por miembro activo al mes.',
-                    learnMore: 'Aprende más',
+                    learnMore: 'Obtén más información',
                     pricing: 'sobre nuestros planes y precios.',
                     benefit1: 'Conexiones contables avanzadas (NetSuite, Sage Intacct y más)',
                     benefit2: 'Reglas de gastos',
