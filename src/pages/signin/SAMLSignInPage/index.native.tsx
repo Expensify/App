@@ -6,16 +6,16 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {getApiRoot} from '@libs/ApiUtils';
 import getPlatform from '@libs/getPlatform';
+import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {getApiRoot} from '@libs/ApiUtils';
-import CONST from '@src/CONST';
-import getUAForWebView from '@libs/getUAForWebView';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -35,13 +35,15 @@ function SAMLSignInPage() {
                 method: CONST.NETWORK.METHOD.POST,
                 body,
                 credentials: 'omit',
-            }).then((response) => {
-                return response.json() as Promise<Response>
-            }).then((response) => {
-                if (response.url) {
-                    setURL(response.url);
-                }
-            });
+            })
+                .then((response) => {
+                    return response.json() as Promise<Response>;
+                })
+                .then((response) => {
+                    if (response.url) {
+                        setURL(response.url);
+                    }
+                });
         }
     }, [credentials?.login, url]);
 
@@ -92,17 +94,17 @@ function SAMLSignInPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-            {!!url && (
-                <WebView
-                    ref={webViewRef}    
-                    source={{uri: url}}
-                    userAgent={getUAForWebView()}
-                    incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-                    startInLoadingState
-                    renderLoading={() => <SAMLLoadingIndicator />}
-                    onNavigationStateChange={handleNavigationStateChange}
-                />
-            )}
+                {!!url && (
+                    <WebView
+                        ref={webViewRef}
+                        source={{uri: url}}
+                        userAgent={getUAForWebView()}
+                        incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                        startInLoadingState
+                        renderLoading={() => <SAMLLoadingIndicator />}
+                        onNavigationStateChange={handleNavigationStateChange}
+                    />
+                )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
