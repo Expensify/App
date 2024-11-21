@@ -332,7 +332,7 @@ function SearchRouter({onRouterClose}: SearchRouterProps) {
 
     const setInitialFocus = useCallback(() => {
         const initialFocusIndex = (sortedRecentSearches?.slice(0, 5).length ?? 0) + (contextualReportData ? 1 : 0);
-        listRef.current?.setFocusedIndex(initialFocusIndex, false);
+        listRef.current?.setFocusedIndex(initialFocusIndex);
     }, [sortedRecentSearches, contextualReportData]);
 
     useEffect(() => {
