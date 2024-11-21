@@ -446,7 +446,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
-        case 'avatarFileName':
         case 'avatarUrl':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
@@ -462,7 +461,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'reportActionID':
         case 'chatReportID':
         case 'type':
-        case 'cachedTotal':
         case 'lastMessageTranslationKey':
         case 'parentReportID':
         case 'parentReportActionID':
@@ -471,7 +469,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'currency':
         case 'iouReportID':
         case 'preexistingReportID':
-        case 'transactionThreadReportID':
         case 'private_isArchived':
             return validateString(value);
         case 'hasOutstandingChildRequest':
@@ -484,7 +481,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
         case 'isHidden':
-        case 'isLoadingPrivateNotes':
             return validateBoolean(value);
         case 'lastReadSequenceNumber':
         case 'managerID':
@@ -584,7 +580,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                avatarFileName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildTask: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -607,7 +602,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                cachedTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageTranslationKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -628,9 +622,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isLoadingPrivateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,

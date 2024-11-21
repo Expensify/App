@@ -70,9 +70,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
-        /** The filename of the avatar */
-        avatarFileName?: string;
-
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -151,9 +148,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report visibility */
         visibility?: RoomVisibility;
 
-        /** Report cached total */
-        cachedTotal?: string;
-
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
@@ -223,14 +217,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
-        /** Whether participants private notes are being currently loaded */
-        isLoadingPrivateNotes?: boolean;
-
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
-
-        /** The ID of the single transaction thread report associated with this report, if one exists */
-        transactionThreadReportID?: string;
 
         /** Collection of policy report fields, indexed by their fieldID */
         fieldList?: Record<string, PolicyReportField>;
