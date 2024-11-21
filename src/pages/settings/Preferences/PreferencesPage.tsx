@@ -11,11 +11,14 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalPolicy} from '@libs/PolicyUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +32,10 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const personalPolicyID = getPersonalPolicy()?.id;
+    const personalPolicy = usePolicy(personalPolicyID);
+
+    const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -101,6 +108,13 @@ function PreferencesPage() {
                                 title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
+                                description={translate('billingCurrency.paymentCurrency')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                             <MenuItemWithTopDescription
