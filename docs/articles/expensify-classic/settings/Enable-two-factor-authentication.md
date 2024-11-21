@@ -37,7 +37,7 @@ When you log in to Expensify in the future, you’ll be emailed a magic code tha
 
 ## Lost recovery codes and authenticator app
 
-If you have lost your mobile device and can’t find your recovery codes, you can have your Domain Admin complete the steps below to reset your 2FA **only if you use a company email address or an email address on a domain that you own**: 
+If you have lost your mobile device and can’t find your recovery codes, your Domain Admin can complete the steps below to reset your 2FA **only if (1) you use a company email address or email address on a domain that you own and (2) the Domain Admin also has 2FA enabled**:
 
 Go to Settings > Domains > Domain Members and click **Edit Settings** for your email address. 
 They then click **Reset** to reset two-factor authentication (2FA) on your account. 
