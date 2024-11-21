@@ -113,6 +113,13 @@ const fakePersonalDetails: PersonalDetailsList = {
         avatar: 'none',
         firstName: 'Nine',
     },
+    10: {
+        accountID: 10,
+        login: 'email10@test.com',
+        displayName: 'Email Ten',
+        avatar: 'none',
+        firstName: 'Ten',
+    },
 };
 
 let lastFakeReportID = 0;
@@ -121,8 +128,17 @@ let lastFakeReportActionID = 0;
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, adminIDs: number[] = []): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+
+    const participants = ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs);
+
+    adminIDs.forEach((id) => {
+        participants[id] = {
+            notificationPreference: 'always',
+            role: CONST.REPORT.ROLE.ADMIN,
+        };
+    });
 
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -130,7 +146,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
+        participants,
     };
 }
 
