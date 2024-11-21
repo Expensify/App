@@ -472,7 +472,6 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
-        validate: 'Validate',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1818,8 +1817,7 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `We have temporarily suspended sending SMS to ${login} because we were unable to deliver SMS messages to your phone number. To try again, please click the button:`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS message to ${login}, so we've suspended it for 24 hours.`,
     },
     welcomeSignUpForm: {
         join: 'Join',

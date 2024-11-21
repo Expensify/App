@@ -377,9 +377,10 @@ function signInAttemptState(): OnyxData {
                     isLoading: true,
                     message: null,
                     loadingForm: CONST.FORMS.LOGIN_FORM,
-                    hasSMSDeliveryFailure: null,
-                    isResetPhoneNumberFailureSuccess: null,
-                    resetPhoneNumberFailureMessage: null,
+                    SMSDeliveryFailureStatus: {
+                        hasSMSDeliveryFailure: null,
+                        message: null,
+                    },
                 },
             },
         ],

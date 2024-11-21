@@ -462,7 +462,6 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
-        validate: 'Validar',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -1821,8 +1820,7 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `Hemos suspendido temporalmente el envío de SMS a ${login} porque no pudimos entregar los mensajes SMS a tu número de teléfono. Para intentarlo de nuevo, por favor haz clic en el botón:`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar el mensaje SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
     },
     welcomeSignUpForm: {
         join: 'Unirse',
