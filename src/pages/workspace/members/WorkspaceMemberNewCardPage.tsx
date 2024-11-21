@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
@@ -49,6 +50,13 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    const filteredCardList = Object.fromEntries(
+        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
+    );
+
     const handleSubmit = () => {
         if (!selectedFeed) {
             setShouldShowError(true);
@@ -64,11 +72,19 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
         } else {
+            const data: Partial<AssignCardData> = {
+                email: memberLogin,
+            };
+            let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+
+            if (Object.keys(filteredCardList).length === 1) {
+                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+                data.cardNumber = Object.keys(filteredCardList).at(0);
+                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            }
             CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CARD,
-                data: {
-                    email: memberLogin,
-                },
+                currentStep,
+                data,
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));

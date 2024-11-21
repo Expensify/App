@@ -46,6 +46,13 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const currentFeedData = companyFeeds?.[selectedFeed];
     const policy = PolicyUtils.getPolicy(policyID);
 
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    const filteredCardList = Object.fromEntries(
+        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
+    );
+
     const handleAssignCard = () => {
         const data: Partial<AssignCardData> = {
             bankName: selectedFeed,
@@ -56,6 +63,12 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
         if (Object.keys(policy?.employeeList ?? {}).length === 1) {
             data.email = Object.keys(policy?.employeeList ?? {}).at(0);
             currentStep = CONST.COMPANY_CARD.STEP.CARD;
+        }
+
+        if (Object.keys(filteredCardList).length === 1) {
+            currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+            data.cardNumber = Object.keys(filteredCardList).at(0);
+            data.encryptedCardNumber = Object.values(filteredCardList).at(0);
         }
 
         CompanyCards.setAssignCardStepAndData({data, currentStep});
