@@ -18,6 +18,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as Report from '@userActions/Report';
 import UserListItem from '@src/components/SelectionList/UserListItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -42,7 +43,7 @@ function ShareDetailsPage({
     }, [tempShareFiles]);
 
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
-
+    
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content : '');
 
     const reportDisplay = OptionsListUtils.getReportDisplayOption(report);
@@ -58,7 +59,7 @@ function ShareDetailsPage({
                 Report.addAttachment(reportID, file, message);
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-                Navigation.navigate(routeToNavigate);
+                Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
             },
             () => {},
         );
@@ -76,7 +77,7 @@ function ShareDetailsPage({
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
                 />
-                {report && (
+                {!!report && (
                     <>
                         <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                             <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>

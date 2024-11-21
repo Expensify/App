@@ -17,7 +17,6 @@ function SubmitTab() {
                 }
                 Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(reportID));
             }}
-            iouRequestType="manual"
             action="create"
         />
     );
