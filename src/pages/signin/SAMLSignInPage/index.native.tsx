@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
@@ -13,12 +13,37 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getApiRoot} from '@libs/ApiUtils';
+import CONST from '@src/CONST';
+import getUAForWebView from '@libs/getUAForWebView';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
     const [showNavigation, shouldShowNavigation] = useState(true);
+    const [url, setURL] = useState('');
+    const webViewRef = useRef<WebView>(null);
+
+    useEffect(() => {
+        const body = new FormData();
+        body.append('email', credentials?.login ?? '');
+        body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
+        body.append('platform', getPlatform());
+
+        if (!url) {
+            fetch(`${getApiRoot()}authentication/saml/login`, {
+                method: CONST.NETWORK.METHOD.POST,
+                body,
+                credentials: 'omit',
+            }).then((response) => {
+                return response.json() as Promise<Response>
+            }).then((response) => {
+                if (response.url) {
+                    setURL(response.url);
+                }
+            });
+        }
+    }, [credentials?.login, url]);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -58,6 +83,7 @@ function SAMLSignInPage() {
                 <HeaderWithBackButton
                     title=""
                     onBackButtonPress={() => {
+                        setURL('');
                         Session.clearSignInData();
                         Navigation.isNavigationReady().then(() => {
                             Navigation.goBack();
@@ -66,14 +92,17 @@ function SAMLSignInPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
+            {!!url && (
                 <WebView
-                    originWhitelist={['https://*']}
-                    source={{uri: samlLoginURL}}
+                    ref={webViewRef}    
+                    source={{uri: url}}
+                    userAgent={getUAForWebView()}
                     incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
                     startInLoadingState
                     renderLoading={() => <SAMLLoadingIndicator />}
                     onNavigationStateChange={handleNavigationStateChange}
                 />
+            )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
