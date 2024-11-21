@@ -52,9 +52,8 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             Navigation.dismissModal();
         } else {
-            Navigation.dismissModal(
-                ReportUtils.isOneTransactionThread(report?.reportID ?? '-1', report?.parentReportID ?? '-1', parentReportAction) ? report?.parentReportID : report?.reportID,
-            );
+            const isOneTransactionThread = ReportUtils.isOneTransactionThread(report?.reportID ?? '-1', report?.parentReportID ?? '-1', parentReportAction);
+            Navigation.dismissModal(isOneTransactionThread ? report?.parentReportID : report?.reportID);
         }
     };
 

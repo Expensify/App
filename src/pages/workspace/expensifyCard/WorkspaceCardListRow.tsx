@@ -39,15 +39,15 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
     const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
-        <View style={[styles.flexRow, styles.gap5, styles.br3, styles.p4]}>
-            <View style={[styles.flexRow, styles.flex5, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
+            <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
                     source={cardholder?.avatar ?? FallbackAvatar}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.h100]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
@@ -66,13 +66,21 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textNormalThemeText]}
+                        style={[styles.textNormalThemeText, styles.lh16]}
                     >
                         {cardType}
                     </Text>
                 </View>
             )}
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+            <View
+                style={[
+                    styles.flexRow,
+                    styles.gap2,
+                    shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
+                    shouldUseNarrowLayout ? styles.alignItemsStart : styles.alignItemsCenter,
+                    shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
+                ]}
+            >
                 <Text
                     numberOfLines={1}
                     style={[styles.textNormalThemeText]}
@@ -86,24 +94,22 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
                     !shouldUseNarrowLayout && styles.gap2,
                     !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
-                    styles.justifyContentEnd,
+                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
                 ]}
             >
                 <Text
                     numberOfLines={1}
                     style={[styles.textNormalThemeText]}
                 >
-                    {CurrencyUtils.convertToDisplayString(limit, currency)}
+                    {CurrencyUtils.convertToShortDisplayString(limit, currency)}
                 </Text>
                 {shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textLabelSupporting]}
-                        >
-                            {cardType}
-                        </Text>
-                    </View>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textLabelSupporting, styles.lh16]}
+                    >
+                        {cardType}
+                    </Text>
                 )}
             </View>
         </View>
