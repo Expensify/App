@@ -619,22 +619,29 @@ function getLastMessageTextForReport(
     } else if (lastReportAction?.actionName && ReportActionUtils.isAddCommentAction(lastReportAction)) {
         const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
         const accountIDToName: Record<string, string> = {};
-        const {html: originalMessageHtml} = ReportActionUtils.getOriginalMessage(lastReportAction) ?? {};
-        const accountIDs = Array.from(originalMessageHtml?.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
-        const getDisplayName = (personalDetails: unknown): string => {
-            if (!personalDetails) {
-                return;
+        const originalMessageHtml = ReportActionUtils.getOriginalMessage(lastReportAction)?.html;
+        if (originalMessageHtml) {
+            const accountIDs = Array.from(originalMessageHtml.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
+            const getDisplayName = (personalDetails: OnyxEntry<PersonalDetails>): string => {
+                if (!personalDetails) {
+                    return '';
+                }
+                return personalDetails.login ?? personalDetails.displayName ?? '';
+            };
+
+            if (accountIDs && originalMessageHtml) {
+                const personalDetailsForAccountIDs = getPersonalDetailsForAccountIDs(accountIDs, personalDetailList);
+                accountIDs.forEach((id) => {
+                    if (!id) {
+                        return;
+                    }
+                    accountIDToName[id] = getDisplayName(personalDetailsForAccountIDs[id]);
+                });
             }
-            return personalDetails.login ?? (personalDetails?.displayName as string);
-        };
 
-        if (accountIDs && originalMessageHtml) {
-            const personalDetailsForAccountIDs = getPersonalDetailsForAccountIDs(accountIDs, personalDetailList);
-            accountIDs.forEach((id) => (accountIDToName[id] = getDisplayName(personalDetailsForAccountIDs[id])));
-        }
-
-        if (accountIDToName) {
-            lastMessageTextFromReport = Str.removeSMSDomain(Parser.htmlToText(originalMessageHtml, {accountIDToName}));
+            if (accountIDToName) {
+                lastMessageTextFromReport = Str.removeSMSDomain(Parser.htmlToText(originalMessageHtml, {accountIDToName}));
+            }
         }
     }
 
