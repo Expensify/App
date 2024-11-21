@@ -8,9 +8,16 @@ class RequestThrottle {
 
     private requestRetryCount = 0;
 
+    private timeoutID?: NodeJS.Timeout;
+
     clear() {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
+        if (this.timeoutID) {
+            Log.info(`[RequestThrottle] clearing timeoutID: ${String(this.timeoutID)}`);
+            clearTimeout(this.timeoutID);
+            this.timeoutID = undefined;
+        }
         Log.info(`[RequestThrottle] in clear()`);
     }
 
@@ -35,7 +42,7 @@ class RequestThrottle {
                 Log.info(
                     `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
                 );
-                setTimeout(resolve, currentRequestWaitTime);
+                this.timeoutID = setTimeout(resolve, currentRequestWaitTime);
             } else {
                 reject();
             }

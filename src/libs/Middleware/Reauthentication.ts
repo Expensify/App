@@ -59,6 +59,7 @@ function retryReauthenticate(commandName?: string): Promise<void> {
 
 function resetReauthentication(): void {
     isAuthenticating = null;
+    reauthThrottle.clear();
 }
 
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
@@ -151,4 +152,4 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         });
 
 export default Reauthentication;
-export {reauthenticate, resetReauthentication};
+export {reauthenticate, resetReauthentication, reauthThrottle};
