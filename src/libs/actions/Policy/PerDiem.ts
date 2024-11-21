@@ -155,8 +155,8 @@ function updateImportSpreadsheetData(ratesLength: number) {
     return onyxData;
 }
 
-function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[]) {
-    const onyxData = updateImportSpreadsheetData(rates.length);
+function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[], rowsLength: number) {
+    const onyxData = updateImportSpreadsheetData(rowsLength);
 
     const parameters = {
         policyID,

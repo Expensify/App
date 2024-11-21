@@ -117,9 +117,11 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             perDiemAmount?.slice(containsHeader ? 1 : 0),
         );
 
+        const rowsLength = perDiemDestination.length - (containsHeader ? 1 : 0);
+
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits);
+            importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits, rowsLength);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 
