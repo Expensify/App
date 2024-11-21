@@ -5034,7 +5034,7 @@ const CONST = {
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
-                        '1. Click your profile photo.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click Accounting.\n' +

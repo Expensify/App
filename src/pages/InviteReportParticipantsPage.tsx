@@ -2,8 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -30,20 +29,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type InviteReportParticipantsPageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type InviteReportParticipantsPageProps = InviteReportParticipantsPageOnyxProps & WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
+type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function InviteReportParticipantsPage({betas, personalDetails, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<RouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -51,12 +45,14 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
 
     useEffect(() => {
         UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
+        Report.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -259,12 +255,4 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
 InviteReportParticipantsPage.displayName = 'InviteReportParticipantsPage';
 
-export default withNavigationTransitionEnd(
-    withReportOrNotFound()(
-        withOnyx<InviteReportParticipantsPageProps, InviteReportParticipantsPageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-        })(InviteReportParticipantsPage),
-    ),
-);
+export default withNavigationTransitionEnd(withReportOrNotFound()(InviteReportParticipantsPage));
