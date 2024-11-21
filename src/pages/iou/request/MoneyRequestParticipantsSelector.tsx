@@ -83,7 +83,6 @@ function MoneyRequestParticipantsSelector({
     const [softPermissionModalVisible, setSoftPermissionModalVisible] = useState(false);
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const showImportContacts = !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
-    // const showImportContacts = contactPermissionState !== RESULTS.GRANTED && contactPermissionState !== RESULTS.LIMITED
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -258,7 +257,7 @@ function MoneyRequestParticipantsSelector({
         inputHelperText,
     ]);
 
-    const onRequestContacts = useCallback(() => {
+    const handleContactImport = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContacts(contactList);
@@ -435,6 +434,16 @@ function MoneyRequestParticipantsSelector({
         );
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
+    const handlePermissionGrant = useCallback(() => {
+        setSoftPermissionModalVisible(false);
+        InteractionManager.runAfterInteractions(handleContactImport);
+        setTextInputAutoFocus(true);
+    }, [handleContactImport]);
+
+    const handleSoftPermissionDeny = useCallback(() => {
+        setSoftPermissionModalVisible(false);
+    }, []);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -532,19 +541,9 @@ function MoneyRequestParticipantsSelector({
             {softPermissionModalVisible && (
                 <ContactPermissionModal
                     startPermissionFlow={softPermissionModalVisible}
-                    resetPermissionFlow={() => {
-                        setSoftPermissionModalVisible(false);
-                    }}
-                    onGrant={() => {
-                        setSoftPermissionModalVisible(false);
-                        InteractionManager.runAfterInteractions(() => {
-                            onRequestContacts();
-                        });
-                        setTextInputAutoFocus(true);
-                    }}
-                    onDeny={() => {
-                        setSoftPermissionModalVisible(false);
-                    }}
+                    resetPermissionFlow={handleSoftPermissionDeny}
+                    onGrant={handlePermissionGrant}
+                    onDeny={handleSoftPermissionDeny}
                 />
             )}
             <SelectionList
