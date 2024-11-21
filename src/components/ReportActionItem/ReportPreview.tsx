@@ -145,7 +145,7 @@ function ReportPreview({
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0.25);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
-        transform: [{scale: thumbsUpScale.value}],
+        transform: [{scale: thumbsUpScale.get()}],
     }));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
@@ -468,7 +468,7 @@ function ReportPreview({
             return;
         }
 
-        thumbsUpScale.value = withSpring(1, {duration: 200});
+        thumbsUpScale.set(withSpring(1, {duration: 200}));
     }, [isApproved, thumbsUpScale]);
 
     return (

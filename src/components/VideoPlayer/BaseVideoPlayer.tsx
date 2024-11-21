@@ -206,7 +206,7 @@ function BaseVideoPlayer({
             if (status.didJustFinish) {
                 setIsEnded(status.didJustFinish && !status.isLooping);
                 setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-                controlsOpacity.value = 1;
+                controlsOpacity.set(1);
             } else if (status.isPlaying && isEnded) {
                 setIsEnded(false);
             }

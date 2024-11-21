@@ -56,7 +56,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         })
         .onFinalize(() => {
             setIsSliderPressed(false);
-            if (!wasVideoPlayingOnCheck.value) {
+            if (!wasVideoPlayingOnCheck.get()) {
                 return;
             }
             playVideo();

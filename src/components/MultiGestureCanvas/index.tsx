@@ -116,13 +116,13 @@ function MultiGestureCanvas({
     const offsetY = useSharedValue(0);
 
     useAnimatedReaction(
-        () => isSwipingDownToClose.value,
+        () => isSwipingDownToClose.get(),
         (current) => {
             if (!isUsedInCarousel) {
                 return;
             }
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-            isPagerScrollEnabled.value = !current;
+            isPagerScrollEnabled.set(!current);
         },
     );
 
