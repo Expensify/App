@@ -24,6 +24,7 @@ describe('CheckboxWithLabel Component', () => {
     it('renders the checkbox with label', () => {
         // Given the component is rendered
         renderCheckboxWithLabel();
+
         // Then the label is displayed
         expect(screen.getByText(LABEL)).toBeOnTheScreen();
     });
