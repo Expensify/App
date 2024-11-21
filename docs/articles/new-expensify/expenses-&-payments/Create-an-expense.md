@@ -157,9 +157,9 @@ Once a report is submitted, you can track the status from the **Search** section
     - If you find the site you want to use under **Blocked**, tap the site > **Allow**.
 5. Refresh the site.
 
-**Safari**
-1. Open Safari
-2. To the left of the address bar, tap More icon > **Site settings** > **Camera**
+**Safari:**
+1. Open Safari.
+2. To the left of the address bar, tap More icon > **Site settings** > **Camera**.
 3. Tap **Allow** to grant permission.
 4. Tap **Done**.
 5. Refresh the site.
