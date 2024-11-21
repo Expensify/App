@@ -52,12 +52,10 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             await act(async () => {
                 await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
             });
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
-                    classicRedirect: {
-                        dismissed: dismissedValue,
-                    },
-                });
+            await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
+                classicRedirect: {
+                    dismissed: dismissedValue,
+                },
             });
             await waitForBatchedUpdates();
             return navigateToSetting();
@@ -108,7 +106,7 @@ describe('User should navigate to Confirm page if dimissed is true or unset', ()
         });
     });
 
-    test('Test switch to Expensify classic - dimissed is true',() => {
+    test('Test switch to Expensify classic - dimissed is true', () => {
         signInAppAndEnterTestFlow(true).then(() => {
             expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
         });
