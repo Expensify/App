@@ -11,7 +11,7 @@
     "setupNewDotWebForEmulators": "./scripts/setup-newdot-web-emulators.sh",
     "startAndroidEmulator": "./scripts/start-android.sh",
     "postinstall": "./scripts/postInstall.sh",
-    "clean": "npx react-native clean-project-auto",
+    "clean": "./scripts/clean.sh",
     "clean-standalone": "./scripts/clean.sh",
     "android": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android",
     "android-standalone": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android --new-dot",
