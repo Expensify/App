@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import * as Authentication from '@libs/Authentication';
 import Log from '@libs/Log';
@@ -48,8 +47,12 @@ function retryReauthenticate(commandName?: string): Promise<void> {
     });
 }
 
+// Used in tests to reset the reauthentication state
 function resetReauthentication(): void {
+    // Resets the authentication state flag to allow new reauthentication flows to start fresh
     isAuthenticating = null;
+
+    // Clears any pending reauth timeouts set by reauthThrottle.sleep()
     reauthThrottle.clear();
 }
 

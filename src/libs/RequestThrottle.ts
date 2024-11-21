@@ -24,7 +24,7 @@ class RequestThrottle {
             clearTimeout(this.timeoutID);
             this.timeoutID = undefined;
         }
-        Log.info(`[RequestThrottle - ${this.name}] in clear()`);
+        Log.info(`[RequestThrottle - ${this.name}] cleared`);
     }
 
     getRequestWaitTime() {
