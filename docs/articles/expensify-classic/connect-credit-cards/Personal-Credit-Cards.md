@@ -8,7 +8,7 @@ Welcome to the world of effortless expense tracking! Connecting your personal cr
 ## How to connect your personal card to import expenses
 Importing your card or bank via Account Settings will:
 Automatically sync your bank/card transactions with your Expensify account. These will merge seamlessly with any SmartScanned expenses in your account.
-Generate IRS-compliant eReceipts, provided your Policy Admin has enabled this feature.
+Generate IRS-compliant eReceipts, provided your Workspace Admin has enabled this feature.
 Discover below the numerous ways to easily bring your personal card expenses into Expensify below.
 
 ### *Important terms to know:*
@@ -45,7 +45,7 @@ _Please note: an OFX file type will require no editing but not all banks' OFX fi
 6. Set the date format to match your CSV and adjust the currency to match your bank account currency.
 7. If you've previously imported expenses for the same card, choose the default layout of a previously uploaded spreadsheet.
 8. Scroll down and select which columns map to the merchant, date and amount (as a number without a currency symbol) – these are required presets which must be assigned.
-9. If applicable, you can also map specific Categories and Tags as long as you don't have an integration connection to your default group policy. If you have an integration connected, you'll want to add the Categories and Tags to the expense after the expense is uploaded.
+9. If applicable, you can also map specific Categories and Tags as long as you don't have an integration connection to your default group workspace. If you have an integration connected, you'll want to add the Categories and Tags to the expense after the expense is uploaded.
 10. Check the preview of your selection under *Output Preview*. If everything looks good, you can then select *Add Expenses*.
 11. For checking accounts, you may need to "Flip Amount Sign" as transactions are often exported as negative amounts.
 
