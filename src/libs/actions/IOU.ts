@@ -6786,7 +6786,6 @@ function canIOUBePaid(
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
-    shouldCheckApprovedState = true,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -6840,7 +6839,7 @@ function canIOUBePaid(
         reimbursableSpend !== 0 &&
         !isChatReportArchived &&
         !isAutoReimbursable &&
-        (!shouldBeApproved || !shouldCheckApprovedState) &&
+        !shouldBeApproved &&
         !isPayAtEndExpenseReport
     );
 }
