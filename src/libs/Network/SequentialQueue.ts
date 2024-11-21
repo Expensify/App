@@ -273,6 +273,10 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
+/**
+ * Clear any pending requests during test runs
+ * This is to prevent previous requests interfering with other tests
+ */
 function resetQueue(): void {
     isSequentialQueueRunning = false;
     currentRequestPromise = null;
