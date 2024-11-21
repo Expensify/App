@@ -35,6 +35,14 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${assignCard?.data?.bankName ?? ''}`);
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    const filteredCardList = Object.fromEntries(
+        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
+    );
 
     const isEditing = assignCard?.isEditing;
 
@@ -57,8 +65,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
 
+        const nextStep = Object.keys(filteredCardList).length === 1 ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
+
         CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data: {
                 email: selectedMember,
                 cardName: `${memberName}'s card`,
@@ -69,7 +79,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                isEditing: false,
+            });
             return;
         }
         Navigation.goBack();
