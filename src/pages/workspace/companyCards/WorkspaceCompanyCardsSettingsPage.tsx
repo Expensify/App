@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -51,7 +52,8 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const deleteCompanyCardFeed = () => {
         if (selectedFeed) {
-            CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed);
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).filter((feed) => feed !== selectedFeed).at(0);
+            CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, feedToOpen);
         }
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
