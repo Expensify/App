@@ -609,65 +609,63 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
-                        }
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Receipt,
-                                text: translate('receipt.addReceipt'),
-                                onSelected: navigateToAddReceipt,
-                            },
-                        ]}
+            <View style={[styles.flex1, styles.mb6]}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    onBackButtonPress={navigateBack}
+                    shouldShowThreeDotsButton={
+                        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                    }
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Receipt,
+                            text: translate('receipt.addReceipt'),
+                            onSelected: navigateToAddReceipt,
+                        },
+                    ]}
+                />
+                {isLoading && <FullScreenLoadingIndicator />}
+                {!!gpsRequired && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onDeny={() => {
+                            IOU.updateLastLocationPermissionPrompt();
+                            createTransaction(selectedParticipantList, false);
+                        }}
                     />
-                    {isLoading && <FullScreenLoadingIndicator />}
-                    {!!gpsRequired && (
-                        <LocationPermissionModal
-                            startPermissionFlow={startLocationPermissionFlow}
-                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => createTransaction(selectedParticipantList, true)}
-                            onDeny={() => {
-                                IOU.updateLastLocationPermissionPrompt();
-                                createTransaction(selectedParticipantList, false);
-                            }}
-                        />
-                    )}
-                    <MoneyRequestConfirmationList
-                        transaction={transaction}
-                        selectedParticipants={participants}
-                        iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
-                        onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
-                        onConfirm={onConfirm}
-                        onSendMoney={sendMoney}
-                        receiptPath={receiptPath}
-                        receiptFilename={receiptFilename}
-                        iouType={iouType}
-                        reportID={reportID}
-                        isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={IOU.getIOURequestPolicyID(transaction, report)}
-                        bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
-                        isDistanceRequest={isDistanceRequest}
-                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                        action={action}
-                        payeePersonalDetails={payeePersonalDetails}
-                        shouldPlaySound={false}
-                        isConfirmed={isConfirmed}
-                    />
-                </View>
-            )}
+                )}
+                <MoneyRequestConfirmationList
+                    transaction={transaction}
+                    selectedParticipants={participants}
+                    iouAmount={Math.abs(transaction?.amount ?? 0)}
+                    iouAttendees={transaction?.attendees ?? []}
+                    iouComment={transaction?.comment?.comment ?? ''}
+                    iouCurrencyCode={transaction?.currency}
+                    iouIsBillable={transaction?.billable}
+                    onToggleBillable={setBillable}
+                    iouCategory={transaction?.category}
+                    onConfirm={onConfirm}
+                    onSendMoney={sendMoney}
+                    receiptPath={receiptPath}
+                    receiptFilename={receiptFilename}
+                    iouType={iouType}
+                    reportID={reportID}
+                    isPolicyExpenseChat={isPolicyExpenseChat}
+                    policyID={IOU.getIOURequestPolicyID(transaction, report)}
+                    bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
+                    iouMerchant={transaction?.merchant}
+                    iouCreated={transaction?.created}
+                    isDistanceRequest={isDistanceRequest}
+                    shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                    action={action}
+                    payeePersonalDetails={payeePersonalDetails}
+                    shouldPlaySound={false}
+                    isConfirmed={isConfirmed}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
