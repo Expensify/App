@@ -51,6 +51,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isOnboardingChoiceManageTeam = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+    const shouldShowToooltipOnThisReport = isOnboardingChoiceManageTeam ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
 
     const {translate} = useLocalize();
@@ -173,9 +176,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={
-                    isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)
-                }
+                shouldRender={isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && shouldShowToooltipOnThisReport}
                 renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
