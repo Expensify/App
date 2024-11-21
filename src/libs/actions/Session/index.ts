@@ -528,11 +528,6 @@ function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string
                 // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
                 setUseNewDotSignInPage(!!hybridApp.useNewDotSignInPage);
                 setLoggedOutFromOldDot(!!hybridApp.loggedOutFromOldDot);
-                const useOldDot = 'true';
-                const dismissed = hybridApp.useNewDotSignInPage ? useOldDot : 'false';
-                return Onyx.multiSet({
-                    [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {dismissed}},
-                });
             })
             .then(initAppAfterTransition)
             .catch((error) => {
@@ -642,7 +637,17 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_USER, params, {
+            optimisticData,
+            successData,
+            failureData,
+        }).then((response) => {
+            if (!response) {
+                return;
+            }
+            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {classicRedirect: {dismissed: !response.tryNewDot}});
+        });
     });
 }
 
