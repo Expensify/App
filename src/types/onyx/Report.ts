@@ -151,9 +151,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report visibility */
         visibility?: RoomVisibility;
 
-        /** Report cached total */
-        cachedTotal?: string;
-
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 

@@ -1,5 +1,6 @@
 import {useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextInputProps} from 'react-native';
@@ -323,6 +324,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         ],
     );
 
+    const prevUserQueryRef = useRef<string | null>(null);
     useEffect(() => {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
@@ -340,11 +342,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
 
-            if (newUserQuery) {
+            if (newUserQuery || !isEmpty(prevUserQueryRef.current)) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
+
+            // Store the previous newUserQuery
+            prevUserQueryRef.current = newUserQuery;
         },
         [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete],
     );
