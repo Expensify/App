@@ -640,10 +640,7 @@ function IOURequestStepScan({
                         {cameraPermissionState === 'denied' ? (
                             <Text style={[styles.subTextFileUpload]}>
                                 {translate('receipt.deniedCameraAccess')}
-                                <TextLink href="https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20on%20mobile%20browser%3F">
-                                    {translate('receipt.deniedCameraAccessInstructions')}
-                                </TextLink>
-                                .
+                                <TextLink href={CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}>{translate('receipt.deniedCameraAccessInstructions')}</TextLink>.
                             </Text>
                         ) : (
                             <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
