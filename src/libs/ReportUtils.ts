@@ -1601,13 +1601,6 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Returns true if reportAction is the first chat preview of a Thread
- */
-function isThreadFirstChat(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
-    return reportAction?.childReportID?.toString() === reportID;
-}
-
-/**
  * Checks if a report is a child report.
  */
 function isChildReport(report: OnyxEntry<Report>): boolean {
@@ -7747,9 +7740,9 @@ function hasOnlyHeldExpenses(iouReportID: string): boolean {
 /**
  * Checks if thread replies should be displayed
  */
-function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadFirstChatParam: boolean): boolean {
+function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadFirstChat: boolean): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChatParam;
+    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChat;
 }
 
 /**
@@ -7807,7 +7800,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadFirstChatParam: boolean): boolean {
+function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadFirstChat: boolean): boolean {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -7822,7 +7815,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
         (isDeletedAction && !reportAction?.childVisibleActionCount) ||
         (isArchivedReport && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
-        isThreadFirstChatParam
+        isThreadFirstChat
     );
 }
 
@@ -8678,7 +8671,6 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
-    isThreadFirstChat,
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
