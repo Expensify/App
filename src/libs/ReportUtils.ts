@@ -327,7 +327,6 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
-    | 'avatarFileName'
     | 'invoiceReceiver'
     | 'isHidden'
 > & {
@@ -5425,7 +5424,6 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
     avatarUrl = '',
-    avatarFileName = '',
     optimisticReportID = '',
 ): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
@@ -5466,7 +5464,6 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
         avatarUrl,
-        avatarFileName,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
@@ -5484,7 +5481,6 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
-    avatarFilename: string,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -5503,7 +5499,6 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         avatarUri,
-        avatarFilename,
         optimisticReportID,
     );
 }
@@ -6021,7 +6016,6 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         currentUserAccountID,
         true,
         policyName,
-        undefined,
         undefined,
         undefined,
         undefined,
