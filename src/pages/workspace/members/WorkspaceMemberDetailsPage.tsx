@@ -335,7 +335,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
-                                                            contentFit="contain"
                                                             iconWidth={variables.cardIconWidth}
                                                             iconHeight={variables.cardIconHeight}
                                                             onPress={() => navigateToDetails(memberCard)}

@@ -58,6 +58,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                         src={CardUtils.getCardFeedIcon(selectedFeed)}
                         height={variables.cardIconHeight}
                         width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
                     />
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
