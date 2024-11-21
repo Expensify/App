@@ -11,17 +11,17 @@ function SAMLSignInPage() {
     useEffect(() => {
         const body = new FormData();
         body.append('email', credentials?.login ?? '');
-        body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER)
+        body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
 
-        const url = `${getApiRoot()}authentication/saml/login`;
-        fetch(url, {
+        fetch(`${getApiRoot()}authentication/saml/login`, {
             method: CONST.NETWORK.METHOD.POST,
             body,
             credentials: 'omit',
-        }).then((response) => response.json() as Promise<Response>
-        ).then((response) => {
-            if (response.url) {
-                window.location.replace(response.url);
+        })
+        .then((response) => response.json() as Promise<Response>)
+        .then((json) => {
+            if (json.url) {
+                window.location.replace(json.url);
             }
         });
     }, [credentials?.login]);
