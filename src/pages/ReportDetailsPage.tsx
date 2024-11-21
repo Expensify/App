@@ -125,7 +125,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
@@ -223,7 +223,11 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isExpenseReport(report) && (ReportUtils.isReportManager(report) || isPolicyAdmin) && ReportUtils.isReportApproved(report) && !PolicyUtils.isSubmitAndClose(policy);
+        ReportUtils.isExpenseReport(report) &&
+        !ReportUtils.isArchivedExpenseReport(report) &&
+        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
+        ReportUtils.isReportApproved(report) &&
+        !PolicyUtils.isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -295,7 +299,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
 
-    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
+    const shouldShowCancelPaymentButton =
+        caseID === CASES.MONEY_REPORT && isPayer && isSettled && !ReportUtils.isArchivedExpenseReport(moneyRequestReport) && ReportUtils.isExpenseReport(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
 
     const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
@@ -639,7 +644,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedRoom(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
+        !ReportUtils.isArchivedAnyReport(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 

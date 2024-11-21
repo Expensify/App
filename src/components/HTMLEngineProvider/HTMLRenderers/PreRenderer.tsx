@@ -43,7 +43,14 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                             if (isDisabled) {
                                 return;
                             }
-                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                report?.reportID ?? '-1',
+                                action,
+                                checkIfContextMenuActive,
+                                ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
+                            );
                         }}
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}

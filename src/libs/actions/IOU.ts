@@ -6784,7 +6784,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport, reportNameValuePairs);
+    const isChatReportArchived = ReportUtils.isArchivedNonExpenseReport(chatReport, reportNameValuePairs);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     if (isEmptyObject(iouReport)) {
