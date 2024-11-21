@@ -52,11 +52,8 @@ When an expense is submitted to a workspace, your approver will receive an email
 {% include end-selector.html %}
 
 {% include info.html %}
-If the Continue button doesn't open the camera on your mobile web browser, 
-it might be because you denied camera permission. Learn how to enable camera permission in your browser [here](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#faq).
-{% include end-info.html %}
-
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
+{% include end-info.html %}
 
 # Manually add an expense
 
@@ -150,29 +147,22 @@ In Expensify, expense reports group expenses in a batch to be paid or reconciled
 
 Once a report is submitted, you can track the status from the **Search** section. Click the **View** button for a specific expense or expense report. The status is displayed at the top of the expense or report.
 
-**How can I enable camera permission on mobile browser?**
+**How can I enable camera permission for a website on mobile browsers?**
 
-If you are using Google Chrome:
+**Google Chrome:**
+1. Open Chrome.
+2. To the right of the address bar, tap More icon > **Settings**.
+3. Tap **Site settings** > **Camera**.
+4. Tap to turn the microphone or camera on or off.
+    - If you find the site you want to use under **Blocked**, tap the site > **Allow**.
+5. Refresh the site.
 
-1. **Open Settings App**  
-   Go to your phone's **Settings** app.
-2. **Find Google Chrome**  
-   Scroll down and tap on **Chrome** from the list of apps.
-3. **Enable Camera Access**  
-    Under the **Allow Chrome to Access** section, find the **Camera** toggle and turn it **ON**.
-4. **Check Camera Permission in Chrome**  
-   If you're still having issues, open **Google Chrome**, and visit a website that requires camera access (like a video call). Chrome will prompt you to grant camera access. Tap **Allow** to give permission.
-
-If you are using Safari:
-
-1. **Open Settings App**  
-   Open the **Settings** app on your phone.
-2. **Find Safari**  
-   Scroll down and tap on **Safari**.
-3. **Enable Camera Access**  
-   Under the **Settings for Websites** section, tap **Camera** and set it to **Allow**.
-4. **Check Camera Permission in Safari**  
-   Visit a website that requires camera access (like a video meeting platform) in **Safari**. When prompted, tap **Allow** to grant permission.
+**Safari**
+1. Open Safari
+2. To the left of the address bar, tap More icon > **Site settings** > **Camera**
+3. Tap **Allow** to grant permission.
+4. Tap **Done**.
+5. Refresh the site.
 
 {% include faq-end.md %}
 
