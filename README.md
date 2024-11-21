@@ -473,6 +473,11 @@ The main difference is that the native code which runs React Native is located i
 
 In that case, if you'd like to eg. remove `Pods`, you need to do it in `Mobile-Expensify/iOS`. The same rule applies to Android builds - if you'd like to delete `.cxx`, `build` or `.gradle` directories, you need to go to `Mobile-Expensify/android` first. 
 
+Additionally, If you'd like to open the HybridApp project in Android Studio or XCode, you **must choose a workspace located in the `Mobile-Expensify`** directory:
+
+- Android: `./Mobile-Expensify/Android`
+- iOS: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
+
 ### Updating the Mobile-Expensify submodule
 
 `Mobile-Expensify` directory is a git submodule. It means, that it points to a specific commit on the `Mobile-Expensify` repository. If you'd like to download the most recent changes from `main`, please use the following command:
