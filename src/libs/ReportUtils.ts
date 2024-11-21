@@ -441,7 +441,6 @@ type TransactionDetails = {
 
 type OptimisticIOUReport = Pick<
     Report,
-    | 'cachedTotal'
     | 'type'
     | 'chatReportID'
     | 'currency'
@@ -488,7 +487,7 @@ type OptionData = {
     searchText?: string;
     isIOUReportOwner?: boolean | null;
     shouldShowSubscript?: boolean | null;
-    isPolicyExpenseChat?: boolean | null;
+    isPolicyExpenseChat?: boolean;
     isMoneyRequestReport?: boolean | null;
     isInvoiceReport?: boolean;
     isExpenseRequest?: boolean | null;
@@ -524,6 +523,7 @@ type OptionData = {
     participantsList?: PersonalDetails[];
     icons?: Icon[];
     iouReportAmount?: number;
+    displayName?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -1054,8 +1054,8 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxInputOrEntry<Report> | Participant): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
+function isPolicyExpenseChat(option: OnyxInputOrEntry<Report> | OptionData | Participant): boolean {
+    return getChatType(option) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT ?? (option && 'isPolicyExpenseChat' in option && option.isPolicyExpenseChat) ?? false;
 }
 
 function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
@@ -2697,7 +2697,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  */
 function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID ?? '-1', actionsToMerge);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID ?? '-1', canUserPerformWriteAction(report), actionsToMerge);
 
     // For Chat Report with deleted parent actions, let us fetch the correct message
     if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && !isEmptyObject(report) && isChatReport(report)) {
@@ -2708,7 +2708,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return ReportActionsUtils.getLastVisibleMessage(reportID ?? '-1', actionsToMerge);
+    return ReportActionsUtils.getLastVisibleMessage(reportID ?? '-1', canUserPerformWriteAction(report), actionsToMerge);
 }
 
 /**
@@ -4551,7 +4551,6 @@ function buildOptimisticIOUReport(
 
     return {
         type: CONST.REPORT.TYPE.IOU,
-        cachedTotal: formattedTotal,
         chatReportID,
         currency,
         managerID: payerAccountID,
@@ -6452,13 +6451,11 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
-    const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
-        reportErrors,
         ...reportErrorFields,
         ...reportActionErrors,
     };
@@ -8327,6 +8324,7 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * A function to get the report last message. This is usually used to restore the report message preview in LHN after report actions change.
  * @param reportID
  * @param actionsToMerge
+ * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
 function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
@@ -8339,7 +8337,8 @@ function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) 
     const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(reportID, actionsToMerge);
 
     if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, actionsToMerge);
+        const report = getReport(reportID);
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction(report), actionsToMerge);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         result = {
@@ -8422,10 +8421,6 @@ function hasMissingInvoiceBankAccount(iouReportID: string): boolean {
     }
 
     return invoiceReport?.ownerAccountID === currentUserAccountID && !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID && isSettled(iouReportID);
-}
-
-function isExpenseReportWithoutParentAccess(report: OnyxEntry<Report>) {
-    return isExpenseReport(report) && report?.hasParentAccess === false;
 }
 
 function hasInvoiceReports() {
@@ -8637,7 +8632,6 @@ export {
     isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
-    isExpenseReportWithoutParentAccess,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
     isGroupChat,

@@ -190,9 +190,9 @@ function ReportActionsList({
                         ReportActionsUtils.isDeletedParentAction(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
+                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, ReportUtils.canUserPerformWriteAction(report)),
             ),
-        [sortedReportActions, isOffline],
+        [sortedReportActions, isOffline, report],
     );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
