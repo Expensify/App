@@ -60,7 +60,7 @@ const test = (config: NativeConfig) => {
                 props.onPress();
             }
 
-            if (entry.name === CONST.TIMING.SEARCH_ROUTER_RENDER) {
+            if (entry.name === CONST.TIMING.OPEN_SEARCH) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} Open Search Router TTI`,

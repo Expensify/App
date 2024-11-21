@@ -12,10 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -64,7 +64,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists);
+    const shouldShowTag = transactionTag || TagsOptionsListUtils.hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
