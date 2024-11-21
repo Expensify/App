@@ -1231,10 +1231,10 @@ const styles = (theme: ThemeColors) =>
             paddingTop: 23,
             paddingBottom: 8,
             paddingLeft: 0,
-            borderWidth: 0
+            borderWidth: 0,
         },
 
-        baseTextInputAutofill:  {
+        baseTextInputAutofill: {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: theme.text,
             caretColor: theme.text,

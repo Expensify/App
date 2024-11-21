@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import debounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
@@ -28,8 +29,6 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
-import DomUtils from "@libs/DomUtils";
-import debounce from "lodash/debounce";
 
 function BaseTextInput(
     {
@@ -173,14 +172,17 @@ function BaseTextInput(
 
     const onChange = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         inputProps.onChange?.(event);
-        setIsAutoFilled(isInputAutoFilled(event.target));
+        if (event?.target instanceof HTMLElement) {
+            setIsAutoFilled(isInputAutoFilled(event.target));
+        }
     };
 
     useEffect(() => {
         const handleAnimationStart = (event: AnimationEvent) => {
-            if (event.animationName === 'onAutoFillStart') {
-                setIsAutoFilled(true);
+            if (event.animationName !== 'onAutoFillStart') {
+                return;
             }
+            setIsAutoFilled(true);
         };
         const debouncedHandleAnimationStart = debounce(handleAnimationStart, 100);
 
