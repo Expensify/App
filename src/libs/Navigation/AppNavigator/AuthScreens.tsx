@@ -6,6 +6,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -17,6 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {disconnect} from '@libs/actions/Delegate';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -73,6 +75,8 @@ import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator'
 type AuthScreensProps = {
     /** Session of currently logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    account: OnyxEntry<OnyxTypes.Account>;
 
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: OnyxEntry<string>;
@@ -224,7 +228,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens({account, session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth for the root stack navigator
@@ -242,6 +246,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     );
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -394,6 +399,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+        const delegates = account?.delegatedAccess?.delegates ?? [];
+        const isAccessRemoved = delegates.findIndex((delegate) => delegate.email === session?.email) === -1;
+        if (!isActingAsDelegate || !isAccessRemoved) {
+            return;
+        }
+        disconnect();
+        setIsNoDelegateAccessMenuVisible(true);
+    }, [account, session?.email]);
 
     const CentralPaneScreenOptions = {
         headerShown: false,
@@ -575,6 +591,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 </RootStack.Navigator>
                 <TestToolsModal />
                 <SearchRouterModal />
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    delegatorEmail={account?.delegatedAccess?.delegate ?? ''}
+                />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>
@@ -598,5 +619,8 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+    account: {
+        key: ONYXKEYS.ACCOUNT,
     },
 })(AuthScreensMemoized);
