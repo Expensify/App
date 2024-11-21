@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
-import CONFIG from '@src/CONFIG';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {getApiRoot} from '@libs/ApiUtils';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
@@ -18,12 +18,12 @@ function SAMLSignInPage() {
             body,
             credentials: 'omit',
         })
-        .then((response) => response.json() as Promise<Response>)
-        .then((json) => {
-            if (json.url) {
-                window.location.replace(json.url);
-            }
-        });
+            .then((response) => response.json() as Promise<Response>)
+            .then((json) => {
+                if (json.url) {
+                    window.location.replace(json.url);
+                }
+            });
     }, [credentials?.login]);
 
     return <SAMLLoadingIndicator />;
