@@ -16,9 +16,12 @@ import * as CardUtils from '@libs/CardUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import * as CompanyCards from '@userActions/CompanyCards';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
@@ -41,6 +44,23 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
     const isCustomFeed = CardUtils.isCustomFeed(selectedFeed);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
+    const policy = PolicyUtils.getPolicy(policyID);
+
+    const handleAssignCard = () => {
+        const data: Partial<AssignCardData> = {
+            bankName: selectedFeed,
+        };
+
+        let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+
+        if (Object.keys(policy?.employeeList ?? {}).length === 1) {
+            data.email = Object.keys(policy?.employeeList ?? {}).at(0);
+            currentStep = CONST.COMPANY_CARD.STEP.CARD;
+        }
+
+        CompanyCards.setAssignCardStepAndData({data, currentStep});
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed));
+    };
 
     return (
         <OfflineWithFeedback
@@ -79,7 +99,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                     <Button
                         success
                         isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
+                        onPress={handleAssignCard}
                         icon={Expensicons.Plus}
                         text={translate('workspace.companyCards.assignCard')}
                         style={shouldChangeLayout && styles.flex1}
