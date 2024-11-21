@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -358,6 +359,10 @@ function getFilteredCardList(list?: WorkspaceCardsList) {
     return Object.fromEntries(Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))));
 }
 
+function hasOnlyOneCardToAssign(list: FilteredCardList) {
+    return !!(Object.keys(list).length === 1);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -385,4 +390,5 @@ export {
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
     getFilteredCardList,
+    hasOnlyOneCardToAssign,
 };

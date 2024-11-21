@@ -73,7 +73,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
 
-            if (Object.keys(filteredCardList).length === 1) {
+            if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
                 currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
                 data.cardNumber = Object.keys(filteredCardList).at(0);
                 data.encryptedCardNumber = Object.values(filteredCardList).at(0);

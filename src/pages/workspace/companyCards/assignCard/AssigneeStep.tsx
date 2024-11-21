@@ -62,7 +62,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
 
-        const nextStep = Object.keys(filteredCardList).length === 1 ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
+        const nextStep = CardUtils.hasOnlyOneCardToAssign(filteredCardList) ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
 
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
