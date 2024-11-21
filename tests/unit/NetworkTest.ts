@@ -121,7 +121,6 @@ describe('NetworkTests', () => {
         // 1. Setup Phase - Initialize test user and state variables
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
-        const defaultTimeout = 1000;
 
         let sessionState: OnyxEntry<OnyxSession>;
 
@@ -138,24 +137,23 @@ describe('NetworkTests', () => {
         const initialAuthToken = sessionState?.authToken;
         expect(initialAuthToken).toBeDefined();
 
+        // Create a promise that we can resolve later to control the timing
+        let resolveAuthRequest: (value: unknown) => void = () => {};
+        const pendingAuthRequest = new Promise((resolve) => {
+            resolveAuthRequest = resolve;
+        });
+
         // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
         const mockedXhr = jest
             .fn()
-            // First mock: ReconnectApp will fail with NOT_AUTHENTICATED
+            // First call: Return NOT_AUTHENTICATED to trigger reauthentication
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
                 }),
             )
-            // Second mock: Authenticate with network check and delay
-            .mockImplementationOnce(() => {
-                // create a delayed response. Timeout will expire after the second App.reconnectApp();
-                return new Promise((_, reject) => {
-                    setTimeout(() => {
-                        reject(new Error('Network request failed'));
-                    }, defaultTimeout);
-                });
-            });
+            // Second call: Return a pending promise that we'll resolve later
+            .mockImplementationOnce(() => pendingAuthRequest);
 
         HttpUtils.xhr = mockedXhr;
 
@@ -180,17 +178,15 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        // Trigger another reconnect due to network change
+        // 7.Trigger another reconnect due to network change
         App.confirmReadyToOpenApp();
         App.reconnectApp();
-        await waitForBatchedUpdates();
 
-        // 7. Wait and Verify - Wait for authenticate timeout and verify session
-        await new Promise((resolve) => {
-            setTimeout(resolve, defaultTimeout + 100);
-        });
+        // 8. Now fail the pending authentication request
+        resolveAuthRequest(Promise.reject(new Error('Network request failed')));
+        await waitForBatchedUpdates(); // Now we wait for all updates after the auth request fails
 
-        // Verify the session remained intact and wasn't cleared
+        // 9. Verify the session remained intact and wasn't cleared
         expect(sessionState?.authToken).toBe(initialAuthToken);
     });
 
