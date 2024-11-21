@@ -3,7 +3,6 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
-import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
@@ -86,9 +85,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the user is not an admin of policyExpenseChat chat */
         isOwnPolicyExpenseChat?: boolean;
 
-        /** Whether the report is policyExpenseChat */
-        isPolicyExpenseChat?: boolean;
-
         /** Indicates if the report is pinned to the LHN or not */
         isPinned?: boolean;
 
@@ -155,9 +151,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report visibility */
         visibility?: RoomVisibility;
 
-        /** Report cached total */
-        cachedTotal?: string;
-
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
@@ -179,9 +172,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When was the last visible action last modified */
         lastVisibleActionLastModified?: string;
 
-        /** Display name of the report, shown in options and mentions */
-        displayName?: string;
-
         /** HTML content of the last message in the report */
         lastMessageHtml?: string;
 
@@ -194,9 +184,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report owner */
         ownerAccountID?: number;
 
-        /** E-mail of the report owner */
-        ownerEmail?: string;
-
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 
@@ -208,9 +195,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** For expense reports, this is the currency of the expense */
         currency?: string;
-
-        /** Collection of errors to be shown to the user */
-        errors?: OnyxCommon.Errors;
 
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
@@ -233,23 +217,11 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is hidden from options list */
         isHidden?: boolean;
 
-        /** Whether the report is a chat room */
-        isChatRoom?: boolean;
-
-        /** Collection of participants personal details */
-        participantsList?: PersonalDetails[];
-
-        /** Text to be displayed in options list, which matches reportName by default */
-        text?: string;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
         /** Whether participants private notes are being currently loaded */
         isLoadingPrivateNotes?: boolean;
-
-        /** Whether the report is currently selected in the options list */
-        selected?: boolean;
 
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
@@ -278,9 +250,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
-
-        /** Participant account id's */
-        participantAccountIDs?: number[];
     },
     PolicyReportField['fieldID']
 >;

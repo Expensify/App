@@ -5,6 +5,7 @@ import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -35,21 +36,23 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
-    const isLoading = !cardFeeds || !!(cardFeeds.isLoading && !companyCards);
-    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed ?? ''] ?? null;
-    const isNoFeed = isEmptyObject(companyCards) && isEmptyObject(cardFeeds?.settings?.oAuthAccountDetails) && !selectedCompanyCard;
-    const isPending = !!selectedCompanyCard?.pending;
+    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
 
     const fetchCompanyCards = useCallback(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
+    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const isLoading = !isOffline && (!cardFeeds || cardFeeds.isLoading);
+
     useFocusEffect(fetchCompanyCards);
 
     useEffect(() => {
-        if (isLoading || !selectedFeed || isPending) {
+        if (!!isLoading || !selectedFeed || isPending) {
             return;
         }
 
@@ -61,7 +64,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {isLoading && (
+            {!!isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
@@ -79,10 +82,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
-                    {(isFeedAdded || isPending) && (
+                    {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
-                            selectedFeed={selectedFeed ?? ''}
+                            selectedFeed={selectedFeed}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
