@@ -4373,6 +4373,7 @@ const translations = {
             subscriptionLink: 'plan types and pricing help page',
             lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
                 `You've committed to ${subscriptionUsersCount} active users on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {

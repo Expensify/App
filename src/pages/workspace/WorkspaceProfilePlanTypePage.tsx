@@ -89,7 +89,7 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
                             subscriptionUsersCount: privateSubscription?.userCount ?? 1,
                             annualSubscriptionEndDate: CardSectionUtils.getNextBillingDate(),
                         })}{' '}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}>{translate('workspace.common.subscription')}</TextLink>.
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}>{translate('workspace.planTypePage.subscriptions')}</TextLink>.
                     </Text>
                 ) : (
                     <Text style={[styles.mh5, styles.mv3]}>
