@@ -1237,6 +1237,12 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
         },
 
+        baseTextInputAutofill: {
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: theme.text,
+            caretColor: theme.text,
+        },
+
         textInputMultiline: {
             scrollPadding: '23px 0 0 0',
         },
