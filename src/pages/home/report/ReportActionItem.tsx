@@ -132,7 +132,7 @@ type ReportActionItemProps = {
     isFirstVisibleReportAction: boolean;
 
     /** True if this is the first chat preview of a thread */
-    isThreadFirstChat?: boolean;
+    isThreadReportParentAction?: boolean;
 
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
@@ -155,7 +155,7 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     onPress = undefined,
     isFirstVisibleReportAction = false,
-    isThreadFirstChat = false,
+    isThreadReportParentAction = false,
     shouldUseThreadDividerLine = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
@@ -358,7 +358,7 @@ function ReportActionItem({
                 false,
                 setIsEmojiPickerActive as () => void,
                 undefined,
-                isThreadFirstChat,
+                isThreadReportParentAction,
             );
         },
         [
@@ -371,7 +371,7 @@ function ReportActionItem({
             disabledActions,
             isArchivedRoom,
             isChronosReport,
-            isThreadFirstChat,
+            isThreadReportParentAction,
         ],
     );
 
@@ -798,7 +798,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadFirstChat);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -984,7 +984,7 @@ function ReportActionItem({
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                isThreadFirstChat={isThreadFirstChat}
+                                isThreadReportParentAction={isThreadReportParentAction}
                                 draftMessage={draftMessage}
                                 isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}

@@ -77,7 +77,7 @@ type BaseReportActionContextMenuProps = {
     isUnreadChat?: boolean;
 
     /** Is the action the first chat of a thread, in other words the parent action of a thread report */
-    isThreadFirstChat?: boolean;
+    isThreadReportParentAction?: boolean;
 
     /** Content Ref */
     contentRef?: RefObject<View>;
@@ -104,7 +104,7 @@ function BaseReportActionContextMenu({
     isVisible = false,
     isPinnedChat = false,
     isUnreadChat = false,
-    isThreadFirstChat = false,
+    isThreadReportParentAction = false,
     selection = '',
     draftMessage = '',
     reportActionID,
@@ -198,7 +198,7 @@ function BaseReportActionContextMenu({
                 reportID,
                 isPinnedChat,
                 isUnreadChat,
-                isThreadFirstChat,
+                isThreadReportParentAction,
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
@@ -289,7 +289,7 @@ function BaseReportActionContextMenu({
             true,
             () => {},
             true,
-            isThreadFirstChat,
+            isThreadReportParentAction,
         );
     };
 
