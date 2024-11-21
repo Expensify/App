@@ -284,14 +284,14 @@ function IOURequestStepScan({
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
-                    {
-                        report,
+                IOU.requestMoney({
+                    report,
+                    participantData: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    {
+                    transactionData: {
                         amount: 0,
                         attendees: transaction?.attendees,
                         currency: transaction?.currency ?? 'USD',
@@ -299,7 +299,7 @@ function IOURequestStepScan({
                         merchant: '',
                         receipt,
                     },
-                );
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -385,19 +385,21 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
-                                    {
-                                        report,
+                                IOU.requestMoney({
+                                    report,
+                                    participantData: {
                                         payeeEmail: currentUserPersonalDetails.login,
                                         payeeAccountID: currentUserPersonalDetails.accountID,
                                         participant,
-                                        policy,
-                                        gpsPoints: {
-                                            lat: successData.coords.latitude,
-                                            long: successData.coords.longitude,
-                                        },
                                     },
-                                    {
+                                    policyData: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
+                                        lat: successData.coords.latitude,
+                                        long: successData.coords.longitude,
+                                    },
+                                    transactionData: {
                                         amount: 0,
                                         attendees: transaction?.attendees,
                                         currency: transaction?.currency ?? 'USD',
@@ -406,7 +408,7 @@ function IOURequestStepScan({
                                         receipt,
                                         billable: false,
                                     },
-                                );
+                                });
                             }
                         },
                         (errorData) => {

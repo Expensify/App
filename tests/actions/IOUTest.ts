@@ -80,14 +80,14 @@ describe('actions/IOU', () => {
             let transactionThread: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney(
-                {
-                    report: {reportID: ''},
+            IOU.requestMoney({
+                report: {reportID: ''},
+                participantData: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                {
+                transactionData: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -95,7 +95,7 @@ describe('actions/IOU', () => {
                     merchant,
                     comment,
                 },
-            );
+            });
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -294,14 +294,14 @@ describe('actions/IOU', () => {
                     }),
                 )
                 .then(() => {
-                    IOU.requestMoney(
-                        {
-                            report: chatReport,
+                    IOU.requestMoney({
+                        report: chatReport,
+                        participantData: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
                             participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
-                        {
+                        transactionData: {
                             amount,
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
@@ -309,7 +309,7 @@ describe('actions/IOU', () => {
                             merchant: '',
                             comment,
                         },
-                    );
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -513,14 +513,14 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransaction.transactionID}`, existingTransaction))
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -528,7 +528,7 @@ describe('actions/IOU', () => {
                                 merchant: '',
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -668,14 +668,14 @@ describe('actions/IOU', () => {
             let transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
-            IOU.requestMoney(
-                {
-                    report: {reportID: ''},
+            IOU.requestMoney({
+                report: {reportID: ''},
+                participantData: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                {
+                transactionData: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -683,7 +683,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
-            );
+            });
             return (
                 waitForBatchedUpdates()
                     .then(
@@ -1484,14 +1484,14 @@ describe('actions/IOU', () => {
             let createIOUAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let payIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
-            IOU.requestMoney(
-                {
-                    report: {reportID: ''},
+            IOU.requestMoney({
+                report: {reportID: ''},
+                participantData: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                {
+                transactionData: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -1499,7 +1499,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
-            );
+            });
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -1720,14 +1720,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -1735,7 +1735,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1848,14 +1848,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -1863,7 +1863,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1949,14 +1949,14 @@ describe('actions/IOU', () => {
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
             // When a submit IOU expense is made
-            IOU.requestMoney(
-                {
-                    report: {reportID: ''},
+            IOU.requestMoney({
+                report: chatReport,
+                participantData: {
                     payeeEmail: TEST_USER_LOGIN,
                     payeeAccountID: TEST_USER_ACCOUNT_ID,
                     participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                 },
-                {
+                transactionData: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -1964,7 +1964,7 @@ describe('actions/IOU', () => {
                     merchant: '',
                     comment,
                 },
-            );
+            });
             await waitForBatchedUpdates();
 
             // When fetching all reports from Onyx
@@ -2698,14 +2698,14 @@ describe('actions/IOU', () => {
             const amount2 = 20000;
             const comment2 = 'Send me money please 2';
             if (chatReport) {
-                IOU.requestMoney(
-                    {
-                        report: chatReport,
+                IOU.requestMoney({
+                    report: chatReport,
+                    participantData: {
                         payeeEmail: TEST_USER_LOGIN,
                         payeeAccountID: TEST_USER_ACCOUNT_ID,
                         participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                     },
-                    {
+                    transactionData: {
                         amount: amount2,
                         attendees: [],
                         currency: CONST.CURRENCY.USD,
@@ -2713,7 +2713,7 @@ describe('actions/IOU', () => {
                         merchant: '',
                         comment: comment2,
                     },
-                );
+                });
             }
 
             await waitForBatchedUpdates();
@@ -2916,14 +2916,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -2931,7 +2931,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -3023,14 +3023,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -3038,7 +3038,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -3131,14 +3131,14 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        IOU.requestMoney(
-                            {
-                                report: chatReport,
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantData: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            {
+                            transactionData: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -3146,7 +3146,7 @@ describe('actions/IOU', () => {
                                 merchant,
                                 comment,
                             },
-                        );
+                        });
                     }
                     return waitForBatchedUpdates();
                 })

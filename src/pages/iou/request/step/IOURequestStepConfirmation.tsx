@@ -238,19 +238,21 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            IOU.requestMoney(
-                {
-                    report,
+            IOU.requestMoney({
+                report,
+                participantData: {
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,
                     participant,
+                },
+                policyData: {
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
-                    gpsPoints,
-                    action,
                 },
-                {
+                gpsPoints,
+                action,
+                transactionData: {
                     amount: transaction.amount,
                     attendees: transaction.attendees,
                     currency: transaction.currency,
@@ -267,7 +269,7 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                 },
-            );
+            });
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );

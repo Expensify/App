@@ -165,19 +165,6 @@ type GPSPoint = {
     long: number;
 };
 
-type RequestMoneyInformation = {
-    report: OnyxEntry<OnyxTypes.Report>;
-    payeeEmail: string | undefined;
-    payeeAccountID: number;
-    participant: Participant;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-    gpsPoints?: GPSPoint;
-    action?: IOUAction;
-    reimbursible?: boolean;
-};
-
 type RequestMoneyTransactionData = {
     attendees: Attendee[] | undefined;
     amount: number;
@@ -194,6 +181,28 @@ type RequestMoneyTransactionData = {
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
+};
+
+type RequestMoneyPolicyParams = {
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
+type RequestMoneyParticipantParams = {
+    payeeEmail: string | undefined;
+    payeeAccountID: number;
+    participant: Participant;
+};
+
+type RequestMoneyInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participantData: RequestMoneyParticipantParams;
+    policyData?: RequestMoneyPolicyParams;
+    gpsPoints?: GPSPoint;
+    action?: IOUAction;
+    reimbursible?: boolean;
+    transactionData: RequestMoneyTransactionData;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -3555,8 +3564,10 @@ function shareTrackedExpense(
 /**
  * Submit expense to another user
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation, requestMoneyTransactionData: RequestMoneyTransactionData) {
-    const {report, payeeEmail, payeeAccountID, participant, policy, policyTagList, policyCategories, gpsPoints, action, reimbursible} = requestMoneyInformation;
+function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+    const {report, participantData, policyData = {}, transactionData, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {participant, payeeAccountID, payeeEmail} = participantData;
+    const {policy, policyCategories, policyTagList} = policyData;
     const {
         amount,
         currency,
@@ -3573,7 +3584,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation, requestM
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
-    } = requestMoneyTransactionData;
+    } = transactionData;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
