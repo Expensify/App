@@ -131,7 +131,10 @@ type ReportActionItemProps = {
     /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
-    /** True if this is the first chat preview of a thread */
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
     isThreadReportParentAction?: boolean;
 
     /** IF the thread divider line will be used */
