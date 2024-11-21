@@ -89,14 +89,12 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem,
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
-                data: resultData.map((card) => {
-                    return {
-                        value: card.name,
-                        text: card.name,
-                        keyForList: card.name,
-                        isSelected: isDefaultTitle ? card.name === defaultCard : card.name === selectedAccount,
-                    };
-                }),
+                data: resultData.map((card) => ({
+                    value: card.name,
+                    text: card.name,
+                    keyForList: card.name,
+                    isSelected: isDefaultTitle ? card.name === defaultCard : card.name === selectedAccount,
+                })),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.XERO: {
