@@ -24,9 +24,9 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxExpenseAmountNoReceipt?: number | null) {
-    const isAlwaysSelected = categoryMaxExpenseAmountNoReceipt === 0;
-    const isNeverSelected = categoryMaxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
+    const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
+    const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
     if (isAlwaysSelected) {
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`);

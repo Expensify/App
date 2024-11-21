@@ -2,12 +2,10 @@ import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportAction';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useActiveWorkspace from './useActiveWorkspace';
 import useCurrentReportID from './useCurrentReportID';
@@ -34,33 +32,6 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
     policyMemberAccountIDs: [],
 });
 
-/**
- * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
- * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- */
-const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
-    (reportActions &&
-        Object.values(reportActions)
-            .filter(Boolean)
-            .map((reportAction) => {
-                const {reportActionID, actionName, errors = []} = reportAction;
-                const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-                const message = ReportActionsUtils.getReportActionMessage(reportAction);
-                const decision = message?.moderationDecision?.decision;
-
-                return {
-                    reportActionID,
-                    actionName,
-                    errors,
-                    message: [
-                        {
-                            moderationDecision: {decision},
-                        },
-                    ] as Message[],
-                    originalMessage,
-                };
-            })) as ReportActionsSelector;
-
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
         type: policy.type,
@@ -84,7 +55,6 @@ function ReportIDsContextProvider({
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: (c) => mapOnyxCollectionItems(c, reportActionsSelector)});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -99,20 +69,10 @@ function ReportIDsContextProvider({
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportID ?? null,
-                chatReports,
-                betas,
-                policies,
-                priorityMode,
-                allReportActions,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-            ),
+            SidebarUtils.getOrderedReportIDs(currentReportID ?? null, chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
         // we need reports draft in deps array for reloading of list when reportsDrafts will change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

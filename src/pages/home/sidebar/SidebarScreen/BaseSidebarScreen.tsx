@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import LoadingBar from '@components/LoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
@@ -17,22 +16,12 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-/**
- * Function called when a pinned chat is selected.
- */
-const startTimer = () => {
-    Timing.start(CONST.TIMING.SWITCH_REPORT);
-    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-};
-
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
-
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -65,12 +54,8 @@ function BaseSidebarScreen() {
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
                     />
-                    <LoadingBar shouldShow={isLoadingReportData ?? false} />
                     <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                        />
+                        <SidebarLinksData insets={insets} />
                     </View>
                 </>
             )}

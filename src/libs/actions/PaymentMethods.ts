@@ -16,6 +16,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -159,7 +160,7 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
  * Calls the API to add a new card.
  *
  */
-function addPaymentCard(params: PaymentCardParams) {
+function addPaymentCard(accountID: number, params: PaymentCardParams) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
@@ -203,21 +204,26 @@ function addPaymentCard(params: PaymentCardParams) {
         successData,
         failureData,
     });
+
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
 }
 
 /**
  * Calls the API to add a new card.
  *
  */
-function addSubscriptionPaymentCard(cardData: {
-    cardNumber: string;
-    cardYear: string;
-    cardMonth: string;
-    cardCVV: string;
-    addressName: string;
-    addressZip: string;
-    currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
-}) {
+function addSubscriptionPaymentCard(
+    accountID: number,
+    cardData: {
+        cardNumber: string;
+        cardYear: string;
+        cardMonth: string;
+        cardCVV: string;
+        addressName: string;
+        addressZip: string;
+        currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
+    },
+) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
     const parameters: AddPaymentCardParams = {
@@ -265,6 +271,8 @@ function addSubscriptionPaymentCard(cardData: {
             failureData,
         });
     }
+
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
 }
 
 /**
