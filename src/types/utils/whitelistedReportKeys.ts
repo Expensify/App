@@ -34,7 +34,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability: unknown;
         type: unknown;
         visibility: unknown;
-        cachedTotal: unknown;
         invoiceReceiver: unknown;
         lastMessageTranslationKey: unknown;
         parentReportID: unknown;
