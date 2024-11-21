@@ -1102,7 +1102,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    // Editing a task shouldn't scroll the report to the bottom, so we don't need to call Report.notifyNewAction.
+    Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
         Navigation.goBack();
