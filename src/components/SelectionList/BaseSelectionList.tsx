@@ -114,7 +114,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
-        shouldScrollToFocusedIndexOnFirstRender = true,
+        shouldScrollToFocusedIndex = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -317,12 +317,12 @@ function BaseSelectionList<TItem extends ListItem>(
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
         isActive: isFocused,
-        onFocusedIndexChange: (index: number, shouldScrollToIndex = true) => {
+        onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
                 onArrowFocus(focusedItem);
             }
-            if (shouldScrollToIndex) {
+            if (shouldScrollToFocusedIndex) {
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
@@ -589,12 +589,12 @@ function BaseSelectionList<TItem extends ListItem>(
             if (!isInitialSectionListRender) {
                 return;
             }
-            if (shouldScrollToFocusedIndexOnFirstRender) {
+            if (shouldScrollToFocusedIndex) {
                 scrollToIndex(focusedIndex, false);
             }
             setIsInitialSectionListRender(false);
         },
-        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch, shouldScrollToFocusedIndexOnFirstRender],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch, shouldScrollToFocusedIndex],
     );
 
     const onSectionListLayout = useCallback(

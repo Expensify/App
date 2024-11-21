@@ -613,8 +613,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
     shouldPreventActiveCellVirtualization?: boolean;
 
-    /** Whether to scroll to the focused index on the first render. */
-    shouldScrollToFocusedIndexOnFirstRender?: boolean;
+    /** Whether to scroll to the focused index */
+    shouldScrollToFocusedIndex?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
