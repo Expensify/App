@@ -249,7 +249,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    Onyx.set(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS + memberArchivedPolicyExpenseChat.reportID, {private_isArchived: DateUtils.getDBTime()}).then(() => {
+                        expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    });
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
                         expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'),
