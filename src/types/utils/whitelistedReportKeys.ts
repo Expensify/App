@@ -57,7 +57,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         isHidden: unknown;
         privateNotes: unknown;
         pendingChatMembers: unknown;
-        transactionThreadReportID: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
