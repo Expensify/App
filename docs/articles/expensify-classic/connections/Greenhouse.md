@@ -38,6 +38,6 @@ Expensify's direct integration with Greenhouse allows you to automatically send 
 
 ## In Expensify:
 
-1. Navigate to **Settings > Policies > Group > _[Workspace Name]_ > Members**
+1. Navigate to **Settings > Workspaces > Group > _[Workspace Name]_ > Members**
 2. The candidate you just sent to Expensify should be listed in the workspace members list
 3. If the Recruiter (or Recruiting Coordinator) field was filled in in Greenhouse, the candidate will already be configured to submit reports to that recruiter for approval. If no Recruiter was selected, then the candidate will submit based on the Expensify workspace approval settings.
