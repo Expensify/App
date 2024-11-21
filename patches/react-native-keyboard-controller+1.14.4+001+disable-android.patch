@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
-index 7ef8b36..f4d44ff 100644
+index 93c20d3..df1e846 100644
 --- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
 +++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
 @@ -74,7 +74,7 @@ class EdgeToEdgeReactViewGroup(
@@ -51,7 +51,7 @@ index 7ef8b36..f4d44ff 100644
    }
    // endregion
  
-@@ -219,7 +219,7 @@ class EdgeToEdgeReactViewGroup(
+@@ -223,7 +223,7 @@ class EdgeToEdgeReactViewGroup(
    fun forceStatusBarTranslucent(isStatusBarTranslucent: Boolean) {
      if (active && this.isStatusBarTranslucent != isStatusBarTranslucent) {
        this.isStatusBarTranslucent = isStatusBarTranslucent
