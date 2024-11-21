@@ -28,6 +28,8 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
+import DomUtils from "@libs/DomUtils";
+import debounce from "lodash/debounce";
 
 function BaseTextInput(
     {
@@ -93,6 +95,7 @@ function BaseTextInput(
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
 
     const [isFocused, setIsFocused] = useState(false);
+    const [isAutoFilled, setIsAutoFilled] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
@@ -167,6 +170,27 @@ function BaseTextInput(
         inputProps.onBlur?.(event);
         setIsFocused(false);
     };
+
+    const onChange = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        inputProps.onChange?.(event);
+        setIsAutoFilled(isInputAutoFilled(event.target));
+    };
+
+    useEffect(() => {
+        const handleAnimationStart = (event: AnimationEvent) => {
+            if (event.animationName === 'onAutoFillStart') {
+                setIsAutoFilled(true);
+            }
+        };
+        const debouncedHandleAnimationStart = debounce(handleAnimationStart, 100);
+
+        const inputElement = input.current;
+        inputElement?.addEventListener('animationstart', debouncedHandleAnimationStart);
+
+        return () => {
+            inputElement?.removeEventListener('animationstart', debouncedHandleAnimationStart);
+        };
+    }, []);
 
     const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!!inputProps.disabled || !event) {
@@ -400,11 +424,13 @@ function BaseTextInput(
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
+                                    isAutoFilled && styles.baseTextInputAutofill,
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={maxLength}
                                 onFocus={onFocus}
                                 onBlur={onBlur}
+                                onChange={onChange}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}

@@ -57,6 +57,28 @@ const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
         -webkit-text-fill-color: ${inputTextColor};
         caret-color: ${inputTextColor};
     }
+
+    input[chrome-autofilled],
+    input[chrome-autofilled]:hover,
+    input[chrome-autofilled]:focus,
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea[chrome-autofilled],
+    textarea[chrome-autofilled]:hover,
+    textarea[chrome-autofilled]:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus{
+        -webkit-background-clip: text;
+        animation-name: onAutoFillStart;
+        animation-duration: 0.01s;
+    }
+    @keyframes onAutoFillStart {
+        from {}
+        to {}
+    }
+
 `;
 
 export default {
