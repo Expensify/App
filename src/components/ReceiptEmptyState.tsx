@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,12 +41,22 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
                 hasError && styles.borderColorDanger,
             ]}
         >
-            <Icon
-                fill={theme.border}
-                src={Expensicons.Receipt}
-                width={variables.eReceiptEmptyIconWidth}
-                height={variables.eReceiptEmptyIconWidth}
-            />
+            <View>
+                <Icon
+                    fill={theme.border}
+                    src={Expensicons.Receipt}
+                    width={variables.eReceiptEmptyIconWidth}
+                    height={variables.eReceiptEmptyIconWidth}
+                />
+                {!isThumbnail && (
+                    <Icon
+                        src={Expensicons.ReceiptPlaceholderPlus}
+                        width={variables.avatarSizeSmall}
+                        height={variables.avatarSizeSmall}
+                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
+                    />
+                )}
+            </View>
         </PressableWithoutFeedback>
     );
 }

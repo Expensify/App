@@ -4638,6 +4638,15 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        moneyRequestAttachReceiptThumbnailIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+            borderRadius: '50%',
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
