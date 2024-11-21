@@ -378,7 +378,7 @@ Click on the report in question and it will open in the right-hand panel.
 Click on Export to NetSuite to try to export again.
 
 {% include faq-begin.md %}
-## Why are reports exporting as `Accounting Approved` instead of `Paid in Full`?
+## Why are reports exporting as _Accounting Approved_ instead of _Paid in Full_?
 
 **This can occur for two reasons:**
 - Missing Locations, Classes, or Departments in the Bill Payment Form
@@ -408,7 +408,7 @@ Click on Export to NetSuite to try to export again.
 
 Following these steps will help ensure that reports are exported as "Paid in Full" instead of "Accounting Approved."
 
-## Why are reports exporting as `Pending Approval`?
+## Why are reports exporting as _Pending Approval_?
 If reports are exporting as "Pending Approval" instead of "Approved," you'll need to adjust the approval preferences in NetSuite.
 
 **Exporting as Journal Entries/Vendor Bills:**
