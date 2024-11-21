@@ -244,12 +244,12 @@ platform :android do
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
       google_play_track_version_codes(
         package_name: "org.me.mobiexpensifyg",
-        json_key: './android/app/android-fastlane-json-key.json',
+        json_key: './android-fastlane-json-key.json',
         track: 'internal'
       )
       upload_to_play_store(
         package_name: "org.me.mobiexpensifyg",
-        json_key: './android/app/android-fastlane-json-key.json',
+        json_key: './android-fastlane-json-key.json',
         version_code: ENV["VERSION"].to_i,
         track: 'internal',
         track_promote_to: 'production',
@@ -268,11 +268,11 @@ platform :android do
         productionVersionCodes = google_play_track_version_codes(
                                             track: 'production',
                                             package_name: "org.me.mobiexpensifyg",
-                                            json_key: './android/app/android-fastlane-json-key.json',
+                                            json_key: './android-fastlane-json-key.json',
                                         )
         upload_to_play_store(
             package_name: "org.me.mobiexpensifyg",
-            json_key: './android/app/android-fastlane-json-key.json',
+            json_key: './android-fastlane-json-key.json',
             version_code: productionVersionCodes.sort.last, # Get the latest version code
             track: 'production',
             rollout: '1',
@@ -592,7 +592,7 @@ platform :ios do
 
   desc "Submit HybridApp to 100% rollout on App Store"
     lane :complete_hybrid_rollout do
-        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios/ios-fastlane-json-key.json")
+        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios-fastlane-json-key.json")
         Spaceship::ConnectAPI.token = api_token
 
         app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
@@ -604,7 +604,7 @@ platform :ios do
     lane :submit_hybrid_for_rollout do
       deliver(
         app_identifier: "com.expensify.expensifylite",
-        api_key_path: "./ios/ios-fastlane-json-key.json",
+        api_key_path: "./ios-fastlane-json-key.json",
 
         # Skip HTML report verification
         force: true,
