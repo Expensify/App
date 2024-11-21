@@ -65,9 +65,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     if (!doesReportContainErrors) {
-        const parentReportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
-        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, allTransactionViolations, parentReportAction);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, allTransactionViolations);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(report.reportID);
         const hasViolations = shouldDisplayViolations || shouldDisplayReportViolations;
         if (hasViolations) {
@@ -78,13 +76,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
         const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
 
-        if (
-            ReportUtils.shouldDisplayTransactionThreadViolations(
-                oneTransactionThreadReport,
-                allTransactionViolations,
-                reportActions[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
-            )
-        ) {
+        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     }

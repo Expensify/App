@@ -177,7 +177,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 writeCapability: reportOnyx.writeCapability,
                 type: reportOnyx.type,
                 errorFields: reportOnyx.errorFields,
-                isPolicyExpenseChat: reportOnyx.isPolicyExpenseChat,
                 parentReportID: reportOnyx.parentReportID,
                 parentReportActionID: reportOnyx.parentReportActionID,
                 chatType: reportOnyx.chatType,
@@ -206,7 +205,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 isOptimisticReport: reportOnyx.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                avatarFileName: reportOnyx.avatarFileName,
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
@@ -333,7 +331,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         ? reportActions.length > 0
         : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
-    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const isLinkedActionDeleted = useMemo(
+        () => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, ReportUtils.canUserPerformWriteAction(report)),
+        [linkedAction, report],
+    );
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),

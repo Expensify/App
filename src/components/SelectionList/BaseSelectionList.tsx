@@ -645,10 +645,13 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
-            textInputValue === '' || (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length) ? -1 : 0;
+            (isEmpty(prevTextInputValue) && textInputValue === '') ||
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
+                ? -1
+                : 0;
 
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
