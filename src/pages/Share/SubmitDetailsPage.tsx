@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,8 +15,10 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -30,9 +33,11 @@ function SubmitDetailsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+
+    const report = onyxReport ?? Report.getOptimisticChatReport(reportID);
 
     const currentAttachment = useMemo(() => {
         return Object.values(tempShareFiles ?? {})
@@ -53,7 +58,6 @@ function SubmitDetailsPage({
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    <Text>COS</Text>
                     <MoneyRequestConfirmationList
                         selectedParticipants={participants}
                         iouAmount={0}
