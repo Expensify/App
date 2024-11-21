@@ -360,7 +360,7 @@ function getFilteredCardList(list?: WorkspaceCardsList) {
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
-    return !!(Object.keys(list).length === 1);
+    return Object.keys(list).length === 1;
 }
 
 export {
