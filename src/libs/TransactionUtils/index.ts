@@ -1119,7 +1119,6 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
-
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
                 } else {
