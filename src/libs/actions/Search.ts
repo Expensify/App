@@ -83,7 +83,8 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
         return;
     }
 
-    const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
+    const report = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`] ?? {}) as SearchReport;
+    const amount = Math.abs((report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0));
     const transactionID = isTransactionListItemType(item) ? item.transactionID : undefined;
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
