@@ -15,7 +15,7 @@ type ValidateCodeActionModalProps = {
     descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Function to be called when the modal is closed */
     onModalHide?: () => void;

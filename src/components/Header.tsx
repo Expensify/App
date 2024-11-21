@@ -1,10 +1,11 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type HeaderProps = {
     /** Title of the Header */
@@ -21,9 +22,12 @@ type HeaderProps = {
 
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -43,6 +47,22 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
         ),
         [subtitle, styles],
     );
+
+    const renderedSubTitleLink = useMemo(
+        () => (
+            <TextLink
+                onPress={() => {
+                    Linking.openURL(subTitleLink);
+                }}
+                numberOfLines={1}
+                style={styles.label}
+            >
+                {subTitleLink}
+            </TextLink>
+        ),
+        [styles.label, subTitleLink],
+    );
+
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
@@ -57,6 +77,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                       )
                     : title}
                 {renderedSubtitle}
+                {!!subTitleLink && renderedSubTitleLink}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

@@ -367,6 +367,9 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        verticalAlignTopText: {
+            verticalAlign: 'text-top',
+        },
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -415,7 +418,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -1744,6 +1747,31 @@ const styles = (theme: ThemeColors) =>
 
         onlyEmojisTextLineHeight: {
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        emojisWithTextFontSizeAligned: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            marginVertical: -7,
+        },
+
+        emojisFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        emojisWithTextFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        initialSettingsUsernameEmoji: {
+            fontSize: variables.fontSizeUsernameEmoji,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
@@ -5312,6 +5340,14 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
             borderColor: theme.border,
             padding: 16,
+        },
+        liDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: theme.text,
+            marginHorizontal: 8,
+            alignSelf: 'center',
         },
     } satisfies Styles);
 

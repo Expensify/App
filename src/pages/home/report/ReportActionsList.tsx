@@ -184,6 +184,8 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+
     const sortedVisibleReportActions = useMemo(
         () =>
             sortedReportActions.filter(
@@ -192,9 +194,9 @@ function ReportActionsList({
                         ReportActionsUtils.isDeletedParentAction(reportAction) ||
                         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                         reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
+                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
             ),
-        [sortedReportActions, isOffline],
+        [sortedReportActions, isOffline, canUserPerformWriteAction],
     );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
