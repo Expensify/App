@@ -7,7 +7,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
-        avatarFileName: unknown;
         chatType: unknown;
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
