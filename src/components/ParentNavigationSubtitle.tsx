@@ -61,7 +61,9 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{reportName}</Text>
                     </>
                 )}
-                {!!workspaceName && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
+                {workspaceName && workspaceName !== reportName && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                )}
             </Text>
         </PressableWithoutFeedback>
     );
