@@ -318,7 +318,11 @@ registerPaginationConfig({
     nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
     resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-    sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    sortItems: (reportActions, reportID) => {
+        const report = ReportUtils.getReport(reportID);
+        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+        return ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
+    },
     getItemID: (reportAction) => reportAction.reportActionID,
 });
 
@@ -728,7 +732,6 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: file ? file?.uri ?? '' : null,
-                avatarFileName: file ? file?.name ?? '' : null,
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -746,7 +749,6 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: fetchedReport?.avatarUrl ?? null,
-                avatarFileName: fetchedReport?.avatarFileName ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -1087,14 +1089,7 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = ReportUtils.buildOptimisticGroupChatReport(
-                participantAccountIDs,
-                reportName ?? '',
-                avatarUri ?? '',
-                avatarFile?.name ?? '',
-                optimisticReportID,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            );
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
@@ -1525,8 +1520,10 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         lastVisibleActionCreated: '',
     };
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
     if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions as ReportActions);
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         optimisticReport = {
@@ -1536,7 +1533,6 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastActorAccountID,
         };
     }
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
@@ -1667,6 +1663,8 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
+    const report = ReportUtils.getReport(originalReportID ?? '-1');
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     if (!originalReportID || !originalReportAction) {
         return;
@@ -1732,7 +1730,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -3440,7 +3438,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: true,
             },
@@ -3450,7 +3448,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: false,
             },
@@ -3460,7 +3458,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingPrivateNotes: false,
             },
@@ -3478,6 +3476,7 @@ function prepareOnboardingOptimisticData(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (Permissions.canUseCombinedTrackSubmit()) {
@@ -3496,15 +3495,6 @@ function prepareOnboardingOptimisticData(
     const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-
-    // Introductory message
-    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
-    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
-    const introductionMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: introductionCommentAction.reportActionID,
-        reportComment: introductionComment.commentText,
-    };
 
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
@@ -3528,7 +3518,11 @@ function prepareOnboardingOptimisticData(
     }
     const tasksData = data.tasks
         .filter((task) => {
-            if (task.type === 'addAccountingIntegration' && !userReportedIntegration) {
+            if (['setupCategories', 'setupTags'].includes(task.type) && userReportedIntegration) {
+                return false;
+            }
+
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
             return true;
@@ -3544,6 +3538,7 @@ function prepareOnboardingOptimisticData(
                           navatticURL: getNavatticURL(environment, engagementChoice),
                           integrationName,
                           workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID ?? '-1')}`,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                       })
                     : task.description;
             const taskTitle =
@@ -3747,7 +3742,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
@@ -3756,19 +3750,20 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
-        {
+    );
+    if (!wasInvited) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: true},
-        },
-    );
+        });
+    }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
         value: {
-            [introductionCommentAction.reportActionID]: {pendingAction: null},
             [textCommentAction.reportActionID]: {pendingAction: null},
         },
     });
@@ -3779,9 +3774,11 @@ function prepareOnboardingOptimisticData(
         lastVisibleActionCreated: '',
         hasOutstandingChildTask: false,
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
+    const report = ReportUtils.getReport(targetChatReportID);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID, canUserPerformWriteAction);
     if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID);
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID, canUserPerformWriteAction);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
@@ -3803,9 +3800,6 @@ function prepareOnboardingOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [introductionCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
                 [textCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
@@ -3816,12 +3810,15 @@ function prepareOnboardingOptimisticData(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
         },
-        {
+    );
+
+    if (!wasInvited) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: false},
-        },
-    );
+        });
+    }
 
     if (userReportedIntegration) {
         optimisticData.push({
@@ -3855,10 +3852,7 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...introductionMessage},
-        {type: 'message', ...textMessage},
-    ];
+    const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
 
     if ('video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
@@ -3905,6 +3899,7 @@ function completeOnboarding(
     paymentSelected?: string,
     companySize?: OnboardingCompanySize,
     userReportedIntegration?: OnboardingAccounting,
+    wasInvited?: boolean,
 ) {
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
         engagementChoice,
@@ -3912,6 +3907,7 @@ function completeOnboarding(
         adminsChatReportID,
         onboardingPolicyID,
         userReportedIntegration,
+        wasInvited,
     );
 
     const parameters: CompleteGuidedSetupParams = {
@@ -4059,9 +4055,9 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
     };
 
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,
@@ -4134,9 +4130,9 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,

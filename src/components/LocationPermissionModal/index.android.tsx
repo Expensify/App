@@ -50,7 +50,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 setHasError(true);
                 return;
             } else {
-                onDeny(status);
+                onDeny();
             }
             setShowModal(false);
             setHasError(false);
@@ -58,7 +58,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny(RESULTS.DENIED);
+        onDeny();
         setShowModal(false);
         setHasError(false);
     };

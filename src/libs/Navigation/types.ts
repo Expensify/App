@@ -247,6 +247,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         featureName: string;
         backTo?: Routes;
+        categoryId?: string;
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
         policyID: string;
@@ -777,6 +778,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
         backTo: Routes;
@@ -1553,6 +1555,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             accountID: string;
             isAuthTokenRequired?: string;
             fileName?: string;
+            attachmentLink?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

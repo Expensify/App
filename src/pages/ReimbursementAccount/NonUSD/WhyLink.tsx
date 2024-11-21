@@ -7,6 +7,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type WhyLinkProps = {
     /** Style for wrapping View */
@@ -29,8 +30,7 @@ function WhyLink({containerStyles}: WhyLinkProps) {
             <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                 <TextLink
                     style={[styles.textMicro]}
-                    // TODO add link
-                    href=""
+                    href={CONST.HELP_LINK_URL}
                 >
                     {translate('common.whyDoWeAskForThis')}
                 </TextLink>
