@@ -9,7 +9,6 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Request from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
@@ -22,12 +21,6 @@ function reauthenticate(commandName?: string): Promise<void> {
         return isAuthenticating;
     }
 
-    const reauthRequest = {
-        commandName,
-    };
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.set(ONYXKEYS.REAUTHENTICATION_REQUEST, reauthRequest);
-
     isAuthenticating = retryReauthenticate(commandName)
         .then((response) => {
             return response;
@@ -36,8 +29,6 @@ function reauthenticate(commandName?: string): Promise<void> {
             throw error;
         })
         .finally(() => {
-            // eslint-disable-next-line rulesdir/prefer-actions-set-data
-            Onyx.set(ONYXKEYS.REAUTHENTICATION_REQUEST, null);
             isAuthenticating = null;
         });
 
