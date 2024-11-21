@@ -136,11 +136,6 @@ jobs:
         run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
         working-directory: android/app
 
-      - name: Submit Android build for review
-        run: bundle exec fastlane android upload_google_play_production
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() }}
         uses: 8398a7/action-slack@v3
@@ -430,12 +425,6 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-
-      - name: Submit build for App Store review
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios submit_for_review
-        env:
-          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
