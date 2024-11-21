@@ -10,15 +10,21 @@ class RequestThrottle {
 
     private timeoutID?: NodeJS.Timeout;
 
+    private name: string;
+
+    constructor(name: string) {
+        this.name = name;
+    }
+
     clear() {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
         if (this.timeoutID) {
-            Log.info(`[RequestThrottle] clearing timeoutID: ${String(this.timeoutID)}`);
+            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${String(this.timeoutID)}`);
             clearTimeout(this.timeoutID);
             this.timeoutID = undefined;
         }
-        Log.info(`[RequestThrottle] in clear()`);
+        Log.info(`[RequestThrottle - ${this.name}] in clear()`);
     }
 
     getRequestWaitTime() {
@@ -40,7 +46,7 @@ class RequestThrottle {
             if (this.requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
                 const currentRequestWaitTime = this.getRequestWaitTime();
                 Log.info(
-                    `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
+                    `[RequestThrottle - ${this.name}] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
                 );
                 this.timeoutID = setTimeout(resolve, currentRequestWaitTime);
             } else {

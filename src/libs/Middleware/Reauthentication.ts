@@ -15,7 +15,7 @@ import type Middleware from './types';
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
 
-const reauthThrottle = new RequestThrottle();
+const reauthThrottle = new RequestThrottle('Re-authentication');
 
 function reauthenticate(commandName?: string): Promise<void> {
     if (isAuthenticating) {

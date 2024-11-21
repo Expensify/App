@@ -28,7 +28,7 @@ resolveIsReadyPromise?.();
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
-const sequentialQueueRequestThrottle = new RequestThrottle();
+const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
