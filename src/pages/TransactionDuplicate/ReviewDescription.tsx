@@ -41,9 +41,7 @@ function ReviewDescription() {
     );
     const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
-            // setReviewDuplicatesKey({description: data.value});
-            const comment = compareResult.change.description?.find((d) => d?.comment === data.value);
-            setReviewDuplicatesKey({comment, description: data.value});
+            setReviewDuplicatesKey({description: data.value});
         }
         navigateToNextScreen();
     };

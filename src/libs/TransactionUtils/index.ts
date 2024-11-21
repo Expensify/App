@@ -1043,10 +1043,10 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(transactionID: string, reportID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+function compareDuplicateTransactionFields(reviewingTransactionID: string, reportID: string, selectedTransactionID?: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
+    const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1099,6 +1099,14 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
         }
     }
 
+    // The comment object needs to be stored only when selecting a specific transaction to keep.
+    // It contains details such as 'customUnit' and 'waypoints,' which remain unchanged during the review steps
+    // but are essential for displaying complete information on the confirmation page.
+    if (selectedTransactionID) {
+        const selectedTransaction = transactions.find((t) => t?.transactionID === selectedTransactionID);
+        keep.comment = selectedTransaction?.comment ?? {};
+    }
+
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
@@ -1111,9 +1119,9 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
             if (fieldName === 'description') {
                 const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
                 const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => getDescription(item) === '');
+
                 if (allCommentsAreEqual || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment?.comment ?? firstTransaction?.comment;
-                    keep.comment = firstTransaction?.comment;
                 } else {
                     processChanges(fieldName, transactions, keys);
                 }
