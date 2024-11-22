@@ -393,7 +393,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom={false}
-            offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -415,10 +414,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     style={styles.headerBarDesktopHeight}
                 />
 
-                <ScrollView
-                    contentContainerStyle={[styles.flexColumn]}
-                    style={[styles.flexGrow0]}
-                >
+                <ScrollView contentContainerStyle={[styles.flexColumn]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}

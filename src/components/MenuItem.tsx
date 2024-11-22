@@ -643,7 +643,8 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            backgroundColor={isHovered ? theme.hoverComponentBG : undefined}
+                                                            // eslint-disable-next-line no-nested-ternary
+                                                            backgroundColor={pressed ? theme.buttonHoveredBG : isHovered ? theme.hoverComponentBG : undefined}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}
