@@ -4,6 +4,7 @@ import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import {fetchSAMLUrl} from '@libs/LoginUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     useEffect(() => {
