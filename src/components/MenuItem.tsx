@@ -476,6 +476,7 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
+    const shouldShowAvatar = !!icon && Array.isArray(icon);
     const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
     const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
@@ -627,7 +628,7 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {!!icon && Array.isArray(icon) && !shouldShowSubscriptAvatar && (
+                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
                                                         <MultipleAvatars
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
@@ -640,7 +641,7 @@ function MenuItem(
                                                             ]}
                                                         />
                                                     )}
-                                                    {!!icon && Array.isArray(icon) && shouldShowSubscriptAvatar && (
+                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
                                                             backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                             mainAvatar={firstIcon as IconType}
