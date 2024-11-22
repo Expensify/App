@@ -148,6 +148,7 @@ function MoneyRequestPreviewContent({
 
     const hasDuplicates = duplicates.length > 0;
 
+    const shouldShowCategoryOrTag = !!tag || !!category;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
@@ -430,41 +431,43 @@ function MoneyRequestPreviewContent({
                                             </View>
                                         )}
                                     </View>
-                                    {(!!tag || !!category) && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
-                                    <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
-                                        {!!category && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, tag && styles.mw50, tag && styles.pr1, styles.flexShrink1]}>
-                                                <Icon
-                                                    src={Expensicons.Folder}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[styles.textLabelSupporting, styles.pre, styles.flexShrink1]}
-                                                >
-                                                    {category}
-                                                </Text>
-                                            </View>
-                                        )}
-                                        {!!tag && (
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
-                                                <Icon
-                                                    src={Expensicons.Tag}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[styles.textLabelSupporting, styles.pre, styles.flexShrink1]}
-                                                >
-                                                    {tag}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
+                                    {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
+                                    {shouldShowCategoryOrTag && (
+                                        <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
+                                            {!!category && (
+                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, tag && styles.mw50, tag && styles.pr1, styles.flexShrink1]}>
+                                                    <Icon
+                                                        src={Expensicons.Folder}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {category}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            {!!tag && (
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
+                                                    <Icon
+                                                        src={Expensicons.Tag}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {tag}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         </View>
