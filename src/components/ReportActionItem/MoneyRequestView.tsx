@@ -34,7 +34,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -84,7 +83,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const parentReportID = report?.parentReportID ?? '-1';
     const policyID = report?.policyID ?? '-1';
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -696,11 +694,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
-                        iconRight={Expensicons.NewWindow}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
-                        }}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()))
+                        }
                     />
                 )}
                 {shouldShowAttendees && (

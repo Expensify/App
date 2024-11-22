@@ -1345,7 +1345,7 @@ const ROUTES = {
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_DETAILS: {
         route: 'r/:reportID/trip/:transactionID',
-        getRoute: (reportID: string, transactionID: string) => `r/${reportID}/trip/${transactionID}` as const,
+        getRoute: (reportID: string, transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
