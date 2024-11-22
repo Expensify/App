@@ -35,6 +35,9 @@ import SearchRouterInput from './SearchRouter/SearchRouterInput';
 import SearchRouterList from './SearchRouter/SearchRouterList';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
+// When counting absolute positioning, we need to account for borders
+const BORDER_WIDTH = 1;
+
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     children: React.ReactNode;
@@ -69,7 +72,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState('');
+    const [textInputValue, setTextInputValue] = useState(' '); // initial empty space to avoid quick flash of placeholder text
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
 
@@ -214,18 +217,21 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
-    const shouldShowAutocompleteList = isAutocompleteListVisible && !!textInputValue;
+    const isHeaderInputActive = isAutocompleteListVisible && !!textInputValue;
 
-    const topPosition = (variables.contentHeaderDesktopHeight - variables.componentSizeLarge) / 2;
-    const activeStyles = shouldShowAutocompleteList ? [styles.appBG, styles.border, styles.pAbsolute, {top: topPosition, left: 20, right: 20}] : [];
-    const inputWrapperActiveStyle = shouldShowAutocompleteList ? styles.ph2 : null;
+    // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
+    const popoverHorizontalPosition = 12 - BORDER_WIDTH;
+    const autocompleteInputStyle = isHeaderInputActive
+        ? [styles.border, styles.pAbsolute, styles.pt2, {top: 8 - BORDER_WIDTH, left: popoverHorizontalPosition, right: popoverHorizontalPosition}, {boxShadow: variables.popoverMenuShadow}]
+        : [styles.pt4];
+    const inputWrapperStyle = isHeaderInputActive ? styles.ph2 : null;
 
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.searchResultsHeaderBar, styles.mh85vh]}
+            style={[styles.searchResultsHeaderBar, styles.mh85vh, isHeaderInputActive && styles.ph3]}
         >
-            <View style={[styles.appBG, styles.pt2, ...activeStyles]}>
+            <View style={[styles.appBG, ...autocompleteInputStyle]}>
                 <SearchRouterInput
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
@@ -238,11 +244,11 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     onBlur={hideAutocompleteList}
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                     wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                    outerWrapperStyle={inputWrapperActiveStyle}
+                    outerWrapperStyle={inputWrapperStyle}
                     rightComponent={children}
                     routerListRef={listRef}
                 />
-                <View style={[styles.pt2, !shouldShowAutocompleteList && styles.dNone]}>
+                <View style={[styles.pt2, !isHeaderInputActive && styles.dNone]}>
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}

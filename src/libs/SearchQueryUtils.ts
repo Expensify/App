@@ -8,6 +8,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import * as CardUtils from './CardUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
 import {validateAmount} from './MoneyRequestUtils';
@@ -500,7 +501,11 @@ function getFilterDisplayValue(
         return personalDetails?.[filterValue]?.displayName || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        return cardList[filterValue]?.bank || filterValue;
+        const cardID = parseInt(filterName, 10);
+        if (Number.isNaN(cardID)) {
+            return filterValue;
+        }
+        return CardUtils.getCardDescription(cardID) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
