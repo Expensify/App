@@ -216,12 +216,19 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
           }
         : undefined;
 
-    const isHeaderInputActive = isAutocompleteListVisible && !!textInputValue;
+    const isHeaderInputActive = isAutocompleteListVisible;
 
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const popoverHorizontalPosition = 12 - BORDER_WIDTH;
     const autocompleteInputStyle = isHeaderInputActive
-        ? [styles.border, styles.pAbsolute, styles.pt2, {top: 8 - BORDER_WIDTH, left: popoverHorizontalPosition, right: popoverHorizontalPosition}, {boxShadow: variables.popoverMenuShadow}]
+        ? [
+              styles.border,
+              styles.borderRadiusComponentLarge,
+              styles.pAbsolute,
+              styles.pt2,
+              {top: 8 - BORDER_WIDTH, left: popoverHorizontalPosition, right: popoverHorizontalPosition},
+              {boxShadow: variables.popoverMenuShadow},
+          ]
         : [styles.pt4];
     const inputWrapperStyle = isHeaderInputActive ? styles.ph2 : null;
 
