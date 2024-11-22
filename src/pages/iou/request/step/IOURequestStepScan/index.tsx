@@ -524,8 +524,14 @@ function IOURequestStepScan({
                             .then((response) => response.blob())
                             .then((blob) => heic2any({blob, toType: 'image/jpeg'}))
                             .then((convertedBlob) => {
-                                const blobToUse = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                                const blobToUse = Array.isArray(convertedBlob) ? convertedBlob.at(0) : convertedBlob;
 
+                                if (!blobToUse) {
+                                    console.error('Converted blob is undefined.');
+                                    setIsLoadingReceipt(false);
+                                    return;
+                                }
+                                
                                 const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
 
                                 const jpegFile = new File([blobToUse], fileName, {type: 'image/jpeg'});
