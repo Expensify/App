@@ -1,4 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
+import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -7,6 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -238,6 +240,15 @@ function ReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const dismissError = useCallback(() => {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (transactionID) {
+            Transaction.clearError(transactionID);
+        }
+        ReportActions.clearAllRelatedReportActionErrors(reportID, action);
+    }, [reportID, action]);
 
     useEffect(
         () => () => {
@@ -1002,11 +1013,19 @@ function ReportActionItem({
                         >
                             <OfflineWithFeedback
                                 onClose={() => {
-                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        Transaction.clearError(transactionID);
+                                    const errors = linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors);
+                                    const errorEntries = Object.entries(errors ?? {});
+                                    const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+                                    const hasReceiptError = Object.values(errorMessages).some((error) => ErrorUtils.isReceiptError(error));
+
+                                    if (hasReceiptError) {
+                                        setShowConfirmDismissReceiptError(true);
+                                    } else {
+                                        dismissError();
                                     }
-                                    ReportActions.clearAllRelatedReportActionErrors(reportID, action);
+                                }}
+                                dismissError={() => {
+                                    dismissError();
                                 }}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
@@ -1050,6 +1069,22 @@ function ReportActionItem({
             <View style={styles.reportActionSystemMessageContainer}>
                 <InlineSystemMessage message={action.error} />
             </View>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </PressableWithSecondaryInteraction>
     );
 }
