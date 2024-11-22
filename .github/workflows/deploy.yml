@@ -618,7 +618,6 @@ jobs:
       - name: Submit production build for App Store review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          ls -laR .
           # Complete the previous version rollout
           bundle exec fastlane ios complete_hybrid_rollout
           

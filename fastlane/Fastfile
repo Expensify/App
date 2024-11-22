@@ -587,9 +587,9 @@ platform :ios do
 
   desc "Submit HybridApp to 100% rollout on App Store"
     lane :complete_hybrid_rollout do
-        puts Dir.pwd
-        sh "pwd"
-        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios/ios-fastlane-json-key.json")
+        # Local path is different when using Spaceship::ConnectAPI::Token.from_json_file,
+        # the working directory is: /Users/runner/work/App/App/Mobile-Expensify/react-native/fastlane
+        api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios/ios-fastlane-json-key.json")
         Spaceship::ConnectAPI.token = api_token
 
         app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
