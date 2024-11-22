@@ -39,7 +39,7 @@ Here’s how to determine whether a personal or group workspace might be best fo
 <ol type="a">
    <li>Hover over Settings, then click <b>Workspaces</b>.</li>
    <li>Click the <b>Individual</b> tab on the left.</li>
-   <li>Select the policy type that best fits your needs.</li>
+   <li>Select the workspace type that best fits your needs.</li>
    <li>Set up your workspace details including the workspace name, expense rules, categories, and more.</li>
 </ol>
 
