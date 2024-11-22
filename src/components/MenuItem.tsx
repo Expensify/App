@@ -568,12 +568,12 @@ function MenuItem(
         }
     };
 
-    const getSubscriptpAvatarBackgroundColor = (isHover: boolean, pressed: boolean, hoverBackgroundColor: string, pressedBackgroundColor: string) => {
+    const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, pressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
         if (pressed) {
             return pressedBackgroundColor;
         }
-        if (isHover) {
-            return hoverBackgroundColor;
+        if (isHovered) {
+            return hoveredBackgroundColor;
         }
     };
 
