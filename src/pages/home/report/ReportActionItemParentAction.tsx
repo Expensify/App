@@ -159,7 +159,7 @@ function ReportActionItemParentAction({
                                 index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                                hideThreadReplies
+                                isThreadReportParentAction
                             />
                         )}
                     </OfflineWithFeedback>
