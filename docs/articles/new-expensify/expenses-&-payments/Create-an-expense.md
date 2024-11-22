@@ -115,7 +115,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 {% include end-selector.html %}
 
-# How to delete an expense
+# How to Delete an Expense
 
 {% include selector.html values="desktop, mobile" %}
 
