@@ -1,12 +1,13 @@
 import type {Animated} from 'react-native';
 import type {SharedTooltipProps} from '@components/Tooltip/types';
+import { SharedValue } from "react-native-reanimated";
 
 type BaseGenericTooltipProps = {
     /** Window width */
     windowWidth: number;
 
     /** Tooltip Animation value */
-    animation: Animated.Value;
+    animation: SharedValue<number>;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
     xOffset: number;
