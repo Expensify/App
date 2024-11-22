@@ -17,7 +17,7 @@ const useHandleExceedMaxTaskTitleLength = () => {
         return false;
     }, [hasExceededMaxTitleLength]);
 
-    const validateTitleMaxLength = useMemo(() => debounce(handleValueChange, 100, {leading: true}), [handleValueChange]);
+    const validateTitleMaxLength = useMemo(() => debounce(handleValueChange, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [handleValueChange]);
 
     return {hasExceededMaxTitleLength, validateTitleMaxLength};
 };
