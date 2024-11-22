@@ -316,7 +316,6 @@ const translations = {
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
-        notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
         recentDestinations: 'Recent destinations',
@@ -1617,7 +1616,6 @@ const translations = {
     preferencesPage: {
         appSection: {
             title: 'App preferences',
-            subtitle: 'Customize your Expensify account.',
         },
         testSection: {
             title: 'Test preferences',
