@@ -30,6 +30,7 @@ async function getAndroidRolloutPercentage() {
         });
 
         const userFraction = trackResponse.data.releases?.[0]?.userFraction ?? '-1';
+        console.log('Track response', JSON.stringify(trackResponse.data));
         console.log('Current Android rollout percentage:', userFraction);
 
         core.setOutput('CURRENT_ROLLOUT_PERCENTAGE', userFraction);
