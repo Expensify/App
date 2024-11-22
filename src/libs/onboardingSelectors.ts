@@ -1,5 +1,6 @@
 import type {OnyxValue} from 'react-native-onyx';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 /**
  * Selector to get the value of hasCompletedGuidedSetupFlow from the Onyx store
@@ -9,8 +10,12 @@ import type ONYXKEYS from '@src/ONYXKEYS';
  * `false` means the user has not completed the NewDot onboarding flow
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    // Onboarding is an array for old accounts and accounts created from OldDot
-    if (Array.isArray(onboarding)) {
+    // Onboarding is an array or an empty object for old accounts and accounts created from OldDot
+    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+        return true;
+    }
+
+    if (!isEmptyObject(onboarding) && onboarding?.hasCompletedGuidedSetupFlow === undefined) {
         return true;
     }
 
@@ -43,11 +48,11 @@ function hasCompletedHybridAppOnboardingFlowSelector(tryNewDotData: OnyxValue<ty
  * `false` means the user has not completed the NewDot onboarding flow
  */
 function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    if (Array.isArray(onboarding)) {
+    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
         return false;
     }
 
-    return onboarding?.selfTourViewed;
+    return !!onboarding?.selfTourViewed;
 }
 
 export {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector, hasSeenTourSelector};

@@ -53,10 +53,15 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             setShouldShowError(true);
             return;
         }
+
+        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+
         CompanyCards.setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
             data: {
                 email: selectedMember,
+                cardName: `${memberName}'s card`,
             },
             isEditing: false,
         });

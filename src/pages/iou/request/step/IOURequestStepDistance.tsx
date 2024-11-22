@@ -319,6 +319,7 @@ function IOURequestStepDistance({
                         currentUserPersonalDetails.accountID,
                         participant,
                         '',
+                        false,
                         {},
                         '',
                         '',

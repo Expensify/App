@@ -91,6 +91,8 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputIconLeft,
         sectionTitleStyles,
         textInputAutoFocus = true,
+        shouldShowTextInputAfterHeader = false,
+        includeSafeAreaPaddingBottom = true,
         shouldTextInputInterceptSwipe = false,
         listHeaderContent,
         onEndReached = () => {},
@@ -531,6 +533,48 @@ function BaseSelectionList<TItem extends ListItem>(
         return null;
     };
 
+    const renderInput = () => {
+        return (
+            <View style={[styles.ph5, styles.pb3]}>
+                <TextInput
+                    ref={(element) => {
+                        innerTextInputRef.current = element as RNTextInput;
+
+                        if (!textInputRef) {
+                            return;
+                        }
+
+                        if (typeof textInputRef === 'function') {
+                            textInputRef(element as RNTextInput);
+                        } else {
+                            // eslint-disable-next-line no-param-reassign
+                            textInputRef.current = element as RNTextInput;
+                        }
+                    }}
+                    onFocus={() => (isTextInputFocusedRef.current = true)}
+                    onBlur={() => (isTextInputFocusedRef.current = false)}
+                    label={textInputLabel}
+                    accessibilityLabel={textInputLabel}
+                    hint={textInputHint}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={textInputValue}
+                    placeholder={textInputPlaceholder}
+                    maxLength={textInputMaxLength}
+                    onChangeText={onChangeText}
+                    inputMode={inputMode}
+                    selectTextOnFocus
+                    spellCheck={false}
+                    iconLeft={textInputIconLeft}
+                    onSubmitEditing={selectFocusedOption}
+                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                    isLoading={isLoadingNewOptions}
+                    testID="selection-list-text-input"
+                    shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                />
+            </View>
+        );
+    };
+
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
@@ -601,10 +645,13 @@ function BaseSelectionList<TItem extends ListItem>(
         ) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
-            textInputValue === '' || (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length) ? -1 : 0;
+            (isEmpty(prevTextInputValue) && textInputValue === '') ||
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
+                ? -1
+                : 0;
 
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
@@ -707,46 +754,8 @@ function BaseSelectionList<TItem extends ListItem>(
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && safeAreaPaddingBottomStyle, containerStyle]}>
-                    {shouldShowTextInput && (
-                        <View style={[styles.ph5, styles.pb3]}>
-                            <TextInput
-                                ref={(element) => {
-                                    innerTextInputRef.current = element as RNTextInput;
-
-                                    if (!textInputRef) {
-                                        return;
-                                    }
-
-                                    if (typeof textInputRef === 'function') {
-                                        textInputRef(element as RNTextInput);
-                                    } else {
-                                        // eslint-disable-next-line no-param-reassign
-                                        textInputRef.current = element as RNTextInput;
-                                    }
-                                }}
-                                onFocus={() => (isTextInputFocusedRef.current = true)}
-                                onBlur={() => (isTextInputFocusedRef.current = false)}
-                                label={textInputLabel}
-                                accessibilityLabel={textInputLabel}
-                                hint={textInputHint}
-                                role={CONST.ROLE.PRESENTATION}
-                                value={textInputValue}
-                                placeholder={textInputPlaceholder}
-                                maxLength={textInputMaxLength}
-                                onChangeText={onChangeText}
-                                inputMode={inputMode}
-                                selectTextOnFocus
-                                spellCheck={false}
-                                iconLeft={textInputIconLeft}
-                                onSubmitEditing={selectFocusedOption}
-                                blurOnSubmit={!!flattenedSections.allOptions.length}
-                                isLoading={isLoadingNewOptions}
-                                testID="selection-list-text-input"
-                                shouldInterceptSwipe={shouldTextInputInterceptSwipe}
-                            />
-                        </View>
-                    )}
+                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle, containerStyle]}>
+                    {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
                     {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
@@ -790,7 +799,16 @@ function BaseSelectionList<TItem extends ListItem>(
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
                                 style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
-                                ListHeaderComponent={listHeaderContent}
+                                ListHeaderComponent={
+                                    shouldShowTextInput && shouldShowTextInputAfterHeader ? (
+                                        <>
+                                            {listHeaderContent}
+                                            {renderInput()}
+                                        </>
+                                    ) : (
+                                        listHeaderContent
+                                    )
+                                }
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
