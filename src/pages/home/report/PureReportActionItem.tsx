@@ -142,20 +142,28 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
+    /** ReportAction Draftmessage */
     draftMessage?: string;
 
+    /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
+    /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
+    /** User's Expensify Wallet */
     userWallet?: OnyxTypes.UserWallet;
 
+    /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
+    /** Optional property for report name-value pairs */
     reportNameValuePairs?: OnyxTypes.ReportNameValuePairs;
 
+    /** Optional property to indicate if the user is validated */
     isUserValidated?: boolean;
 
+    /** Parent report */
     parentReport?: OnyxTypes.Report;
 };
 
@@ -177,7 +185,6 @@ function PureReportActionItem({
     shouldUseThreadDividerLine = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
-
     draftMessage,
     iouReport,
     emojiReactions,
