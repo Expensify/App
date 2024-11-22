@@ -15,7 +15,6 @@ function SubmitTab() {
                 // Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
                 Navigation.navigate(ROUTES.SHARE_SUBMIT_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
-            iouRequestType="manual"
             action="create"
         />
     );

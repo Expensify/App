@@ -19,6 +19,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import UserListItem from '@src/components/SelectionList/UserListItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -93,8 +94,8 @@ function ShareDetailsPage({
                     Report.addAttachment(report.reportID, file, message);
                 }
 
-                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
-                Navigation.navigate(routeToNavigate);
+                const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+                Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
             },
             () => {},
         );
