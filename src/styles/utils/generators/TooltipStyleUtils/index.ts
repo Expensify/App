@@ -1,5 +1,6 @@
 import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {Animated, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
@@ -30,7 +31,7 @@ type TooltipStyles = {
 
 type TooltipParams = {
     tooltip: View | HTMLDivElement | null;
-    currentSize: Animated.Value;
+    currentSize: number;
     windowWidth: number;
     xOffset: number;
     yOffset: number;
@@ -47,7 +48,13 @@ type TooltipParams = {
     shouldAddHorizontalPadding?: boolean;
 };
 
-type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
+type TooltipAnimationProps = {
+    tooltipContentWidth?: number;
+    tooltipWrapperHeight?: number;
+    currentSize: SharedValue<number>;
+};
+
+type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles; getTooltipAnimatedStyles: (props: TooltipAnimationProps) => {transform: [{scale: number}]}};
 
 /**
  * Generate styles for the tooltip component.
@@ -108,7 +115,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
         // Set the scale to 1 to be able to measure the tooltip size correctly when it's not ready yet.
-        let scale = new Animated.Value(1);
+        let scale = 1;
         let shouldShowBelow = false;
         let horizontalShift = 0;
         let horizontalShiftPointer = 0;
@@ -267,6 +274,21 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderTopColor: customWrapperStyle.backgroundColor ?? theme.heading,
                 ...pointerAdditionalStyle,
             },
+        };
+    },
+
+    // Utility function to create and manage scale animations with React Native Reanimated
+
+    getTooltipAnimatedStyles: (props: TooltipAnimationProps) => {
+        const tooltipHorizontalPadding = spacing.ph2.paddingHorizontal * 2;
+        const tooltipWidth = props.tooltipContentWidth && props.tooltipContentWidth + tooltipHorizontalPadding + 1;
+        const isTooltipSizeReady = tooltipWidth !== undefined && props.tooltipWrapperHeight !== undefined;
+        let scale = 1;
+        if (isTooltipSizeReady) {
+            scale = props.currentSize.value;
+        }
+        return {
+            transform: [{scale}],
         };
     },
 });
