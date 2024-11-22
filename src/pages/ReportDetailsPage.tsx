@@ -833,7 +833,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
         if (!isTransactionDeleted.current) {
             if (caseID === CASES.DEFAULT) {
-                urlToNavigateBack = Task.getNavigationUrlAfterTaskDelete(report);
+                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
                 if (urlToNavigateBack) {
                     Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
                     Navigation.goBack(urlToNavigateBack as Route);

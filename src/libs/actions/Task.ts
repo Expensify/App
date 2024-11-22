@@ -964,7 +964,7 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterTaskDelete(report: OnyxEntry<OnyxTypes.Report>): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): string | undefined {
     if (!report) {
         return undefined;
     }
@@ -1138,7 +1138,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 
-    const urlToNavigateBack = getNavigationUrlAfterTaskDelete(report);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;
@@ -1255,7 +1255,7 @@ export {
     canModifyTask,
     canActionTask,
     setNewOptimisticAssignee,
-    getNavigationUrlAfterTaskDelete,
+    getNavigationUrlOnTaskDelete,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
