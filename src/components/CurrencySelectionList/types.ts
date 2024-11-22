@@ -1,18 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
-import type {CurrencyList} from '@src/types/onyx';
 
 type CurrencyListItem = ListItem & {
     currencyName: string;
     currencyCode: string;
 };
 
-type CurrencySelectionListOnyxProps = {
-    /** List of available currencies */
-    currencyList: OnyxEntry<CurrencyList>;
-};
-
-type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
+type CurrencySelectionListProps = {
     /** Label for the search text input */
     searchInputLabel: string;
 
@@ -32,4 +25,4 @@ type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
     canSelectMultiple?: boolean;
 };
 
-export type {CurrencyListItem, CurrencySelectionListProps, CurrencySelectionListOnyxProps};
+export type {CurrencyListItem, CurrencySelectionListProps};
