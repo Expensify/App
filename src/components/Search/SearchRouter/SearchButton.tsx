@@ -24,6 +24,17 @@ function SearchButton({style}: SearchButtonProps) {
     const {openSearchRouter} = useSearchRouterContext();
     const pressableRef = useRef<View>(null);
 
+    const handleOnPress = () => {
+        if (pressableRef.current) {
+            pressableRef.current.blur();
+        }
+        
+        Timing.start(CONST.TIMING.OPEN_SEARCH);
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+
+        openSearchRouter();
+    };
+
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
@@ -31,15 +42,7 @@ function SearchButton({style}: SearchButtonProps) {
                 nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={Session.checkIfActionIsAllowed(() => {
-                    if (pressableRef.current) {
-                        pressableRef.current.blur();
-                    }
-                    Timing.start(CONST.TIMING.OPEN_SEARCH);
-                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
-
-                    openSearchRouter();
-                })}
+                onPress={Session.checkIfActionIsAllowed(handleOnPress)}
             >
                 <Icon
                     src={Expensicons.MagnifyingGlass}
