@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -45,7 +46,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingPolicyID, onboardingPolicyIDResult] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
@@ -58,14 +59,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
     useEffect(() => {
-        if (!isVsb || !!onboardingPolicyID) {
+        if (!isVsb || !!onboardingPolicyID || isLoadingOnyxValue(onboardingPolicyIDResult)) {
             return;
         }
 
         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
         Welcome.setOnboardingPolicyID(policyID);
-    }, [isVsb, onboardingPolicyID]);
+    }, [isVsb, onboardingPolicyID, onboardingPolicyIDResult]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
