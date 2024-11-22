@@ -283,7 +283,7 @@ jobs:
           fi
           
           # Submit the new version for review and slow rollout when it's approved
-          bundle exec fastlane android upload_google_play_production_hybrid_rollout
+#          bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
