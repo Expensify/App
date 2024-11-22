@@ -9,12 +9,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
+import {fetchSAMLUrl} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { fetchSAMLUrl } from '@libs/LoginUtils';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -24,7 +24,6 @@ function SAMLSignInPage() {
     const webViewRef = useRef<WebView>(null);
 
     useEffect(() => {
-
         // If we've already gotten a url back to log into the user's IdP, then don't re-fetch it
         if (SAMLUrl) {
             return;
