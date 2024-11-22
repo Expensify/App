@@ -88,7 +88,7 @@ Before getting started, you will need a verified domain and Control plan to set 
 6. The new trust is now created. Highlight the trust, then click *Edit claim rules* on the right.
 7. Click *Add a Rule*.
 8. The default option should be *Send LDAP Attributes as Claims*. Click Next. 
-9. Depending upon how your Active Directory is set up, you may or may not have a useful email address associated with each user, or you may have a policy to use the UPN as the user attribute for authentication. If so, using the UPN user attribute may be appropriate for you. If not, you can use the email address attribute.
+9. Depending upon how your Active Directory is set up, you may or may not have a useful email address associated with each user, or you may have a workspace to use the UPN as the user attribute for authentication. If so, using the UPN user attribute may be appropriate for you. If not, you can use the email address attribute.
 10. Give the rule a name like *Get email address from AD*. Choose Active Directory as the attribute store from the dropdown list. Choose your source user attribute to pass to Expensify that has users’ email address info in it, usually either *E-Mail-Address* or *User-Principal-Name*. Select the outgoing claim type as “E-Mail Address”. Click OK. 
 11. Add another rule; this time, we want to *Transform an Incoming Claim*. Click Next. 
 12. Name the rule *Send email address*. The Incoming claim type should be *E-Mail Address*. The outgoing claim type should be *Name ID*, and the outgoing name ID format should be *Email*. Click OK.
