@@ -1728,7 +1728,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.14.1):
+  - react-native-keyboard-controller (1.14.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2674,7 +2674,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (15.8.0):
+  - RNSVG (15.9.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2694,9 +2694,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.8.0)
+    - RNSVG/common (= 15.9.0)
     - Yoga
-  - RNSVG/common (15.8.0):
+  - RNSVG/common (15.9.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3256,7 +3256,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: 902c07f41a415b632583b384427a71770a8b02a3
+  react-native-keyboard-controller: 97bb7b48fa427c7455afdc8870c2978efd9bfa3a
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
   react-native-pager-view: c64a744211a46202619a77509f802765d1659dba
@@ -3316,7 +3316,7 @@ SPEC CHECKSUMS:
   RNScreens: e389d6a6a66a4f0d3662924ecae803073ccce8ec
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 536cd3c866c878faf72beaba166c8b02fe2b762b
+  RNSVG: b2fbe96b2bb3887752f8abc1f495953847e90384
   SDWebImage: 066c47b573f408f18caa467d71deace7c0f8280d
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
