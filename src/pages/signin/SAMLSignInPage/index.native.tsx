@@ -6,46 +6,41 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {getApiRoot} from '@libs/ApiUtils';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { fetchSAMLUrl } from '@libs/LoginUtils';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [showNavigation, shouldShowNavigation] = useState(true);
-    const [url, setURL] = useState('');
+    const [SAMLUrl, setSAMLUrl] = useState('');
     const webViewRef = useRef<WebView>(null);
 
     useEffect(() => {
+
+        // If we've already gotten a url back to log into the user's IdP, then don't re-fetch it
+        if (SAMLUrl) {
+            return;
+        }
+
         const body = new FormData();
         body.append('email', credentials?.login ?? '');
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
-
-        if (!url) {
-            fetch(`${getApiRoot()}authentication/saml/login`, {
-                method: CONST.NETWORK.METHOD.POST,
-                body,
-                credentials: 'omit',
-            })
-                .then((response) => {
-                    return response.json() as Promise<Response>;
-                })
-                .then((response) => {
-                    if (response.url) {
-                        setURL(response.url);
-                    }
-                });
-        }
-    }, [credentials?.login, url]);
+        fetchSAMLUrl(body).then((response) => {
+            if (response && response.url) {
+                console.log("meep meep: " + JSON.stringify(response));
+                setSAMLUrl(response.url);
+            }
+        });
+    }, [credentials?.login, SAMLUrl]);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -85,7 +80,7 @@ function SAMLSignInPage() {
                 <HeaderWithBackButton
                     title=""
                     onBackButtonPress={() => {
-                        setURL('');
+                        setSAMLUrl('');
                         Session.clearSignInData();
                         Navigation.isNavigationReady().then(() => {
                             Navigation.goBack();
@@ -94,10 +89,11 @@ function SAMLSignInPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-                {!!url && (
+                {!!SAMLUrl && (
                     <WebView
                         ref={webViewRef}
-                        source={{uri: url}}
+                        originWhitelist={['https://*']}
+                        source={{uri: SAMLUrl}}
                         userAgent={getUAForWebView()}
                         incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
                         startInLoadingState
