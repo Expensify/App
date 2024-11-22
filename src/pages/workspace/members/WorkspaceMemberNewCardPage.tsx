@@ -70,6 +70,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         } else {
             const data: Partial<AssignCardData> = {
                 email: memberLogin,
+                bankName: selectedFeed,
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
 
