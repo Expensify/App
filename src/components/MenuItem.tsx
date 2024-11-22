@@ -643,7 +643,7 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                            backgroundColor={isHovered ? theme.hoverComponentBG : undefined}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}
@@ -821,7 +821,7 @@ function MenuItem(
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
-                                                                backgroundColor={isHovered ? theme.hoverComponentBG : undefined}
+                                                                backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                                 mainAvatar={firstRightIcon}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
