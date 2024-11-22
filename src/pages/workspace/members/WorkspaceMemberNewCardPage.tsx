@@ -86,7 +86,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 data,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
+            Navigation.setNavigationActionToMicrotaskQueue(() =>
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))),
+            );
         }
     };
 
