@@ -174,13 +174,7 @@ function ReportActionCompose({
      */
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const {hasExceededMaxTitleLength, validateTitleMaxLength} = useHandleExceedMaxTaskTitleLength();
-
-    let exceededMaxLength = null;
-    if (hasExceededMaxTitleLength) {
-        exceededMaxLength = CONST.TITLE_CHARACTER_LIMIT;
-    } else if (hasExceededMaxCommentLength) {
-        exceededMaxLength = CONST.MAX_COMMENT_LENGTH;
-    }
+    const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef>();
@@ -314,6 +308,18 @@ function ReportActionCompose({
         setIsFocused(true);
         onComposerFocus?.();
     }, [onComposerFocus]);
+
+    useEffect(() => {
+        if (hasExceededMaxTitleLength) {
+            setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
+            return;
+        }
+        if (hasExceededMaxCommentLength) {
+            setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
+            return;
+        }
+        setExceededMaxLength(null);
+    }, [hasExceededMaxTitleLength, hasExceededMaxCommentLength]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
