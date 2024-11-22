@@ -11,18 +11,9 @@ import type SettlementButtonProps from './types';
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
-    isApprovedAnimationRunning: boolean;
-    canIOUBePaid: boolean;
 };
 
-function AnimatedSettlementButton({
-    isPaidAnimationRunning,
-    onAnimationFinish,
-    isApprovedAnimationRunning,
-    isDisabled,
-    canIOUBePaid,
-    ...settlementButtonProps
-}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const buttonScale = useSharedValue(1);
@@ -47,13 +38,12 @@ function AnimatedSettlementButton({
         overflow: 'hidden',
         marginTop: buttonMarginTop.value,
     }));
-    const buttonDisabledStyle =
-        isPaidAnimationRunning || isApprovedAnimationRunning
-            ? {
-                  opacity: 1,
-                  ...styles.cursorDefault,
-              }
-            : undefined;
+    const buttonDisabledStyle = isPaidAnimationRunning
+        ? {
+              opacity: 1,
+              ...styles.cursorDefault,
+          }
+        : undefined;
 
     const resetAnimation = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
@@ -66,7 +56,7 @@ function AnimatedSettlementButton({
     }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
 
     useEffect(() => {
-        if (!isApprovedAnimationRunning && !isPaidAnimationRunning) {
+        if (!isPaidAnimationRunning) {
             resetAnimation();
             return;
         }
@@ -77,30 +67,13 @@ function AnimatedSettlementButton({
 
         // Wait for the above animation + 1s delay before hiding the component
         const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
-        const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
         height.value = withDelay(
             totalDelay,
-            withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
+            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
         );
-        buttonMarginTop.value = withDelay(
-            totalDelay,
-            withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION}),
-        );
+        buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
         paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-    }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        onAnimationFinish,
-        buttonOpacity,
-        buttonScale,
-        height,
-        paymentCompleteTextOpacity,
-        paymentCompleteTextScale,
-        buttonMarginTop,
-        resetAnimation,
-        canIOUBePaid,
-        styles.expenseAndReportPreviewTextButtonContainer.gap,
-    ]);
+    }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, buttonMarginTop, resetAnimation]);
 
     return (
         <Animated.View style={containerStyles}>
@@ -109,16 +82,11 @@ function AnimatedSettlementButton({
                     <Text style={[styles.buttonMediumText]}>{translate('iou.paymentComplete')}</Text>
                 </Animated.View>
             )}
-            {isApprovedAnimationRunning && (
-                <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>{translate('iou.approved')}</Text>
-                </Animated.View>
-            )}
             <Animated.View style={buttonStyles}>
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    isDisabled={isPaidAnimationRunning || isApprovedAnimationRunning || isDisabled}
+                    isDisabled={isPaidAnimationRunning || isDisabled}
                     disabledStyle={buttonDisabledStyle}
                 />
             </Animated.View>
