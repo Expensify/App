@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
-import {executeOnUIRuntimeSync, runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Log from '@libs/Log';
+import executeOnUIRuntimeSync from './executeOnUIRuntimeSync';
 
 // When you need to debug state machine change this to true
 const DEBUG_MODE = false;
