@@ -1,11 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import Image from '@components/Image';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentView from './Attachments/AttachmentView';
-import RESIZE_MODES from './Image/resizeModes';
-import Text from './Text';
 
 type ImagePickerResponse = {
     height?: number;
