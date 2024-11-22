@@ -370,7 +370,7 @@ function ReportActionItem({
             }
 
             handleShowContextMenu(() => {
-            setIsContextMenuActive(true);
+                setIsContextMenuActive(true);
                 const selection = SelectionScraper.getCurrentSelection();
                 ReportActionContextMenu.showContextMenu(
                     CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
