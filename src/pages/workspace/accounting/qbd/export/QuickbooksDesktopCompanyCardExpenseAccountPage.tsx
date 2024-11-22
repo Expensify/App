@@ -27,10 +27,12 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
-    const accountName = useMemo(
-        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable).find(({id}) => nonReimbursableAccount === id)?.name,
-        [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount],
-    );
+    const accountName = useMemo(() => {
+        const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
+        // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name || translate('workspace.qbd.notConfigured');
+    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, translate, nonReimbursableAccount]);
 
     const sections = [
         {
@@ -42,7 +44,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             keyForList: translate('workspace.accounting.exportAs'),
         },
         {
-            title: accountName ?? translate('workspace.qbd.notConfigured'),
+            title: accountName,
             description: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],

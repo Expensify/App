@@ -220,8 +220,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     );
 
     const openSettings = () => {
-        // TODO: Uncomment this when the import feature is ready
-        // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATES_SETTINGS.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

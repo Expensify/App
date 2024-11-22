@@ -548,6 +548,7 @@ const SCREENS = {
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
+        PER_DIEM_SETTINGS: 'Per_Diem_Settings',
     },
 
     EDIT_REQUEST: {
@@ -622,6 +623,9 @@ const SCREENS = {
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
         DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        TRANSACTION: 'Debug_Transaction',
+        TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
 } as const;
 

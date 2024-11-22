@@ -1,20 +1,32 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import usePolicy from '@hooks/usePolicy';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ImportPerDiemPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORT>;
 
 function ImportPerDiemPage({route}: ImportPerDiemPageProps) {
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
 
     return (
-        <ImportSpreadsheet
-            backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}
-            goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+        >
+            <ImportSpreadsheet
+                backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}
+                goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 
