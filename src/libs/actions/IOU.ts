@@ -5513,7 +5513,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): string | undefined {
+function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): string | undefined {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     // Determine which report to navigate back to
@@ -5541,7 +5541,7 @@ function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transacti
 
     // If not a self DM, handle it as a regular money request
     if (!ReportUtils.isSelfDM(chatReport)) {
-        return getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     }
 
     const transactionThreadID = reportAction.childReportID;
@@ -5576,7 +5576,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         reportPreviewAction,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
-    const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -5714,7 +5714,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         reportPreviewAction,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
-    const urlToNavigateBack = getNavigationUrlAfterMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
@@ -8443,7 +8443,7 @@ export {
     updateLastLocationPermissionPrompt,
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
-    getNavigationUrlAfterMoneyRequestDelete,
+    getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

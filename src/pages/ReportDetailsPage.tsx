@@ -850,7 +850,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             if (isTrackExpense) {
                 urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
             } else {
-                urlToNavigateBack = IOU.getNavigationUrlAfterMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = IOU.getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
             }
         }
 
