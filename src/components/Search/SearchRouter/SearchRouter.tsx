@@ -19,6 +19,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import type {ScrollToBottom} from '@libs/InputUtils/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -324,13 +325,36 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         ],
     );
 
+    const scrollToRight: ScrollToBottom = (input) => {
+        if (!('scrollLeft' in input)) {
+            return;
+        }
+        // Scroll to the far right
+        // eslint-disable-next-line no-param-reassign
+        input.scrollLeft = input.scrollWidth;
+    };
+
+    const shouldScrollRef = useRef(false);
+    const searchRouterInputRef = useRef(null);
+    // Trigger scrollToRight when input value changes and shouldScroll is true
+    useEffect(() => {
+        if (!searchRouterInputRef.current) {
+            return;
+        }
+        scrollToRight(searchRouterInputRef.current);
+        shouldScrollRef.current = false;
+    }, [debouncedInputValue]);
+
     const prevUserQueryRef = useRef<string | null>(null);
     useEffect(() => {
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
 
     const onSearchChange = useCallback(
-        (userQuery: string) => {
+        (userQuery: string, autoScrollToRight = false) => {
+            if (autoScrollToRight) {
+                shouldScrollRef.current = true;
+            }
             let newUserQuery = userQuery;
             if (autocompleteSuggestions && userQuery.endsWith(',')) {
                 newUserQuery = `${userQuery.slice(0, userQuery.length - 1).trim()},`;
@@ -398,6 +422,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             )}
             <SearchRouterInput
                 value={textInputValue}
+                ref={searchRouterInputRef}
                 isFullWidth={shouldUseNarrowLayout}
                 updateSearch={onSearchChange}
                 onSubmit={() => {

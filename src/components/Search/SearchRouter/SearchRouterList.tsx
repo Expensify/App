@@ -44,7 +44,7 @@ type SearchRouterListProps = {
     textInputValue: string;
 
     /** Callback to update text input value along with autocomplete suggestions */
-    updateSearchValue: (newValue: string) => void;
+    updateSearchValue: (newValue: string, autoScrollToRight?: boolean) => void;
 
     /** Callback to update text input value */
     setTextInputValue: (text: string) => void;
@@ -246,7 +246,7 @@ function SearchRouterList(
                 }
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item);
-                    updateSearchValue(`${searchQuery} `);
+                    updateSearchValue(`${searchQuery} `, true);
 
                     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
                         const autocompleteKey = `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;

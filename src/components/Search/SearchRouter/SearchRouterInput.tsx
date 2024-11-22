@@ -1,10 +1,11 @@
-import type {ReactNode, RefObject} from 'react';
-import React, {useState} from 'react';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import React, {forwardRef, useState} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,22 +51,25 @@ type SearchRouterInputProps = {
     isSearchingForReports?: boolean;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus'>;
 
-function SearchRouterInput({
-    value,
-    updateSearch,
-    onSubmit = () => {},
-    routerListRef,
-    isFullWidth,
-    disabled = false,
-    shouldShowOfflineMessage = false,
-    autoFocus = true,
-    caretHidden = false,
-    wrapperStyle,
-    wrapperFocusedStyle,
-    outerWrapperStyle,
-    rightComponent,
-    isSearchingForReports,
-}: SearchRouterInputProps) {
+function SearchRouterInput(
+    {
+        value,
+        updateSearch,
+        onSubmit = () => {},
+        routerListRef,
+        isFullWidth,
+        disabled = false,
+        shouldShowOfflineMessage = false,
+        autoFocus = true,
+        caretHidden = false,
+        wrapperStyle,
+        wrapperFocusedStyle,
+        outerWrapperStyle,
+        rightComponent,
+        isSearchingForReports,
+    }: SearchRouterInputProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -79,6 +83,7 @@ function SearchRouterInput({
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View style={styles.flex1}>
                     <TextInput
+                        ref={ref}
                         testID="search-router-text-input"
                         value={value}
                         onChangeText={updateSearch}
@@ -122,4 +127,4 @@ function SearchRouterInput({
 
 SearchRouterInput.displayName = 'SearchRouterInput';
 
-export default SearchRouterInput;
+export default forwardRef(SearchRouterInput);
