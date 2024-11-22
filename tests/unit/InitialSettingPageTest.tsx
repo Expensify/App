@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {act} from 'react-test-renderer';
 import * as Localize from '@libs/Localize';
 import App from '@src/App';
-import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
@@ -24,9 +23,9 @@ TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
     const hintText = Localize.translateLocal('sidebarScreen.buttonMySettings');
-    const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
-    if (reportHeaderBackButton) {
-        fireEvent(reportHeaderBackButton, 'press');
+    const mySettingButton = screen.queryByAccessibilityHint(hintText);
+    if (mySettingButton) {
+        fireEvent(mySettingButton, 'press');
     }
     return waitForBatchedUpdatesWithAct();
 }
@@ -65,8 +64,6 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             return navigateToExpensifyClassicFlow();
         });
 }
-
-OnyxUpdateManager();
 
 describe('Switch to Expensify Classic flow', () => {
     beforeEach(() => {
