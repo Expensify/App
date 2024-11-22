@@ -450,21 +450,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
+                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                        <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
+                        <OfflineWithFeedback pendingAction={reportPendingAction}>
+                            <MenuItem
+                                title={getReportName(currentUserPolicyExpenseChat)}
+                                description={translate('workspace.common.workspace')}
+                                icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt4, styles.alignItemsCenter]}
+                                shouldShowSubscriptAvatar
+                            />
+                        </OfflineWithFeedback>
+                    </View>
                 </ScrollView>
-                <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                    <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph4]}>{translate('workspace.common.submitExpense')}</Text>
-                    <OfflineWithFeedback pendingAction={reportPendingAction}>
-                        <MenuItem
-                            title={getReportName(currentUserPolicyExpenseChat)}
-                            description={translate('workspace.common.workspace')}
-                            icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
-                            shouldShowRightIcon
-                            wrapperStyle={[styles.br2, styles.pl4, styles.pr0, styles.pv3, styles.mt4, styles.alignItemsCenter]}
-                            shouldShowSubscriptAvatar
-                        />
-                    </OfflineWithFeedback>
-                </View>
                 <ConfirmModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}
                     isVisible={isCurrencyModalOpen}
