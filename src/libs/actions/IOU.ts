@@ -6764,7 +6764,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
+    const isArchivedReport = ReportUtils.isArchivedRoom(reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6789,7 +6789,7 @@ function canIOUBePaid(
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(chatReport?.reportID);
-    const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport, reportNameValuePairs);
+    const isChatReportArchived = ReportUtils.isArchivedRoom(reportNameValuePairs);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     if (isEmptyObject(iouReport)) {
