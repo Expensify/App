@@ -171,8 +171,11 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
         const shouldShowApproveOption =
             !isOffline &&
+            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
@@ -200,6 +203,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
 
         const shouldShowPayOption =
             !isOffline &&
+            // !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
                 : selectedTransactionsKeys.every(

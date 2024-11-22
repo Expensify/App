@@ -24,6 +24,7 @@ import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralP
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -55,6 +56,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
             isSelected: true,
             canDelete: item.canDelete,
             canHold: item.canHold,
+            isHeld: TransactionUtils.isOnHold(item),
             canUnhold: item.canUnhold,
             action: item.action,
             reportID: item.reportID,
@@ -101,6 +103,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             isSelected: true,
             canDelete: item.canDelete,
             canHold: item.canHold,
+            isHeld: TransactionUtils.isOnHold(item),
             canUnhold: item.canUnhold,
             action: item.action,
             reportID: item.reportID,
@@ -249,6 +252,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                 newTransactionList[transaction.transactionID] = {
                     action: transaction.action,
                     canHold: transaction.canHold,
+                    isHeld: TransactionUtils.isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
                     isSelected: selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
@@ -269,6 +273,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                     newTransactionList[transaction.transactionID] = {
                         action: transaction.action,
                         canHold: transaction.canHold,
+                        isHeld: TransactionUtils.isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
                         isSelected: selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
