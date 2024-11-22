@@ -137,7 +137,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
 
     const headerMessage = useMemo(
-        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
+        () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate, sections],

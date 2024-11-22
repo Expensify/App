@@ -35,7 +35,7 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
-    onPressOverlay: onPressOverlayProp = () => {},
+    onHideTooltip = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -150,13 +150,14 @@ function GenericTooltip({
         }
         setShouldUseOverlay(false);
         hideTooltip();
-        onPressOverlayProp();
-    }, [shouldUseOverlay, onPressOverlayProp, hideTooltip]);
+        onHideTooltip();
+    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
 
     useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
+        // eslint-disable-next-line react-compiler/react-compiler
         return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
     }
 
@@ -164,6 +165,7 @@ function GenericTooltip({
         <>
             {isRendered && (
                 <BaseGenericTooltip
+                    // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation.current}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
@@ -183,10 +185,10 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
-                    onPressOverlay={onPressOverlay}
+                    onHideTooltip={onPressOverlay}
                 />
             )}
-
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );

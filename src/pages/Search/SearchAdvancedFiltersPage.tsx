@@ -6,6 +6,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import AdvancedSearchFilters from './AdvancedSearchFilters';
@@ -17,7 +18,9 @@ function SearchAdvancedFiltersPage() {
     const emptySearchFilters: SearchAdvancedFiltersForm = {} as SearchAdvancedFiltersForm;
     const [searchAdvancedFilters = emptySearchFilters] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const shouldShowResetFilters = Object.values(searchAdvancedFilters).some((value) => (Array.isArray(value) ? value.length !== 0 : !!value));
+    const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
+        .filter(([key]) => CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE !== key && CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS !== key)
+        .some(([, value]) => (Array.isArray(value) ? value.length !== 0 : !!value));
 
     return (
         <ScreenWrapper

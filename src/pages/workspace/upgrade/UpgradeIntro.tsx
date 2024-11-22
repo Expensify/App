@@ -25,7 +25,7 @@ type Props = {
 
 function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const isIllustration = feature.icon in Illustrations;
     const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
@@ -33,7 +33,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
 
     return (
         <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!isIllustration ? (
                         <Avatar

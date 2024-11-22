@@ -27,13 +27,18 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
     function WithPolicyAndFullscreenLoading(
-        {policy = policyDefaultProps.policy, policyDraft = policyDefaultProps.policyDraft, ...rest}: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
+        {
+            policy = policyDefaultProps.policy,
+            policyDraft = policyDefaultProps.policyDraft,
+            isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
+            ...rest
+        }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
         ref: ForwardedRef<TRef>,
     ) {
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-        if (isLoadingReportData && isEmpty(policy) && isEmpty(policyDraft)) {
+        if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
             return <FullscreenLoadingIndicator />;
         }
 

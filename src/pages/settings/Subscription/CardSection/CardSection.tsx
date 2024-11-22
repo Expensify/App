@@ -17,7 +17,7 @@ import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Subscription from '@userActions/Subscription';
@@ -60,6 +60,11 @@ function CardSection() {
         Navigation.resetToHome();
     }, []);
 
+    const viewPurchases = useCallback(() => {
+        const query = SearchQueryUtils.buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
+        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+    }, []);
+
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -90,7 +95,7 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;
@@ -134,9 +139,9 @@ function CardSection() {
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName,
+                                        name: defaultCard?.accountData?.addressName ?? '',
                                         expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency,
+                                        currency: defaultCard?.accountData?.currency ?? '',
                                     })}
                                 </Text>
                             </View>
@@ -174,8 +179,7 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}))}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
+                        onPress={viewPurchases}
                     />
                 )}
 
@@ -191,10 +195,10 @@ function CardSection() {
                     />
                 )}
 
-                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
+                {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
             </Section>
 
-            {account?.isEligibleForRefund && (
+            {!!account?.isEligibleForRefund && (
                 <ConfirmModal
                     title={translate('subscription.cardSection.requestRefund')}
                     isVisible={isRequestRefundModalVisible}

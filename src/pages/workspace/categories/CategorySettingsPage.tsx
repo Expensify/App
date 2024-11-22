@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,13 +14,16 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -30,24 +32,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type CategorySettingsPageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
-type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type CategorySettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({
     route: {
         params: {backTo, policyID, categoryName},
     },
-    policyCategories,
     navigation,
 }: CategorySettingsPageProps) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
 
@@ -56,13 +53,10 @@ function CategorySettingsPage({
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
+    const isQuickSettingsFlow = !!backTo;
 
     const navigateBack = () => {
-        if (backTo) {
-            Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo));
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
     useEffect(() => {
@@ -83,8 +77,9 @@ function CategorySettingsPage({
     }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
-        const categoryApprover = CategoryUtils.getCategoryApprover(policy?.rules?.approvalRules ?? [], categoryName);
-        return categoryApprover ?? '';
+        const categoryApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
+        const approver = PersonalDetailsUtils.getPersonalDetailByEmail(categoryApprover);
+        return approver?.displayName ?? categoryApprover;
     }, [categoryName, policy?.rules?.approvalRules]);
 
     const defaultTaxRateText = useMemo(() => {
@@ -107,8 +102,8 @@ function CategorySettingsPage({
         if (!policy) {
             return '';
         }
-        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxExpenseAmountNoReceipt);
-    }, [policy, policyCategory?.maxExpenseAmountNoReceipt, translate]);
+        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -119,11 +114,9 @@ function CategorySettingsPage({
     };
 
     const navigateToEditCategory = () => {
-        if (backTo) {
-            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo));
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(
+            isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name),
+        );
     };
 
     const deleteCategory = () => {
@@ -133,6 +126,8 @@ function CategorySettingsPage({
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
         <AccessOrNotFoundWrapper
@@ -197,12 +192,18 @@ function CategorySettingsPage({
                                                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                     policyID,
                                                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                                    isQuickSettingsFlow
+                                                        ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
                                                 ),
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -222,13 +223,17 @@ function CategorySettingsPage({
                                             );
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
+                                                : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                        );
                                     }}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
 
-                            {policy?.areRulesEnabled && (
+                            {!!policy?.areRulesEnabled && (
                                 <>
                                     <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                         <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
@@ -245,7 +250,7 @@ function CategorySettingsPage({
                                             </View>
                                         </View>
                                     </OfflineWithFeedback>
-                                    {policyCategory?.areCommentsRequired && (
+                                    {!!policyCategory?.areCommentsRequired && (
                                         <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                                             <MenuItemWithTopDescription
                                                 title={policyCategory?.commentHint}
@@ -257,40 +262,40 @@ function CategorySettingsPage({
                                             />
                                         </OfflineWithFeedback>
                                     )}
-                                    <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.approvalRules}>
-                                        <MenuItemWithTopDescription
-                                            title={approverText}
-                                            description={translate('workspace.rules.categoryRules.approver')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                            disabled={!policy?.areWorkflowsEnabled}
-                                        />
-                                    </OfflineWithFeedback>
-                                    {!policy?.areWorkflowsEnabled && (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                            <TextLink
-                                                style={[styles.link, styles.label]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                            >
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>{' '}
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                        </Text>
-                                    )}
-                                    {policy?.tax?.trackingEnabled && (
-                                        <OfflineWithFeedback pendingAction={policy?.rules?.pendingFields?.expenseRules}>
+                                    {!!canUseCategoryAndTagApprovers && (
+                                        <>
                                             <MenuItemWithTopDescription
-                                                title={defaultTaxRateText}
-                                                description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                                title={approverText}
+                                                description={translate('workspace.rules.categoryRules.approver')}
                                                 onPress={() => {
-                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                                 }}
                                                 shouldShowRightIcon
+                                                disabled={approverDisabled}
                                             />
-                                        </OfflineWithFeedback>
+                                            {approverDisabled && (
+                                                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
+                                                    <TextLink
+                                                        style={[styles.link, styles.label]}
+                                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                                                    >
+                                                        {translate('workspace.common.moreFeatures')}
+                                                    </TextLink>{' '}
+                                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
+                                                </Text>
+                                            )}
+                                        </>
+                                    )}
+                                    {!!policy?.tax?.trackingEnabled && (
+                                        <MenuItemWithTopDescription
+                                            title={defaultTaxRateText}
+                                            description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                            }}
+                                            shouldShowRightIcon
+                                        />
                                     )}
 
                                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
@@ -303,7 +308,7 @@ function CategorySettingsPage({
                                             shouldShowRightIcon
                                         />
                                     </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmountNoReceipt}>
+                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
                                         <MenuItemWithTopDescription
                                             title={requireReceiptsOverText}
                                             description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
@@ -333,8 +338,4 @@ function CategorySettingsPage({
 
 CategorySettingsPage.displayName = 'CategorySettingsPage';
 
-export default withOnyx<CategorySettingsPageProps, CategorySettingsPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(CategorySettingsPage);
+export default CategorySettingsPage;

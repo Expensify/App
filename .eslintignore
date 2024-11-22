@@ -3,6 +3,7 @@
 .github/actions/**/index.js
 *.config.js
 **/.eslintrc.js
+**/.eslintrc.changed.js
 **/node_modules/**
 **/dist/**
 android/**/build/**
@@ -11,3 +12,5 @@ docs/assets/**
 web/gtm.js
 **/.expo/**
 src/libs/SearchParser/searchParser.js
+src/libs/SearchParser/autocompleteParser.js
+help/_scripts/**

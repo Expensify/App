@@ -50,6 +50,7 @@ DisplayEReceipt.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_3',
+                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 5,
@@ -74,6 +75,7 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_3',
+                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 5,
@@ -90,6 +92,7 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_5',
+                attendees: [{email: 'test@expensify.com'}],
                 amount: 230440,
                 currency: 'USD',
                 cardID: 4,
@@ -106,6 +109,7 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_2',
+                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 4,

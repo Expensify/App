@@ -1,6 +1,7 @@
 import type {MutableRefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -25,6 +26,7 @@ function ButtonWithDropdownMenu<IValueType>({
     menuHeaderText = '',
     customText,
     style,
+    disabledStyle,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -39,6 +41,7 @@ function ButtonWithDropdownMenu<IValueType>({
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
     useKeyboardShortcuts = false,
+    shouldUseStyleUtilityForAnchorPosition = false,
     defaultSelectedIndex = 0,
     shouldShowSelectedItemCheck = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
@@ -50,8 +53,9 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
+    // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
-    const selectedItem = options[selectedItemIndex] || options[0];
+    const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
@@ -84,9 +88,14 @@ function ButtonWithDropdownMenu<IValueType>({
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                onPress(e, selectedItem?.value);
+                if (selectedItem?.value) {
+                    onPress(e, selectedItem.value);
+                }
             } else {
-                onPress(e, options[0]?.value);
+                const option = options.at(0);
+                if (option?.value) {
+                    onPress(e, option.value);
+                }
             }
         },
         {
@@ -97,6 +106,17 @@ function ButtonWithDropdownMenu<IValueType>({
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
 
+    const handlePress = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!isSplitButton) {
+                setIsMenuVisible(!isMenuVisible);
+            } else if (selectedItem?.value) {
+                onPress(event, selectedItem.value);
+            }
+        },
+        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
+    );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -105,8 +125,8 @@ function ButtonWithDropdownMenu<IValueType>({
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={dropdownButtonRef}
-                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
-                        text={customText ?? selectedItem.text}
+                        onPress={handlePress}
+                        text={customText ?? selectedItem?.text ?? ''}
                         isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
@@ -154,11 +174,15 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled || !!options[0].disabled}
+                    isDisabled={isDisabled || !!options.at(0)?.disabled}
                     style={[styles.w100, style]}
+                    disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem.text}
-                    onPress={(event) => onPress(event, options[0].value)}
+                    text={selectedItem?.text}
+                    onPress={(event) => {
+                        const option = options.at(0);
+                        return option ? onPress(event, option.value) : undefined;
+                    }}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -166,7 +190,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-            {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
+            {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => {
@@ -175,8 +199,9 @@ function ButtonWithDropdownMenu<IValueType>({
                     }}
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
-                    anchorPosition={popoverAnchorPosition}
+                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}

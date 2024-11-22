@@ -14,6 +14,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +32,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>) => {
-        // TODO: implement UpdateInvoiceCompanyName API call when it's supported
+        Policy.updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME]);
         Navigation.goBack();
     };
 
@@ -42,8 +43,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            // TODO: uncomment when CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED is supported
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceInvoicingDetailsName.displayName}

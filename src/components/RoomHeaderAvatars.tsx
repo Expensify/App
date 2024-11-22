@@ -36,22 +36,28 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     }
 
     if (icons.length === 1) {
+        const icon = icons.at(0);
+
+        if (!icon) {
+            return;
+        }
+
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}
-                onPress={() => navigateToAvatarPage(icons[0])}
+                onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={icons[0].name ?? ''}
-                disabled={icons[0].source === Expensicons.FallbackAvatar}
+                accessibilityLabel={icon.name ?? ''}
+                disabled={icon.source === Expensicons.FallbackAvatar}
             >
                 <Avatar
-                    source={icons[0].source}
+                    source={icon.source}
                     imageStyles={styles.avatarXLarge}
                     size={CONST.AVATAR_SIZE.XLARGE}
-                    name={icons[0].name}
-                    avatarID={icons[0].id}
-                    type={icons[0].type}
-                    fallbackIcon={icons[0].fallbackIcon}
+                    name={icon.name}
+                    avatarID={icon.id}
+                    type={icon.type}
+                    fallbackIcon={icon.fallbackIcon}
                 />
             </PressableWithoutFocus>
         );

@@ -112,7 +112,7 @@ function FilePicker({children}: FilePickerProps) {
                 onCanceled.current();
                 return Promise.resolve();
             }
-            const fileData = files[0];
+            const fileData = files.at(0);
 
             if (!fileData) {
                 onCanceled.current();
@@ -155,6 +155,7 @@ function FilePicker({children}: FilePickerProps) {
             openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
         });
 
+    // eslint-disable-next-line react-compiler/react-compiler
     return <>{renderChildren()}</>;
 }
 

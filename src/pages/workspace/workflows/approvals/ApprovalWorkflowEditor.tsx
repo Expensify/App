@@ -7,10 +7,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ApprovalWorkflowEditorProps = {
     /** The approval workflow to display */
@@ -36,13 +37,28 @@ type ApprovalWorkflowEditorProps = {
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
         (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
         [approverCount, toLocaleOrdinal, translate],
+    );
+
+    const getApprovalPendingAction = useCallback(
+        (index: number) => {
+            let pendingAction: PendingAction | undefined;
+            if (index === 0) {
+                approvalWorkflow?.members?.forEach((member) => {
+                    pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
+                });
+                return pendingAction;
+            }
+            const previousApprover = approvalWorkflow?.approvers.at(index - 1);
+            const previousMember = approvalWorkflow?.members?.find((member) => member?.email === previousApprover?.email);
+            return previousMember?.pendingFields?.forwardsTo;
+        },
+        [approvalWorkflow],
     );
 
     const members = useMemo(() => {
@@ -136,22 +152,24 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             : undefined;
 
                     return (
-                        <MenuItemWithTopDescription
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`approver-${approver?.email}-${approverIndex}`}
-                            title={approver?.displayName}
-                            titleStyle={styles.textNormalThemeText}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            description={approverDescription(approverIndex)}
-                            descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
-                            onPress={() => editApprover(approverIndex)}
-                            shouldShowRightIcon
-                            hintText={hintText}
-                            shouldRenderHintAsHTML
-                            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={errorText}
-                            shouldRenderErrorAsHTML
-                        />
+                        <OfflineWithFeedback pendingAction={getApprovalPendingAction(approverIndex)}>
+                            <MenuItemWithTopDescription
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`approver-${approver?.email}-${approverIndex}`}
+                                title={approver?.displayName}
+                                titleStyle={styles.textNormalThemeText}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                description={approverDescription(approverIndex)}
+                                descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
+                                onPress={() => editApprover(approverIndex)}
+                                shouldShowRightIcon
+                                hintText={hintText}
+                                shouldRenderHintAsHTML
+                                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={errorText}
+                                shouldRenderErrorAsHTML
+                            />
+                        </OfflineWithFeedback>
                     );
                 })}
 
@@ -164,11 +182,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     brickRoadIndicator={approvalWorkflow?.errors?.additionalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
 
-                {removeApprovalWorkflow && !approvalWorkflow.isDefault && (
+                {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <MenuItem
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                         icon={Expensicons.Trashcan}
-                        iconFill={theme.icon}
                         title={translate('common.delete')}
                         onPress={removeApprovalWorkflow}
                     />

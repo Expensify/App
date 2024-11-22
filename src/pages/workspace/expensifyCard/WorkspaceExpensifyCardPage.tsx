@@ -36,7 +36,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     useFocusEffect(fetchExpensifyCards);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && Object.keys(cardSettings).length === 1));
+    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
 
     return (
         <AccessOrNotFoundWrapper
@@ -44,7 +44,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {isLoading && (
+            {!!isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}

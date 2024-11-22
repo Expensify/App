@@ -6,7 +6,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -37,7 +37,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExportDate = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE, row.value, exportDate);
+                QuickbooksOnline.updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
         },

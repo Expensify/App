@@ -55,8 +55,110 @@ type RequestData = {
     shouldSkipWebProxy?: boolean;
 };
 
+/**
+ * Represents the possible actions to take in case of a conflict in the request queue.
+ */
+type ConflictData = ConflictRequestReplace | ConflictRequestDelete | ConflictRequestPush | ConflictRequestNoAction;
+
+/**
+ * Model of a conflict request that has to be replaced in the request queue.
+ */
+type ConflictRequestReplace = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'replace';
+
+    /**
+     * The index of the request in the queue to update.
+     */
+    index: number;
+
+    /**
+     * The new request to replace the existing request in the queue.
+     */
+    request?: Request;
+};
+
+/**
+ * Model of a conflict request that needs to be deleted from the request queue.
+ */
+type ConflictRequestDelete = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'delete';
+
+    /**
+     * The indices of the requests in the queue that are to be deleted.
+     */
+    indices: number[];
+
+    /**
+     * A flag to mark if the new request should be pushed into the queue after deleting the conflicting requests.
+     */
+    pushNewRequest: boolean;
+
+    /**
+     * The next action to execute after the current conflict is resolved.
+     */
+    nextAction?: ConflictData;
+};
+
+/**
+ * Model of a conflict request that has to be enqueued at the end of request queue.
+ */
+type ConflictRequestPush = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'push';
+};
+
+/**
+ * Model of a conflict request that does not need to be updated or saved in the request queue.
+ */
+type ConflictRequestNoAction = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    type: 'noAction';
+};
+
+/**
+ * An object that has the request and the action to take in case of a conflict.
+ */
+type ConflictActionData = {
+    /**
+     * The action to take in case of a conflict.
+     */
+    conflictAction: ConflictData;
+};
+
+/**
+ * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * and how to resolve those conflicts.
+ */
+type RequestConflictResolver = {
+    /**
+     * A function that checks if a new request conflicts with any existing requests in the queue.
+     */
+    checkAndFixConflictingRequest?: (persistedRequest: Request[]) => ConflictActionData;
+
+    /**
+     * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
+     * the ongoing request, it will be removed from the persisted request queue.
+     */
+    persistWhenOngoing?: boolean;
+
+    /**
+     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     */
+    isRollbacked?: boolean;
+};
+
 /** Model of requests sent to the API */
-type Request = RequestData & OnyxData;
+type Request = RequestData & OnyxData & RequestConflictResolver;
 
 /**
  * An object used to describe how a request can be paginated.
@@ -85,4 +187,4 @@ type PaginatedRequest = Request &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest};
+export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData};

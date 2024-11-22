@@ -319,11 +319,19 @@ describe('WorkflowUtils', () => {
             const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
-            defaultWorkflow.approvers[0].forwardsTo = '3@example.com';
-            defaultWorkflow.approvers[1].forwardsTo = '4@example.com';
+            let firstApprover = defaultWorkflow.approvers.at(0);
+            let secondApprover = defaultWorkflow.approvers.at(1);
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '3@example.com';
+                secondApprover.forwardsTo = '4@example.com';
+            }
             const secondWorkflow = buildWorkflow([1], [2, 3, 4]);
-            secondWorkflow.approvers[0].forwardsTo = '3@example.com';
-            secondWorkflow.approvers[1].forwardsTo = '4@example.com';
+            firstApprover = secondWorkflow.approvers.at(0);
+            secondApprover = secondWorkflow.approvers.at(1);
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '3@example.com';
+                secondApprover.forwardsTo = '4@example.com';
+            }
 
             expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
@@ -367,8 +375,13 @@ describe('WorkflowUtils', () => {
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
-            secondWorkflow.approvers[0].forwardsTo = '5@example.com';
-            secondWorkflow.approvers[1].forwardsTo = '6@example.com';
+            const firstApprover = secondWorkflow.approvers.at(0);
+            const secondApprover = secondWorkflow.approvers.at(1);
+
+            if (firstApprover && secondApprover) {
+                firstApprover.forwardsTo = '5@example.com';
+                secondApprover.forwardsTo = '6@example.com';
+            }
             expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
         });
     });
@@ -384,8 +397,8 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com'}),
-                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -399,12 +412,12 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: ''}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com'}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com'}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', pendingFields: {forwardsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', pendingFields: {forwardsTo: 'add'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingFields: {forwardsTo: 'add'}}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -418,12 +431,12 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update'}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update'}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update'}),
-                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update'}),
-                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update'}),
-                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update'}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
             });
         });
     });

@@ -5,6 +5,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import StatusBar from '@libs/StatusBar';
 import type SafeAreaConsumerProps from './types';
 
+const defaultInsets = {top: 0, bottom: 0, left: 0, right: 0};
+
 /**
  * This component is a light wrapper around the SafeAreaInsetsContext.Consumer. There are several places where we
  * may need not just the insets, but the computed styles so we save a few lines of code with this.
@@ -15,23 +17,20 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
     return (
         <SafeAreaInsetsContext.Consumer>
             {(insets) => {
-                const insetsWithDefault = insets ?? {
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                };
+                const safeInsets = insets ?? defaultInsets;
 
                 const androidInsets = {
-                    ...insetsWithDefault,
-                    top: StatusBar.currentHeight ?? insetsWithDefault.top,
+                    ...safeInsets,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    top: StatusBar.currentHeight || safeInsets.top,
                 };
 
-                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(androidInsets ?? undefined);
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(androidInsets);
+
                 return children({
                     paddingTop,
                     paddingBottom,
-                    insets: androidInsets ?? undefined,
+                    insets: androidInsets,
                     safeAreaPaddingBottomStyle: {paddingBottom},
                 });
             }}

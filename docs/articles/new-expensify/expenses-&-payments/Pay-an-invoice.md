@@ -10,7 +10,7 @@ Anyone who receives an Expensify invoice can pay it using Expensify—even if th
 
 You'll receive an automated email or text notification when an invoice is sent to you for payment. 
 
-To pay an invoice, 
+# Pay an invoice 
 
 {% include selector.html values="desktop, mobile" %}
 
@@ -32,7 +32,9 @@ To pay an invoice,
 
 You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot. 
 
-# FAQ
+![Click Pay Button on the Invoice]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1.png){:width="100%"}
+
+{% include faq-begin.md %}
 
 **Can someone else pay an invoice besides the person who received it?**
 
@@ -54,5 +56,6 @@ You can add additional payment methods to your [Wallet](https://help.expensify.c
 
 You will be prompted to choose a payment method when paying future invoices. 
 
+{% include faq-end.md %}
 
 </div>

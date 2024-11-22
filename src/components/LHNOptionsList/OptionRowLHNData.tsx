@@ -37,7 +37,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
+    const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
     const shouldDisplayReportViolations = ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
@@ -54,10 +54,13 @@ function OptionRowLHNData({
             transactionViolations,
             invoiceReceiverPolicy,
         });
+        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;

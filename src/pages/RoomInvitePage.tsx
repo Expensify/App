@@ -18,6 +18,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
@@ -38,7 +39,6 @@ import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
@@ -48,20 +48,17 @@ function RoomInvitePage({
     report,
     policies,
     route: {
-        params: {role},
+        params: {role, backTo},
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {options, areOptionsInitialized} = useOptionsList();
 
-    useEffect(() => {
-        setSearchTerm(SearchInputManager.searchInput);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    const {options, areOptionsInitialized} = useOptionsList();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
@@ -75,7 +72,7 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: []};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
@@ -99,8 +96,6 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
             categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 
@@ -186,8 +181,8 @@ function RoomInvitePage({
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
             return ROUTES.REPORT_WITH_ID.getRoute(reportID);
         }
-        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
-    }, [isPolicyEmployee, reportID, role]);
+        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
+    }, [isPolicyEmployee, reportID, role, backTo]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -207,7 +202,7 @@ function RoomInvitePage({
         if (reportID) {
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
-        SearchInputManager.searchInput = '';
+        UserSearchPhraseActions.clearUserSearchPhrase();
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
@@ -239,6 +234,7 @@ function RoomInvitePage({
     }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName]);
 
     useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
         ReportActions.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
@@ -265,7 +261,6 @@ function RoomInvitePage({
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
-                        SearchInputManager.searchInput = value;
                         setSearchTerm(value);
                     }}
                     headerMessage={headerMessage}

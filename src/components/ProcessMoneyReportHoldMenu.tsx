@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -25,7 +26,7 @@ type ProcessMoneyReportHoldMenuProps = {
     isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.Report;
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Not held amount of expense report */
     nonHeldAmount?: string;
@@ -41,6 +42,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Number of transaction of a money request */
     transactionCount: number;
+
+    /** Callback for displaying payment animation on IOU preview component */
+    startAnimation?: () => void;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -53,19 +57,25 @@ function ProcessMoneyReportHoldMenu({
     chatReport,
     moneyRequestReport,
     transactionCount,
+    startAnimation,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
-    // We need to use shouldUseNarrowLayout instead of shouldUseNarrowLayout to apply the correct modal type
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport.reportID)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
+            if (startAnimation) {
+                startAnimation();
+            }
+            playSound(SOUNDS.SUCCESS);
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();
@@ -75,7 +85,7 @@ function ProcessMoneyReportHoldMenu({
         if (nonHeldAmount) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
+        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
     }, [nonHeldAmount, transactionCount, translate, isApprove]);
 
     return (

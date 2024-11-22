@@ -32,15 +32,15 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
-                const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
-                const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
+            if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled && scale.value === 1) {
+                const translateX = Math.abs((evt.allTouches.at(0)?.absoluteX ?? 0) - offsetX.value);
+                const translateY = Math.abs((evt.allTouches.at(0)?.absoluteY ?? 0) - offsetY.value);
                 const allowEnablingScroll = !isPanGestureActive.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
-                if (translateX > translateY && translateX > SCROLL_THRESHOLD && scale.value === 1 && allowEnablingScroll) {
+                if (translateX > translateY && translateX > SCROLL_THRESHOLD && allowEnablingScroll) {
                     // eslint-disable-next-line react-compiler/react-compiler
                     isScrollEnabled.value = true;
                 } else if (translateY > SCROLL_THRESHOLD) {
@@ -49,15 +49,15 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
             }
 
             isPanGestureActive.value = true;
-            offsetX.value = evt.allTouches[0].absoluteX;
-            offsetY.value = evt.allTouches[0].absoluteY;
+            offsetX.value = evt.allTouches.at(0)?.absoluteX ?? 0;
+            offsetY.value = evt.allTouches.at(0)?.absoluteY ?? 0;
         })
         .onTouchesUp(() => {
             isPanGestureActive.value = false;
             if (!isScrollEnabled) {
                 return;
             }
-            isScrollEnabled.value = true;
+            isScrollEnabled.value = scale.value === 1;
         });
 
     const Content = useMemo(

@@ -1,4 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,12 +16,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
 
@@ -34,10 +37,16 @@ type RoomNamePageProps = RoomNamePageOnyxProps & {
 };
 
 function RoomNamePage({report, reports}: RoomNamePageProps) {
+    const route = useRoute<RouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>>();
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
+    const reportID = report?.reportID ?? '-1';
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo));
+    }, [reportID, route.params.backTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
@@ -69,6 +78,14 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
         [report, reports, translate],
     );
 
+    const updatePolicyRoomName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
+            ReportActions.updatePolicyRoomName(report, values.roomName);
+            goBack();
+        },
+        [report, goBack],
+    );
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
@@ -78,12 +95,12 @@ function RoomNamePage({report, reports}: RoomNamePageProps) {
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'))}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={(values) => report && ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    onSubmit={updatePolicyRoomName}
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline

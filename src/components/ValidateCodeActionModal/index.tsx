@@ -5,16 +5,33 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-function ValidateCodeActionModal({isVisible, title, description, onClose, validatePendingAction, validateError, handleSubmitForm, clearError}: ValidateCodeActionModalProps) {
+function ValidateCodeActionModal({
+    isVisible,
+    title,
+    descriptionPrimary,
+    descriptionSecondary,
+    onClose,
+    onModalHide,
+    validatePendingAction,
+    validateError,
+    handleSubmitForm,
+    clearError,
+    footer,
+    sendValidateCode,
+    hasMagicCodeBeenSent,
+    isLoading,
+}: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
+    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -22,23 +39,25 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
 
     const hide = useCallback(() => {
         clearError();
-        onClose();
+        onClose?.();
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible) {
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
             return;
         }
         firstRenderRef.current = false;
-        User.requestValidateCodeAction();
-    }, [isVisible]);
+
+        sendValidateCode();
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
 
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
-            onModalHide={hide}
+            onModalHide={onModalHide ?? hide}
+            onBackdropPress={() => Navigation.dismissModal()}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -54,17 +73,23 @@ function ValidateCodeActionModal({isVisible, title, description, onClose, valida
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7]}>
-                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
+                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
                         handleSubmitForm={handleSubmitForm}
+                        sendValidateCode={sendValidateCode}
                         clearError={clearError}
+                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
                         ref={validateCodeFormRef}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        isLoading={isLoading}
                     />
                 </View>
+                {footer?.()}
             </ScreenWrapper>
         </Modal>
     );

@@ -19,7 +19,6 @@ function SignInButton() {
         >
             <View style={styles.signInButtonAvatar}>
                 <Button
-                    medium
                     success
                     text={translate('common.signIn')}
                     onPress={() => Session.signOutAndRedirectToSignIn()}

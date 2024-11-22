@@ -36,6 +36,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID || '-1');
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, null);
         }
 
         // Delete the failed task report too

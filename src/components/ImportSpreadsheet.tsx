@@ -42,6 +42,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -65,7 +67,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         }
 
         if ((file?.size ?? 0) <= 0) {
-            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
         return true;
@@ -121,7 +123,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
@@ -132,7 +134,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             <FilePicker acceptableFileTypes={CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',')}>
                 {({openPicker}) => (
                     <Button
-                        medium
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
@@ -168,7 +169,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.navigate(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>

@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,8 +48,8 @@ function ReportFieldsValueSettingsPage({
         if (reportFieldID) {
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
 
-            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.[valueIndex] ?? '';
-            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.[valueIndex] ?? false;
+            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.at(valueIndex) ?? '';
+            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.at(valueIndex) ?? false;
         } else {
             reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
             reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;
@@ -58,18 +59,17 @@ function ReportFieldsValueSettingsPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const oldValueName = usePrevious(currentValueName);
 
-    if (!currentValueName || hasAccountingConnections) {
+    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
         return <NotFoundPage />;
     }
-
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
             ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
             ReportField.deleteReportFieldsListValue([valueIndex]);
         }
-
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
@@ -99,7 +99,7 @@ function ReportFieldsValueSettingsPage({
                 testID={ReportFieldsValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={currentValueName}
+                    title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
@@ -125,7 +125,7 @@ function ReportFieldsValueSettingsPage({
                         </View>
                     </View>
                     <MenuItemWithTopDescription
-                        title={currentValueName}
+                        title={currentValueName ?? oldValueName}
                         description={translate('common.value')}
                         shouldShowRightIcon={!reportFieldID}
                         interactive={!reportFieldID}

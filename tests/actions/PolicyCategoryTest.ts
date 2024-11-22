@@ -111,13 +111,13 @@ describe('actions/PolicyCategory', () => {
         it('Rename category', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
-            const oldCategoryName = Object.keys(fakeCategories)[0];
+            const oldCategoryName = Object.keys(fakeCategories).at(0);
             const newCategoryName = 'Updated category';
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Category.renamePolicyCategory(fakePolicy.id, {
-                oldName: oldCategoryName,
+                oldName: oldCategoryName ?? '',
                 newName: newCategoryName,
             });
             await waitForBatchedUpdates();
@@ -128,7 +128,7 @@ describe('actions/PolicyCategory', () => {
                     callback: (policyCategories) => {
                         Onyx.disconnect(connection);
 
-                        expect(policyCategories?.[oldCategoryName]).toBeFalsy();
+                        expect(policyCategories?.[oldCategoryName ?? '']).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.name).toBe(newCategoryName);
                         expect(policyCategories?.[newCategoryName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         expect(policyCategories?.[newCategoryName]?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -159,7 +159,7 @@ describe('actions/PolicyCategory', () => {
         it('Enable category', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
-            const categoryNameToUpdate = Object.keys(fakeCategories)[0];
+            const categoryNameToUpdate = Object.keys(fakeCategories).at(0) ?? '';
             const categoriesToUpdate = {
                 [categoryNameToUpdate]: {
                     name: categoryNameToUpdate,
@@ -209,7 +209,7 @@ describe('actions/PolicyCategory', () => {
         it('Delete category', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
-            const categoryNameToDelete = Object.keys(fakeCategories)[0];
+            const categoryNameToDelete = Object.keys(fakeCategories).at(0) ?? '';
             const categoriesToDelete = [categoryNameToDelete];
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);

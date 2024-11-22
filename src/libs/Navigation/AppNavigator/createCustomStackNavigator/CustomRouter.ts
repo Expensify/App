@@ -13,11 +13,16 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import syncBrowserHistory from './syncBrowserHistory';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
-    const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
-    const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
+    const nonModalRoutes = state.routes.filter(
+        (route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
+    const modalRoutes = state.routes.filter(
+        (route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR || route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+    );
 
     // It's safe to modify this state before returning in getRehydratedState.
 
@@ -110,11 +115,10 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
         Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-        // We reset the URL as the browser sets it in a way that doesn't match the navigation state
-        // eslint-disable-next-line no-restricted-globals
-        history.replaceState({}, '', getPathFromState(state, linkingConfig.config));
         return true;
     }
+
+    return false;
 }
 
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
@@ -129,6 +133,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
         },
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
             if (shouldPreventReset(state, action)) {
+                syncBrowserHistory(state);
                 return state;
             }
             return stackRouter.getStateForAction(state, action, configOptions);

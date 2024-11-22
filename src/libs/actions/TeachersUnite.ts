@@ -143,7 +143,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {
-                [Object.keys(expenseChatData)[0]]: {
+                [Object.keys(expenseChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },

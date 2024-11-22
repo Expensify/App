@@ -49,7 +49,10 @@ function TransactionDuplicateReview() {
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <FullPageNotFoundView shouldShow={transactionID === '-1'}>
-                <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                     <Button
                         text={translate('iou.keepAll')}

@@ -41,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
@@ -72,14 +73,14 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         parentReportActionID: report.parentReportActionID,
         type: report.type,
         chatType: report.chatType,
-        isPolicyExpenseChat: report.isPolicyExpenseChat,
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
     });
@@ -276,21 +277,21 @@ function ProfilePage({route}: ProfilePageProps) {
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
                             />
                         )}
-                        {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
+                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {isConcierge && guideCalendarLink && (
+                        {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
@@ -298,6 +299,14 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={SessionActions.checkIfActionIsAllowed(() => {
                                     LinkActions.openExternalLink(guideCalendarLink);
                                 })}
+                            />
+                        )}
+                        {!!report?.reportID && !!isDebugModeEnabled && (
+                            <MenuItem
+                                title={translate('debug.debug')}
+                                icon={Expensicons.Bug}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
                     </ScrollView>

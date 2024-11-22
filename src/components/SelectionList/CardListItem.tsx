@@ -12,7 +12,7 @@ import type {BankIcon} from '@src/types/onyx/Bank';
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string}>;
+type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean}>;
 
 function CardListItem<TItem extends ListItem>({
     item,
@@ -38,10 +38,15 @@ function CardListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    const subtitleText =
+        `${item.lastFourPAN ? `${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}` : ''}` +
+        `${item.lastFourPAN && item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ` : ''}` +
+        `${item.isVirtual ? translate('workspace.expensifyCard.virtual') : ''}`;
+
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -56,7 +61,7 @@ function CardListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
         >
             <>
-                {item.bankIcon && (
+                {!!item.bankIcon && (
                     <View style={[styles.mr3]}>
                         <Icon
                             src={item.bankIcon.icon}
@@ -79,16 +84,16 @@ function CardListItem<TItem extends ListItem>({
                                 item.alternateText ? styles.mb1 : null,
                             ]}
                         />
-                        {!!item.lastFourPAN && (
+                        {!!subtitleText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={`${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}`}
+                                text={subtitleText}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
                 </View>
-                {canSelectMultiple && !item.isDisabled && (
+                {!!canSelectMultiple && !item.isDisabled && (
                     <PressableWithFeedback
                         onPress={handleCheckboxPress}
                         disabled={isDisabled}

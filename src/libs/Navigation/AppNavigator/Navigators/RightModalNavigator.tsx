@@ -84,6 +84,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ProfileModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.DEBUG}
+                        component={ModalStackNavigators.DebugModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
                         component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                     />
@@ -98,6 +102,18 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
                         component={ModalStackNavigators.CategoriesModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_TAGS}
+                        component={ModalStackNavigators.TagsModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.EXPENSIFY_CARD}
+                        component={ModalStackNavigators.ExpensifyCardModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.DOMAIN_CARD}
+                        component={ModalStackNavigators.DomainCardModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
@@ -182,6 +198,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
                         component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}
+                        component={ModalStackNavigators.SearchSavedSearchModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
+                        component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

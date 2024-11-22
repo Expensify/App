@@ -3,8 +3,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
@@ -29,6 +28,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -36,6 +36,7 @@ import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
+import * as App from '@userActions/App';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -45,32 +46,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type InitialSettingsPageOnyxProps = {
-    /** The user's wallet account */
-    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
-
-    /** List of user's cards */
-    fundList: OnyxEntry<OnyxTypes.FundList>;
-
-    /** Information about the user accepting the terms for payments */
-    walletTerms: OnyxEntry<OnyxTypes.WalletTerms>;
-
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<OnyxTypes.LoginList>;
-
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-};
-
-type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
+type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
 type MenuData = {
     translationKey: TranslationPaths;
@@ -94,7 +74,16 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
+function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -112,8 +101,12 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
+    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
+    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
+
     useEffect(() => {
         Wallet.openInitialSettingsPage();
+        App.confirmReadyToOpenApp();
     }, []);
 
     const toggleSignoutConfirmModal = (value: boolean) => {
@@ -138,26 +131,12 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+        const profileBrickRoadIndicator = UserUtils.getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
         const paymentCardList = fundList;
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
-                {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
-                        ? {
-                              action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                                  setInitialURL(undefined);
-                              },
-                          }
-                        : {
-                              routeName: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                          }),
-                },
                 {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
@@ -187,7 +166,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, setInitialURL]);
+    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersonalDetails]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -219,8 +198,8 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 icon: Expensicons.CreditCard,
                 routeName: ROUTES.SETTINGS_SUBSCRIPTION,
                 brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
-                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
+                badgeText: freeTrialText,
+                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -229,7 +208,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan, translate, allConnectionSyncProgresses]);
+    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -252,6 +231,28 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
+                },
+                {
+                    translationKey: 'exitSurvey.goToExpensifyClassic',
+                    icon: Expensicons.ExpensifyLogoNew,
+                    ...(NativeModules.HybridAppModule
+                        ? {
+                              action: () => {
+                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  setInitialURL(undefined);
+                              },
+                          }
+                        : {
+                              action() {
+                                  resetExitSurveyForm(() => {
+                                      if (shouldOpenBookACall) {
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                          return;
+                                      }
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                                  });
+                              },
+                          }),
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
@@ -277,7 +278,7 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                 },
             ],
         };
-    }, [styles.pt4, signOut]);
+    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -333,7 +334,6 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                                 shouldStackHorizontally={item.shouldStackHorizontally}
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
-                                hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
@@ -341,28 +341,16 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
                                     !!item.routeName &&
                                     !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
                                 }
-                                isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
+                                shouldIconUseAutoWidthStyle
                             />
                         );
                     })}
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            styles.hoveredComponentBG,
-            translate,
-            userWallet?.currentBalance,
-            isExecuting,
-            singleExecution,
-            activeCentralPaneRoute,
-            waitForNavigate,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -370,11 +358,11 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.ph5, styles.pv5]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.MEDIUM} />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pb3, styles.gap3]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
@@ -433,13 +421,14 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
+            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100]}
+                showsVerticalScrollIndicator={false}
             >
-                {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}
                 {generalMenuItems}
@@ -460,25 +449,4 @@ function InitialSettingsPage({userWallet, bankAccountList, fundList, walletTerms
 
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<InitialSettingsPageProps, InitialSettingsPageOnyxProps>({
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        fundList: {
-            key: ONYXKEYS.FUND_LIST,
-        },
-        walletTerms: {
-            key: ONYXKEYS.WALLET_TERMS,
-        },
-        loginList: {
-            key: ONYXKEYS.LOGIN_LIST,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    })(InitialSettingsPage),
-);
+export default withCurrentUserPersonalDetails(InitialSettingsPage);

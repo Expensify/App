@@ -24,8 +24,6 @@ const defaultListOptions = {
     userToInvite: null,
     currentUserOption: null,
     categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
     headerMessage: '',
 };
 
@@ -56,7 +54,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const report = getSelectedOptionData(OptionsListUtils.createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails));
-            const alternateText = OptionsListUtils.getAlternateText(report, {showChatPreviewLine: true});
+            const alternateText = OptionsListUtils.getAlternateText(report, {});
             return {...report, alternateText};
         });
     }, [personalDetails, reports, selectedReportIDs]);
@@ -65,7 +63,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options);
+        return OptionsListUtils.getSearchOptions(options, '', undefined, false);
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {

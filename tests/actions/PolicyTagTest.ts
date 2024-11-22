@@ -177,7 +177,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
-                        Object.values(fakePolicyTags)[0].orderWeight,
+                        Object.values(fakePolicyTags).at(0)?.orderWeight ?? 0,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -245,7 +245,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
-                        Object.values(fakePolicyTags)[0].orderWeight,
+                        Object.values(fakePolicyTags).at(0)?.orderWeight ?? 0,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -506,7 +506,7 @@ describe('actions/Policy', () => {
 
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
+            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0);
             const newTagName = 'New tag';
 
             mockFetch?.pause?.();
@@ -519,7 +519,7 @@ describe('actions/Policy', () => {
                     Tag.renamePolicyTag(
                         fakePolicy.id,
                         {
-                            oldName: oldTagName,
+                            oldName: oldTagName ?? '',
                             newName: newTagName,
                         },
                         0,
@@ -536,7 +536,7 @@ describe('actions/Policy', () => {
                                     Onyx.disconnect(connection);
 
                                     const tags = policyTags?.[tagListName]?.tags;
-                                    expect(tags?.[oldTagName]).toBeFalsy();
+                                    expect(tags?.[oldTagName ?? '']).toBeFalsy();
                                     expect(tags?.[newTagName]?.name).toBe(newTagName);
                                     expect(tags?.[newTagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                                     expect(tags?.[newTagName]?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -574,7 +574,7 @@ describe('actions/Policy', () => {
 
             const tagListName = 'Fake tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
+            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags).at(0) ?? '';
             const newTagName = 'New tag';
 
             mockFetch?.pause?.();

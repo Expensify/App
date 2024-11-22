@@ -1,12 +1,18 @@
-import React, {memo, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
+import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -17,19 +23,20 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
-import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -38,7 +45,6 @@ import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
-import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -48,7 +54,9 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -85,15 +93,10 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-function shouldOpenOnAdminRoom() {
-    const url = getCurrentUrl();
-    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
-}
-
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         // Generate default query string with buildSearchQueryString without argument.
-        return {q: buildSearchQueryString()};
+        return {q: SearchQueryUtils.buildSearchQueryString()};
     }
 
     if (screenName === SCREENS.REPORT) {
@@ -106,8 +109,16 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialR
     return undefined;
 }
 
+function getCentralPaneScreenListeners(screenName: CentralPaneName) {
+    if (screenName === SCREENS.REPORT) {
+        return {beforeRemove: beforeRemoveReportOpenedFromSearchRHP};
+    }
+
+    return {};
+}
+
 function initializePusher() {
-    Pusher.init({
+    return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
@@ -126,6 +137,7 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val hasn't accountID
         if (!(value && 'accountID' in value)) {
+            currentAccountID = -1;
             timezone = null;
             return;
         }
@@ -142,7 +154,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        if (!value || timezone) {
+        if (!value || !isEmptyObject(timezone)) {
             return;
         }
 
@@ -151,7 +163,7 @@ Onyx.connect({
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
-        if (timezone?.automatic && timezone?.selected !== currentTimezone) {
+        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
             timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
@@ -198,8 +210,6 @@ const modalScreenListeners = {
         Modal.setModalVisibility(false);
     },
     beforeRemove: () => {
-        // Clear search input (WorkspaceInvitePage) when modal is closed
-        SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
         Modal.willAlertModalBecomeVisible(false);
     },
@@ -217,34 +227,32 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // We need to use isSmallScreenWidth for the root stack navigator
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {toggleSearchRouter} = useSearchRouterContext();
+
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
         () => getOnboardingModalScreenOptions(shouldUseNarrowLayout, styles, StyleUtils, onboardingIsMediumOrLargerScreenWidth),
         [StyleUtils, shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth, styles],
     );
     const modal = useRef<OnyxTypes.Modal>({});
-
-    let initialReportID: string | undefined;
-    const isInitialRender = useRef(true);
-    if (isInitialRender.current) {
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-
+    const [didPusherInit, setDidPusherInit] = useState(false);
+    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
-        if (currentURL) {
-            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        if (reportIdFromPath) {
+            return reportIdFromPath;
         }
 
-        if (!initialReportID) {
-            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-            initialReportID = initialReport?.reportID ?? '';
-        }
-
-        isInitialRender.current = false;
-    }
+        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+        return initialReport?.reportID ?? '';
+    });
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -264,15 +272,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher().then(() => {
+            setDidPusherInit(true);
+        });
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        if (SessionUtils.didUserLogInDuringSession()) {
-            App.openApp();
-        } else {
-            Log.info('[AuthScreens] Sending ReconnectApp');
-            App.reconnectApp(initialLastUpdateIDAppliedToClient);
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!NativeModules.HybridAppModule) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+            if (SessionUtils.didUserLogInDuringSession()) {
+                App.openApp();
+            } else {
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+            }
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -286,8 +299,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
-
-        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -336,16 +347,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         );
 
         // Listen for the key K being pressed so that focus can be given to
-        // the chat switcher, or new group chat
+        // Search Router, or new group chat
         // based on the key modifiers pressed and the operating system
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(
-                    Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)),
-                    true,
-                    true,
-                );
+                Session.checkIfActionIsAllowed(() => {
+                    const state = navigationRef.getRootState();
+                    const currentFocusedRoute = findFocusedRoute(state);
+                    if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                        return;
+                    }
+                    toggleSearchRouter();
+                })();
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -364,9 +378,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => {
-                toggleTestToolsModal();
-            },
+            () => toggleTestToolsModal(),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,
@@ -514,17 +526,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
-                    <RootStack.Screen
-                        name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
-                        component={OnboardingModalNavigator}
-                        listeners={{
-                            focus: () => {
-                                Modal.setDisableDismissOnEscape(true);
-                            },
-                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
-                        }}
-                    />
+                    {isOnboardingCompleted === false && (
+                        <RootStack.Screen
+                            name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                            options={onboardingScreenOptions}
+                            component={OnboardingModalNavigator}
+                            listeners={{
+                                focus: () => {
+                                    Modal.setDisableDismissOnEscape(true);
+                                },
+                                beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                            }}
+                        />
+                    )}
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
@@ -545,7 +559,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
@@ -557,11 +571,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
+                                listeners={getCentralPaneScreenListeners(centralPaneName)}
                             />
                         );
                     })}
                 </RootStack.Navigator>
+                <TestToolsModal />
+                <SearchRouterModal />
             </View>
+            {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>
     );
 }
@@ -570,6 +588,10 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
+// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
+// Further analysis required and more details can be seen here:
+// https://github.com/Expensify/App/issues/50560
+// eslint-disable-next-line
 export default withOnyx<AuthScreensProps, AuthScreensProps>({
     session: {
         key: ONYXKEYS.SESSION,

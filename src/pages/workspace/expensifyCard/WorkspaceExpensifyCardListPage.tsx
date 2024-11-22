@@ -16,8 +16,10 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,7 +45,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+
+    const isBankAccountVerified = !cardOnWaitlist;
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
@@ -57,7 +63,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             <Button
-                medium
                 success
                 onPress={issueCard}
                 icon={Expensicons.Plus}
@@ -65,7 +70,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 style={shouldUseNarrowLayout && styles.flex1}
             />
             <Button
-                medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
@@ -81,6 +85,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
+                onClose={() => PaymentMethods.clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
             >
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
@@ -95,11 +100,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
                         currency={policyCurrency}
+                        isVirtual={!!item.nameValuePairs?.isVirtual}
                     />
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, policyCurrency, policyID, styles],
+        [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
     );
 
     const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} />, [policyID]);
@@ -117,11 +123,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack()}
             >
-                {!shouldUseNarrowLayout && getHeaderButtons()}
+                {!shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+            {shouldUseNarrowLayout && isBankAccountVerified && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView />
+                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <FlatList
                     data={sortedCards}

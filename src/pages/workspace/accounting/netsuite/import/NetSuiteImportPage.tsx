@@ -123,6 +123,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldDisableStrikeThrough
                     >
                         <MenuItemWithTopDescription
+                            title={PolicyUtils.getNetSuiteImportCustomFieldLabel(policy, importField, translate)}
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField))}

@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
@@ -48,12 +49,12 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1');
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = details.displayName ?? '';
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
@@ -67,8 +68,8 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
-    }, [accountID, report.reportID]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
+    }, [accountID, report.reportID, route.params.backTo]);
 
     if (!member) {
         return <NotFoundPage />;
@@ -91,7 +92,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {!!(details.displayName ?? '') && (
+                    {!!(displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
@@ -104,7 +105,6 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                             <Button
                                 text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                                medium
                                 isDisabled={isSelectedMemberCurrentUser}
                                 icon={Expensicons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}

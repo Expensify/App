@@ -14,6 +14,7 @@ import type {CategorySection} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -32,10 +33,13 @@ function SearchFiltersCardPage() {
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+                const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+                const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
 
                 return {
                     lastFourPAN: card.lastFourPAN,
-                    text: card.bank,
+                    isVirtual: card?.nameValuePairs?.isVirtual,
+                    text,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),
                     bankIcon: icon,

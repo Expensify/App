@@ -7,18 +7,16 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import hasCompletedGuidedSetupFlowSelector from '@libs/hasCompletedGuidedSetupFlowSelector';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
-import Navigation from '@libs/Navigation/Navigation';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
+import OnboardingAccounting from '@pages/OnboardingAccounting';
+import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
-import OnboardingWork from '@pages/OnboardingWork';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -27,30 +25,18 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const outerViewRef = React.useRef<View>(null);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
 
+    // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
+    // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!hasCompletedGuidedSetupFlow) {
+        if (!accountID) {
             return;
         }
-        Navigation.isNavigationReady().then(() => {
-            // On small screens, pop all navigation states and go back to HOME.
-            // On large screens, need to go back to previous route and then redirect to Concierge,
-            // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
-            if (shouldUseNarrowLayout) {
-                Navigation.setShouldPopAllStateOnUP(true);
-                Navigation.goBack(ROUTES.HOME, true, true);
-            } else {
-                Navigation.goBack();
-                Report.navigateToConciergeChat();
-            }
-        });
-    }, [hasCompletedGuidedSetupFlow, shouldUseNarrowLayout]);
 
-    const outerViewRef = React.useRef<View>(null);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
+    }, [accountID]);
 
     const handleOuterClick = useCallback(() => {
         OnboardingRefManager.handleOuterClick();
@@ -58,9 +44,6 @@ function OnboardingModalNavigator() {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
-    if (hasCompletedGuidedSetupFlow) {
-        return null;
-    }
     return (
         <NoDropZone>
             <Overlay />
@@ -84,8 +67,12 @@ function OnboardingModalNavigator() {
                                 component={OnboardingPersonalDetails}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK}
-                                component={OnboardingWork}
+                                name={SCREENS.ONBOARDING.EMPLOYEES}
+                                component={OnboardingEmployees}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.ACCOUNTING}
+                                component={OnboardingAccounting}
                             />
                         </Stack.Navigator>
                     </View>

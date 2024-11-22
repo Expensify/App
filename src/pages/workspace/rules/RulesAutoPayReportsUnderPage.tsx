@@ -39,7 +39,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
         if (CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS) {
-            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', currencySymbol);
+            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', {currency: currencySymbol});
         }
         return errors;
     };
@@ -61,7 +61,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {

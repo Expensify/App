@@ -38,6 +38,7 @@ const expensifyCardFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
+
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
@@ -80,6 +81,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
+            showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

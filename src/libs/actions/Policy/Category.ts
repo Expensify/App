@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
+    GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
@@ -18,6 +19,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -27,6 +29,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,7 +154,7 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
                         title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', categoriesLength),
+                        prompt: translateLocal('spreadsheet.importCategoriesSuccessfullDescription', {categories: categoriesLength}),
                     },
                 },
             },
@@ -183,6 +186,19 @@ function openPolicyCategoriesPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
+function getPolicyCategories(policyID: string) {
+    if (!policyID || policyID === '-1' || policyID === CONST.POLICY.ID_FAKE) {
+        Log.warn('GetPolicyCategories invalid params', {policyID});
+        return;
+    }
+
+    const params: GetPolicyCategoriesParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
 function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category?: string) {
@@ -374,8 +390,8 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxExpenseAmountNoReceipt: number) {
-    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
+function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: string, maxAmountNoReceipt: number) {
+    const originalMaxAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -386,9 +402,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                     [categoryName]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        maxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt,
                     },
                 },
             },
@@ -401,9 +417,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                     [categoryName]: {
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt,
                     },
                 },
             },
@@ -417,9 +433,9 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt: originalMaxAmountNoReceipt,
                     },
                 },
             },
@@ -429,14 +445,14 @@ function setPolicyCategoryReceiptsRequired(policyID: string, categoryName: strin
     const parameters: SetPolicyCategoryReceiptsRequiredParams = {
         policyID,
         categoryName,
-        maxExpenseAmountNoReceipt,
+        maxExpenseAmountNoReceipt: maxAmountNoReceipt,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
 function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: string) {
-    const originalMaxExpenseAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxExpenseAmountNoReceipt;
+    const originalMaxAmountNoReceipt = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName]?.maxAmountNoReceipt;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -447,9 +463,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                     [categoryName]: {
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        maxExpenseAmountNoReceipt: null,
+                        maxAmountNoReceipt: null,
                     },
                 },
             },
@@ -462,9 +478,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                     [categoryName]: {
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: null,
+                        maxAmountNoReceipt: null,
                     },
                 },
             },
@@ -478,9 +494,9 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            maxExpenseAmountNoReceipt: null,
+                            maxAmountNoReceipt: null,
                         },
-                        maxExpenseAmountNoReceipt: originalMaxExpenseAmountNoReceipt,
+                        maxAmountNoReceipt: originalMaxAmountNoReceipt,
                     },
                 },
             },
@@ -519,7 +535,39 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 }
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
+    const policy = PolicyUtils.getPolicy(policyID);
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
+
+    const policyCategoryApproverRule = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], policyCategory.oldName);
+    const policyCategoryExpenseRule = CategoryUtils.getCategoryExpenseRule(policy?.rules?.expenseRules ?? [], policyCategory.oldName);
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const expenseRules = policy?.rules?.expenseRules ?? [];
+    const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
+    const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
+
+    if (policyCategoryExpenseRule) {
+        const ruleIndex = updatedExpenseRules.findIndex((rule) => rule.id === policyCategoryExpenseRule.id);
+        policyCategoryExpenseRule.applyWhen = policyCategoryExpenseRule.applyWhen.map((applyWhen) => ({
+            ...applyWhen,
+            ...(applyWhen.field === CONST.POLICY.FIELDS.CATEGORY && applyWhen.value === policyCategory.oldName && {value: policyCategory.newName}),
+        }));
+        updatedExpenseRules[ruleIndex] = policyCategoryExpenseRule;
+    }
+
+    // Its related by name, so the corresponding rule has to be updated to handle offline scenario
+    if (policyCategoryApproverRule) {
+        const indexToUpdate = updatedApprovalRules.findIndex((rule) => rule.id === policyCategoryApproverRule.id);
+        policyCategoryApproverRule.applyWhen = policyCategoryApproverRule.applyWhen.map((ruleCondition) => {
+            const {value, field, condition} = ruleCondition;
+
+            if (value === policyCategory.oldName && field === CONST.POLICY.FIELDS.CATEGORY && condition === CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                return {...ruleCondition, value: policyCategory.newName};
+            }
+
+            return ruleCondition;
+        });
+        updatedApprovalRules[indexToUpdate] = policyCategoryApproverRule;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -537,6 +585,16 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         previousCategoryName: policyCategory.oldName,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules: updatedApprovalRules,
+                        expenseRules: updatedExpenseRules,
                     },
                 },
             },
@@ -571,6 +629,15 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.oldName,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        approvalRules,
                     },
                 },
             },
@@ -793,7 +860,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
     const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
-        acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
     const shouldDisableRequiresCategory = !OptionsListUtils.hasEnabledOptions(
@@ -825,6 +892,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                     acc[categoryName] = {
                         pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.deleteFailureMessage'),
+                        enabled: !!policyCategories?.[categoryName]?.enabled,
                     };
                     return acc;
                 }, {}),
@@ -1001,17 +1069,19 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function downloadCategoriesCSV(policyID: string) {
+function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
     });
+
+    const fileName = 'Categories.csv';
 
     const formData = new FormData();
     Object.entries(finalParameters).forEach(([key, value]) => {
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), 'Categories.csv', '', false, formData, CONST.NETWORK.METHOD.POST);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string) {
@@ -1150,7 +1220,8 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const approvalRules = policy?.rules?.approvalRules ?? [];
     let updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
-    const existingCategoryApproverRule = updatedApprovalRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
+    const existingCategoryApproverRule = CategoryUtils.getCategoryApproverRule(updatedApprovalRules, categoryName);
+
     let newApprover = approver;
 
     if (!existingCategoryApproverRule) {
@@ -1158,7 +1229,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
             approver,
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
@@ -1169,7 +1240,10 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
         newApprover = '';
     } else {
         const indexToUpdate = updatedApprovalRules.indexOf(existingCategoryApproverRule);
-        updatedApprovalRules[indexToUpdate].approver = approver;
+        const approvalRule = updatedApprovalRules.at(indexToUpdate);
+        if (approvalRule && indexToUpdate !== -1) {
+            approvalRule.approver = approver;
+        }
     }
 
     const onyxData: OnyxData = {
@@ -1180,26 +1254,11 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
-                        pendingFields: {
-                            approvalRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
                     },
                 },
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        pendingFields: {
-                            approvalRules: null,
-                        },
-                    },
-                },
-            },
-        ],
+
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1207,9 +1266,6 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
                 value: {
                     rules: {
                         approvalRules,
-                        pendingFields: {
-                            approvalRules: null,
-                        },
                     },
                 },
             },
@@ -1226,7 +1282,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 }
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = PolicyUtils.getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
     const existingCategoryExpenseRule = updatedExpenseRules.find((rule) => rule.applyWhen.some((when) => when.value === categoryName));
@@ -1241,7 +1297,7 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
             },
             applyWhen: [
                 {
-                    condition: 'matches',
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
                     field: 'category',
                     value: categoryName,
                 },
@@ -1249,7 +1305,11 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
         });
     } else {
         const indexToUpdate = updatedExpenseRules.indexOf(existingCategoryExpenseRule);
-        updatedExpenseRules[indexToUpdate].tax.field_id_TAX.externalID = taxID;
+        const expenseRule = updatedExpenseRules.at(indexToUpdate);
+
+        if (expenseRule && indexToUpdate !== -1) {
+            expenseRule.tax.field_id_TAX.externalID = taxID;
+        }
     }
 
     const onyxData: OnyxData = {
@@ -1260,22 +1320,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 value: {
                     rules: {
                         expenseRules: updatedExpenseRules,
-                        pendingFields: {
-                            expenseRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        pendingFields: {
-                            expenseRules: null,
-                        },
                     },
                 },
             },
@@ -1287,9 +1331,6 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
                 value: {
                     rules: {
                         expenseRules,
-                        pendingFields: {
-                            expenseRules: null,
-                        },
                     },
                 },
             },
@@ -1305,7 +1346,12 @@ function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: str
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX, parameters, onyxData);
 }
 
+function getPolicyCategoriesData(policyID: string) {
+    return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+}
+
 export {
+    getPolicyCategories,
     openPolicyCategoriesPage,
     buildOptimisticPolicyRecentlyUsedCategories,
     setWorkspaceCategoryEnabled,
@@ -1328,4 +1374,5 @@ export {
     setPolicyCategoryTax,
     importPolicyCategories,
     downloadCategoriesCSV,
+    getPolicyCategoriesData,
 };

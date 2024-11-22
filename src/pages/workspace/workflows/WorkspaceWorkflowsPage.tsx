@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -48,7 +49,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {isDevelopment} = useEnvironment();
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
 
     const policyApproverEmail = policy?.approver;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -87,7 +93,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            fetchData();
+            InteractionManager.runAfterInteractions(() => {
+                fetchData();
+            });
         }, [fetchData]),
     );
 
@@ -109,14 +117,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
+        const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
-        let bankDisplayName = bankName ?? addressName;
-        if (accountNumber && bankDisplayName !== accountNumber) {
-            bankDisplayName += ` ${accountNumber.slice(-5)}`;
-        }
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting ?? !!policy?.errorFields?.autoReportingFrequency;
@@ -171,7 +175,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers[0].email))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))}
                                 />
                             </OfflineWithFeedback>
                         ))}
@@ -181,7 +185,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             icon={Expensicons.Plus}
                             iconHeight={20}
                             iconWidth={20}
-                            iconFill={theme.success}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                             onPress={addApprovalAction}
                         />
@@ -230,6 +233,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                                        // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete and update isCurrencySupportedForDirectReimbursement, this will be updated in - https://github.com/Expensify/App/issues/50912
+                                        if (isDevelopment || isDebugModeEnabled) {
+                                            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                            return;
+                                        }
+
                                         setIsCurrencyModalOpen(true);
                                         return;
                                     }
@@ -242,7 +251,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 disabled={isOffline || !isPolicyAdmin}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 shouldShowRightIcon={!isOffline && isPolicyAdmin}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mbn3]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
@@ -282,13 +291,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         preferredLocale,
         onPressAutoReportingFrequency,
         approvalWorkflows,
-        theme.success,
-        theme.spinner,
         addApprovalAction,
         isOffline,
+        theme.spinner,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
+        isDevelopment,
+        isDebugModeEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

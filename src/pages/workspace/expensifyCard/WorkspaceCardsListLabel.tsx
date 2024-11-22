@@ -57,7 +57,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
-    const isConnectedWithPlaid = useMemo(() => !!bankAccountList?.[paymentBankAccountID ?? 0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList, paymentBankAccountID]);
+    const isConnectedWithPlaid = useMemo(() => {
+        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? 0]?.accountData;
+
+        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
+        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
+        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
+    }, [bankAccountList, paymentBankAccountID]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -122,7 +128,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
                         <View style={[styles.flexRow, styles.mt3]}>
                             <Button
-                                medium
                                 onPress={requestLimitIncrease}
                                 text={translate('workspace.expensifyCard.requestLimitIncrease')}
                                 style={shouldUseNarrowLayout && styles.flex1}

@@ -32,8 +32,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
-    const defaultValue = policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE;
-
+    const defaultValue = Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100);
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -51,7 +50,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.mt5]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
                         PolicyActions.setPolicyAutomaticApprovalRate(policyID, auditRatePercentage);

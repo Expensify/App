@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
-import Tooltip from '@components/Tooltip';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +46,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             <AvatarWithDelegateAvatar
                 delegateEmail={delegateEmail}
                 isSelected={isSelected}
+                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
             />
         );
     } else if (emojiStatus) {
@@ -53,24 +54,31 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             <AvatarWithOptionalStatus
                 emojiStatus={emojiStatus}
                 isSelected={isSelected}
+                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
             />
         );
     } else {
-        children = <ProfileAvatarWithIndicator isSelected={isSelected} />;
+        children = (
+            <ProfileAvatarWithIndicator
+                isSelected={isSelected}
+                containerStyles={styles.tn0Half}
+            />
+        );
     }
 
     return (
-        <Tooltip text={translate('initialSettingsPage.accountSettings')}>
-            <PressableWithFeedback
-                onPress={showSettingsPage}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                wrapperStyle={styles.flex1}
-                style={styles.bottomTabBarItem}
-            >
-                {children}
-            </PressableWithFeedback>
-        </Tooltip>
+        <PressableWithFeedback
+            onPress={showSettingsPage}
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+            wrapperStyle={styles.flex1}
+            style={[styles.bottomTabBarItem]}
+        >
+            {children}
+            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
+                {translate('common.settings')}
+            </Text>
+        </PressableWithFeedback>
     );
 }
 

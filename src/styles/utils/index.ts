@@ -132,6 +132,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
+    [CONST.AVATAR_SIZE.XLARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
@@ -272,8 +273,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
-
-    return workspaceColorOptions[colorHash];
+    return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
 /**
@@ -292,7 +292,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors[colorHash];
+    return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
 
 /**
@@ -477,7 +477,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     const result = hexadecimalToRGBArray(backgroundColor);
     if (result !== undefined) {
         return {
-            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
+            backgroundColor: `rgba(${result.at(0)}, ${result.at(1)}, ${result.at(2)}, ${opacity})`,
         };
     }
     return {};
@@ -490,14 +490,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -1119,6 +1119,27 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    if (isSelected) {
+        return {backgroundColor: selectedBG};
+    }
+
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1193,6 +1214,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1248,6 +1270,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns the actual maxHeight of the auto-growing markdown text input.
+     */
+    getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
     },
 
     /**
@@ -1311,7 +1342,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getButtonBackgroundColorStyle: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.PRESSED:
-                return {backgroundColor: theme.buttonPressedBG};
+                return isMenuItem ? {backgroundColor: theme.buttonHoveredBG} : {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
                 return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
@@ -1668,6 +1699,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         alignItems: 'center',
         justifyContent: 'center',
     }),
+
+    getTaskPreviewIconWrapper: (avatarSize?: AvatarSizeName) => ({
+        height: avatarSize ? getAvatarSize(avatarSize) : variables.fontSizeNormalHeight,
+        ...styles.justifyContentCenter,
+    }),
+
+    getTaskPreviewTitleStyle: (iconHeight: number, isTaskCompleted: boolean): StyleProp<TextStyle> => [
+        styles.flex1,
+        isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
+        {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
+    ],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

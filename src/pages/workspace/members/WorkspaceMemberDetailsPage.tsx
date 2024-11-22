@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,7 +21,10 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -31,12 +33,13 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
+import * as CompanyCards from '@userActions/CompanyCards';
 import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
 import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
@@ -50,18 +53,23 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
+    const policyID = route.params.policyID;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policy?.workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [expensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
-    const policyID = route.params.policyID;
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
@@ -74,13 +82,30 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
+    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
+    const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
+
+    useEffect(() => {
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, workspaceAccountID]);
 
     const memberCards = useMemo(() => {
-        if (!cardsList) {
+        if (!cards && !expensifyCards) {
             return [];
         }
-        return Object.values(cardsList).filter((card) => card.accountID === accountID);
-    }, [cardsList, accountID]);
+        // For admin Expensify Cards can also appear in the cards list, so we need to remove duplicates
+        const allCards = [...Object.values(cards ?? {}), ...Object.values(expensifyCards ?? {})];
+        const cardIDs = new Set();
+        const uniqueObjects = allCards.filter((obj) => {
+            if (cardIDs.has(obj.cardID)) {
+                return false;
+            }
+            cardIDs.add(obj.cardID);
+            return true;
+        });
+
+        return Object.values(uniqueObjects ?? {}).filter((card) => card.accountID === accountID && workspaceAccountID.toString() === card.fundID);
+    }, [accountID, workspaceAccountID, cards, expensifyCards]);
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
@@ -98,14 +123,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             {
                 value: CONST.POLICY.ROLE.ADMIN,
                 text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
                 isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.ADMIN,
             },
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.USER,
                 keyForList: CONST.POLICY.ROLE.USER,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: member?.role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
             },
         ],
         [member?.role, translate],
@@ -132,13 +166,21 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID]);
 
     const navigateToDetails = useCallback(
-        (cardID: string) => {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID, Navigation.getActiveRoute()));
+        (card: MemberCard) => {
+            if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), card.bank, Navigation.getActiveRoute()));
         },
         [policyID],
     );
 
-    const navigateToIssueNewCard = useCallback(() => {
+    const handleIssueNewCard = useCallback(() => {
+        if (hasMultipleFeeds) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_NEW_CARD.getRoute(policyID, accountID));
+            return;
+        }
         const activeRoute = Navigation.getActiveRoute();
 
         Card.setIssueNewCardStepAndData({
@@ -149,7 +191,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    }, [memberLogin, policyID]);
+    }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
 
     const openRoleSelectionModal = useCallback(() => {
         setIsRoleSelectionModalVisible(true);
@@ -176,6 +218,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     if (shouldShowNotFoundPage) {
         return <NotFoundPage />;
     }
+
+    const shouldShowCardsSection = (!!policy?.areExpensifyCardsEnabled && !!paymentAccountID) || (!!policy?.areCompanyCardsEnabled && hasMultipleFeeds);
 
     return (
         <AccessOrNotFoundWrapper
@@ -212,20 +256,20 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </Text>
                                     )}
                                     {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                        <Button
-                                            text={translate('workspace.people.transferOwner')}
-                                            onPress={startChangeOwnershipFlow}
-                                            medium
-                                            isDisabled={isOffline}
-                                            icon={Expensicons.Transfer}
-                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                            style={styles.mv5}
-                                        />
+                                        shouldRenderTransferOwnerButton() && (
+                                            <Button
+                                                text={translate('workspace.people.transferOwner')}
+                                                onPress={startChangeOwnershipFlow}
+                                                isDisabled={isOffline}
+                                                icon={Expensicons.Transfer}
+                                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                                style={styles.mv5}
+                                            />
+                                        )
                                     ) : (
                                         <Button
                                             text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                             onPress={askForConfirmationToRemove}
-                                            medium
                                             isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                             icon={Expensicons.RemoveMembers}
                                             iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -246,7 +290,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={styles.w100}>
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                        title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                        title={translate(`workspace.common.roleName`, {role: member?.role})}
                                         description={translate('common.role')}
                                         shouldShowRightIcon
                                         onPress={openRoleSelectionModal}
@@ -264,31 +308,49 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onRoleChange={changeRole}
                                         onClose={() => setIsRoleSelectionModalVisible(false)}
                                     />
-                                    {policy?.areExpensifyCardsEnabled && (
+                                    {shouldShowCardsSection && (
                                         <>
                                             <View style={[styles.ph5, styles.pv3]}>
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
                                                     {translate('walletPage.assignedCards')}
                                                 </Text>
                                             </View>
-                                            {memberCards.map((card) => (
-                                                <MenuItem
-                                                    title={card.nameValuePairs?.cardTitle}
-                                                    badgeText={CurrencyUtils.convertAmountToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit)}
-                                                    icon={ExpensifyCardImage}
-                                                    displayInDefaultIconColor
-                                                    iconStyles={styles.cardIcon}
-                                                    contentFit="contain"
-                                                    iconWidth={variables.cardIconWidth}
-                                                    iconHeight={variables.cardIconHeight}
-                                                    onPress={() => navigateToDetails(card.cardID.toString())}
-                                                    shouldShowRightIcon
-                                                />
-                                            ))}
+                                            {(memberCards as MemberCard[]).map((memberCard) => {
+                                                const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                                                return (
+                                                    <OfflineWithFeedback
+                                                        key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                        errorRowStyles={styles.ph5}
+                                                        errors={memberCard.errors}
+                                                        pendingAction={memberCard.pendingAction}
+                                                    >
+                                                        <MenuItem
+                                                            key={memberCard.cardID}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
+                                                            badgeText={
+                                                                memberCard.bank === CONST.EXPENSIFY_CARD.BANK
+                                                                    ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
+                                                                    : ''
+                                                            }
+                                                            icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
+                                                            displayInDefaultIconColor
+                                                            iconStyles={styles.cardIcon}
+                                                            contentFit="contain"
+                                                            iconWidth={variables.iconSizeExtraLarge}
+                                                            iconHeight={variables.iconSizeExtraLarge}
+                                                            onPress={() => navigateToDetails(memberCard)}
+                                                            shouldRemoveHoverBackground={isCardDeleted}
+                                                            disabled={isCardDeleted}
+                                                            shouldShowRightIcon={!isCardDeleted}
+                                                            style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                        />
+                                                    </OfflineWithFeedback>
+                                                );
+                                            })}
                                             <MenuItem
                                                 title={translate('workspace.expensifyCard.newCard')}
                                                 icon={Expensicons.Plus}
-                                                onPress={navigateToIssueNewCard}
+                                                onPress={handleIssueNewCard}
                                             />
                                         </>
                                     )}

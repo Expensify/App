@@ -1,8 +1,10 @@
 import type {MutableRefObject, RefObject} from 'react';
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -47,14 +49,18 @@ const defaultAccountingContext = {
 const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
 
 type AccountingContextProviderProps = ChildrenProps & {
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
     const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
-    const policyID = policy.id;
+    const policyID = policy?.id ?? '-1';
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to allow QuickBooks Desktop setup to be shown only on large screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -66,6 +72,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                undefined,
+                isSmallScreenWidth,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -79,7 +87,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate],
+        [isSmallScreenWidth, policy, policyID, translate],
     );
 
     const closeConfirmationModal = () => {
@@ -118,7 +126,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         <AccountingContext.Provider value={accountingContext}>
             {children}
             {!shouldShowConfirmationModal && renderActiveIntegration()}
-            {shouldShowConfirmationModal && activeIntegration?.integrationToDisconnect && (
+            {!!shouldShowConfirmationModal && !!activeIntegration?.integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         if (!activeIntegration?.integrationToDisconnect) {

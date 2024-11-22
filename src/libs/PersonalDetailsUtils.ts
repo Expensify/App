@@ -150,7 +150,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     logins.forEach((login, index) => {
-        const accountID = accountIDs[index];
+        const accountID = accountIDs.at(index) ?? -1;
         if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
@@ -169,7 +169,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
     const personalDetailsCleanup: PersonalDetailsList = {};
 
     newLogins.forEach((login, index) => {
-        const accountID = newAccountIDs[index];
+        const accountID = newAccountIDs.at(index) ?? -1;
         personalDetailsNew[accountID] = {
             login,
             accountID,
@@ -233,7 +233,7 @@ function getFormattedStreet(street1 = '', street2 = '') {
  */
 function getStreetLines(street = '') {
     const streets = street.split('\n');
-    return [streets[0], streets[1]];
+    return [streets.at(0), streets.at(1)];
 }
 
 /**

@@ -1,154 +1,103 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
+import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds, WorkspaceCardsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
-
-const mockedFeeds: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-    },
-};
-
-const mockedCards = {
-    id1: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id2: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id18: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id27: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id16: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id25: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id14: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id23: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id12: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id21: {
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-} as unknown as WorkspaceCardsList;
 
 type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const policyID = route.params.policyID;
-    // const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const cardFeeds = mockedFeeds;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {})[0];
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const cardsList = mockedCards ?? {};
+    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isPending = !!selectedFeedData?.pending;
+    const isFeedAdded = !isPending && !isNoFeed;
 
-    // TODO correct Onyx flag should be defined in separate PR for "Pending State with No Other Feeds"
-    const isFeedAdded = true;
+    const fetchCompanyCards = useCallback(() => {
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, workspaceAccountID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const isLoading = !isOffline && (!cardFeeds || cardFeeds.isLoading);
+
+    useFocusEffect(fetchCompanyCards);
+
+    useEffect(() => {
+        if (!!isLoading || !selectedFeed || isPending) {
+            return;
+        }
+
+        CompanyCards.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending]);
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            <WorkspacePageWithSections
-                shouldUseScrollView={!isFeedAdded}
-                icon={Illustrations.CompanyCard}
-                headerText={translate('workspace.common.companyCards')}
-                route={route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
-                shouldShowOfflineIndicatorInWideScreen
-                includeSafeAreaPaddingBottom
-                showLoadingAsFirstRender={false}
-            >
-                {isFeedAdded && (
-                    <WorkspaceCompanyCardsListHeaderButtons
-                        policyID={policyID}
-                        selectedFeed={selectedFeed}
-                    />
-                )}
-                {!isFeedAdded && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                {isFeedAdded && <WorkspaceCompanyCardsList cardsList={cardsList} />}
-            </WorkspacePageWithSections>
+            {!!isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                    color={theme.spinner}
+                />
+            )}
+            {!isLoading && (
+                <WorkspacePageWithSections
+                    shouldUseScrollView={isNoFeed}
+                    icon={Illustrations.CompanyCard}
+                    headerText={translate('workspace.common.companyCards')}
+                    route={route}
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
+                    shouldShowOfflineIndicatorInWideScreen
+                    includeSafeAreaPaddingBottom
+                    showLoadingAsFirstRender={false}
+                >
+                    {(isFeedAdded || isPending) && !!selectedFeed && (
+                        <WorkspaceCompanyCardsListHeaderButtons
+                            policyID={policyID}
+                            selectedFeed={selectedFeed}
+                        />
+                    )}
+                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
+                    {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
+                    {isFeedAdded && !isPending && (
+                        <WorkspaceCompanyCardsList
+                            cardsList={cardsList}
+                            policyID={policyID}
+                        />
+                    )}
+                </WorkspacePageWithSections>
+            )}
         </AccessOrNotFoundWrapper>
     );
 }

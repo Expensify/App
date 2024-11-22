@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -13,13 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal} from '@src/types/onyx';
 import type ThreeDotsMenuProps from './types';
-
-type ThreeDotsMenuOnyxProps = {
-    /** Details about any modals being used */
-    modal: OnyxEntry<Modal>;
-};
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -36,8 +29,9 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
-    modal = {},
 }: ThreeDotsMenuProps) {
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
@@ -114,8 +108,4 @@ function ThreeDotsMenu({
 
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default withOnyx<ThreeDotsMenuProps, ThreeDotsMenuOnyxProps>({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
-})(ThreeDotsMenu);
+export default ThreeDotsMenu;

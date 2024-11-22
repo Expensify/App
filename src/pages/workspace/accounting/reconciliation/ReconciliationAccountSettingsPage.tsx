@@ -57,7 +57,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     const selectBankAccount = (newBankAccountID?: number) => {
         Card.updateSettlementAccount(workspaceAccountID, policyID, newBankAccountID, paymentBankAccountID);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
     };
 
     return (
@@ -70,6 +70,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             contentContainerStyle={[styles.flex1, styles.pb2]}
             connectionName={connectionName}
             shouldUseScrollView={false}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection))}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
@@ -77,7 +78,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
                 <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}>
                     {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
                 </TextLink>
-                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', settlementAccountEnding)}
+                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', {lastFourPAN: settlementAccountEnding})}
             </Text>
 
             <SelectionList

@@ -1,31 +1,35 @@
-import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {AdvancedFiltersKeys} from '@components/Search/types';
+import type {SearchFilterKey} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
     date: {
@@ -98,20 +102,10 @@ const baseFilterConfig = {
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
     },
-    has: {
-        getTitle: getFilterHasDisplayTitle,
-        description: 'search.filters.has' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
-    },
     in: {
         getTitle: getFilterInDisplayTitle,
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
-    },
-    is: {
-        getTitle: getFilterIsDisplayTitle,
-        description: 'search.filters.is' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_IS,
     },
 };
 
@@ -119,7 +113,7 @@ const typeFiltersKeys: Record<string, Array<ValueOf<typeof CONST.SEARCH.SYNTAX_F
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'expenseType', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
     [CONST.SEARCH.DATA_TYPES.TRIP]: ['date', 'currency', 'merchant', 'description', 'reportID', 'amount', 'category', 'keyword', 'taxRate', 'tag', 'from', 'to', 'cardID'],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'has', 'in', 'is'],
+    [CONST.SEARCH.DATA_TYPES.CHAT]: ['date', 'keyword', 'from', 'in'],
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
@@ -143,57 +137,84 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 
             return PersonalDetailsUtils.createDisplayName(personalDetail.login ?? '', personalDetail);
         })
+        .filter(Boolean)
         .join(', ');
 }
 
-function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, fieldName: AdvancedFiltersKeys, translate: LocaleContextProps['translate']) {
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+const sortOptionsWithEmptyValue = (a: string, b: string) => {
+    // Always show `No category` and `No tag` as the first option
+    if (a === CONST.SEARCH.EMPTY_VALUE) {
+        return -1;
+    }
+    if (b === CONST.SEARCH.EMPTY_VALUE) {
+        return 1;
+    }
+    return localeCompare(a, b);
+};
+
+function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
         // the value of date filter is a combination of dateBefore + dateAfter values
         const {dateAfter, dateBefore} = filters;
         let dateValue = '';
         if (dateBefore) {
-            dateValue = translate('search.filters.date.before', dateBefore);
+            dateValue = translate('search.filters.date.before', {date: dateBefore});
         }
         if (dateBefore && dateAfter) {
             dateValue += ', ';
         }
         if (dateAfter) {
-            dateValue += translate('search.filters.date.after', dateAfter);
+            dateValue += translate('search.filters.date.after', {date: dateAfter});
         }
 
         return dateValue;
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
-            return translate('search.filters.amount.between', convertToDisplayStringWithoutCurrency(Number(greaterThan)), convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.between', {
+                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
+                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
+            });
         }
         if (lessThan) {
-            return translate('search.filters.amount.lessThan', convertToDisplayStringWithoutCurrency(Number(lessThan)));
+            return translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
         }
         if (greaterThan) {
-            return translate('search.filters.amount.greaterThan', convertToDisplayStringWithoutCurrency(Number(greaterThan)));
+            return translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
         }
+        // Will never happen
+        return;
     }
 
-    if (
-        (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) &&
-        filters[fieldName]
-    ) {
-        const filterArray = filters[fieldName] ?? [];
-        return filterArray.join(', ');
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
+        return filterArray.sort(localeCompare).join(', ');
     }
 
-    if (fieldName === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-        return filters[fieldName];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
+            .join(', ');
     }
 
-    // Todo Once all Advanced filters are implemented this line can be cleaned up. See: https://github.com/Expensify/App/issues/45026
-    // @ts-expect-error this property access is temporarily an error, because not every SYNTAX_FILTER_KEYS is handled by form.
-    // When all filters are updated here: src/types/form/SearchAdvancedFiltersForm.ts this line comment + type cast can be removed.
-    const filterValue = filters[fieldName] as string;
-    return filterValue ? Str.recapitalize(filterValue) : undefined;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[filterKey]) {
+        const filterArray = filters[filterKey] ?? [];
+        return filterArray
+            .sort(sortOptionsWithEmptyValue)
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
+            .join(', ');
+    }
+
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        return filters[filterKey];
+    }
+
+    const filterValue = filters[filterKey];
+    return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
 function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, taxRates: Record<string, string[]>) {
@@ -218,33 +239,29 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
               .filter((expenseType) => filterValue.includes(expenseType))
-              .map((expenseType) => translate(SearchUtils.getExpenseTypeTranslationKey(expenseType)))
+              .map((expenseType) => translate(SearchUIUtils.getExpenseTypeTranslationKey(expenseType)))
               .join(', ')
         : undefined;
 }
 
-function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
-    return filters.in ? filters.in.map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`])).join(', ') : undefined;
-}
-
-function getFilterHasDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_TYPES)
-              .filter((hasFilter) => filterValue.includes(hasFilter))
-              .map((hasFilter) => translate(SearchUtils.getChatFiltersTranslationKey(hasFilter)))
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
+    return filters.in
+        ? filters.in
+              .map((id) => ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+              .filter(Boolean)
               .join(', ')
         : undefined;
 }
 
-function getFilterIsDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.IS];
-    return filterValue
-        ? Object.values(CONST.SEARCH.CHAT_STATUS)
-              .filter((chatStatus) => filterValue.includes(chatStatus))
-              .map((chatStatus) => translate(SearchUtils.getChatStatusTranslationKey(chatStatus)))
-              .join(', ')
-        : undefined;
+function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, singlePolicyCondition = false): boolean {
+    return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
+}
+
+function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureName: PolicyFeatureName) {
+    if (isEmptyObject(policies)) {
+        return false;
+    }
+    return Object.values(policies).some((policy) => isPolicyFeatureEnabled(policy, featureName));
 }
 
 function AdvancedSearchFilters() {
@@ -253,60 +270,138 @@ function AdvancedSearchFilters() {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const policyID = searchAdvancedFilters.policyID ?? '-1';
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
-    const currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const onFormSubmit = () => {
-        const query = SearchUtils.buildQueryStringFromFilters(searchAdvancedFilters);
-        SearchActions.clearAdvancedFilters();
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: (policyCategories) =>
+            Object.fromEntries(
+                Object.entries(policyCategories ?? {}).filter(([, categories]) => {
+                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    return availableCategories.length > 0;
+                }),
+            ),
+    });
+    const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
+    const tagListsUnpacked = Object.values(allPolicyTagLists ?? {})
+        .filter((item): item is NonNullable<PolicyTagLists> => !!item)
+        .map(getTagNamesFromTagsLists)
+        .flat();
+
+    // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
+    const nonPersonalPolicyCategoryIds = Object.values(policies)
+        .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
+        .map((policy) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+    const nonPersonalPolicyCategoryCount = Object.keys(allPolicyCategories).filter((policyCategoryId) => nonPersonalPolicyCategoryIds.includes(policyCategoryId)).length;
+
+    const areCategoriesEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
+    const areTagsEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED);
+    const areCardsEnabled =
+        isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED) ||
+        isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED);
+    const areTaxEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED);
+
+    const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!singlePolicyCategories);
+    const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
+    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(cardList).length, areCardsEnabled);
+    const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
+
+    let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+        currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+    }
+
+    const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
+
+    const applyFiltersAndNavigate = () => {
+        SearchActions.clearAllFilters();
         Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query,
+                query: queryString,
             }),
         );
     };
 
-    const filters = typeFiltersKeys[currentType].map((key) => {
-        const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
-        let filterTitle;
-        if (
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-            key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
-        ) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            if (Object.keys(cardList).length === 0) {
-                return undefined;
-            }
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
-        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-            filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+    const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
+            // If the search is already saved, return early to prevent unnecessary API calls
+            Navigation.dismissModal();
+            return;
         }
-        return {
-            key,
-            title: filterTitle,
-            description: translate(baseFilterConfig[key].description),
-            onPress,
-        };
-    });
+
+        // We only want to show the tooltip once, the NVP will not be set if the user has not saved a search yet
+        if (!savedSearches) {
+            SearchActions.showSavedSearchRenameTooltip();
+        }
+
+        SearchActions.saveSearch({
+            queryJSON,
+        });
+
+        applyFiltersAndNavigate();
+    };
+
+    const filters = typeFiltersKeys[currentType]
+        .map((key) => {
+            const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
+            let filterTitle;
+            if (
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+            ) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+                if (!shouldDisplayCategoryFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+                if (!shouldDisplayTagFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+                if (!shouldDisplayCardFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+                if (!shouldDisplayTaxFilter) {
+                    return;
+                }
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+            }
+            return {
+                key,
+                title: filterTitle,
+                description: translate(baseFilterConfig[key].description),
+                onPress,
+            };
+        })
+        .sort((a, b) => (a?.description ?? '')?.localeCompare(b?.description ?? ''));
+
+    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>
@@ -320,6 +415,7 @@ function AdvancedSearchFilters() {
                             <MenuItemWithTopDescription
                                 key={filter.description}
                                 title={filter.title}
+                                titleStyle={styles.flex1}
                                 description={filter.description}
                                 shouldShowRightIcon
                                 onPress={filter.onPress}
@@ -328,10 +424,18 @@ function AdvancedSearchFilters() {
                     })}
                 </View>
             </ScrollView>
+            {!!displaySearchButton && (
+                <Button
+                    text={translate('search.saveSearch')}
+                    onPress={onSaveSearch}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
+            )}
             <FormAlertWithSubmitButton
                 buttonText={translate('search.viewResults')}
                 containerStyles={[styles.m4, styles.mb5]}
-                onSubmit={onFormSubmit}
+                onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
             />
         </>

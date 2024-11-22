@@ -13,7 +13,6 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     usedApproverEmails: [],
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
-    isLoading: false,
 };
 
 type GetApproversParams = {
@@ -125,6 +124,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             email,
             avatar: personalDetailsByEmail[email]?.avatar,
             displayName: personalDetailsByEmail[email]?.displayName ?? email,
+            pendingFields: employee.pendingFields,
         };
 
         if (!approvalWorkflows[submitsTo]) {
@@ -157,7 +157,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers[0]?.displayName ?? '-1').localeCompare(b.approvers[0]?.displayName ?? '-1');
+        return (a.approvers.at(0)?.displayName ?? '-1').localeCompare(b.approvers.at(0)?.displayName ?? '-1');
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
@@ -234,6 +234,9 @@ function convertApprovalWorkflowToPolicyEmployees({
             email: approver.email,
             forwardsTo,
             pendingAction,
+            pendingFields: {
+                forwardsTo: pendingAction,
+            },
         };
     });
 
@@ -250,6 +253,9 @@ function convertApprovalWorkflowToPolicyEmployees({
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
             pendingAction,
+            pendingFields: {
+                submitsTo: pendingAction,
+            },
         };
     });
 

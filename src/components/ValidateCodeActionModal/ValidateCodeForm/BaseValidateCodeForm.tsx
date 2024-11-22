@@ -2,8 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -16,13 +16,14 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, ValidateMagicCodeAction} from '@src/types/onyx';
+import type {ValidateMagicCodeAction} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -33,11 +34,6 @@ type ValidateCodeFormHandle = {
 
 type ValidateCodeFormError = {
     validateCode?: TranslationPaths;
-};
-
-type BaseValidateCodeFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
 };
 
 type ValidateCodeFormProps = {
@@ -62,14 +58,20 @@ type ValidateCodeFormProps = {
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
 
+    /** Styles for the button */
+    buttonStyles?: StyleProp<ViewStyle>;
+
     /** Function to clear error of the form */
     clearError: () => void;
+
+    /** Function is called when validate code modal is mounted and on magic code resend */
+    sendValidateCode: () => void;
+
+    /** Wheather the form is loading or not */
+    isLoading?: boolean;
 };
 
-type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
-
 function BaseValidateCodeForm({
-    account = {},
     hasMagicCodeBeenSent,
     autoComplete = 'one-time-code',
     innerRef = () => {},
@@ -78,7 +80,10 @@ function BaseValidateCodeForm({
     validateError,
     handleSubmitForm,
     clearError,
-}: BaseValidateCodeFormProps) {
+    sendValidateCode,
+    buttonStyles,
+    isLoading,
+}: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -87,9 +92,13 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
+    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
+
+    const timerRef = useRef<NodeJS.Timeout>();
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -116,9 +125,16 @@ function BaseValidateCodeForm({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            focusTimeoutRef.current = setTimeout(() => {
+
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!Browser.isMobileSafari()) {
+                focusTimeoutRef.current = setTimeout(() => {
+                    inputValidateCodeRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
                 inputValidateCodeRef.current?.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
+            }
+
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -129,26 +145,30 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!validateError) {
-            return;
-        }
-        clearError();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [clearError, validateError]);
-
-    useEffect(() => {
         if (!hasMagicCodeBeenSent) {
             return;
         }
         inputValidateCodeRef.current?.clear();
     }, [hasMagicCodeBeenSent]);
 
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
+                setTimeRemaining(timeRemaining - 1);
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [timeRemaining]);
+
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        User.requestValidateCodeAction();
+        sendValidateCode();
         inputValidateCodeRef.current?.clear();
+        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
     };
 
     /**
@@ -159,7 +179,7 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (validateError) {
+            if (!isEmptyObject(validateError)) {
                 clearError();
                 User.clearValidateCodeActionError('actionVerified');
             }
@@ -185,6 +205,7 @@ function BaseValidateCodeForm({
         handleSubmitForm(validateCode);
     }, [validateCode, handleSubmitForm]);
 
+    const shouldShowTimer = timeRemaining > 0 && !isOffline;
     return (
         <>
             <MagicCodeInput
@@ -198,40 +219,50 @@ function BaseValidateCodeForm({
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
+            {shouldShowTimer && (
+                <Text style={[styles.mt5]}>
+                    {translate('validateCodeForm.requestNewCode')}
+                    <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                </Text>
+            )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errors={ErrorUtils.getLatestErrorField(validateCodeAction, 'actionVerified')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearValidateCodeActionError('actionVerified')}
             >
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <PressableWithFeedback
-                        disabled={shouldDisableResendValidateCode}
-                        style={[styles.mr1]}
-                        onPress={resendValidateCode}
-                        underlayColor={theme.componentBG}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.2}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
-                    >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                    </PressableWithFeedback>
-                    {hasMagicCodeBeenSent && (
-                        <DotIndicatorMessage
-                            type="success"
-                            style={[styles.mt6, styles.flex0]}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                        />
-                    )}
-                </View>
+                {!shouldShowTimer && (
+                    <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
+                        <PressableWithFeedback
+                            disabled={shouldDisableResendValidateCode}
+                            style={[styles.mr1]}
+                            onPress={resendValidateCode}
+                            underlayColor={theme.componentBG}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                )}
             </OfflineWithFeedback>
+            {!!hasMagicCodeBeenSent && (
+                <DotIndicatorMessage
+                    type="success"
+                    style={[styles.mt6, styles.flex0]}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                />
+            )}
             <OfflineWithFeedback
+                shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={validateError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearError()}
+                style={buttonStyles}
             >
                 <Button
                     isDisabled={isOffline}
@@ -239,9 +270,9 @@ function BaseValidateCodeForm({
                     onPress={validateAndSubmitForm}
                     style={[styles.mt4]}
                     success
-                    pressOnEnter
                     large
-                    isLoading={account?.isLoading}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isLoading={account?.isLoading || isLoading}
                 />
             </OfflineWithFeedback>
         </>
@@ -252,6 +283,4 @@ BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
-export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(BaseValidateCodeForm);
+export default BaseValidateCodeForm;

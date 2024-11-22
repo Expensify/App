@@ -16,6 +16,7 @@ To enable and set per diem rates,
 6. Create a .csv, .txt, .xls, or .xlsx spreadsheet containing four columns: Destination, Sub-rate, Amount, and Currency. You’ll want a different row for each location that an employee may travel to, which may include states and/or countries to help account for cost differences across various locations. Here are some example templates you can use:
    - [Germany rates]({{site.url}}/assets/Files/Germany-per-diem.csv)
    - [Sweden rates]({{site.url}}/assets/Files/Sweden-per-diem.csv)
+   - [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
    - [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
 7. Click **Import from spreadsheet**. 
 8. Click **Upload** to select your spreadsheet.

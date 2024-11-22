@@ -295,7 +295,6 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            shouldUseCachedViewportHeight
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageThemeWrapper.displayName}
         >
@@ -315,6 +314,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                     login={login}
                     onLoginChanged={setLogin}
                     blurOnSubmit={account?.validated === false}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
                 {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}

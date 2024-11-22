@@ -19,7 +19,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
@@ -128,47 +128,60 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      value: buildReportComments(messageCount, initialID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+        const comments = buildReportComments(messageCount, initialID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: !comments['1'],
+            hasNewerActions: !!reportID,
+        };
+    });
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
+        // The API also returns the action that was requested with the reportActionID.
+        const comments = buildReportComments(messageCount + 1, reportActionID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: comments['1'] != null,
+        };
+    });
 }
 
 function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID, true),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
+        onyxData:
+            reportID === REPORT_ID
+                ? [
+                      {
+                          onyxMethod: 'merge',
+                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                          // The API also returns the action that was requested with the reportActionID.
+                          value: buildReportComments(messageCount + 1, reportActionID, true),
+                      },
+                  ]
+                : [],
+        hasNewerActions: messageCount > 0,
+    }));
 }
 
 /**
@@ -198,7 +211,10 @@ async function signInAndGetApp(): Promise<void> {
             reportID: REPORT_ID,
             reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             lastMessageText: 'Test',
-            participants: {[USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
             lastActorAccountID: USER_B_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         });
@@ -336,6 +352,7 @@ describe('Pagination', () => {
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
@@ -351,6 +368,7 @@ describe('Pagination', () => {
         mockGetNewerActions(0);
 
         scrollToOffset(500);
+        await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 

@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, NativeModules, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -20,7 +20,6 @@ import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
-import {handleHybridAppOnboarding} from './libs/actions/Welcome';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
@@ -31,7 +30,6 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
-import Performance from './libs/Performance';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -56,7 +54,7 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-type ExpensifyOnyxProps = {
+type ExpensifyProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
 
@@ -78,18 +76,7 @@ type ExpensifyOnyxProps = {
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
-
-type ExpensifyProps = ExpensifyOnyxProps;
-
-function Expensify({
-    isCheckingPublicRoom = true,
-    updateAvailable,
-    isSidebarLoaded = false,
-    screenShareRequest,
-    updateRequired = false,
-    focusModeNotification = false,
-    lastVisitedPath,
-}: ExpensifyProps) {
+function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
@@ -99,8 +86,15 @@ function Expensify({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [tryNewDotData] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useEffect(() => {
         if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
@@ -117,14 +111,6 @@ function Expensify({
         }
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
-
-    useEffect(() => {
-        if (splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || tryNewDotData === undefined) {
-            return;
-        }
-
-        handleHybridAppOnboarding();
-    }, [splashScreenState, tryNewDotData]);
 
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
@@ -151,21 +137,22 @@ function Expensify({
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Initialize Fullstory lib
-        FS.init();
-
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
         return unsubscribeNetInfo;
     }, []);
+
+    useEffect(() => {
+        // Initialize Fullstory lib
+        FS.init(userMetadata);
+    }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -314,30 +301,4 @@ function Expensify({
 
 Expensify.displayName = 'Expensify';
 
-export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
-    isCheckingPublicRoom: {
-        key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
-        initWithStoredValues: false,
-    },
-    updateAvailable: {
-        key: ONYXKEYS.UPDATE_AVAILABLE,
-        initWithStoredValues: false,
-    },
-    updateRequired: {
-        key: ONYXKEYS.UPDATE_REQUIRED,
-        initWithStoredValues: false,
-    },
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    screenShareRequest: {
-        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-    },
-    focusModeNotification: {
-        key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
-        initWithStoredValues: false,
-    },
-    lastVisitedPath: {
-        key: ONYXKEYS.LAST_VISITED_PATH,
-    },
-})(Expensify);
+export default Expensify;

@@ -14,6 +14,8 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,11 +30,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-
-    const isControl = isControlPolicy(policy);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -42,7 +44,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
         );
 
-        if (isControl) {
+        if (isControlPolicy(policy)) {
             roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
         }
 
@@ -61,19 +63,20 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             requiredColumns.forEach((requiredColumn) => {
                 if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', requiredColumn.text);
+                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
                 }
             });
         } else {
             const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+            if (duplicateColumn) {
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);
@@ -106,6 +109,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
+
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
         return;
@@ -114,7 +122,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingCategories(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     };
 
     return (
@@ -124,7 +132,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() =>
+                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))
+                }
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
@@ -133,7 +143,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingCategories}
-                headerText={translate('workspace.categories.importedCategoriesMessage')}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
 

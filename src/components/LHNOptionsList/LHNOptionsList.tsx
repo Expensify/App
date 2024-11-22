@@ -19,11 +19,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
+import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
@@ -138,8 +140,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
-            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
-            const lastReportAction = sortedReportActions[0];
+
+            const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(itemFullReport);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions, canUserPerformWriteAction);
+            const lastReportAction = sortedReportActions.at(0);
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -267,6 +271,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     ref={flashListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
+                    CellRendererComponent={OptionRowRendererComponent}
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                     data={data}
                     testID="lhn-options-list"

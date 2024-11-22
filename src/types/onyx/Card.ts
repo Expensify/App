@@ -25,6 +25,15 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Domain name */
     domainName: string;
 
+    /** Transaction start date */
+    startDate?: Date;
+
+    /** The last time user checked the card for transactions */
+    lastUpdated: string;
+
+    /** Is checking for card transactions */
+    isLoadingLastUpdated?: boolean;
+
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
@@ -34,8 +43,23 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
+    /** Card name */
+    cardName?: string;
+
+    /** Related policy account id */
+    fundID?: string;
+
+    /** Transaction start date */
+    scrapeMinDate?: string;
+
+    /** Last updated time */
+    lastScrape?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Is card data loading */
     isLoading?: boolean;
@@ -77,7 +101,17 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Card expiration date */
         expirationDate?: string;
-    }>;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }> &
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Type of export card */
+            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
+        }>;
 }>;
 
 /** Model of Expensify card details */
@@ -129,10 +163,22 @@ type IssueNewCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the request is being processed */
+    isLoading?: boolean;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    isSuccessful?: boolean;
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card>;
+type WorkspaceCardsList = Record<string, Card> & {
+    /** List of cards to assign */
+    cardList?: Record<string, string>;
+};
 
 export default Card;
 export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};

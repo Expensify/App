@@ -12,6 +12,7 @@ import * as ReportActions from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -55,11 +56,14 @@ function ExportWithDropdownMenu({
             icon: iconToDisplay,
             disabled: !canBeExported,
             displayInDefaultIconColor: true,
+            iconWidth: variables.iconSizeMenuItem,
+            iconHeight: variables.iconSizeMenuItem,
+            additionalIconStyles: styles.integrationIcon,
         };
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', connectionName),
+                text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
                 ...optionTemplate,
             },
             {
@@ -120,13 +124,14 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                wrapperStyle={styles.flex1}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={confirmExport}
                 onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
+                prompt={translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''})}
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={!!modalStatus}

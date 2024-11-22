@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -11,15 +10,39 @@ type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
 /** Model of delegate */
-type Delegate = {
+type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The email of the delegate */
     email: string;
 
     /** The role of the delegate */
-    role: DelegateRole;
+    role?: DelegateRole;
 
-    /** Authentication failure errors */
-    error?: TranslationPaths;
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
+    /** Whether the user is loading */
+    isLoading?: boolean;
+
+    /** The accountID of a delegate when they aren't in the personalDetails. */
+    optimisticAccountID?: number;
+}>;
+
+/** Delegate errors */
+type DelegateErrors = {
+    /** Errors while adding a delegate keyed by email */
+    addDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while updating a delegate's role keyed by email */
+    updateDelegateRole?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegate keyed by email */
+    removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while connecting as a delegate keyed by email */
+    connect?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while disconnecting as a delegate. No email needed here. */
+    disconnect?: OnyxCommon.Errors;
 };
 
 /** Model of delegated access data */
@@ -33,8 +56,8 @@ type DelegatedAccess = {
     /** The email of original user when they are acting as a delegate for another account */
     delegate?: string;
 
-    /** Authentication failure errors when disconnecting as a copilot */
-    error?: TranslationPaths;
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: DelegateErrors;
 };
 
 /** Model of user account */
@@ -125,4 +148,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};
