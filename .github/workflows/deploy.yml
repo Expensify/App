@@ -248,7 +248,7 @@ jobs:
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' ../Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -263,9 +263,6 @@ jobs:
         run: bundle exec fastlane android upload_google_play_internal_hybrid
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-
-      - name: Add debug
-        run: ls -laR .
 
       - name: Get current Android rollout percentage
         id: getAndroidRolloutPercentage

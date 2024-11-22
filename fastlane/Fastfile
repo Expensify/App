@@ -242,15 +242,10 @@ platform :android do
     lane :upload_google_play_production_hybrid_rollout do
       # Google is very unreliable, so we retry a few times
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-      betaVersionCodes = google_play_track_version_codes(
-        package_name: "org.me.mobiexpensifyg",
-        json_key: './android-fastlane-json-key.json',
-        track: 'beta'
-      )
       upload_to_play_store(
         package_name: "org.me.mobiexpensifyg",
         json_key: './android-fastlane-json-key.json',
-        version_code: betaVersionCodes.sort.last, # Get the latest version code
+        version_code: ENV["VERSION"].to_i,
         track: 'beta',
         track_promote_to: 'production',
         rollout: '0.01',
