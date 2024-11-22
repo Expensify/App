@@ -334,31 +334,6 @@ index 1e265b3..24ec0d0 100644
 \ No newline at end of file
 +{"version":3,"sources":["IMGElement.tsx"],"names":["IMGElement","props","state","content","type","React","createElement","IMGElementContentSuccess","IMGElementContentLoading","IMGElementContentError","testID","containerProps","onPress","containerStyle"],"mappings":";;;;;;;AAAA;;AACA;;AACA;;AACA;;AACA;;AACA;;;;;;AAKA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA,SAASA,UAAT,CAAoBC,KAApB,EAA0D;AACxD,QAAMC,KAAK,GAAG,iCAAmBD,KAAnB,CAAd;AACA,MAAIE,OAAJ;;AACA,MAAID,KAAK,CAACE,IAAN,KAAe,SAAnB,EAA8B;AAC5BD,IAAAA,OAAO,gBAAGE,eAAMC,aAAN,CAAoBC,iCAApB,EAA8CL,KAA9C,CAAV;AACD,GAFD,MAEO,IAAIA,KAAK,CAACE,IAAN,KAAe,SAAnB,EAA8B;AACnCD,IAAAA,OAAO,gBAAGE,eAAMC,aAAN,CAAoBE,iCAApB,EAA8CN,KAA9C,CAAV;AACD,GAFM,MAEA;AACLC,IAAAA,OAAO,gBAAGE,eAAMC,aAAN,CAAoBG,+BAApB,EAA4CP,KAA5C,CAAV;AACD;;AACD,sBACE,6BAAC,4BAAD;AACE,IAAA,MAAM,EAAED,KAAK,CAACS;AADhB,KAEMT,KAAK,CAACU,cAFZ;AAGE,IAAA,OAAO,EAAEV,KAAK,CAACW,OAHjB;AAIE,IAAA,KAAK,EAAEV,KAAK,CAACW;AAJf,MAKGV,OALH,CADF;AASD;;eAEcH,U","sourcesContent":["import React, { ReactElement, ReactNode } from 'react';\nimport useIMGElementState from './useIMGElementState';\nimport IMGElementContentSuccess from './IMGElementContentSuccess';\nimport IMGElementContainer from './IMGElementContainer';\nimport IMGElementContentLoading from './IMGElementContentLoading';\nimport IMGElementContentError from './IMGElementContentError';\nimport type { IMGElementProps } from './img-types';\n\nexport type { IMGElementProps } from './img-types';\n\n/**\n * A component to render images based on an internal loading state.\n *\n * @remarks This component will attempt to draw a box of paint dimensions\n * before retrieving the physical dimensions of the image to avoid layout\n * shifts. See also {@link useIMGElementState}, {@link IMGElementContainer},\n * {@link IMGElementContentSuccess}, {@link IMGElementContentLoading}\n * and {@link IMGElementContentError} for customization.\n */\nfunction IMGElement(props: IMGElementProps): ReactElement {\n  const state = useIMGElementState(props);\n  let content: ReactNode;\n  if (state.type === 'success') {\n    content = React.createElement(IMGElementContentSuccess, state);\n  } else if (state.type === 'loading') {\n    content = React.createElement(IMGElementContentLoading, state);\n  } else {\n    content = React.createElement(IMGElementContentError, state);\n  }\n  return (\n    <IMGElementContainer\n      testID={props.testID}\n      {...props.containerProps}\n      onPress={props.onPress}\n      style={state.containerStyle}>\n      {content}\n    </IMGElementContainer>\n  );\n}\n\nexport default IMGElement;\n"]}
 \ No newline at end of file
-diff --git a/node_modules/react-native-render-html/react-native-render-html.podspec b/node_modules/react-native-render-html/react-native-render-html.podspec
-deleted file mode 100644
-index 6ac80d8..0000000
---- a/node_modules/react-native-render-html/react-native-render-html.podspec
-+++ /dev/null
-@@ -1,19 +0,0 @@
--require 'json'
--
--package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
--
--Pod::Spec.new do |s|
--  s.name         = package['name']
--  s.version      = package['version']
--  s.summary      = package['description']
--  s.license      = package['license']
--
--  s.authors      = package['author']
--  s.homepage     = package['homepage']
--  s.platform     = :ios, "9.0"
--
--  s.source       = { :git => "https://github.com/meliorence/react-native-render-html.git", :tag => "v#{s.version}" }
--  s.source_files  = "ios/**/*.{h,m}"
--
--  s.dependency 'React-Core'
--end
 diff --git a/node_modules/react-native-render-html/src/RenderHTMLConfigProvider.tsx b/node_modules/react-native-render-html/src/RenderHTMLConfigProvider.tsx
 index 0df5375..925062a 100644
 --- a/node_modules/react-native-render-html/src/RenderHTMLConfigProvider.tsx
