@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -135,15 +136,26 @@ function maskCard(lastFour = ''): string {
  * Converts given 'X' to '•' for the entire card string.
  *
  * @param cardName - card name with XXXX in the middle.
+ * @param feed - card feed.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string): string {
+function maskCardNumber(cardName: string, feed: string | undefined): string {
     if (!cardName || cardName === '') {
         return '';
     }
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replace(/X/g, '•');
-    return hasSpace ? cardName : maskedString.replace(/(.{4})/g, '$1 ').trim();
+    const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
+
+    if (hasSpace) {
+        return cardName;
+    }
+
+    if (isAmexBank && maskedString.length === 15) {
+        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+    }
+
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -199,14 +211,6 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
 
         return localeCompare(aName, bName);
     });
-}
-
-function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string, cardName = ''): string {
-    if (!lastFourPAN) {
-        return '';
-    }
-
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
@@ -341,6 +345,16 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function getFilteredCardList(list?: WorkspaceCardsList) {
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    return Object.fromEntries(Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))));
+}
+
+function hasOnlyOneCardToAssign(list: FilteredCardList) {
+    return Object.keys(list).length === 1;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -357,7 +371,6 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
-    getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
     getCompanyFeeds,
@@ -367,4 +380,6 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getFilteredCardList,
+    hasOnlyOneCardToAssign,
 };

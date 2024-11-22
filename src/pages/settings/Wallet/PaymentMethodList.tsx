@@ -147,11 +147,22 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false): boolean {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], item: PaymentMethod, walletLinkedAccountID: number, isDefault = false): boolean {
     if (!isDefault) {
         return false;
     }
+    // Find all payment methods that are marked as default
+    const defaultPaymentMethods = filteredPaymentMethods.filter((method: PaymentMethod) => !!method.isDefault);
 
+    // If there is more than one payment method, show the default badge only for the most recently added default account.
+    if (defaultPaymentMethods.length > 1) {
+        if (item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+            return item.accountData?.bankAccountID === walletLinkedAccountID;
+        }
+        if (item.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+            return item.accountData?.fundID === walletLinkedAccountID;
+        }
+    }
     const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
@@ -194,6 +205,7 @@ function PaymentMethodList({
 
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
@@ -226,7 +238,7 @@ function PaymentMethodList({
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: CardUtils.maskCardNumber(card.cardName ?? ''),
+                        title: CardUtils.maskCardNumber(card.cardName ?? '', card.bank),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
@@ -367,7 +379,6 @@ function PaymentMethodList({
                     text={translate('walletPage.addBankAccount')}
                     large
                     success
-                    isDisabled={!isUserValidated}
                     onPress={onPress}
                 />
             ) : (
@@ -380,7 +391,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
+        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
     /**
@@ -406,7 +417,12 @@ function PaymentMethodList({
                     iconWidth={item.iconWidth ?? item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={
-                        shouldShowDefaultBadge(filteredPaymentMethods, invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault)
+                        shouldShowDefaultBadge(
+                            filteredPaymentMethods,
+                            item,
+                            userWallet?.walletLinkedAccountID ?? 0,
+                            invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.isDefault,
+                        )
                             ? translate('paymentMethodList.defaultPaymentMethod')
                             : undefined
                     }
@@ -423,7 +439,18 @@ function PaymentMethodList({
             </OfflineWithFeedback>
         ),
 
-        [styles.ph6, styles.paymentMethod, styles.badgeBordered, filteredPaymentMethods, invoiceTransferBankAccountID, translate, listItemStyle, shouldShowSelectedState, selectedMethodID],
+        [
+            styles.ph6,
+            styles.paymentMethod,
+            styles.badgeBordered,
+            filteredPaymentMethods,
+            invoiceTransferBankAccountID,
+            translate,
+            listItemStyle,
+            shouldShowSelectedState,
+            selectedMethodID,
+            userWallet?.walletLinkedAccountID,
+        ],
     );
 
     return (

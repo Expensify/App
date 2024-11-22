@@ -23,9 +23,6 @@ const defaultListOptions = {
     personalDetails: [],
     userToInvite: null,
     currentUserOption: null,
-    categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
     headerMessage: '',
 };
 
@@ -77,7 +74,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }

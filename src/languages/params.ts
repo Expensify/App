@@ -555,6 +555,10 @@ type CurrencyCodeParams = {
     currencyCode: string;
 };
 
+type CompanyNameParams = {
+    companyName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -756,4 +760,5 @@ export type {
     AssignCardParams,
     ImportedTypesParams,
     CurrencyCodeParams,
+    CompanyNameParams,
 };
