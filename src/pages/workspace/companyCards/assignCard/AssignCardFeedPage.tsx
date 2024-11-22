@@ -25,8 +25,10 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const policyID = policy?.id ?? '-1';
 
     useEffect(() => {
-        CompanyCards.setAssignCardStepAndData({data: {bankName: feed}});
-    }, [feed]);
+        return () => {
+            CompanyCards.clearAssignCardStepAndData();
+        };
+    }, []);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
@@ -52,8 +54,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         default:
             return <AssigneeStep policy={policy} />;
     }
-
-    return <AssigneeStep policy={policy} />;
 }
 
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

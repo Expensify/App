@@ -39,7 +39,7 @@ import * as Link from '@userActions/Link';
 import * as Modal from '@userActions/Modal';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-// import ROUTES from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -216,8 +216,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     );
 
     const openSettings = () => {
-        // TODO: Uncomment this when the import feature is ready
-        // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATES_SETTINGS.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
