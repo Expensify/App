@@ -27,11 +27,14 @@ function SearchButton({style}: SearchButtonProps) {
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
+                ref={pressableRef}
                 nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={Session.checkIfActionIsAllowed(() => {
-                    pressableRef?.current?.blur();
+                    if (pressableRef.current) {
+                        pressableRef.current.blur();
+                    }
                     Timing.start(CONST.TIMING.OPEN_SEARCH);
                     Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
