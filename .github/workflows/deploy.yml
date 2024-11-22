@@ -263,6 +263,9 @@ jobs:
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
+      - name: Add debug
+        run: ls -laR .
+
       - name: Get current Android rollout percentage
         id: getAndroidRolloutPercentage
         uses: ./.github/actions/javascript/getAndroidRolloutPercentage
