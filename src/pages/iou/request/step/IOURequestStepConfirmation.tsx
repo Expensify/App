@@ -252,7 +252,7 @@ function IOURequestStepConfirmation({
                 },
                 gpsPoints,
                 action,
-                transactionData: {
+                transactionParams: {
                     amount: transaction.amount,
                     attendees: transaction.attendees,
                     currency: transaction.currency,

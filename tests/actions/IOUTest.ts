@@ -87,7 +87,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                transactionData: {
+                transactionParams: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -301,7 +301,7 @@ describe('actions/IOU', () => {
                             payeeAccountID: RORY_ACCOUNT_ID,
                             participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         },
-                        transactionData: {
+                        transactionParams: {
                             amount,
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
@@ -520,7 +520,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -675,7 +675,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                transactionData: {
+                transactionParams: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -1491,7 +1491,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                transactionData: {
+                transactionParams: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -1727,7 +1727,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -1855,7 +1855,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -1956,7 +1956,7 @@ describe('actions/IOU', () => {
                     payeeAccountID: TEST_USER_ACCOUNT_ID,
                     participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                 },
-                transactionData: {
+                transactionParams: {
                     amount,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
@@ -2705,7 +2705,7 @@ describe('actions/IOU', () => {
                         payeeAccountID: TEST_USER_ACCOUNT_ID,
                         participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                     },
-                    transactionData: {
+                    transactionParams: {
                         amount: amount2,
                         attendees: [],
                         currency: CONST.CURRENCY.USD,
@@ -2923,7 +2923,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -3030,7 +3030,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,
@@ -3138,7 +3138,7 @@ describe('actions/IOU', () => {
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
                             },
-                            transactionData: {
+                            transactionParams: {
                                 amount,
                                 attendees: [],
                                 currency: CONST.CURRENCY.USD,

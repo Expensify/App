@@ -217,7 +217,7 @@ function IOURequestStepAmount({
                             payeeEmail: currentUserPersonalDetails.login,
                             payeeAccountID: currentUserPersonalDetails.accountID,
                         },
-                        transactionData: {
+                        transactionParams: {
                             amount: backendAmount,
                             currency,
                             created: transaction?.created ?? '',

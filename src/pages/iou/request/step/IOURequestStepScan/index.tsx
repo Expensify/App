@@ -291,7 +291,7 @@ function IOURequestStepScan({
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
                     },
-                    transactionData: {
+                    transactionParams: {
                         amount: 0,
                         attendees: transaction?.attendees,
                         currency: transaction?.currency ?? 'USD',
@@ -399,7 +399,7 @@ function IOURequestStepScan({
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                    transactionData: {
+                                    transactionParams: {
                                         amount: 0,
                                         attendees: transaction?.attendees,
                                         currency: transaction?.currency ?? 'USD',

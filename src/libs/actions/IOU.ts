@@ -165,7 +165,7 @@ type GPSPoint = {
     long: number;
 };
 
-type RequestMoneyTransactionData = {
+type RequestMoneyTransactionParams = {
     attendees: Attendee[] | undefined;
     amount: number;
     currency: string;
@@ -202,7 +202,7 @@ type RequestMoneyInformation = {
     gpsPoints?: GPSPoint;
     action?: IOUAction;
     reimbursible?: boolean;
-    transactionData: RequestMoneyTransactionData;
+    transactionParams: RequestMoneyTransactionParams;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -3565,7 +3565,7 @@ function shareTrackedExpense(
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionData, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -3584,7 +3584,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         actionableWhisperReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
-    } = transactionData;
+    } = transactionParams;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
