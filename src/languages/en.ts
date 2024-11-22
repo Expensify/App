@@ -2526,6 +2526,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            defaultCategory: 'Default category',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -4091,7 +4092,6 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
             changePromptMessage: ' to make that change.',
-            defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
