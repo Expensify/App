@@ -531,7 +531,7 @@ function IOURequestStepScan({
                                     setIsLoadingReceipt(false);
                                     return;
                                 }
-                                
+
                                 const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
 
                                 const jpegFile = new File([blobToUse], fileName, {type: 'image/jpeg'});
