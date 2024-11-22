@@ -635,7 +635,7 @@ const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTy
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
     if (!reportAction) {
         return false;
     }
@@ -665,6 +665,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     if (isPendingRemove(reportAction) && !reportAction.childVisibleActionCount) {
+        return false;
+    }
+
+    if (
+        (isActionableReportMentionWhisper(reportAction) || isActionableJoinRequestPendingReportAction(reportAction) || isActionableMentionWhisper(reportAction)) &&
+        !canUserPerformWriteAction
+    ) {
         return false;
     }
 
@@ -711,7 +718,7 @@ function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): bo
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>, canUserPerformWriteAction?: boolean): boolean {
     if (!reportAction) {
         return false;
     }
@@ -723,7 +730,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If a whisper action is the REPORT_PREVIEW action, we are displaying it.
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
-        shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
+        shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
         !isResolvedActionTrackExpense(reportAction)
@@ -756,7 +763,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(reportID: string, canUserPerformWriteAction?: boolean, actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {}): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
         reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
@@ -765,7 +772,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: Record<string, N
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
@@ -787,10 +794,11 @@ function formatLastMessageText(lastMessageText: string) {
 
 function getLastVisibleMessage(
     reportID: string,
+    canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
     reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
 ): LastVisibleMessage {
-    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
+    const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
     const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
@@ -831,7 +839,11 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    canUserPerformWriteAction?: boolean,
+    shouldIncludeInvisibleActions = false,
+): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -841,7 +853,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction))
             .map(([, reportAction]) => reportAction);
     }
 
@@ -1090,9 +1102,9 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
  * When we delete certain reports, we want to check whether there are any visible actions left to display.
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
-function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
+function doesReportHaveVisibleActions(reportID: string, canUserPerformWriteAction?: boolean, actionsToMerge: ReportActions = {}): boolean {
     const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
 
     // Exclude the task system message and the created message
     const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
@@ -1485,11 +1497,12 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST);
 }
 
-function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
-    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(
-        (reportActionItem) => isActionableJoinRequest(reportActionItem) && getOriginalMessage(reportActionItem)?.choice === ('' as JoinWorkspaceResolution),
-    );
+function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isActionableJoinRequest(reportAction) && getOriginalMessage(reportAction)?.choice === ('' as JoinWorkspaceResolution);
+}
 
+function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
+    const findPendingRequest = Object.values(getAllReportActions(reportID)).find((reportActionItem) => isActionableJoinRequestPendingReportAction(reportActionItem));
     return findPendingRequest;
 }
 

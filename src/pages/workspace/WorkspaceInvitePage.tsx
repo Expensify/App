@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -48,7 +47,6 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps & WithNaviga
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
@@ -66,14 +64,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('beforeRemove', () => {
-            Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        });
-
-        return unsubscribe;
-    }, [navigation, route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);

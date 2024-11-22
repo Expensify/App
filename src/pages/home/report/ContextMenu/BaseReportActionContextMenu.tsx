@@ -76,6 +76,12 @@ type BaseReportActionContextMenuProps = {
     /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
     isUnreadChat?: boolean;
 
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
+    isThreadReportParentAction?: boolean;
+
     /** Content Ref */
     contentRef?: RefObject<View>;
 
@@ -101,6 +107,7 @@ function BaseReportActionContextMenu({
     isVisible = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    isThreadReportParentAction = false,
     selection = '',
     draftMessage = '',
     reportActionID,
@@ -194,6 +201,7 @@ function BaseReportActionContextMenu({
                 reportID,
                 isPinnedChat,
                 isUnreadChat,
+                isThreadReportParentAction,
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
@@ -284,6 +292,7 @@ function BaseReportActionContextMenu({
             true,
             () => {},
             true,
+            isThreadReportParentAction,
         );
     };
 
