@@ -1,23 +1,31 @@
-type SaveCorpayOnboardingCompanyDetailsParams = {
+import type CONST from '@src/CONST';
+
+type SaveCorpayOnboardingCompanyDetails = {
+    annualVolume: string;
+    applicantTypeId: string;
     companyName: string;
     companyStreetAddress: string;
     companyCity: string;
     companyState?: string;
     companyPostalCode: string;
     companyCountryCode: string;
+    currencyNeeded: string;
     businessContactNumber: string;
     businessConfirmationEmail: string;
+    businessRegistrationIncorporationNumber: string;
     formationIncorporationCountryCode: string;
     formationIncorporationState?: string;
-    businessRegistrationIncorporationNumber: string;
-    applicantTypeID: string;
-    purposeOfTransactionId: string;
-    currencyNeeded: string;
-    tradeVolume: string;
-    annualVolume: string;
     fundDestinationCountries: string;
     fundSourceCountries: string;
-    bankAccountID: string;
+    natureOfBusiness: string;
+    purposeOfTransactionId: typeof CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID;
+    tradeVolume: string;
+    taxIDEINNumber: string;
 };
 
-export default SaveCorpayOnboardingCompanyDetailsParams;
+type SaveCorpayOnboardingCompanyDetailsParams = {
+    inputs: string;
+    bankAccountID: number;
+};
+
+export type {SaveCorpayOnboardingCompanyDetails, SaveCorpayOnboardingCompanyDetailsParams};

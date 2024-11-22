@@ -18,6 +18,7 @@ import IncorporationLocation from './substeps/IncorporationLocation';
 import Name from './substeps/Name';
 import PaymentVolume from './substeps/PaymentVolume';
 import RegistrationNumber from './substeps/RegistrationNumber';
+import TaxIDEINNumber from './substeps/TaxIDEINNumber';
 
 type BusinessInfoProps = {
     /** Handles back button press */
@@ -27,7 +28,17 @@ type BusinessInfoProps = {
     onSubmit: () => void;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Name, Address, ContactInformation, RegistrationNumber, IncorporationLocation, BusinessType, PaymentVolume, Confirmation];
+const bodyContent: Array<ComponentType<SubStepProps>> = [
+    Name,
+    Address,
+    ContactInformation,
+    RegistrationNumber,
+    TaxIDEINNumber,
+    IncorporationLocation,
+    BusinessType,
+    PaymentVolume,
+    Confirmation,
+];
 
 const INPUT_KEYS = {
     NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME,
@@ -40,9 +51,11 @@ const INPUT_KEYS = {
     CONFIRMATION_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONFIRMATION_EMAIL,
     INCORPORATION_STATE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_STATE,
     INCORPORATION_COUNTRY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.FORMATION_INCORPORATION_COUNTRY_CODE,
+    BUSINESS_REGISTRATION_INCORPORATION_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     BUSINESS_CATEGORY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY,
     APPLICANT_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID,
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
+    TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
 };
 
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
@@ -50,7 +63,11 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? '';
     const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
     const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
@@ -59,24 +76,33 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
-        // TODO pass proper params
-        BankAccounts.saveCorpayOnboardingCompanyDetails({
-            companyName: onyxValues[INPUT_KEYS.NAME],
-            companyStreetAddress: onyxValues[INPUT_KEYS.STREET],
-            companyCity: onyxValues[INPUT_KEYS.CITY],
-            companyState: onyxValues[INPUT_KEYS.STATE],
-            companyPostalCode: onyxValues[INPUT_KEYS.ZIP_CODE],
-            companyCountryCode: onyxValues[INPUT_KEYS.COUNTRY],
-            businessContactNumber: onyxValues[INPUT_KEYS.CONTACT_NUMBER],
-            businessConfirmationEmail: onyxValues[INPUT_KEYS.CONFIRMATION_EMAIL],
-            formationIncorporationState: onyxValues[INPUT_KEYS.INCORPORATION_STATE],
-            formationIncorporationCountryCode: onyxValues[INPUT_KEYS.INCORPORATION_COUNTRY],
-            businessCategory: onyxValues[INPUT_KEYS.BUSINESS_CATEGORY],
-            applicantTypeID: onyxValues[INPUT_KEYS.APPLICANT_TYPE_ID],
-            annualVolume: onyxValues[INPUT_KEYS.ANNUAL_VOLUME],
-        });
+        BankAccounts.saveCorpayOnboardingCompanyDetails(
+            {
+                annualVolume: onyxValues[INPUT_KEYS.ANNUAL_VOLUME],
+                applicantTypeId: onyxValues[INPUT_KEYS.APPLICANT_TYPE_ID],
+                companyName: onyxValues[INPUT_KEYS.NAME],
+                companyStreetAddress: onyxValues[INPUT_KEYS.STREET],
+                companyCity: onyxValues[INPUT_KEYS.CITY],
+                companyState: onyxValues[INPUT_KEYS.STATE],
+                companyPostalCode: onyxValues[INPUT_KEYS.ZIP_CODE],
+                companyCountryCode: onyxValues[INPUT_KEYS.COUNTRY],
+                currencyNeeded: currency,
+                businessContactNumber: onyxValues[INPUT_KEYS.CONTACT_NUMBER],
+                businessConfirmationEmail: onyxValues[INPUT_KEYS.CONFIRMATION_EMAIL],
+                businessRegistrationIncorporationNumber: onyxValues[INPUT_KEYS.BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
+                formationIncorporationState: onyxValues[INPUT_KEYS.INCORPORATION_STATE],
+                formationIncorporationCountryCode: onyxValues[INPUT_KEYS.INCORPORATION_COUNTRY],
+                fundSourceCountries: onyxValues[INPUT_KEYS.COUNTRY],
+                fundDestinationCountries: onyxValues[INPUT_KEYS.STATE],
+                natureOfBusiness: onyxValues[INPUT_KEYS.BUSINESS_CATEGORY],
+                purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
+                tradeVolume: onyxValues[INPUT_KEYS.ANNUAL_VOLUME],
+                taxIDEINNumber: onyxValues[INPUT_KEYS.TAX_ID_EIN_NUMBER],
+            },
+            bankAccountID,
+        );
         onSubmit();
-    }, [onSubmit, onyxValues]);
+    }, [bankAccountID, currency, onSubmit, onyxValues]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 

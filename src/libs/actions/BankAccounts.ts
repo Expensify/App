@@ -8,10 +8,10 @@ import type {
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
-    SaveCorpayOnboardingCompanyDetailsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
+import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
@@ -506,8 +506,11 @@ function getCorpayOnboardingFields(country: Country | '') {
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 
-function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetailsParams) {
-    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, parameters);
+function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetails, bankAccountID: number) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, {
+        inputs: JSON.stringify(parameters),
+        bankAccountID,
+    });
 }
 
 function clearReimbursementAccount() {
