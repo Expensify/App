@@ -827,7 +827,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         };
     }, [deleteTransaction]);
 
-    // Where to go back after deleting the transaction and its report.
+    // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
         let urlToNavigateBack: string | undefined;
 
