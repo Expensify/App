@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-web/dist/exports/Image/index.js b/node_modules/react-native-web/dist/exports/Image/index.js
-index 9649d27..66ef95c 100644
+index 348831d..ca40ee8 100644
 --- a/node_modules/react-native-web/dist/exports/Image/index.js
 +++ b/node_modules/react-native-web/dist/exports/Image/index.js
-@@ -135,7 +135,22 @@ function resolveAssetUri(source) {
+@@ -137,7 +137,22 @@ function resolveAssetUri(source) {
    }
    return uri;
  }
@@ -13,7 +13,7 @@ index 9649d27..66ef95c 100644
 +  if (onError) {
 +    onError({
 +      nativeEvent: {
-+        error: "Failed to load resource " + uri + " (404)"
++        error: "Failed to load resource " + uri
 +      }
 +    });
 +  }
@@ -26,14 +26,14 @@ index 9649d27..66ef95c 100644
    var _ariaLabel = props['aria-label'],
      accessibilityLabel = props.accessibilityLabel,
      blurRadius = props.blurRadius,
-@@ -238,16 +253,10 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
+@@ -240,16 +255,10 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
          }
        }, function error() {
          updateState(ERRORED);
 -        if (onError) {
 -          onError({
 -            nativeEvent: {
--              error: "Failed to load resource " + uri + " (404)"
+-              error: "Failed to load resource " + uri
 -            }
 -          });
 -        }
@@ -47,7 +47,7 @@ index 9649d27..66ef95c 100644
        });
      }
      function abortPendingRequest() {
-@@ -279,10 +288,79 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
+@@ -281,10 +290,79 @@ var Image = /*#__PURE__*/React.forwardRef((props, ref) => {
      suppressHydrationWarning: true
    }), hiddenImage, createTintColorSVG(tintColor, filterRef.current));
  });

@@ -76,7 +76,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!customUnit) {
+        if (!customUnit || !customUnit.attributes) {
             return;
         }
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};

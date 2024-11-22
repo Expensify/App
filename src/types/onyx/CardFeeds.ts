@@ -61,6 +61,12 @@ type CardFeeds = {
 
                 /** Expiration number */
                 expiration: number;
+
+                /** Whether any actions are pending */
+                pending?: boolean;
+
+                /** Broken connection errors */
+                errors?: OnyxCommon.Errors;
             }
         >;
     };

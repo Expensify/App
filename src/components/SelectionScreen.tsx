@@ -93,6 +93,18 @@ type SelectionScreenProps<T = string> = {
 
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
+
+    /** Whether to show the text input */
+    shouldShowTextInput?: boolean;
+
+    /** Label for the text input */
+    textInputLabel?: string;
+
+    /** Value for the text input */
+    textInputValue?: string;
+
+    /** Callback to fire when the text input changes */
+    onChangeText?: (text: string) => void;
 };
 
 function SelectionScreen<T = string>({
@@ -117,6 +129,10 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
+    textInputLabel,
+    textInputValue,
+    onChangeText,
+    shouldShowTextInput,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -152,9 +168,13 @@ function SelectionScreen<T = string>({
                         sections={sections}
                         ListItem={listItem}
                         showScrollIndicator
+                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
+                        textInputLabel={textInputLabel}
+                        textInputValue={textInputValue}
+                        shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
                         sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}

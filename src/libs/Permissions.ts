@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
@@ -13,11 +12,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
-}
-
-function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
-    // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
-    return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
@@ -52,7 +46,6 @@ export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseDupeDetection,
-    canUseP2PDistanceRequests,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
     canUseCombinedTrackSubmit,
