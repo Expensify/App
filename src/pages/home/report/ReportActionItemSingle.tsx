@@ -313,6 +313,7 @@ function ReportActionItemSingle({
         styles.flex1,
         styles.chatItemMessageHeaderSender,
         styles.pre,
+        styles.overflowHidden,
         action,
         actorAccountID,
         displayName,
