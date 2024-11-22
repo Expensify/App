@@ -89,7 +89,8 @@ function ReportActionsView({
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? -1}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+            ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, ReportUtils.canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);

@@ -18,6 +18,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -25,6 +26,8 @@ import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
+import * as Task from '@userActions/Task';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -104,9 +107,15 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
         );
     }, [styles, translate, ctaErrorMessage]);
 
-    const [onboardingPurpose] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: (introSelected) => introSelected?.choice});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
     const navatticURL = getNavatticURL(environment, onboardingPurpose);
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     const content = useMemo(() => {
         switch (type) {
@@ -134,7 +143,18 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
-                            {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
+                            ...(!hasSeenTour
+                                ? [
+                                      {
+                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonAction: () => {
+                                              Link.openExternalLink(navatticURL);
+                                              Welcome.setSelfTourViewed();
+                                              Task.completeTask(viewTourTaskReport);
+                                          },
+                                      },
+                                  ]
+                                : []),
                             {
                                 buttonText: translate('iou.createExpense'),
                                 buttonAction: () =>
@@ -161,7 +181,18 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
-                            {buttonText: translate('emptySearchView.takeATour'), buttonAction: () => Link.openExternalLink(navatticURL)},
+                            ...(!hasSeenTour
+                                ? [
+                                      {
+                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonAction: () => {
+                                              Link.openExternalLink(navatticURL);
+                                              Welcome.setSelfTourViewed();
+                                              Task.completeTask(viewTourTaskReport);
+                                          },
+                                      },
+                                  ]
+                                : []),
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
                                 buttonAction: () =>
@@ -202,6 +233,8 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
         navatticURL,
         shouldRedirectToExpensifyClassic,
         hasNoFilterApplied,
+        hasSeenTour,
+        viewTourTaskReport,
     ]);
 
     return (

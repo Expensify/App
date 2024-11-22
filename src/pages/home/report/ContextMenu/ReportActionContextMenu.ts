@@ -64,7 +64,7 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
         return;
     }
     if (!shouldDelay) {
-        onHideCallback();
+        contextMenuRef.current.hideContextMenu(onHideCallback);
         return;
     }
 
