@@ -83,7 +83,7 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
 function shouldShowEmployeeListError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
+    return isPolicyAdmin(policy) && Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
 }
 
 /**
