@@ -254,7 +254,7 @@ function ReportActionItemSingle({
         return () => {
             if (displayAllActors && personArray.length === 2 && isReportPreviewAction) {
                 return (
-                    <View style={[styles.flexRow]}>
+                    <View style={[styles.flexRow, styles.overflowHidden]}>
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${0}`}
