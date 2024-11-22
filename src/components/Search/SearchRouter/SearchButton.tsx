@@ -28,7 +28,7 @@ function SearchButton({style}: SearchButtonProps) {
         if (pressableRef.current) {
             pressableRef.current.blur();
         }
-        
+
         Timing.start(CONST.TIMING.OPEN_SEARCH);
         Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
