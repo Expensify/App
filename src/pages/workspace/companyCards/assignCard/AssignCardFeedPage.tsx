@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -22,6 +23,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = route.params?.feed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id ?? '-1';
+
+    useEffect(() => {
+        return () => {
+            CompanyCards.clearAssignCardStepAndData();
+        };
+    }, []);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
