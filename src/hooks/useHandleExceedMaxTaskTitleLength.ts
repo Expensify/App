@@ -15,7 +15,7 @@ const useHandleExceedMaxTaskTitleLength = () => {
         }
         setHasExceededMaxTitleLength(false);
         return false;
-    }, []);
+    }, [hasExceededMaxTitleLength]);
 
     const validateTitleMaxLength = useMemo(() => debounce(handleValueChange, 100, {leading: true}), [handleValueChange]);
 
