@@ -69,7 +69,6 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
@@ -123,7 +122,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         let title = item.name;
         if (title === item.query) {
             const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, cardList, reports, taxRates);
+            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates);
         }
 
         const baseMenuItem: SavedSearchMenuItem = {
@@ -229,7 +228,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates));
+        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates));
 
         return (
             <SearchTypeMenuNarrow

@@ -5,6 +5,14 @@ import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSu
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+jest.mock('@libs/CardUtils', () => {
+    return {
+        getCardDescription(cardID: number) {
+            return cardID;
+        },
+    };
+});
+
 jest.mock('@libs/ReportUtils', () => {
     return {
         parseReportRouteParams: jest.fn(() => ({})),
@@ -30,25 +38,6 @@ const personalDetailsMock = {
     },
 } as OnyxTypes.PersonalDetailsList;
 
-const cardListMock = {
-    card1: {
-        cardID: 1111,
-        state: 3,
-        bank: 'Best Bank',
-        domainName: '',
-        lastUpdated: '',
-        fraud: 'none',
-    },
-    card2: {
-        cardID: 2222,
-        state: 3,
-        bank: 'Great Bank',
-        domainName: '',
-        lastUpdated: '',
-        fraud: 'none',
-    },
-} as OnyxTypes.CardList;
-
 const reportsMock = {
     [`${ONYXKEYS.COLLECTION.REPORT}rep123`]: {
         reportID: 'rep123',
@@ -68,14 +57,14 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, cardListMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
 
         expect(result).toStrictEqual({});
     });
     test('when query has a single substitution', () => {
         const userQuery = 'foo from:12345';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, cardListMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
 
         expect(result).toStrictEqual({
             'from:John Doe': '12345',
@@ -83,15 +72,15 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     });
 
     test('when query has multiple substitutions of different types', () => {
-        const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:card1 in:rep123 taxRate:id_TAX_1';
+        const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, cardListMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
 
         expect(result).toStrictEqual({
             'from:Jane Doe': '78901',
             'from:John Doe': '12345',
             'in:Report 1': 'rep123',
-            'cardID:Best Bank': 'card1',
+            'cardID:11223344': '11223344',
             'taxRate:TAX_1': 'id_TAX_1',
         });
     });

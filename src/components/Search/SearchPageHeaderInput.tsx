@@ -68,7 +68,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
-    const [cardList = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     // The actual input text that the user sees
@@ -82,16 +81,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
-    const queryText = SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates);
+    const queryText = SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates);
 
     useEffect(() => {
         setTextInputValue(queryText);
     }, [queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, cardList, reports, taxRates);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [originalInputQuery, cardList, personalDetails, reports, taxRates]);
+    }, [originalInputQuery, personalDetails, reports, taxRates]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {

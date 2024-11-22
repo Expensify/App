@@ -488,20 +488,14 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(
-    filterName: string,
-    filterValue: string,
-    personalDetails: OnyxTypes.PersonalDetailsList,
-    cardList: OnyxTypes.CardList,
-    reports: OnyxCollection<OnyxTypes.Report>,
-) {
+function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return personalDetails?.[filterValue]?.displayName || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        const cardID = parseInt(filterName, 10);
+        const cardID = parseInt(filterValue, 10);
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
@@ -526,7 +520,6 @@ function getFilterDisplayValue(
 function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
     PersonalDetails: OnyxTypes.PersonalDetailsList,
-    cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
 ) {
@@ -560,7 +553,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
             }));
         }
         title += buildFilterValuesString(key, displayQueryFilters);

@@ -27,7 +27,6 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
 function buildSubstitutionsMap(
     query: string,
     personalDetails: OnyxTypes.PersonalDetailsList,
-    cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
     allTaxRates: Record<string, string[]>,
 ): SubstitutionMap {
@@ -62,7 +61,7 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID
         ) {
-            const displayValue = SearchQueryUtils.getFilterDisplayValue(filterKey, filterValue, personalDetails, cardList, reports);
+            const displayValue = SearchQueryUtils.getFilterDisplayValue(filterKey, filterValue, personalDetails, reports);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
