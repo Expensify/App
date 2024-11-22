@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -57,7 +58,11 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
 
         if (Object.keys(policy?.employeeList ?? {}).length === 1) {
-            data.email = Object.keys(policy?.employeeList ?? {}).at(0);
+            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+            data.email = userEmail;
+            const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(userEmail);
+            const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
+            data.cardName = `${memberName}'s card`;
             currentStep = CONST.COMPANY_CARD.STEP.CARD;
 
             if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
