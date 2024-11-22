@@ -27,9 +27,10 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
 
     const {config} = policy?.connections?.xero ?? {};
+    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount),
-        [config?.export?.nonReimbursableAccount, policy],
+        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount || bankAccounts?.[0]?.id),
+        [config?.export?.nonReimbursableAccount, policy, bankAccounts],
     );
 
     const listHeaderComponent = useMemo(
