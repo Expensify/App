@@ -1717,8 +1717,12 @@ function getDeleteTrackExpenseInformation(
         },
         ...(actionableWhisperReportActionID && {[actionableWhisperReportActionID]: {originalMessage: {resolution}}}),
     } as OnyxTypes.ReportActions;
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '-1', updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '-1', updatedReportAction);
+    let canUserPerformWriteAction = true;
+    if (chatReport) {
+        canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(chatReport);
+    }
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '-1', canUserPerformWriteAction, updatedReportAction);
+    const {lastMessageText = '', lastMessageHtml = ''} = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '-1', canUserPerformWriteAction, updatedReportAction);
 
     // STEP 4: Build Onyx data
     const optimisticData: OnyxUpdate[] = [];
@@ -2633,10 +2637,6 @@ function getUpdateMoneyRequestParams(
         updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true);
     }
 
-    if (updatedMoneyRequestReport) {
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
-    }
-
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3409,8 +3409,6 @@ function categorizeTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
-    waypoints?: string,
-    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3457,8 +3455,6 @@ function categorizeTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
-        waypoints,
-        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3494,8 +3490,6 @@ function shareTrackedExpense(
     billable?: boolean,
     receipt?: Receipt,
     createdWorkspaceParams?: CreateWorkspaceParams,
-    waypoints?: string,
-    customUnitRateID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3542,8 +3536,6 @@ function shareTrackedExpense(
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
-        waypoints,
-        customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3847,8 +3839,6 @@ function trackExpense(
         value: recentServerValidatedWaypoints,
     });
 
-    const waypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
-
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
@@ -3879,8 +3869,6 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
-                waypoints,
-                customUnitRateID,
             );
             break;
         }
@@ -3912,8 +3900,6 @@ function trackExpense(
                 billable,
                 trackedReceipt,
                 createdWorkspaceParams,
-                waypoints,
-                customUnitRateID,
             );
             break;
         }
@@ -3942,7 +3928,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints,
+                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -5436,8 +5422,12 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         },
     } as Record<string, NullishDeep<OnyxTypes.ReportAction>>;
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport?.reportID ?? '-1', updatedReportAction);
-    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport?.reportID ?? '-1', updatedReportAction).lastMessageText;
+    let canUserPerformWriteAction = true;
+    if (chatReport) {
+        canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(chatReport);
+    }
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport?.reportID ?? '-1', canUserPerformWriteAction, updatedReportAction);
+    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport?.reportID ?? '-1', canUserPerformWriteAction, updatedReportAction).lastMessageText;
     const shouldDeleteIOUReport =
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
@@ -5666,6 +5656,10 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     if (shouldDeleteIOUReport) {
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(chatReport);
+        }
         onyxUpdates.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -5673,8 +5667,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
                 value: {
                     hasOutstandingChildRequest: false,
                     iouReportID: null,
-                    lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.lastMessageText,
-                    lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.created,
+                    lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', canUserPerformWriteAction, {
+                        [reportPreviewAction?.reportActionID ?? '-1']: null,
+                    })?.lastMessageText,
+                    lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', canUserPerformWriteAction, {
+                        [reportPreviewAction?.reportActionID ?? '-1']: null,
+                    })?.created,
                 },
             },
             {
@@ -5792,14 +5790,21 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     }
 
     if (shouldDeleteIOUReport) {
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(chatReport);
+        }
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', {[reportPreviewAction?.reportActionID ?? '-1']: null})?.created,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '-1', canUserPerformWriteAction, {[reportPreviewAction?.reportActionID ?? '-1']: null})
+                    ?.lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '-1', canUserPerformWriteAction, {
+                    [reportPreviewAction?.reportActionID ?? '-1']: null,
+                })?.created,
             },
         });
         optimisticData.push({

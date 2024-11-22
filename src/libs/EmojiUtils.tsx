@@ -1,8 +1,12 @@
 import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import Text from '@components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
@@ -18,10 +22,16 @@ type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 type EmojiTrieModule = {default: typeof EmojiTrie};
+type TextWithEmoji = {
+    text: string;
+    isEmoji: boolean;
+};
 
 const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
+
+const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => !emoji.name.includes(emojiData[0].toLowerCase().slice(1));
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
@@ -148,7 +158,7 @@ function trimEmojiUnicode(emojiCode: string): string {
  */
 function isFirstLetterEmoji(message: string): boolean {
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+    const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
         return false;
@@ -162,7 +172,7 @@ function isFirstLetterEmoji(message: string): boolean {
  */
 function containsOnlyEmojis(message: string): boolean {
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+    const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!match) {
         return false;
@@ -285,7 +295,7 @@ function extractEmojis(text: string): Emoji[] {
     }
 
     // Parse Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
-    const parsedEmojis = text.match(CONST.REGEX.EMOJIS);
+    const parsedEmojis = text.match(CONST.REGEX.ALL_EMOJIS);
 
     if (!parsedEmojis) {
         return [];
@@ -424,7 +434,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
     for (const node of nodes) {
         if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
             if (matching.length === limit) {
-                return matching;
+                return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
             }
             matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
         }
@@ -434,7 +444,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
         }
         for (const suggestion of suggestions) {
             if (matching.length === limit) {
-                return matching;
+                return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
             }
 
             if (!matching.find((obj) => obj.name === suggestion.name)) {
@@ -442,7 +452,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
             }
         }
     }
-    return matching;
+    return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
 }
 
 /**
@@ -595,6 +605,75 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     return spacersIndexes;
 }
 
+/** Splits the text with emojis into array if emojis exist in the text */
+function splitTextWithEmojis(text = ''): TextWithEmoji[] {
+    if (!text) {
+        return [];
+    }
+
+    const doesTextContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(text);
+
+    if (!doesTextContainEmojis) {
+        return [];
+    }
+
+    // The regex needs to be cloned because `exec()` is a stateful operation and maintains the state inside
+    // the regex variable itself, so we must have an independent instance for each function's call.
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+
+    const splitText: TextWithEmoji[] = [];
+    let regexResult: RegExpExecArray | null;
+    let lastMatchIndexEnd = 0;
+
+    do {
+        regexResult = emojisRegex.exec(text);
+
+        if (regexResult?.indices) {
+            const matchIndexStart = regexResult.indices[0][0];
+            const matchIndexEnd = regexResult.indices[0][1];
+
+            if (matchIndexStart > lastMatchIndexEnd) {
+                splitText.push({
+                    text: text.slice(lastMatchIndexEnd, matchIndexStart),
+                    isEmoji: false,
+                });
+            }
+
+            splitText.push({
+                text: text.slice(matchIndexStart, matchIndexEnd),
+                isEmoji: true,
+            });
+
+            lastMatchIndexEnd = matchIndexEnd;
+        }
+    } while (regexResult !== null);
+
+    if (lastMatchIndexEnd < text.length) {
+        splitText.push({
+            text: text.slice(lastMatchIndexEnd, text.length),
+            isEmoji: false,
+        });
+    }
+
+    return splitText;
+}
+
+function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<TextStyle>): Array<React.JSX.Element | string> {
+    return processedTextArray.map(({text, isEmoji}, index) =>
+        isEmoji ? (
+            <Text
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                style={style}
+            >
+                {text}
+            </Text>
+        ) : (
+            text
+        ),
+    );
+}
+
 export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
@@ -602,6 +681,7 @@ export {
     findEmojiByCode,
     getEmojiName,
     getLocalizedEmojiName,
+    getProcessedText,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     containsOnlyEmojis,
@@ -620,4 +700,5 @@ export {
     hasAccountIDEmojiReacted,
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
+    splitTextWithEmojis,
 };
