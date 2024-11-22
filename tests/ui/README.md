@@ -81,17 +81,24 @@ test('toggles state when clicked', () => {
 ### Do’s
 
 - Write tests that reflect actual user behavior (e.g., clicking buttons, filling forms).
-- Mock external dependencies like network calls or Onyx data.
+- Mock external dependencies like network calls or Onyx data. If the amount of onyx data is large, place it in an external JSON file with the same name as the test file and import the data.
 - Use `findBy` and `waitFor` to handle asynchronous updates in the UI.
 - Follow naming conventions for test IDs (`testID="component-name-action"`).
-- Test for accessibility attributes like `accessibilityLabel`, `accessibilityHint`, etc., to improve test coverage for screen readers.
+- Test for accessibility attributes like `accessibilityLabel`, `accessibilityHint`, etc., to improve test coverage for screen readers.  These  attributes are vital for users who rely on assistive technologies like screen readers. Testing them ensures that app is inclusive and usable for all.
+
+``` javascript
+    test('component has correct role', () => {
+        render(<Button accessibilityLabel="Submit" />)
+        expect(screen.getByRole('button')).toBeInTheDocument();
+    });
+```
 - Reuse test utilities: Write helper functions to handle repetitive test setup, reducing code duplication and improving maintainability.
 - **Rather than targeting 100% coverage, prioritize meaningful tests for critical workflows and components**.
 
 ### Don’ts
 
 - Don’t test implementation details (e.g., state variables or internal method calls).
-- Don’t ignore warnings: Fix `act()` or other common warnings to ensure reliability.
+- Don’t ignore warnings: Fix `act()` or other common warnings to ensure reliability.  The `act()`function ensures that any updates to the state or props of a component (including rendering, firing events, or manual state updates) are completed before the test proceeds. The RNTL automatically wraps most rendering and interaction utilities (`render`, `fireEvent`, `waitFor`, etc.) in `act()` to manage these updates. However, there are some situations where manual use of `act()` might be necessary, particularly when dealing with asynchronous logic, animations or timers(`setTimeOut`, `setInterval` etc). You can find more detailed explanation [here](https://callstack.github.io/react-native-testing-library/docs/advanced/understanding-act).
 - Avoid over-mocking: Mock dependencies sparingly to maintain realistic tests.
     - *Bad*: Mocking a child component unnecessarily.
     - *Good*: Mocking a network request while testing component interactions.
@@ -121,3 +128,4 @@ afterEach(() => {
   jest.clearAllMocks();  // Clears mocks after each test
 });
 ```
+- Having tightly coupled tests where one test depends on the actions from a previous test. This can cause tests to fail unexpectedly and it makes tests hard to maintain and debug. Each test should be self-sufficient.
