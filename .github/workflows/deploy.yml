@@ -267,7 +267,7 @@ jobs:
         id: getAndroidRolloutPercentage
         uses: ./.github/actions/javascript/getAndroidRolloutPercentage
         with:
-          GOOGLE_KEY_FILE: android-fastlane-json-key.json
+          GOOGLE_KEY_FILE: Mobile-Expensify/react-native/android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
 
       - name: Submit production build for Google Play review and a slow rollout
