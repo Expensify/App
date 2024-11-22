@@ -62,8 +62,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteItemData[] | undefined>([]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
 
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -340,11 +339,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     }, [sortedRecentSearches, contextualReportData]);
 
     useEffect(() => {
-        if ((!isWeb && !isDesktop) || textInputValue) {
+        if (!isLargeScreenWidth || textInputValue) {
             return;
         }
         setInitialFocus();
-    }, [setInitialFocus, textInputValue, isWeb, isDesktop]);
+    }, [setInitialFocus, textInputValue, isLargeScreenWidth]);
 
     const onSearchChange = useCallback(
         (userQuery: string) => {
@@ -361,14 +360,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             if (newUserQuery || !isEmpty(prevUserQueryRef.current)) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-            } else if (!isWeb && !isDesktop) {
+            } else if (!isLargeScreenWidth) {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
 
             // Store the previous newUserQuery
             prevUserQueryRef.current = newUserQuery;
         },
-        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, isWeb, isDesktop],
+        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, isLargeScreenWidth],
     );
 
     const onSearchSubmit = useCallback(
