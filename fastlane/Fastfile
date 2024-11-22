@@ -592,6 +592,8 @@ platform :ios do
 
   desc "Submit HybridApp to 100% rollout on App Store"
     lane :complete_hybrid_rollout do
+        puts Dir.pwd
+        sh "pwd"
         api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios/ios-fastlane-json-key.json")
         Spaceship::ConnectAPI.token = api_token
 
