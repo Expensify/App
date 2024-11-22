@@ -57,7 +57,7 @@ function AttachmentPreview({source = '', aspectRatio}: AttachmentModalProps) {
     );
 
     const isSourcePdf = typeof source === 'number' || (typeof source === 'string' && Str.isPDF(source));
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && (Str.isImage(source) || Str.isVideo(source)));
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name))) ?? (file?.name && Str.isVideo(file.name));
     const isFileNamePdf = file?.name && Str.isPDF(file.name);
     const isFileNameImage = file?.name && Str.isImage(file.name);
@@ -66,11 +66,19 @@ function AttachmentPreview({source = '', aspectRatio}: AttachmentModalProps) {
     const isFileVideo = isSourceVideo && typeof source === 'string';
 
     if (isFilePdf) {
-        return <View style={{width: '100%', aspectRatio, borderRadius: 8, paddingLeft: 20, overflow: 'hidden'}}>{AttachmentViewComponent}</View>;
+        return (
+            <View style={{width: '100%', aspectRatio: 2, borderRadius: 8, overflow: 'hidden'}}>
+                <View style={{width: '100%', aspectRatio: 2, paddingLeft: 20, overflow: 'hidden'}}>{AttachmentViewComponent}</View>
+            </View>
+        );
     }
 
     if (isFileImage) {
-        return <View style={{width: '100%', aspectRatio, borderRadius: 8, overflow: 'hidden', backgroundColor: 'yellow'}}>{AttachmentViewComponent}</View>;
+        return (
+            <View style={{width: '100%', aspectRatio: 2, borderRadius: 8, overflow: 'hidden'}}>
+                <View style={{width: '100%', aspectRatio, backgroundColor: 'yellow'}}>{AttachmentViewComponent}</View>
+            </View>
+        );
     }
 
     if (isFileVideo) {
