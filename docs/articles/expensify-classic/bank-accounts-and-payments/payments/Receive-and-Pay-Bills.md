@@ -20,7 +20,7 @@ Share your Expensify billing email with vendors to receive bills automatically.
 Received a bill in your email? Forward it to Expensify.  
 
 - Ensure your Primary Contact is set under **Settings > Domains > Domain Admins**.  
-- Forward bills to `domainname@expensify.cash`.  
+- Forward bills to `domainname@expensify.cash`. Example: `domainname@expensify.cash` (e.g., for *expensify.com*, use `expensify@expensify.cash`).  
 - Expensify will create a bill automatically, ready for payment.  
 
 ### 3. Manual Upload  
@@ -50,10 +50,10 @@ Expensify offers several ways to pay bills. Choose the method that works best fo
 
 ### 1. ACH Bank-to-Bank Transfer  
 
-Fast and fee-free, this method requires a connected [[business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account)].  
+Fast and fee-free, this method requires a connected [business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account).  
 
 **How to Pay via ACH:**  
-1. Log in to your [[Expensify web account](https://www.expensify.com/)].  
+1. Log in to your [Expensify web account](https://www.expensify.com/).  
 2. Find the bill on the Home or Reports page.  
 3. Click **Pay** and select the ACH option.  
 
@@ -66,7 +66,7 @@ Fast and fee-free, this method requires a connected [[business bank account](htt
 Pay vendors using a credit or debit card. This option is available for US and international customers paying US vendors with a US business bank account.  
 
 **How to Pay with a Card:**  
-1. Log in to your [[Expensify web account](https://www.expensify.com/)].  
+1. Log in to your [Expensify web account](https://www.expensify.com/).  
 2. Open the bill details and click **Pay**.  
 3. Enter your card information to complete the payment.  
 
@@ -76,7 +76,7 @@ Pay vendors using a credit or debit card. This option is available for US and in
 
 ### 3. Venmo  
 
-If both you and the vendor have Venmo accounts connected to Expensify, you can pay through Venmo. Learn how to set up Venmo [[here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments#setting-up-third-party-payments)].  
+If both you and the vendor have Venmo accounts connected to Expensify, you can pay through Venmo. Learn how to set up Venmo [here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments#setting-up-third-party-payments).  
 
 **Fees:** Venmo charges a 3% sender’s fee.  
 
@@ -87,7 +87,7 @@ If both you and the vendor have Venmo accounts connected to Expensify, you can p
 If you prefer to pay outside Expensify, you can still track the payment within the platform.  
 
 **How to Mark as Paid Outside Expensify:**  
-1. Log in to your [[Expensify web account](https://www.expensify.com/)].  
+1. Log in to your [Expensify web account](https://www.expensify.com/).  
 2. Open the bill details and click **Pay**.  
 3. Select **Mark as Paid** to update its status.  
 
