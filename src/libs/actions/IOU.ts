@@ -5978,10 +5978,6 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     return urlToNavigateBack;
-    // if (isSingleTransactionView && shouldDeleteTransactionThread) {
-    //     // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-    //     return ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '-1');
-    // }
 }
 
 /**
