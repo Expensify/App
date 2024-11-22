@@ -186,7 +186,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));

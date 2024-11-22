@@ -8030,8 +8030,8 @@ function getTripTransactions(tripRoomReportID: string | undefined, reportFieldTo
     return tripTransactionReportIDs.flatMap((reportID) => reportsTransactions[reportID ?? ''] ?? []);
 }
 
-function getTripIDFromTransactionParentReport(transactionParentReport: OnyxEntry<Report> | undefined | null): string | undefined {
-    return getReportOrDraftReport(transactionParentReport?.parentReportID)?.tripData?.tripID;
+function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
+    return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
 }
 
 /**
@@ -8700,7 +8700,7 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     getTripTransactions,
-    getTripIDFromTransactionParentReport,
+    getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
