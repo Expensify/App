@@ -348,6 +348,15 @@ type MenuItemBaseProps = {
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
+const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+    if (isPressed) {
+        return pressedBackgroundColor;
+    }
+    if (isHovered) {
+        return hoveredBackgroundColor;
+    }
+};
 function MenuItem(
     {
         interactive = true,
@@ -565,15 +574,6 @@ function MenuItem(
                     onPress(event);
                 }),
             )();
-        }
-    };
-
-    const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, pressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
-        if (pressed) {
-            return pressedBackgroundColor;
-        }
-        if (isHovered) {
-            return hoveredBackgroundColor;
         }
     };
 
