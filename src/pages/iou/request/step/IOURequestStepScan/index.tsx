@@ -286,7 +286,7 @@ function IOURequestStepScan({
             } else {
                 IOU.requestMoney({
                     report,
-                    participantData: {
+                    participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
                         participant,
@@ -387,12 +387,12 @@ function IOURequestStepScan({
                             } else {
                                 IOU.requestMoney({
                                     report,
-                                    participantData: {
+                                    participantParams: {
                                         payeeEmail: currentUserPersonalDetails.login,
                                         payeeAccountID: currentUserPersonalDetails.accountID,
                                         participant,
                                     },
-                                    policyData: {
+                                    policyParams: {
                                         policy,
                                     },
                                     gpsPoints: {

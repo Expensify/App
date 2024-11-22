@@ -197,8 +197,8 @@ type RequestMoneyParticipantParams = {
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
-    participantData: RequestMoneyParticipantParams;
-    policyData?: RequestMoneyPolicyParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
     gpsPoints?: GPSPoint;
     action?: IOUAction;
     reimbursible?: boolean;
@@ -3565,9 +3565,9 @@ function shareTrackedExpense(
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantData, policyData = {}, transactionData, gpsPoints, action, reimbursible} = requestMoneyInformation;
-    const {participant, payeeAccountID, payeeEmail} = participantData;
-    const {policy, policyCategories, policyTagList} = policyData;
+    const {report, participantParams, policyParams = {}, transactionData, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {participant, payeeAccountID, payeeEmail} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
     const {
         amount,
         currency,

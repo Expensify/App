@@ -240,12 +240,12 @@ function IOURequestStepConfirmation({
             }
             IOU.requestMoney({
                 report,
-                participantData: {
+                participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,
                     participant,
                 },
-                policyData: {
+                policyParams: {
                     policy,
                     policyTagList: policyTags,
                     policyCategories,

@@ -212,7 +212,7 @@ function IOURequestStepAmount({
                     playSound(SOUNDS.DONE);
                     IOU.requestMoney({
                         report,
-                        participantData: {
+                        participantParams: {
                             participant: participants.at(0) ?? {},
                             payeeEmail: currentUserPersonalDetails.login,
                             payeeAccountID: currentUserPersonalDetails.accountID,

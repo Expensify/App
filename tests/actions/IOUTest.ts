@@ -82,7 +82,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             IOU.requestMoney({
                 report: {reportID: ''},
-                participantData: {
+                participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -296,7 +296,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     IOU.requestMoney({
                         report: chatReport,
-                        participantData: {
+                        participantParams: {
                             payeeEmail: RORY_EMAIL,
                             payeeAccountID: RORY_ACCOUNT_ID,
                             participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -515,7 +515,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -670,7 +670,7 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             IOU.requestMoney({
                 report: {reportID: ''},
-                participantData: {
+                participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -1486,7 +1486,7 @@ describe('actions/IOU', () => {
             let transaction: OnyxEntry<OnyxTypes.Transaction>;
             IOU.requestMoney({
                 report: {reportID: ''},
-                participantData: {
+                participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
                     participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -1722,7 +1722,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -1850,7 +1850,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
@@ -1951,7 +1951,7 @@ describe('actions/IOU', () => {
             // When a submit IOU expense is made
             IOU.requestMoney({
                 report: chatReport,
-                participantData: {
+                participantParams: {
                     payeeEmail: TEST_USER_LOGIN,
                     payeeAccountID: TEST_USER_ACCOUNT_ID,
                     participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
@@ -2700,7 +2700,7 @@ describe('actions/IOU', () => {
             if (chatReport) {
                 IOU.requestMoney({
                     report: chatReport,
-                    participantData: {
+                    participantParams: {
                         payeeEmail: TEST_USER_LOGIN,
                         payeeAccountID: TEST_USER_ACCOUNT_ID,
                         participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
@@ -2918,7 +2918,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
@@ -3025,7 +3025,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
@@ -3133,7 +3133,7 @@ describe('actions/IOU', () => {
                     if (chatReport) {
                         IOU.requestMoney({
                             report: chatReport,
-                            participantData: {
+                            participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
                                 participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
