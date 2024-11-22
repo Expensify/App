@@ -75,8 +75,8 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             submitButtonStyles={[styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
-                {formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
+                <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
+                {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -89,6 +89,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
+                        autoFocus
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}

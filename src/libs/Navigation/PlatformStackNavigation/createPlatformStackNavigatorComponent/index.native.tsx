@@ -86,7 +86,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         navigation={navigation}
                     />
 
-                    {ExtraContent && (
+                    {!!ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         <ExtraContent {...customCodePropsWithCustomState} />
                     )}

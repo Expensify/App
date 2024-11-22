@@ -32,7 +32,7 @@ function SignUpWelcomeForm() {
                     pressOnEnter
                     style={[styles.mb2]}
                 />
-                {serverErrorText && (
+                {!!serverErrorText && (
                     <FormHelpMessage
                         isError
                         message={serverErrorText}

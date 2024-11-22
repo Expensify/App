@@ -61,7 +61,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
-            {xeroConfig?.importTrackingCategories && (
+            {!!xeroConfig?.importTrackingCategories && (
                 <View>
                     {menuItems.map((menuItem) => (
                         <OfflineWithFeedback

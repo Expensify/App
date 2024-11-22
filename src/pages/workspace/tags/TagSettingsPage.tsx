@@ -174,7 +174,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         />
                     </OfflineWithFeedback>
 
-                    {policy?.areRulesEnabled && canUseCategoryAndTagApprovers && !isMultiLevelTags && (
+                    {!!policy?.areRulesEnabled && !!canUseCategoryAndTagApprovers && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>

@@ -443,7 +443,7 @@ function AvatarWithImagePicker({
                     )}
                 </AttachmentModal>
             </View>
-            {errorData.validationError && (
+            {!!errorData.validationError && (
                 <DotIndicatorMessage
                     style={[styles.mt6]}
                     // eslint-disable-next-line @typescript-eslint/naming-convention

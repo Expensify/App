@@ -50,8 +50,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-        Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         Navigation.dismissModal();
+        InteractionManager.runAfterInteractions(() => {
+            Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+        });
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflow = useCallback(() => {
@@ -107,7 +109,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-            isLoading: false,
             errors: null,
         });
         setInitialApprovalWorkflow(currentApprovalWorkflow);
@@ -132,7 +133,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         title={translate('workflowsEditApprovalsPage.title')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {approvalWorkflow && (
+                    {!!approvalWorkflow && (
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
@@ -147,7 +148,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 onFixTheErrorsLinkPressed={() => {
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
-                                isLoading={approvalWorkflow?.isLoading}
                                 buttonText={translate('common.save')}
                                 containerStyles={[styles.mb5, styles.mh5]}
                                 enabledWhenOffline

@@ -84,7 +84,12 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:identifier _ { return buildFilter("eq", "keyword", value); }
+  = _ value:(quotedString / [^ \t\r\n]+) _ {
+      if (Array.isArray(value)) {
+        return buildFilter("eq", "keyword", value.join(""));
+      }
+      return buildFilter("eq", "keyword", value);
+    }
 
 standardFilter
   = _ field:key _ op:operator _ values:identifier {
@@ -114,12 +119,12 @@ defaultKey "default key"
   = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
 
 identifier
-  = parts:(quotedString / alphanumeric)|1.., ","| {
+  = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
       const value = parts.flat().map((word) => {
-      	if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
-      		return word.slice(1,-1);
-		}
-		return word;
+        if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
+          return word.slice(1, -1);
+        }
+        return word;
       });
       if (value.length > 1) {
         return value.filter((word) => word.length > 0);

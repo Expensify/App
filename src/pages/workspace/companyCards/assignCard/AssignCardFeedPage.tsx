@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import AssigneeStep from './AssigneeStep';
+import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
@@ -24,8 +25,10 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const policyID = policy?.id ?? '-1';
 
     useEffect(() => {
-        CompanyCards.setAssignCardStepAndData({data: {bankName: feed}});
-    }, [feed]);
+        return () => {
+            CompanyCards.clearAssignCardStepAndData();
+        };
+    }, []);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
@@ -39,6 +42,8 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             );
         case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
             return <TransactionStartDateStep />;
+        case CONST.COMPANY_CARD.STEP.CARD_NAME:
+            return <CardNameStep policyID={policyID} />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
             return (
                 <ConfirmationStep
@@ -49,8 +54,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         default:
             return <AssigneeStep policy={policy} />;
     }
-
-    return <AssigneeStep policy={policy} />;
 }
 
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

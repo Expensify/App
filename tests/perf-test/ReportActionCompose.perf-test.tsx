@@ -113,52 +113,13 @@ test('[ReportActionCompose] should render Composer with text input interactions'
     await measureRenders(<ReportActionComposeWrapper />, {scenario});
 });
 
-test('[ReportActionCompose] should scroll to hide suggestions', async () => {
+test('[ReportActionCompose] should press create button', async () => {
     const scenario = async () => {
-        // Query for the composer
-        const composer = await screen.findByTestId('composer');
-
-        // scroll to hide suggestions
-        fireEvent.scroll(composer);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press to block suggestions', async () => {
-    const scenario = async () => {
-        // Query for the composer
-        const composer = await screen.findByTestId('composer');
-
-        // press to block suggestions
-        fireEvent.press(composer);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press add attachemnt button', async () => {
-    const scenario = async () => {
-        // Query for the attachment button
+        // Query for the create button
         const hintAttachmentButtonText = Localize.translateLocal('common.create');
-        const attachmentButton = await screen.findByLabelText(hintAttachmentButtonText);
+        const createButton = await screen.findByLabelText(hintAttachmentButtonText);
 
-        fireEvent.press(attachmentButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press add emoji button', async () => {
-    const scenario = async () => {
-        // Query for the emoji button
-        const hintEmojiButtonText = Localize.translateLocal('reportActionCompose.emoji');
-        const emojiButton = await screen.findByLabelText(hintEmojiButtonText);
-
-        fireEvent.press(emojiButton);
+        fireEvent.press(createButton, mockEvent);
     };
 
     await waitForBatchedUpdates();
@@ -172,40 +133,6 @@ test('[ReportActionCompose] should press send message button', async () => {
         const sendButton = await screen.findByLabelText(hintSendButtonText);
 
         fireEvent.press(sendButton);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] press add attachment button', async () => {
-    const scenario = async () => {
-        const hintAddAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAttachment');
-
-        const addAttachmentButton = await screen.findByLabelText(hintAddAttachmentButtonText);
-        fireEvent.press(addAttachmentButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press split bill button', async () => {
-    const scenario = async () => {
-        const hintSplitBillButtonText = Localize.translateLocal('iou.splitExpense');
-        const splitBillButton = await screen.findByLabelText(hintSplitBillButtonText);
-        fireEvent.press(splitBillButton, mockEvent);
-    };
-
-    await waitForBatchedUpdates();
-    await measureRenders(<ReportActionComposeWrapper />, {scenario});
-});
-
-test('[ReportActionCompose] should press assign task button', async () => {
-    const scenario = async () => {
-        const hintAssignTaskButtonText = Localize.translateLocal('newTaskPage.assignTask');
-        const assignTaskButton = await screen.findByLabelText(hintAssignTaskButtonText);
-        fireEvent.press(assignTaskButton, mockEvent);
     };
 
     await waitForBatchedUpdates();

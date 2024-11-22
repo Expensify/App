@@ -54,8 +54,6 @@ jobs:
   build:
     name: Build Android app
     runs-on: ubuntu-latest-xl
-    env:
-      RUBYOPT: '-rostruct'
     outputs:
       AAB_FILE_NAME: ${{ steps.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
@@ -163,7 +161,7 @@ jobs:
               echo "APK_PATH=$apkPath"
               echo "APK_FILE_NAME=$(basename "$apkPath")"
               echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
-              echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-artifact-apk" >> "$GITHUB_OUTPUT"
+              echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-apk-artifact" >> "$GITHUB_OUTPUT"
             } >> "$GITHUB_OUTPUT"    
 
       - name: Upload Android AAB artifact

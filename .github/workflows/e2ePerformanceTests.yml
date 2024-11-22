@@ -43,6 +43,7 @@ jobs:
             previous_merge=$(git rev-list --merges HEAD~1 | head -n 1)
           else
             # On a feature branch, find the common ancestor of the current branch and main
+            git fetch origin main:main
             previous_merge=$(git merge-base HEAD main)
           fi
           echo "$previous_merge"
@@ -60,7 +61,7 @@ jobs:
         id: getDeltaRef
         run: |
           if [ '${{ steps.getPullRequestDetails.outputs.IS_MERGED }}' == 'true' ]; then
-            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+            echo "DELTA_REF=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
           else
             # Set dummy git credentials
             git config --global user.email "test@test.com"
@@ -157,26 +158,28 @@ jobs:
           aws-region: us-west-2
 
       - name: Schedule AWS Device Farm test run on main branch
-        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        uses: Wandalen/wretry.action@v3.5.0
         id: schedule-awsdf-main
         with:
-          name: App E2E Performance Regression Tests
-          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
-          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease.apk
-          app_type: ANDROID_APP
-          test_type: APPIUM_NODE
-          test_package_file: App.zip
-          test_package_type: APPIUM_NODE_TEST_PACKAGE
-          test_spec_file: tests/e2e/TestSpec.yml
-          test_spec_type: APPIUM_NODE_TEST_SPEC
-          remote_src: false
-          file_artifacts: |
-            Customer Artifacts.zip
-            Test spec output.txt
-          log_artifacts: debug.log
-          cleanup: true
-          timeout: 7200
+          action: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+          with: |
+            name: App E2E Performance Regression Tests
+            project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+            device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+            app_file: zip/app-e2eRelease.apk
+            app_type: ANDROID_APP
+            test_type: APPIUM_NODE
+            test_package_file: App.zip
+            test_package_type: APPIUM_NODE_TEST_PACKAGE
+            test_spec_file: tests/e2e/TestSpec.yml
+            test_spec_type: APPIUM_NODE_TEST_SPEC
+            remote_src: false
+            file_artifacts: |
+              Customer Artifacts.zip
+              Test spec output.txt
+            log_artifacts: debug.log
+            cleanup: true
+            timeout: 7200
 
       - name: Print logs if run failed
         if: failure()

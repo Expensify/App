@@ -183,8 +183,11 @@ function BaseTextInput(
 
             const layout = event.nativeEvent.layout;
 
+            // We need to increase the height for single line inputs to escape cursor jumping on ios
+            const heightToFitEmojis = 1;
+
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
@@ -306,7 +309,7 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {iconLeft && (
+                            {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
                                         src={iconLeft}
@@ -380,8 +383,8 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
-                            {inputProps.isLoading && (
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
@@ -403,7 +406,7 @@ function BaseTextInput(
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && icon && (
+                            {!inputProps.secureTextEntry && !!icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}
@@ -421,7 +424,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {contentWidth && (
+            {!!contentWidth && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {

@@ -63,6 +63,7 @@ function IOURequestStepConfirmation({
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
+    const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
@@ -145,7 +146,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -237,33 +238,38 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-
-            IOU.requestMoney(
+            IOU.requestMoney({
                 report,
-                transaction.amount,
-                transaction.attendees,
-                transaction.currency,
-                transaction.created,
-                transaction.merchant,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participant,
-                trimmedComment,
-                receiptObj,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                },
                 gpsPoints,
                 action,
-                transaction.actionableWhisperReportActionID,
-                transaction.linkedTrackedExpenseReportAction,
-                transaction.linkedTrackedExpenseReportID,
-            );
+                transactionParams: {
+                    amount: transaction.amount,
+                    attendees: transaction.attendees,
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    comment: trimmedComment,
+                    receipt: receiptObj,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                },
+            });
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
@@ -287,6 +293,7 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.accountID,
                 participant,
                 trimmedComment,
+                isDraftPolicy,
                 receiptObj,
                 transaction.category,
                 transaction.tag,
@@ -317,6 +324,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             action,
             customUnitRateID,
+            isDraftPolicy,
         ],
     );
 
@@ -624,7 +632,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
-                    {gpsRequired && (
+                    {!!gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}

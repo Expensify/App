@@ -112,7 +112,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                 descriptors={descriptors}
                 navigation={navigation}
             />
-            {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
+            {!!searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
         </NavigationContent>
     );
 }

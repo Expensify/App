@@ -1,19 +1,24 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const contactMethod = account?.primaryLogin ?? '';
@@ -21,6 +26,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateBackTo = route?.params?.backTo;
@@ -28,8 +34,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
-        (submitCode: string) => {
-            User.validateSecondaryLogin(loginList, contactMethod ?? '', submitCode);
+        (validateCode: string) => {
+            User.validateSecondaryLogin(loginList, contactMethod, validateCode, true);
         },
         [loginList, contactMethod],
     );
@@ -38,6 +44,13 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         User.clearContactMethodErrors(contactMethod, 'validateLogin');
     }, [contactMethod]);
 
+    const closeModal = useCallback(() => {
+        // Disable modal visibility so the navigation is animated
+        setIsValidateCodeActionModalVisible(false);
+        Navigation.goBack();
+    }, []);
+
+    // Handle navigation once the user is validated
     useEffect(() => {
         if (!isUserValidated) {
             return;
@@ -45,35 +58,43 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (!navigateBackTo) {
-            return;
-        }
-
-        Navigation.navigate(navigateBackTo);
-    }, [isUserValidated, navigateBackTo]);
-
-    useEffect(() => {
-        if (isValidateCodeActionModalVisible) {
-            return;
-        }
-
-        if (!isUserValidated && navigateBackTo) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
-        } else if (!navigateBackTo) {
+        if (navigateBackTo) {
+            Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
+        } else {
             Navigation.goBack();
         }
-    }, [isValidateCodeActionModalVisible, isUserValidated, navigateBackTo]);
+    }, [isUserValidated, navigateBackTo]);
+
+    // Once user is validated or the modal is dismissed, we don't want to show empty content.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (isUserValidated || !isValidateCodeActionModalVisible) {
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={VerifyAccountPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('contacts.validateAccount')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <ValidateCodeActionModal
             sendValidateCode={() => User.requestValidateCodeAction()}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
+            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
-            description={translate('contacts.featureRequiresValidate')}
-            onClose={() => setIsValidateCodeActionModalVisible(false)}
+            descriptionPrimary={translate('contacts.featureRequiresValidate')}
+            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
             clearError={clearError}
+            onClose={closeModal}
+            onModalHide={() => {}}
         />
     );
 }

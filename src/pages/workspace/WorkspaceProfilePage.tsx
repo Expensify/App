@@ -61,7 +61,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+    const hasCardFeedOrExpensifyCard =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -88,7 +90,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const isOwner = PolicyUtils.isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
-    const shouldShowAddress = !readOnly || formattedAddress;
+    const shouldShowAddress = !readOnly || !!formattedAddress;
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -248,7 +250,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 />
                             </View>
                         </OfflineWithFeedback>
-                        {canUseSpotnanaTravel && shouldShowAddress && (
+                        {!!canUseSpotnanaTravel && shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                                 <View>
                                     <MenuItemWithTopDescription
