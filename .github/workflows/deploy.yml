@@ -188,7 +188,7 @@ jobs:
           git submodule update --init
           # Update submodule to latest on staging
           git fetch
-# TODO: REVERT
+          # TODO: REVERT
           git checkout andrew-hybridapp-prod
 
       - name: Configure MapBox SDK
@@ -522,7 +522,7 @@ jobs:
           git submodule update --init
           # Update submodule to latest on staging
           git fetch
-# TODO: REVERT
+          # TODO: REVERT
           git checkout andrew-hybridapp-prod
 
       - name: Configure MapBox SDK
