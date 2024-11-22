@@ -36,8 +36,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     useFocusEffect(fetchExpensifyCards);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && !cardSettings;
-
+    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
