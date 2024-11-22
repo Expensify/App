@@ -17,7 +17,7 @@ function ExceededCommentLength({maxCommentLength = CONST.MAX_COMMENT_LENGTH}: Ex
             style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}
             numberOfLines={1}
         >
-            {translate('composer.commentExceededMaxLength', { formattedMaxLength: numberFormat(maxCommentLength) })}
+            {translate('composer.commentExceededMaxLength', {formattedMaxLength: numberFormat(maxCommentLength)})}
         </Text>
     );
 }
