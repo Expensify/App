@@ -568,6 +568,15 @@ function MenuItem(
         }
     };
 
+    const getSubscriptpAvatarBackgroundColor = (isHover: boolean, pressed: boolean, hoverBackgroundColor: string, pressedBackgroundColor: string) => {
+        if (pressed) {
+            return pressedBackgroundColor;
+        }
+        if (isHover) {
+            return hoverBackgroundColor;
+        }
+    };
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -643,8 +652,7 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            // eslint-disable-next-line no-nested-ternary
-                                                            backgroundColor={pressed ? theme.buttonHoveredBG : isHovered ? theme.hoverComponentBG : undefined}
+                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}
