@@ -1626,14 +1626,26 @@ type DebugParamList = {
         reportID: string;
     };
     [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+        formType: string;
         fieldName: string;
         fieldValue?: string;
+        policyID?: string;
         backTo?: string;
     };
     [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
         fieldName: string;
         fieldValue?: string;
         backTo?: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
+        transactionID: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+        transactionID: string;
+        index: string;
     };
 };
 

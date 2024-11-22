@@ -5,8 +5,11 @@ import usePolicy from '@hooks/usePolicy';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ImportCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORT>;
 
@@ -22,10 +25,16 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     }
 
     return (
-        <ImportSpreedsheet
-            backTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}
-            goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORTED.getRoute(policyID)}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+        >
+            <ImportSpreedsheet
+                backTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}
+                goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORTED.getRoute(policyID)}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 
