@@ -62,9 +62,9 @@ import * as Session from '@userActions/Session';
 import * as Transaction from '@userActions/Transaction';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -81,7 +81,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -143,9 +142,7 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
-
-
-    draftMessage? : string
+    draftMessage?: string;
 
     iouReport?: OnyxTypes.Report;
 
@@ -1061,7 +1058,7 @@ function PureReportActionItem({
         </PressableWithSecondaryInteraction>
     );
 }
-export type { PureReportActionItemProps };
+export type {PureReportActionItemProps};
 export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
     const nextParentReportAction = nextProps.parentReportAction;
@@ -1093,13 +1090,12 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
         lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
         lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
-
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         prevProps.emojiReactions === nextProps.emojiReactions &&
         prevProps.userWallet === nextProps.userWallet &&
         prevProps.linkedTransactionRouteError === nextProps.linkedTransactionRouteError &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
-        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID 
+        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID
     );
 });

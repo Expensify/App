@@ -34,6 +34,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
 
     return (
         <PureReportActionItem
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             action={action}
             report={report}
