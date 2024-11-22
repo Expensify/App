@@ -11,6 +11,9 @@ type IntroSelected = {
 
     /** Whether the onboarding is complete */
     isInviteOnboardingComplete?: boolean;
+
+    /** Task reportID for 'viewTour' type */
+    viewTour?: string;
 };
 
 export default IntroSelected;

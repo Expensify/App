@@ -47,7 +47,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.h100]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
