@@ -254,7 +254,7 @@ function ReportActionItemSingle({
         return () => {
             if (displayAllActors && personArray.length === 2 && isReportPreviewAction) {
                 return (
-                    <View style={[styles.flexRow, styles.overflowHidden]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.overflowHidden]}>
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${0}`}
@@ -267,7 +267,6 @@ function ReportActionItemSingle({
                         />
                         <Text
                             numberOfLines={1}
-                            ellipsizeMode="tail"
                             style={[styles.chatItemMessageHeaderSender, styles.pre, styles.flexShrink0]}
                         >
                             {` & `}
