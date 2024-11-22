@@ -1,9 +1,6 @@
 name: 'Get Android Rollout percentage'
 description: 'Gets the current Android track rollout percentage.'
 inputs:
-    GITHUB_TOKEN:
-        description: Auth token for New Expensify Github
-        required: true
     GOOGLE_KEY_FILE:
         description: Authentication file for Google Cloud API
         required: true

@@ -170,7 +170,10 @@ jobs:
       run:
         working-directory: Mobile-Expensify/react-native
     steps:
-      - name: Checkout
+      - name: Checkout App repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
           repository: 'Expensify/Mobile-Expensify'
@@ -266,7 +269,6 @@ jobs:
         with:
           GOOGLE_KEY_FILE: android/app/android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -614,6 +616,7 @@ jobs:
       - name: Submit production build for App Store review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
+          ls -laR .
           # Complete the previous version rollout
           bundle exec fastlane ios complete_hybrid_rollout
           

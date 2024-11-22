@@ -1,11 +1,8 @@
 import * as core from '@actions/core';
 import {google} from 'googleapis';
-import CONST from '@github/libs/CONST';
-import GithubUtils from '@github/libs/GithubUtils';
 
 const PACKAGE_NAME = core.getInput('PACKAGE_NAME', {required: true});
 const GOOGLE_KEY_FILE = core.getInput('GOOGLE_KEY_FILE', {required: true});
-const HALTED_STATUS = 'halted';
 
 async function getAndroidRolloutPercentage() {
     const auth = new google.auth.GoogleAuth({
