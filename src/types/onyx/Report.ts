@@ -37,11 +37,11 @@ type PendingChatMember = {
 
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** What is the role of the participant in the report */
+    role?: ValueOf<typeof CONST.REPORT.ROLE>;
+
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
-
-    /** What is the role of the participant in the report */
-    role?: 'admin' | 'member';
 }>;
 
 /** Types of invoice receivers in a report */
@@ -242,7 +242,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
     },
-    PolicyReportField['fieldID']
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */

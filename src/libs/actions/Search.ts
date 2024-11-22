@@ -10,6 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import * as ReportUtils from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,33 +47,58 @@ Onyx.connect({
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
-    const transactionIDList = isTransactionListItemType(item) ? [item.transactionID] : undefined;
+    const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
+    const data = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data ?? {}) as SearchResults['data'];
+    const allReportTransactions = (
+        isReportListItemType(item)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value as SearchTransaction)?.reportID === item.reportID)
+                  .map((report) => report[1])
+            : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]
+    ) as SearchTransaction[];
+
+    const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
+    if (hasHeldExpense) {
+        goToItem();
+        return;
+    }
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            return getPayActionCallback(hash, item, goToItem, transactionIDList);
+            getPayActionCallback(hash, item, goToItem);
+            return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            return approveMoneyRequestOnSearch(hash, [item.reportID], transactionIDList);
+            approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            return;
         default:
-            return goToItem();
+            goToItem();
     }
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void, transactionIDList?: string[]) {
+function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
     const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
 
     if (!lastPolicyPaymentMethod) {
-        return goToItem();
+        goToItem();
+        return;
     }
 
-    const amount = isReportListItemType(item) ? item.total ?? 0 : item.formattedTotal;
+    const report = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`] ?? {}) as SearchReport;
+    const amount = Math.abs((report?.total ?? 0) - (report?.nonReimbursableTotal ?? 0));
+    const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        return payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionIDList);
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        return;
     }
 
     const hasVBBA = !!allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
-    return hasVBBA ? payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionIDList) : goToItem();
+    if (hasVBBA) {
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        return;
+    }
+
+    goToItem();
 }
 
 function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
