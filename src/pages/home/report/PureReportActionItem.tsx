@@ -14,7 +14,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
@@ -165,6 +164,12 @@ type PureReportActionItemProps = {
 
     /** Parent report */
     parentReport?: OnyxTypes.Report;
+
+    /** Personal details list */
+    personalDetails?: OnyxTypes.PersonalDetailsList;
+
+    /** Whether or not the user is blocked from concierge */
+    blockedFromConcierge?: OnyxTypes.BlockedFromConcierge;
 };
 
 function PureReportActionItem({
@@ -193,17 +198,17 @@ function PureReportActionItem({
     reportNameValuePairs,
     isUserValidated,
     parentReport,
+    personalDetails,
+    blockedFromConcierge,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const blockedFromConcierge = useBlockedFromConcierge();
     const reportID = report?.reportID ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, action) || '-1', [reportID, action]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();

@@ -1,7 +1,9 @@
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
@@ -31,6 +33,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const blockedFromConcierge = useBlockedFromConcierge();
 
     return (
         <PureReportActionItem
@@ -46,6 +50,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             reportNameValuePairs={reportNameValuePairs}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
+            personalDetails={personalDetails}
+            blockedFromConcierge={blockedFromConcierge}
         />
     );
 }
