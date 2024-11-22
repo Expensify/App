@@ -813,7 +813,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         }
     }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
 
-    // A flag to indicate whether the user choose to delete the transaction or not
+    // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);
 
     useEffect(() => {
