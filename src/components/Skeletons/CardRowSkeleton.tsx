@@ -31,7 +31,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
             gradientOpacityEnabled={gradientOpacityEnabled}
-            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.ml5]}
             renderSkeletonItem={() => (
                 <>
                     <Circle
