@@ -489,6 +489,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'total':
         case 'unheldTotal':
         case 'nonReimbursableTotal':
+        case 'unheldNonReimbursableTotal':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
