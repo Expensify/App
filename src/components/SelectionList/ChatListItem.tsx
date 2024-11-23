@@ -8,9 +8,11 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -61,7 +63,7 @@ function ChatListItem<TItem extends ListItem>({
         <BaseListItem
             item={item}
             pressableStyle={[[styles.selectionListPressableItemWrapper, styles.textAlignLeft, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
@@ -78,51 +80,64 @@ function ChatListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
-                <MentionReportContext.Provider value={mentionReportContextValue}>
-                    <ShowContextMenuContext.Provider value={contextValue}>
-                        <AttachmentContext.Provider value={attachmentContextValue}>
-                            <MultipleAvatars
-                                icons={icons}
-                                shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                            />
-                            <View style={[styles.chatItemRight]}>
-                                <View style={[styles.chatItemMessageHeader]}>
-                                    <View style={[styles.flexShrink1, styles.mr1]}>
-                                        <TextWithTooltip
-                                            shouldShowTooltip={showTooltip}
-                                            text={reportActionItem.formattedFrom}
-                                            style={[
-                                                styles.chatItemMessageHeaderSender,
-                                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                                styles.sidebarLinkTextBold,
-                                                styles.pre,
-                                            ]}
-                                        />
-                                    </View>
-                                    <ReportActionItemDate created={reportActionItem.created ?? ''} />
-                                </View>
-                                <View style={styles.chatItemMessage}>
-                                    {reportActionItem.message.map((fragment, index) => (
-                                        <ReportActionItemFragment
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
-                                            fragment={fragment}
-                                            actionName={reportActionItem.actionName}
-                                            source=""
-                                            accountID={from.accountID}
-                                            isFragmentContainingDisplayName={index === 0}
-                                        />
-                                    ))}
-                                </View>
-                            </View>
-                        </AttachmentContext.Provider>
-                    </ShowContextMenuContext.Provider>
-                </MentionReportContext.Provider>
+                <PureReportActionItem
+                    action={reportActionItem}
+                    onPress={() => onSelectRow(item)}
+                    report={undefined}
+                    reportActions={[]}
+                    parentReportAction={undefined}
+                    displayAsGroup={false}
+                    isMostRecentIOUReportAction={false}
+                    shouldDisplayNewMarker={false}
+                    index={item.index ?? 0}
+                    isFirstVisibleReportAction={false}
+                />
+
+                // <MentionReportContext.Provider value={mentionReportContextValue}>
+                //     <ShowContextMenuContext.Provider value={contextValue}>
+                //         <AttachmentContext.Provider value={attachmentContextValue}>
+                //             <MultipleAvatars
+                //                 icons={icons}
+                //                 shouldShowTooltip={showTooltip}
+                //                 secondAvatarStyle={[
+                //                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                //                     isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                //                     hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                //                 ]}
+                //             />
+                //             <View style={[styles.chatItemRight]}>
+                //                 <View style={[styles.chatItemMessageHeader]}>
+                //                     <View style={[styles.flexShrink1, styles.mr1]}>
+                //                         <TextWithTooltip
+                //                             shouldShowTooltip={showTooltip}
+                //                             text={reportActionItem.formattedFrom}
+                //                             style={[
+                //                                 styles.chatItemMessageHeaderSender,
+                //                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                //                                 styles.sidebarLinkTextBold,
+                //                                 styles.pre,
+                //                             ]}
+                //                         />
+                //                     </View>
+                //                     <ReportActionItemDate created={reportActionItem.created ?? ''} />
+                //                 </View>
+                //                 <View style={styles.chatItemMessage}>
+                //                     {reportActionItem.message.map((fragment, index) => (
+                //                         <ReportActionItemFragment
+                //                             // eslint-disable-next-line react/no-array-index-key
+                //                             key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
+                //                             fragment={fragment}
+                //                             actionName={reportActionItem.actionName}
+                //                             source=""
+                //                             accountID={from.accountID}
+                //                             isFragmentContainingDisplayName={index === 0}
+                //                         />
+                //                     ))}
+                //                 </View>
+                //             </View>
+                //         </AttachmentContext.Provider>
+                //     </ShowContextMenuContext.Provider>
+                // </MentionReportContext.Provider>
             )}
         </BaseListItem>
     );
