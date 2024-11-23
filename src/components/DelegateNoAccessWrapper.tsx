@@ -22,7 +22,7 @@ type AccessDeniedVariants = keyof typeof DENIED_ACCESS_VARIANTS;
 type DelegateNoAccessWrapperProps = {
     accessDeniedVariants?: AccessDeniedVariants[];
     shouldForceFullScreen?: boolean;
-    children: (() => React.ReactNode) | React.ReactNode;
+    children?: (() => React.ReactNode) | React.ReactNode;
 };
 
 function isDelegate(account: OnyxEntry<Account>) {

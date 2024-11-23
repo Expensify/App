@@ -297,11 +297,13 @@ function SecuritySettingsPage() {
                                         title={translate('delegate.changeAccessLevel')}
                                         icon={Expensicons.Pencil}
                                         onPress={() => {
-                                            setShouldShowDelegatePopoverMenu(false);
                                             if (isActingAsDelegate) {
-                                                setIsNoDelegateAccessMenuVisible(true);
+                                                Modal.close(() => {
+                                                    setIsNoDelegateAccessMenuVisible(true);
+                                                });
                                                 return;
                                             }
+                                            setShouldShowDelegatePopoverMenu(false);
                                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                                             setSelectedDelegate(undefined);
                                         }}
@@ -312,11 +314,13 @@ function SecuritySettingsPage() {
                                         icon={Expensicons.Trashcan}
                                         onPress={() =>
                                             Modal.close(() => {
-                                                setShouldShowDelegatePopoverMenu(false);
                                                 if (isActingAsDelegate) {
-                                                    setIsNoDelegateAccessMenuVisible(true);
+                                                    Modal.close(() => {
+                                                        setIsNoDelegateAccessMenuVisible(true);
+                                                    });
                                                     return;
                                                 }
+                                                setShouldShowDelegatePopoverMenu(false);
                                                 setShouldShowRemoveDelegateModal(true);
                                             })
                                         }

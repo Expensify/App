@@ -9,6 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -119,4 +120,14 @@ function openPolicyPerDiemPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE, params);
 }
 
-export {enablePerDiem, openPolicyPerDiemPage};
+function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errorFields: updatedErrorFields,
+            },
+        },
+    });
+}
+
+export {enablePerDiem, openPolicyPerDiemPage, clearPolicyPerDiemRatesErrorFields};

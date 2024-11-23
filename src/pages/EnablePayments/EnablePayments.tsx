@@ -23,6 +23,7 @@ function EnablePaymentsPage() {
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
         if (isOffline) {
@@ -33,6 +34,18 @@ function EnablePaymentsPage() {
             Wallet.openEnablePaymentsPage();
         }
     }, [isOffline, userWallet]);
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={EnablePaymentsPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
 
     if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
@@ -45,37 +58,29 @@ function EnablePaymentsPage() {
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton
-                        title={translate('personalInfoStep.personalInfo')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
-                    />
-                    <FailedKYC />
-                </DelegateNoAccessWrapper>
+                <HeaderWithBackButton
+                    title={translate('personalInfoStep.personalInfo')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
+                />
+                <FailedKYC />
             </ScreenWrapper>
         );
     }
 
     const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-    return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-            {() => {
-                switch (currentStep) {
-                    case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
-                        return <AddBankAccount />;
-                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
-                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
-                        return <PersonalInfo />;
-                    case CONST.WALLET.STEP.ONFIDO:
-                        return <VerifyIdentity />;
-                    case CONST.WALLET.STEP.TERMS:
-                        return <FeesAndTerms />;
-                    default:
-                        return null;
-                }
-            }}
-        </DelegateNoAccessWrapper>
-    );
+    switch (currentStep) {
+        case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
+            return <AddBankAccount />;
+        case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
+        case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
+            return <PersonalInfo />;
+        case CONST.WALLET.STEP.ONFIDO:
+            return <VerifyIdentity />;
+        case CONST.WALLET.STEP.TERMS:
+            return <FeesAndTerms />;
+        default:
+            return null;
+    }
 }
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';
