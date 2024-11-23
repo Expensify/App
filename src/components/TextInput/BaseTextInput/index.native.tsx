@@ -183,8 +183,11 @@ function BaseTextInput(
 
             const layout = event.nativeEvent.layout;
 
+            // We need to increase the height for single line inputs to escape cursor jumping on ios
+            const heightToFitEmojis = 1;
+
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
