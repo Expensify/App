@@ -195,10 +195,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         getWorkspaceMembers();
     }, [isOffline, prevIsOffline, getWorkspaceMembers]);
 
+    const clearInviteDraft = useCallback(() => {
+        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+    }, [route.params.policyID]);
+
     /**
      * Open the modal to invite a user
      */
     const inviteUser = () => {
+        clearInviteDraft();
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
     };
 
@@ -416,10 +422,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
-        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
-        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-    }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
+        clearInviteDraft();
+    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, clearInviteDraft]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
