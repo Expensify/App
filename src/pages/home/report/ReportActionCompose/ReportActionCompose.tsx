@@ -567,7 +567,12 @@ function ReportActionCompose({
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        {!!exceededMaxLength && <ExceededCommentLength maxCommentLength={exceededMaxLength} />}
+                        {!!exceededMaxLength && (
+                            <ExceededCommentLength
+                                maxCommentLength={exceededMaxLength}
+                                isTaskTitle={hasExceededMaxTitleLength}
+                            />
+                        )}
                     </View>
                 </OfflineWithFeedback>
                 {!isSmallScreenWidth && (
