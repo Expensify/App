@@ -6874,8 +6874,8 @@ function canIOUBePaid(
 
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    const shouldBeApproved = canApproveIOU(iouReport, policy, violations);
     const allViolations = violations ?? allTransactionViolations;
+    const shouldBeApproved = canApproveIOU(iouReport, policy, allViolations);
     const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
