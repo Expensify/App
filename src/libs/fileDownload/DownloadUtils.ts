@@ -43,7 +43,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
     ) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
-        Link.openExternalLink(url);
+        Link.openExternalLink(url, true);
         return Promise.resolve();
     }
 
@@ -71,7 +71,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
                 onDownloadFailed();
             } else {
                 // file could not be downloaded, open sourceURL in new tab
-                Link.openExternalLink(url);
+                Link.openExternalLink(url, true);
             }
         });
 };
