@@ -10,6 +10,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import { ReportNameValuePairsCollectionDataSet } from '@src/types/onyx/ReportNameValuePairs';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
@@ -59,6 +60,11 @@ describe('Sidebar', () => {
                 },
             };
 
+            const reportNameValuePairs = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             return (
@@ -74,6 +80,10 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionsCollectionDataSet;
 
+                        const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                        };
+
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
@@ -81,6 +91,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollection,
                             ...reportAction,
+                            ...reportNameValuePairsCollection,
                         });
                     })
                     .then(() => {

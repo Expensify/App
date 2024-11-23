@@ -319,10 +319,15 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
                 policyName: '',
+            },
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: currentTime,
             },
@@ -380,15 +385,19 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     reportsToArchive.forEach((report) => {
-        const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
+        const {reportID, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                stateNum,
-                statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: null,
             },
