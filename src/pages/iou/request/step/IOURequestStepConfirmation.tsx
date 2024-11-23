@@ -131,7 +131,7 @@ function IOURequestStepConfirmation({
             return translate('workspace.invoices.sendInvoice');
         }
         return translate('iou.confirmDetails');
-    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
+    }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
