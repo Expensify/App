@@ -616,6 +616,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
