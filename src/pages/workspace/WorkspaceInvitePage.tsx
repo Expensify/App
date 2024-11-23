@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -48,7 +47,6 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps & WithNaviga
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
@@ -68,14 +66,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     });
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('beforeRemove', () => {
-            Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        });
-
-        return unsubscribe;
-    }, [navigation, route.params.policyID]);
-
-    useEffect(() => {
         Policy.clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
@@ -87,12 +77,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
 
-        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
