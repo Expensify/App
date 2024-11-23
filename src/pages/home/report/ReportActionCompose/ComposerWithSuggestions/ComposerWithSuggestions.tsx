@@ -494,8 +494,8 @@ function ComposerWithSuggestions(
                 // Wales flag has 14 UTF-16 code units. This is the emoji with the largest number of UTF-16 code units we use.
                 const start = Math.max(0, selection.start - 14);
                 const graphemes = Array.from(splitter.segment(lastTextRef.current.substring(start, selection.start)));
-                const lastGrapheme = graphemes[graphemes.length - 1];
-                const lastGraphemeLength = lastGrapheme.segment.length;
+                const lastGrapheme = graphemes.at(graphemes.length - 1);
+                const lastGraphemeLength = lastGrapheme?.segment.length ?? 0;
                 if (lastGraphemeLength > 1) {
                     event.preventDefault();
                     const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
@@ -509,7 +509,7 @@ function ComposerWithSuggestions(
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
