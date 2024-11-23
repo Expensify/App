@@ -5964,6 +5964,9 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
@@ -6299,10 +6302,17 @@ const CONST = {
     },
 
     DEBUG: {
+        FORMS: {
+            REPORT: 'report',
+            REPORT_ACTION: 'reportAction',
+            TRANSACTION: 'transaction',
+            TRANSACTION_VIOLATION: 'transactionViolation',
+        },
         DETAILS: 'details',
         JSON: 'json',
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
+        TRANSACTION_VIOLATIONS: 'violations',
     },
 
     REPORT_IN_LHN_REASONS: {

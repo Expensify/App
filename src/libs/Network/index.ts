@@ -6,13 +6,27 @@ import pkg from '../../../package.json';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';
 
+// React Native uses a number for the timer id, but Web/NodeJS uses a Timeout object
+let processQueueInterval: NodeJS.Timeout | number;
+
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
     SequentialQueue.flush();
 
     // Start main queue and process once every n ms delay
-    setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    processQueueInterval = setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
+
+/**
+ * Clear any existing intervals during test runs
+ * This is to prevent previous intervals interfering with other tests
+ */
+function clearProcessQueueInterval() {
+    if (!processQueueInterval) {
+        return;
+    }
+    clearInterval(processQueueInterval);
+}
 
 /**
  * Perform a queued post request
@@ -55,7 +69,4 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
     });
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    post,
-};
+export {post, clearProcessQueueInterval};
