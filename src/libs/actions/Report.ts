@@ -2916,7 +2916,7 @@ function leaveGroupChat(reportID: string) {
     }
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
-    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function. 
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

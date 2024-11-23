@@ -1839,7 +1839,7 @@ function getDeleteTrackExpenseInformation(
     ];
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
-    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function. 
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
     if (shouldDeleteTransactionThread && transactionThread) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5885,7 +5885,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     ];
 
     // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
-    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function. 
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
     if (shouldDeleteTransactionThread && transactionThread) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
