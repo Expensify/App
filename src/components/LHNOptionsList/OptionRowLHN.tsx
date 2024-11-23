@@ -9,6 +9,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
@@ -52,8 +53,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isOnboardingChoiceManageTeam = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-    const shouldShowToooltipOnThisReport = isOnboardingChoiceManageTeam ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
+    const session = useSession();
+    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const shouldShowToooltipOnThisReport = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
 
     const {translate} = useLocalize();
