@@ -29,11 +29,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -179,7 +177,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 writeCapability: reportOnyx.writeCapability,
                 type: reportOnyx.type,
                 errorFields: reportOnyx.errorFields,
-                isPolicyExpenseChat: reportOnyx.isPolicyExpenseChat,
                 parentReportID: reportOnyx.parentReportID,
                 parentReportActionID: reportOnyx.parentReportActionID,
                 chatType: reportOnyx.chatType,
@@ -208,7 +205,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 isOptimisticReport: reportOnyx.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                avatarFileName: reportOnyx.avatarFileName,
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
@@ -230,11 +226,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (firstRenderRef.current) {
-        Timing.start(CONST.TIMING.CHAT_RENDER);
-        Performance.markStart(CONST.TIMING.CHAT_RENDER);
-    }
+
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -339,7 +331,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         ? reportActions.length > 0
         : reportActions.length >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
 
-    const isLinkedActionDeleted = useMemo(() => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID), [linkedAction]);
+    const isLinkedActionDeleted = useMemo(
+        () => !!linkedAction && !ReportActionsUtils.shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, ReportUtils.canUserPerformWriteAction(report)),
+        [linkedAction, report],
+    );
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
@@ -452,7 +447,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+        if (!shouldFetchReport(report)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -463,7 +458,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute, isLoadingApp, isInitialPageReady, isLinkedMessagePageReady]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -487,9 +482,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        Timing.end(CONST.TIMING.CHAT_RENDER);
-        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
-
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });

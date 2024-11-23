@@ -129,7 +129,7 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue;
+    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
 }
 
 /**
@@ -161,10 +161,11 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.').at(1) ?? '';
-        // Set the fraction digits to be between 2 and 4 (OD Behavior)
-        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
-        return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
+        const decimalPart = numValue.toString().split('.').at(1);
+        if (decimalPart) {
+            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
+            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
+        }
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -1108,6 +1109,14 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
 
+function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+    if (groupPolicies.length === 0) {
+        return false;
+    }
+    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1228,6 +1237,7 @@ export {
     getAllPoliciesLength,
     getActivePolicy,
     isPolicyAccessible,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
@@ -16,7 +17,8 @@ import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeFo
 function ValidateCodeActionModal({
     isVisible,
     title,
-    description,
+    descriptionPrimary,
+    descriptionSecondary,
     onClose,
     onModalHide,
     validatePendingAction,
@@ -26,6 +28,7 @@ function ValidateCodeActionModal({
     footer,
     sendValidateCode,
     hasMagicCodeBeenSent,
+    isLoading,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const safePaddingBottomStyle = useSafePaddingBottomStyle();
@@ -36,7 +39,7 @@ function ValidateCodeActionModal({
 
     const hide = useCallback(() => {
         clearError();
-        onClose();
+        onClose?.();
     }, [onClose, clearError]);
 
     useEffect(() => {
@@ -54,6 +57,7 @@ function ValidateCodeActionModal({
             isVisible={isVisible}
             onClose={hide}
             onModalHide={onModalHide ?? hide}
+            onBackdropPress={() => Navigation.dismissModal()}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -70,8 +74,10 @@ function ValidateCodeActionModal({
                 />
 
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{description}</Text>
+                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
+                        isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}

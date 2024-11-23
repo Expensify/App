@@ -53,15 +53,14 @@ function DebugReportPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? '-1'}`);
-    const parentReportAction = parentReportActions && report?.parentReportID ? parentReportActions[report?.parentReportActionID ?? '-1'] : undefined;
+    const transactionID = DebugUtils.getTransactionID(report, reportActions);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
@@ -113,7 +112,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [parentReportAction, report, reportActions, reportID, transactionViolations, translate]);
+    }, [report, reportActions, reportID, transactionViolations, translate]);
 
     if (!report) {
         return <NotFoundPage />;
@@ -139,12 +138,13 @@ function DebugReportPage({
                         <TopTab.Screen name={CONST.DEBUG.DETAILS}>
                             {() => (
                                 <DebugDetails
+                                    formType={CONST.DEBUG.FORMS.REPORT}
                                     data={report}
                                     onSave={(data) => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                                     }}
                                     onDelete={() => {
-                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                                         navigateToConciergeChatAndDeleteReport(reportID, true, true);
                                     }}
                                     validate={DebugUtils.validateReportDraftProperty}
@@ -172,6 +172,14 @@ function DebugReportPage({
                                             }}
                                             icon={Expensicons.Eye}
                                         />
+                                        {!!transactionID && (
+                                            <Button
+                                                text={translate('debug.viewTransaction')}
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                                                }}
+                                            />
+                                        )}
                                     </View>
                                 </DebugDetails>
                             )}

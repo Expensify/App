@@ -24,7 +24,6 @@ function ReportAvatar({route}: ReportAvatarProps) {
             return {
                 source: report?.avatarUrl ? UserUtils.getFullSizeAvatar(report.avatarUrl, 0) : ReportUtils.getDefaultGroupAvatar(report?.reportID ?? ''),
                 headerTitle: ReportUtils.getReportName(report),
-                originalFileName: report?.avatarFileName ?? '',
                 isWorkspaceAvatar: false,
             };
         }
