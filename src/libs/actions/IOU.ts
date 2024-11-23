@@ -1784,6 +1784,8 @@ function getDeleteTrackExpenseInformation(
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
@@ -1836,6 +1838,8 @@ function getDeleteTrackExpenseInformation(
         },
     ];
 
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function. 
     if (shouldDeleteTransactionThread && transactionThread) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5768,6 +5772,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
@@ -5878,6 +5884,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function. 
     if (shouldDeleteTransactionThread && transactionThread) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
