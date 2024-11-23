@@ -59,6 +59,13 @@ function AmexCustomFeed() {
             keyForList: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.BUSINESS,
             isSelected: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.BUSINESS,
         },
+        {
+            value: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            text: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            alternateText: translate('workspace.companyCards.addNewCard.amexPersonal'),
+            keyForList: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            isSelected: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+        },
     ];
 
     return (

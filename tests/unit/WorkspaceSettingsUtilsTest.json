@@ -5,8 +5,9 @@
     "reports": {
         "report_4286515777714555": {
             "type": "chat",
+            "chatType": "policyExpenseChat",
             "isOwnPolicyExpenseChat": false,
-            "ownerAccountID": 0,
+            "ownerAccountID": 18634488,
             "parentReportActionID": "8722650843049927838",
             "parentReportID": "6955627196303088",
             "policyID": "57D0F454E0BCE54B",
@@ -24,6 +25,17 @@
             "statusNum": 1,
             "parentReportID": "1699789757771388",
             "parentReportActionID": "7978085421707288417"
+        }
+    },
+    "transactions": {
+        "transactions_3106135972713435169": {
+            "transactionID": "3106135972713435169",
+            "created": "2024-11-13",
+            "currency": "USD",
+            "merchant": "test",
+            "amount": 10,
+            "modifiedAmount": 10,
+            "reportID": "4286515777714555"
         }
     },
     "transactionViolations": {

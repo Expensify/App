@@ -2,14 +2,15 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
 import DateOfBirthUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/DateOfBirthUBO';
@@ -30,6 +31,7 @@ const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [Le
 
 function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -214,16 +216,20 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubstep === SUBSTEP.IS_USER_UBO && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
                     onSelectedValue={handleNextUBOSubstep}
                 />
             )}
 
             {currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
                     onSelectedValue={handleNextUBOSubstep}
                 />
@@ -240,8 +246,10 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             )}
 
             {currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}
                     defaultValue={false}
                 />

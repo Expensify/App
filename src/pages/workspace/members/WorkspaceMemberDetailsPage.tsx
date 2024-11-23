@@ -82,7 +82,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(cardFeeds?.settings?.companyCards ?? {}).filter((feed) => !feed.pending).length > 0;
+    const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
     const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
 
     useEffect(() => {
@@ -326,7 +326,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     >
                                                         <MenuItem
                                                             key={memberCard.cardID}
-                                                            title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                             badgeText={
                                                                 memberCard.bank === CONST.EXPENSIFY_CARD.BANK
                                                                     ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)

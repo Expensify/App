@@ -81,6 +81,7 @@ function ReportCardLostPage({
     const {paddingBottom} = useStyledSafeAreaInsets();
 
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
+    const primaryLogin = account?.primaryLogin ?? '';
 
     useEffect(() => {
         if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading)) {
@@ -132,8 +133,6 @@ function ReportCardLostPage({
     };
 
     const sendValidateCode = () => {
-        const primaryLogin = account?.primaryLogin ?? '';
-
         if (loginList?.[primaryLogin]?.validateCodeSent) {
             return;
         }
@@ -201,7 +200,7 @@ function ReportCardLostPage({
                             onClose={() => setIsValidateCodeActionModalVisible(false)}
                             isVisible={isValidateCodeActionModalVisible}
                             title={translate('cardPage.validateCardTitle')}
-                            description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                         />
                     </>
                 ) : (
