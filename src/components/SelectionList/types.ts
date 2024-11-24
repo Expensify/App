@@ -615,7 +615,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
-    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
+    scrollAndHighlightItem?: (items: string[]) => void;
     clearInputAfterSelect?: () => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;

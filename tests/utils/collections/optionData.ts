@@ -49,6 +49,5 @@ export default function createRandomOptionData(index: number): OptionData {
         lastVisibleActionLastModified: new Date().toISOString(),
         lastActorAccountID: randNumber(),
         ownerAccountID: randNumber(),
-        ownerEmail: randEmail(),
     };
 }
