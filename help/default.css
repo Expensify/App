@@ -174,16 +174,16 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 6px;
 }
 
+h1 {
+    visibility: hidden;
+}
+
 /* Main content area */
 main {
     margin-left: 300px;
     padding: 20px;
     flex-grow: 1;
     max-width: 900px;
-}
-
-main h1 {
-    display: none;
 }
 
 main h2 {
@@ -202,8 +202,8 @@ main h4 {
 }
 
 main p, main li {
-    color: #76847E;
-    font-size: 16px;
+    color: #002e22;
+    font-size: 15px;
     line-height: 20px;
     margin-bottom: 20px;
 }
@@ -283,9 +283,8 @@ footer .social-icons a img {
     }
 
     .dropdown {
-        font-family: "Expensify Neue", sans-serif;
-        font-size: 17px;
-        font-weight: 700;
+        font-size: 19px;
+        font-weight: 500;
     }
 
     .toc-sidebar {
