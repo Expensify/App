@@ -744,6 +744,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
+                    numberOfLinesTitle={0}
                 />
             </View>
         </OfflineWithFeedback>
