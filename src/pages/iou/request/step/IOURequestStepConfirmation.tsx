@@ -112,20 +112,8 @@ function IOURequestStepConfirmation({
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isSubmittingFromTrackExpense) {
-            return translate('iou.confirmDetails');
-        }
         if (isSharingTrackExpense) {
             return translate('iou.share');
-        }
-        if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.confirmDetails');
-        }
-        if (iouType === CONST.IOU.TYPE.TRACK) {
-            return translate('iou.confirmDetails');
-        }
-        if (iouType === CONST.IOU.TYPE.PAY) {
-            return translate('iou.confirmDetails');
         }
         if (iouType === CONST.IOU.TYPE.INVOICE) {
             return translate('workspace.invoices.sendInvoice');

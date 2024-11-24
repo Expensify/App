@@ -48,9 +48,6 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.SUBMIT) {
-            return translate('iou.chooseRecipient');
-        }
         if (action === CONST.IOU.ACTION.SHARE) {
             return translate('iou.share');
         }
