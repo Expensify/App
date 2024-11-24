@@ -333,7 +333,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (!accountID || PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
