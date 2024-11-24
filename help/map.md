@@ -1,10 +1,111 @@
 ---
 layout: product
-title: Application Map
+title: Help
 ---
 
-## Application Map
-Lost in the app?  Let this map guide you!
+## Inbox
+The Inbox is your primary to do list, highlighting exactly what you need to do next.  The Inbox consists of a series of "chats", each of which is a realtime conversation with other users about that particular topic, report, expense, trip, or more.  The Inbox consists of the following major components:
+
+* **Pinned chats** - These chats, shown with the pin icon next to them, are always shown.  Some particularly important chats are pinned for you, but you can pin or unpin any chat.
+* **Green dots** - Any chat with a green dot next to it is waiting on you to do take some action upon it.
+* **Red dot** - Any chat with a red dot next to it indicates that something is missing or mistaken, and needs you to correct it.
+* **Unread chat** - Any chat in **bold** has messages from another user that have not yet been read.
+* **Read chats** - ("Most recent" mode only.)  This is a historical chat that has been fully read and requires no further action.
+
+### Workspace Filter
+Expensify is organized around the concept of "workspaces" that organize various kinds of data, such as chat rooms, expense reports, trip bookings, and more.  At any point in time you can specify whether to view your data combined across all workspaces, or "filter" everything you see to focus on a single workspace.  The workspace filter is often used by accountants who manage any client workspaces and want to work on one at a time, or an individual employee with a mix of personal and work workspaces who wants to focus on work versus personal.
+
+### Chat Basics
+Expensify does "travel and expense at the speed of chat", meaning nearly everything in Expensify is a chat-enabled object.  Though there are many different types of chats, each with their own specific features, they all share a common set of basic features:
+
+* **Header** - At the top of the chat is a bar that identifies which chat you are in, and which workspace it's a part of (if any).  Press anywhere on the header to access additional details on this chat, which include:
+    * *Room description* - Workspace rooms allow a custom description to be set.
+    * *Title* - Expense report chats have configurable titles.
+    * *Pin / Unpin* - Any report can be pinned to ensure it remains continuously accessible at the top of the Inbox.
+    * *Share* - Access a link or QR code to access this report; sharing it can earn you $250!
+    * *Member list* - See who else is in this room, and invite more.
+    * *Settings* - Specify how quickly you want to be notified about messages in this chat room, including:
+        * `Mute` - Ignore this room, unless you are specifically mentioned.
+        * `Daily` - Send you a digest of this room every day.
+        * `Immediate` - Notify you immediately via the app, email, or SMS.
+    * *Private notes* - A private place to make notes on this room to yourself that are not shared with anyone else.
+    * *Download* - Expense report chats allow you to download all the expenses in the CSV format.
+    * *Join / Leave* - Any chat you aren't added to automatically is one you can generally join or leave freely.
+
+* **Message history** - This lists all the comment messages ever shared in this room, chronologically, from start to finish.  Scroll back as far as you need to see the history.  Right-click or long-tap on any message to access additional options, including:
+    * *Emoji reactions* - Express yourself and your feeling on the message with an emoji.
+    * *Join thread / Reply in thread* - You can comment on any message by creating a "thread" underneath it, which is a new chat dedicated to replying to that one comment.
+    * *Mark as unread* - Flag a message as "unread" to signal to yourself in the future that you want to read it again.
+    * *Copy to clipboard* - Copy a message from Expensify to the platform clipboard, to paste into some other app.
+    * *Copy link* - Get a deep link to this specific chat message for posting somewhere else
+    * *Flag as offensive* - Report to our moderators that a message is offensive and should be reviewed.
+    * *Delete comment* - Erase this message from the chat.
+
+* **Composer** - At the bottom is a box for composing and sending messages.  It works like you'd expect, which includes:
+    * *Attach button* - Press the attach button to insert an image, movie, document, expense, or tasks into this chat.  (Alternatively, use your platform's copy/paste or drag & drop feature.)
+    * *Message preview* - Write your message here using the Markdown syntax, some examples of which are:
+        * `*bold*` - Surround text with asterisks (`*`) to make it **bold**
+        * `_italics_` - Surround text with underscores (`_`) to make it *italics*
+        * `[text](https://url)` - Surround the text you want to hyperlink with square brackets (`[` and `]`), and then put the URL inside parenthesis (`(` and `)`).
+    * *Send button* - Press the green button to send this message.  If you are offline, the message will be queued for sending when you go online.
+
+### #admins Room
+Every workspace automatically receives a special #admins chat room.  Every admin is automatically added to this room as a member.  The #admins room is used for several purposes:
+
+* **Talking with your setup specialist** - When you first create the workspace, a setup specialist will be added.  Feel free to ask any setup questions you have about how to configure the workspace, onboard your team, connect your accounting, or anything else you might need.
+* **Monitoring workspace changes** - Every #admins room shows an audit trail of any configuration changes or significant events happening inside the workspace.
+* **Chatting with other admins** - The #admins room is a private space for workspace admins to chat with each other about anything, whether or not it relates to Expensify.
+
+### #announce Room
+When a workspace has three or more members, a special #announce room is created.  Every member of the workspace is added to this room, but only workspace admins can post into this room.  Use the #announce room to make official announcements to all workspace members, whether about Expensify or anything else.  Some common uses of the #announce room include:
+
+* **Establishing ground rules** - Given that every workspace member is in this room, #announce is a convenient place to lay out the ground rules of your workspace that you expect everyone to follow.
+* **Broadcasting policy changes** - Use #announce to formally broadcast any workspace or corporate policy changes you need workspace members to know.
+* **Emergency alerts** - #announce is a convenient place to quickly broadcast any emergency information you need to deliver to all workspace members at once.
+* **Celebration!** - Birthdays, holidays, major milestones accomplished -- you name it, this is a great place to celebrate!
+        
+### Concierge
+Concierge is an AI friend ready to help you in any way you need.  Concierge will respond quickly 24/7 to any question you ask, and is generally used for:
+
+* **General help** - Ask any question you have about Expensify and how it works.
+* **Onboarding advice** - Ask for best practices on how to set up Expensify for your unique needs.
+* **Technical support** - If something isn't working right, let Concierge know so we can fix it.
+* **Fraud reporting** - If you suspect or experience fraud, Concierge can help you stop and correct it.
+
+### Direct Message (DM)
+A "direct message" (or more simply, a "DM") is a chat room that exists between you and one other member.  DM chats are similar to SMS, WhatsApp, iMessage, or any other direct chat tool, with a few key differences:
+
+* **Universal support** - You can start a DM with anyone with a SMS number or email address, anywhere in the world -- even if they aren't in your workspace, and even if they don't use Expensify.  If they don't have the app installed, your message will be delivered to them via email or SMS, and they can reply to it directly.
+
+* **Infinite threads** - You can comment on any message inside an Expensify chat using a "thread".  And because threads are full chats as well, it means you can create threads inside threads, as deep as you need to go.
+
+* **Personal privacy** - Your DM messages are private to you and the other member -- workspace admins cannot access your DM chats.
+
+* **Expense requests** - You can submit an expense or receipt to anyone with a US bank account, even if you don't work with the, and they can pay you directly via Expensify.  Use this for settling up personal tabs with friends, family, roommates, or anyone you need. 
+
+### Workspace Chat
+If you are a member of a workspace, you will have a special chat dedicated to talking with the admins of that workspace.  Use this workspace chat to:
+
+* **Submit expenses** - Press the attachment button to scan a receipt, record distance, or otherwise submit an expense to this workspace for reporting or reimbursement.
+* **Request help** - If you need any help from the workspace admins, whether or not it relates to Expensify, ask here.
+* **Get instructions** - If the workspace admins need you to individually do anything, they will tell you here.
+
+### Workspace Room
+Workspaces support an unlimited number of custom rooms, each of which can have an unlimited number of users.  Workspace rooms have a couple important settings:
+
+* **Who can post** - Though anyone in the room can read all messages posted, this determines who has the right to post:
+    * *All members* - Anyone who is a member of the room can post to it.
+    * *Admins only* - Only workspace admins can post to this room.
+
+* **Visibility** - This determines who has the right to discover and join this room:
+    * *Public* - Anyone in the world who has a link to this room can view it -- even without creating an Expensify account -- and sign in to post.
+    * *Private* - Only the specific members invited to this room can join it.
+    * *Workspace* - Anyone in who is a member of the workspace can discover and join this room.
+
+  
+## Search
+The Search page allows you to access all data either owned by you or shared with you.
+
 
 * Inbox
     * Workspace selector
