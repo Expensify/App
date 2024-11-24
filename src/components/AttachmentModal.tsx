@@ -275,7 +275,6 @@ function AttachmentModal({
         }
 
         setIsModalOpen(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isModalOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
     /**
@@ -458,8 +457,7 @@ function AttachmentModal({
             });
         }
         return menuItems;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
+    }, [isReceiptAttachment, canEditReceipt, isOffline, allowDownload, isLocalSource, transaction, translate, closeModal, iouType, report?.reportID, downloadAttachment]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.

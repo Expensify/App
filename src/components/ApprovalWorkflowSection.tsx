@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+/* eslint-disable react/function-component-definition */
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,11 +21,11 @@ type ApprovalWorkflowSectionProps = {
     onPress: () => void;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+const Test = () => {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate, toLocaleOrdinal} = useLocalize();
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -40,7 +41,32 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
             .map((m) => m.displayName)
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, translate]);
+
+    return <View />;
+};
+
+function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate, toLocaleOrdinal} = useLocalize();
+
+    const approverTitle = useCallback(
+        (index: number) =>
+            approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
+        [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+    );
+
+    const members = useMemo(() => {
+        if (approvalWorkflow.isDefault) {
+            return translate('workspace.common.everyone');
+        }
+
+        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+            .map((m) => m.displayName)
+            .join(', ');
+    }, [approvalWorkflow]);
 
     return (
         <PressableWithoutFeedback
@@ -110,4 +136,4 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
     );
 }
 
-export default ApprovalWorkflowSection;
+export {ApprovalWorkflowSection};
