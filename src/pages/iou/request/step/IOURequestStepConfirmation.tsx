@@ -87,7 +87,6 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
