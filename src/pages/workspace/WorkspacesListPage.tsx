@@ -200,7 +200,7 @@ function WorkspacesListPage() {
             if (!isDefault && !item?.isJoinRequestPending) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Star,
-                    text: 'Set as default workspace',
+                    text: translate('workspace.common.setAsDefault'),
                     onSelected: () => Policy.updateDefaultPolicy(item.policyID ?? '-1', activePolicyID ?? '-1'),
                 });
             }
