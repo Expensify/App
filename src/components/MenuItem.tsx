@@ -469,7 +469,7 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
-             styles.breakWord,
+            styles.breakWord,
         ],
         titleStyle ?? {},
     );
