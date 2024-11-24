@@ -2783,8 +2783,11 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
+    const allTransactions = TransactionUtils.getAllReportTransactions(optionOrReport?.reportID);
+    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
+
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest) {
+    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions)
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: IOU.getIOUReportActionToApproveOrPay(optionOrReport, optionOrReport.reportID),
