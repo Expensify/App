@@ -25,9 +25,6 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     headerMessage: '',
-    categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
 };
 
 function getSelectedOptionData(option: Option): OptionData {
@@ -75,7 +72,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }

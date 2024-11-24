@@ -9,6 +9,7 @@ type PopoverContextProps = {
 type PopoverContextValue = {
     onOpen?: (popoverParams: AnchorRef) => void;
     popover?: AnchorRef | null;
+    popoverAnchor?: AnchorRef['anchorRef']['current'];
     close: (anchorRef?: RefObject<View | HTMLDivElement | Text>) => void;
     isOpen: boolean;
 };

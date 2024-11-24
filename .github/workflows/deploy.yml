@@ -81,8 +81,6 @@ jobs:
     name: Upload Android build to Google Play Store
     needs: buildAndroid
     runs-on: ubuntu-latest
-    env:
-      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -121,8 +119,6 @@ jobs:
     needs: prep
     if: ${{ github.ref == 'refs/heads/production' }}
     runs-on: ubuntu-latest
-    env:
-      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -167,13 +163,9 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
-    # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
-    env:
-      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -260,7 +252,19 @@ jobs:
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Android app to Google Play
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android upload_google_play_internal_hybrid
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+
+      - name: Submit production build for Google Play review and a slow rollout
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          # Complete the previous version rollout
+          bundle exec fastlane android complete_hybrid_rollout
+          
+          # Submit the new version for review and slow rollout when it's approved
+          bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
@@ -477,8 +481,6 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -592,6 +594,17 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+      - name: Submit production build for App Store review and a slow rollout
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          # Complete the previous version rollout
+          bundle exec fastlane ios complete_hybrid_rollout
+          
+          # Submit the new version for review and phased rollout when it's approved 
+          bundle exec fastlane ios submit_hybrid_for_rollout
+        env:
+          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

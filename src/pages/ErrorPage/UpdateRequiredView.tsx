@@ -1,11 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import HeaderGap from '@components/HeaderGap';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -19,6 +20,10 @@ function UpdateRequiredView() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const {isProduction} = useEnvironment();
+    const isStandaloneNewAppProduction = isProduction && !NativeModules.HybridAppModule;
+
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
             <HeaderGap />
@@ -37,17 +42,21 @@ function UpdateRequiredView() {
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                     <View style={styles.updateRequiredViewTextContainer}>
                         <View style={[styles.mb3]}>
-                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>{translate('updateRequiredView.pleaseInstall')}</Text>
+                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>
+                                {isStandaloneNewAppProduction ? translate('updateRequiredView.pleaseInstallExpensifyClassic') : translate('updateRequiredView.pleaseInstall')}
+                            </Text>
                         </View>
                         <View style={styles.mb5}>
-                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('updateRequiredView.toGetLatestChanges')}</Text>
+                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                                {isStandaloneNewAppProduction ? translate('updateRequiredView.newAppNotAvailable') : translate('updateRequiredView.toGetLatestChanges')}
+                            </Text>
                         </View>
                     </View>
                 </View>
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp()}
+                    onPress={() => AppUpdate.updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />
