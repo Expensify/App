@@ -57,7 +57,9 @@ function getSubstepValues(
         accountHolderAddress1: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress1) ? internationalBankAccountDraft?.accountHolderAddress1 ?? street1 : undefined,
         accountHolderAddress2: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress2) ? internationalBankAccountDraft?.accountHolderAddress2 ?? street2 : undefined,
         accountHolderCity: !isEmptyObject(personalDetailsFieldMap?.accountHolderCity) ? internationalBankAccountDraft?.accountHolderCity ?? address?.city : undefined,
-        accountHolderCountry: !isEmptyObject(personalDetailsFieldMap?.accountHolderCountry) ? internationalBankAccountDraft?.accountHolderCountry ?? address?.country : undefined,
+        accountHolderCountry: !isEmptyObject(personalDetailsFieldMap?.accountHolderCountry)
+            ? internationalBankAccountDraft?.accountHolderCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? ''
+            : undefined,
         accountHolderPostal: !isEmptyObject(personalDetailsFieldMap?.accountHolderPostal) ? internationalBankAccountDraft?.accountHolderPostal ?? address?.zip : undefined,
         accountHolderPhoneNumber: !isEmptyObject(personalDetailsFieldMap?.accountHolderPhoneNumber)
             ? internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber

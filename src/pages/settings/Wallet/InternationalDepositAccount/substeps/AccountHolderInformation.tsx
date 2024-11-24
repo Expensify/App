@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
-import CountryPicker from '@components/CountryPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -28,9 +27,6 @@ function getInputComponent(field: CorpayFormField) {
     }
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
         return AddressSearch;
-    }
-    if (field.id === 'accountHolderCountry') {
-        return CountryPicker;
     }
     return TextInput;
 }
@@ -87,9 +83,6 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
                 return [index === 0 ? styles.pb2 : styles.pv2];
             }
-            if (field.id === 'accountHolderCountry') {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
             return [index === 0 ? styles.pb2 : styles.pv2];
         },
         [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
@@ -120,15 +113,14 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 defaultValue={formValues[field.id]}
                                 label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
                                 items={getItems(field)}
+                                disabled={field.id === 'accountHolderCountry'}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
                                     street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
                                     city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCity) ? '' : 'accountHolderCity',
                                     state: '',
                                     zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderPostal) ? '' : 'accountHolderPostal',
-                                    country: (isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCountry)
-                                        ? ''
-                                        : 'accountHolderCountry') as Country,
+                                    country: '',
                                     lat: '',
                                     lng: '',
                                 }}
