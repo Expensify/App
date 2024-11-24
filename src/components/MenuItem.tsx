@@ -469,6 +469,7 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
+             styles.breakWord,
         ],
         titleStyle ?? {},
     );
