@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
@@ -64,6 +65,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** ID of the policy */
     policyID?: string;
+
+    /** is policy defualt */
+    isDefault?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -107,6 +111,7 @@ function WorkspacesListRow({
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
+    isDefault,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -149,6 +154,20 @@ function WorkspacesListRow({
                         icon={Expensicons.Hourglass}
                     />
                 </View>
+            )}
+            {!!isDefault && (
+                <Tooltip
+                    maxWidth={variables.w184}
+                    text={translate('workspace.common.defaultNote')}
+                >
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <Badge
+                            text={translate('common.default')}
+                            textStyles={styles.textStrong}
+                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                        />
+                    </View>
+                </Tooltip>
             )}
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
