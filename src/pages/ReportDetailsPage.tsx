@@ -523,7 +523,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
                 translationKey: 'common.goToWorkspace',
-                icon: Expensicons.Workspace,
+                icon: Expensicons.Building,
                 action: () => {
                     if (isSmallScreenWidth) {
                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
