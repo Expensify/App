@@ -238,33 +238,38 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-
-            IOU.requestMoney(
+            IOU.requestMoney({
                 report,
-                transaction.amount,
-                transaction.attendees,
-                transaction.currency,
-                transaction.created,
-                transaction.merchant,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participant,
-                trimmedComment,
-                receiptObj,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                },
                 gpsPoints,
                 action,
-                transaction.actionableWhisperReportActionID,
-                transaction.linkedTrackedExpenseReportAction,
-                transaction.linkedTrackedExpenseReportID,
-            );
+                transactionParams: {
+                    amount: transaction.amount,
+                    attendees: transaction.attendees,
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    comment: trimmedComment,
+                    receipt: receiptObj,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                },
+            });
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
