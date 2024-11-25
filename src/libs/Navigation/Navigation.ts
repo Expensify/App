@@ -433,6 +433,20 @@ function removeScreenFromNavigationState(screen: Screen) {
     });
 }
 
+function removeScreenByKey(key: string) {
+    isNavigationReady().then(() => {
+        navigationRef.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.key !== key);
+
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -458,6 +472,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
     removeScreenFromNavigationState,
+    removeScreenByKey,
 };
 
 export {navigationRef};

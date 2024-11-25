@@ -40,7 +40,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -60,6 +60,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -3700,6 +3701,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+
+    const trackReport = navigationRef
+        .getRootState()
+        .routes.find((r) => r.name === SCREENS.REPORT && !!r.params && 'reportID' in r.params && r.params.reportID === linkedTrackedExpenseReportAction?.childReportID);
+    if (trackReport?.key) {
+        Navigation.removeScreenByKey(trackReport.key);
+    }
+
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
