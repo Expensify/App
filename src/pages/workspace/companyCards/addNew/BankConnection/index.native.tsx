@@ -74,7 +74,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>

@@ -3230,9 +3230,8 @@ const translations = {
             collect: 'Collect',
         },
         companyCards: {
-            addCompanyCards: 'Add company cards',
-            selectCardFeed: 'Select card feed',
-            addCardFeed: 'Add card feed',
+            addCards: 'Add cards',
+            selectCards: 'Select cards',
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -3480,7 +3479,6 @@ const translations = {
                         assignCards: 'Assign cards to the entire team',
                         automaticImport: 'Automatic transaction import',
                     },
-                    ctaTitle: 'Add company cards',
                 },
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
