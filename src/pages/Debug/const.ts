@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ACTION_FORM_INPUT_IDS from '@src/types/form/DebugReportActionForm';
 import REPORT_FORM_INPUT_IDS from '@src/types/form/DebugReportForm';
@@ -110,7 +110,7 @@ const DETAILS_CONSTANT_FIELDS: DetailsConstantFields = {
     [CONST.DEBUG.FORMS.TRANSACTION_VIOLATION]: [
         {
             fieldName: TRANSACTION_VIOLATION_FORM_INPUT_IDS.NAME,
-            options: CONST.VIOLATIONS,
+            options: Object.fromEntries(Object.entries(CONST.VIOLATIONS).filter(([, value]) => !CONST.EXCLUDED_VIOLATIONS.includes(value as TupleToUnion<typeof CONST.EXCLUDED_VIOLATIONS>))),
         },
         {
             fieldName: TRANSACTION_VIOLATION_FORM_INPUT_IDS.TYPE,

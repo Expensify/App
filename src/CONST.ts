@@ -4740,6 +4740,11 @@ const CONST = {
     },
 
     /**
+     * Constants for violation names that we don't want to show on NewDot
+     */
+    EXCLUDED_VIOLATIONS: ['taxAmountChanged', 'taxRateChanged'],
+
+    /**
      * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.

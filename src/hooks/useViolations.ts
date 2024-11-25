@@ -1,4 +1,5 @@
 import {useCallback, useMemo} from 'react';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 
@@ -49,9 +50,6 @@ const violationFields: Record<ViolationName, ViolationField> = {
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-// We don't want to show these violations on NewDot
-const excludedViolationsName = ['taxAmountChanged', 'taxRateChanged'];
-
 /**
  * @param violations – List of transaction violations
  * @param shouldShowOnlyViolations – Whether we should only show violations of type 'violation'
@@ -59,7 +57,8 @@ const excludedViolationsName = ['taxAmountChanged', 'taxRateChanged'];
 function useViolations(violations: TransactionViolation[], shouldShowOnlyViolations: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
-            if (excludedViolationsName.includes(violation.name)) {
+            // We don't want to show these violations on NewDot
+            if (CONST.EXCLUDED_VIOLATIONS.includes(violation.name as TupleToUnion<typeof CONST.EXCLUDED_VIOLATIONS>)) {
                 return false;
             }
             if (shouldShowOnlyViolations) {
