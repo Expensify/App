@@ -679,7 +679,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -694,21 +694,15 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [buildAndroid, uploadAndroid, submitAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" == "success" ]; then
-              isAtLeastOnePlatformDeployed="true"
-            fi
-          else
-            if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
-              isAtLeastOnePlatformDeployed="true"
-            fi
+          if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
+            isAtLeastOnePlatformDeployed="true"
           fi
 
           if [ "${{ needs.iOS.result }}" == "success" ] || \
@@ -733,14 +727,8 @@ jobs:
             isAllPlatformsDeployed="true"
           fi
 
-          if [ ${{ github.ref }} == 'refs/heads/production' ]; then
-            if [ "${{ needs.submitAndroid.result }}" != "success" ]; then
-              isAllPlatformsDeployed="false"
-            fi
-          else
-            if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
-              isAllPlatformsDeployed="false"
-            fi
+          if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
+            isAllPlatformsDeployed="false"
           fi
 
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
@@ -888,7 +876,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -942,11 +930,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, submitAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ github.ref == 'refs/heads/production' && needs.submitAndroid.result || needs.uploadAndroid.result }}
+      android: ${{ github.ref == 'refs/heads/production' && needs.uploadAndroid.result }}
       android_hybrid: ${{ needs.android_hybrid.result }}
       ios: ${{ needs.iOS.result }}
       ios_hybrid: ${{ needs.iOS_hybrid.result }}
