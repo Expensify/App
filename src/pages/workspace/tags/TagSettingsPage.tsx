@@ -53,11 +53,11 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         navigation.setParams({tagName: currentPolicyTag?.name});
     }, [tagName, currentPolicyTag, navigation]);
 
+    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
     const approverText = useMemo(() => {
-        const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
         const approver = PersonalDetailsUtils.getPersonalDetailByEmail(tagApprover);
         return approver?.displayName ?? tagApprover;
-    }, [policyID, route.params?.tagName, policy?.rules?.approvalRules]);
+    }, [tagApprover]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
