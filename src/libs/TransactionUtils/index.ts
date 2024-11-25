@@ -470,6 +470,21 @@ function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Return the posted date from the transaction.
+ */
+function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
+    return transaction?.posted ?? '';
+}
+
+/**
+ * Return the formated posted date from the transaction.
+ */
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const postedDate = getPostedDate(transaction);
+    return DateUtils.formatWithUTCTimeZone(postedDate, dateFormat);
+}
+
+/**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
 function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -1301,6 +1316,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getFormattedPostedDate,
 };
 
 export type {TransactionChanges};

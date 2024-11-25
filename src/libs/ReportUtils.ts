@@ -437,6 +437,7 @@ type TransactionDetails = {
     cardID: number;
     originalAmount: number;
     originalCurrency: string;
+    postedDate: string;
 };
 
 type OptimisticIOUReport = Pick<
@@ -3107,6 +3108,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
         cardID: TransactionUtils.getCardID(transaction),
         originalAmount: TransactionUtils.getOriginalAmount(transaction),
         originalCurrency: TransactionUtils.getOriginalCurrency(transaction),
+        postedDate: TransactionUtils.getFormattedPostedDate(transaction),
     };
 }
 
