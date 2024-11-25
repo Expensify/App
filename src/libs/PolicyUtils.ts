@@ -26,9 +26,12 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
+    SageIntacctDataElement,
+    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -184,7 +187,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
-function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string | undefined) {
+function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
     return policy?.role ?? policy?.employeeList?.[currentUserLogin ?? '-1']?.role;
 }
 
@@ -218,7 +221,7 @@ const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => 
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the current user is of the role "user" on the policy.
@@ -379,7 +382,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
@@ -404,7 +407,7 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
-function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
+function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
 }
 
@@ -434,7 +437,7 @@ function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): V
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
+function isSubmitAndClose(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
@@ -707,6 +710,11 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
+    return selectedVendor ?? vendors?.[0] ?? undefined;
+}
+
+function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
+    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
@@ -1184,6 +1192,7 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
+    findSelectedSageVendorWithDefaultSelect,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
