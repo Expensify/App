@@ -13,7 +13,6 @@ import type {
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
-    SetPolicyDistanceRatesDefaultCategoryParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
@@ -28,13 +27,13 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
-import type {ApprovalRule, CustomUnit, ExpenseRule} from '@src/types/onyx/Policy';
+import type {ApprovalRule, ExpenseRule} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -1015,15 +1014,15 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
     }
 }
 
-function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: string, oldCategory: string | undefined, category: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [newCustomUnit.customUnitID]: {
-                        ...newCustomUnit,
+                    [customUnitID]: {
+                        defaultCategory: category,
                         pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
@@ -1037,7 +1036,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [newCustomUnit.customUnitID]: {
+                    [customUnitID]: {
                         pendingFields: {defaultCategory: null},
                     },
                 },
@@ -1051,8 +1050,8 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [currentCustomUnit.customUnitID]: {
-                        ...currentCustomUnit,
+                    [customUnitID]: {
+                        defaultCategory: oldCategory,
                         errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {defaultCategory: null},
                     },
@@ -1061,12 +1060,13 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
         },
     ];
 
-    const params: SetPolicyDistanceRatesDefaultCategoryParams = {
+    const params = {
         policyID,
-        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
+        customUnitID,
+        category,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
 function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
@@ -1364,7 +1364,7 @@ export {
     setPolicyCategoryGLCode,
     clearCategoryErrors,
     enablePolicyCategories,
-    setPolicyDistanceRatesDefaultCategory,
+    setPolicyCustomUnitDefaultCategory,
     deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
     setPolicyCategoryReceiptsRequired,
