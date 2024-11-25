@@ -54,11 +54,11 @@ Setup the user using these configurations:
    - **Admin Privileges:** "Full"
    - **Status:** "Active"
 
-        ![Image of Sage Intacct Web Services User setup]({{site.url}}/assets/images/SageConnectSettingUpWebServicesUser.png){:width="100%"}
+![Image of Sage Intacct Web Services User setup]({{site.url}}/assets/images/SageConnectSettingUpWebServicesUser.png){:width="100%"}
 
 Once you've created the user, you'll need to set the correct permissions. To set those, go to the **subscription** link for this user in the user list, **click on the checkbox** next to the Application/Module and then click on the **Permissions** link to modify those. 
 
-        ![Image showing the Application/Module checkbox to click]({{site.url}}/assets/images/SageConnectSubscriptionSettings.png){:width="100%"}
+![Image showing the Application/Module checkbox to click]({{site.url}}/assets/images/SageConnectSubscriptionSettings.png){:width="100%"}
 
 These are the permissions required for a user to export reimbursable expenses as Expense Reports:
 - **Administration (All)**
@@ -133,12 +133,12 @@ To enable Customization Services go to **Company > Subscriptions > Customization
 Creating a test workspace in Expensify allows you to have a sandbox environment for testing before implementing the integration live. If you are already using Expensify, creating a test workspace ensures that your existing group workspace rules and approval workflows remain intact. Here's how to set it up:
 1. Go to **expensify.com > Settings > Workspaces > New Workspace**.
 
-        ![Image of creating a new Workspace in Expensify]({{site.url}}/assets/images/SageConnectCreatingWorkspace.png){:width="100%"}
+![Image of creating a new Workspace in Expensify]({{site.url}}/assets/images/SageConnectCreatingWorkspace.png){:width="100%"}
 
 2. Name the workspace something like "Sage Intacct Test Workspace."
 3. Go to **Connections > Sage Intacct > Connect to Sage Intacct**.
 
-        ![Image of selecting the Sage Intacct integration in Expensify]({{site.url}}/assets/images/SageConnectEnableSage.png){:width="100%"}
+![Image of selecting the Sage Intacct integration in Expensify]({{site.url}}/assets/images/SageConnectEnableSage.png){:width="100%"}
 
 4. Select **Download Package** (You only need to download the file; we'll upload it from your Downloads folder later).
 
@@ -162,7 +162,7 @@ If you use **Platform Services**:
 1. Go to **Company > Company Info > Security** in Intacct and click **Edit**.
 2. Scroll down to **Web Services Authorizations** and add "expensify" (all lower case) as a Sender ID.
 
-        ![Image of Web Services Authorizations in Sage Intacct]({{site.url}}/assets/images/SageConnectWebServicesAuthorizations.png){:width="100%"}
+![Image of Web Services Authorizations in Sage Intacct]({{site.url}}/assets/images/SageConnectWebServicesAuthorizations.png){:width="100%"}
 
 ### Step 9: Enter Credentials and Connect Expensify and Sage Intacct
 
@@ -171,7 +171,7 @@ If you use **Platform Services**:
 2. Click **Connect to Sage Intacct** and enter the credentials you've set for your web services user.
 3. Click **Send** once you're done.
 
-        ![Image of Sage Intacct credentials being entered in Expensify to connect the integration]({{site.url}}/assets/images/SageConnectEnterCredentials.png){:width="100%"}
+![Image of Sage Intacct credentials being entered in Expensify to connect the integration]({{site.url}}/assets/images/SageConnectEnterCredentials.png){:width="100%"}
 
 Next, you’ll configure the Export, Coding, and Advanced tabs of the connection configuration in Expensify.
 
