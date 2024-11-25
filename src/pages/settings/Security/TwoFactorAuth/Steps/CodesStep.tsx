@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -35,7 +36,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type CodesStepProps = BackToParams;
 
 function CodesStep({backTo}: CodesStepProps) {
-    const navigation = useNavigation();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,12 +71,7 @@ function CodesStep({backTo}: CodesStepProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated]);
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('beforeRemove', () => {
-            setIsValidateModalVisible(false);
-        });
-        return unsubscribe;
-    }, [navigation]);
+    useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
         <StepWrapper
