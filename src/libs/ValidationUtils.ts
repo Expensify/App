@@ -49,7 +49,7 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
         return false;
     }
 
@@ -343,7 +343,7 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name: string) {
-    return !name.match(CONST.REGEX.EMOJIS);
+    return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
 function isValidReportName(name: string) {
