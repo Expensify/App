@@ -481,7 +481,16 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: number) {
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
+function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
 
     const {
@@ -530,11 +539,11 @@ function signInAfterTransitionFromOldDot(transitionURL: string, lastUpdateId?: n
             )
             .then(() => {
                 if (clearOnyxOnStart === 'true') {
-                    // We clear Onyx when this flag is set to true so we have to download all data
-                    App.openApp();
-                } else {
-                    App.reconnectApp(lastUpdateId);
+                    return App.openApp();
                 }
+                return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
+                    return App.reconnectApp(lastUpdateId);
+                });
             })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});

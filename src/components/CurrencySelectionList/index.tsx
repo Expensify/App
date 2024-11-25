@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
@@ -8,17 +8,17 @@ import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
+import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
 function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
     onSelect,
-    currencyList,
     selectedCurrencies = [],
     canSelectMultiple = false,
     recentlyUsedCurrencies,
 }: CurrencySelectionListProps) {
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
@@ -107,8 +107,4 @@ function CurrencySelectionList({
 
 CurrencySelectionList.displayName = 'CurrencySelectionList';
 
-const CurrencySelectionListWithOnyx = withOnyx<CurrencySelectionListProps, CurrencySelectionListOnyxProps>({
-    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-})(CurrencySelectionList);
-
-export default CurrencySelectionListWithOnyx;
+export default CurrencySelectionList;
