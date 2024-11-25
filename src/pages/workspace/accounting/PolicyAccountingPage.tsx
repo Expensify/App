@@ -77,8 +77,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
     const newConnectionName = params?.newConnectionName;
@@ -569,7 +568,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     fill={theme.icon}
                                     additionalStyles={styles.mr3}
                                 />
-                                <View style={[isSmallScreenWidth || isMediumScreenWidth ? styles.flexColumn : styles.flexRow]}>
+                                <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
                                     <Text>{translate('workspace.accounting.needAnotherAccounting')}</Text>
                                     <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? ''))}>{chatTextLink}</TextLink>
                                 </View>
