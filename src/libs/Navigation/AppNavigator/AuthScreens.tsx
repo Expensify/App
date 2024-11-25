@@ -1,5 +1,4 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import * as NavigationBar from 'expo-navigation-bar';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -71,6 +70,8 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
+
+const {RNNavBarManager} = NativeModules;
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -258,10 +259,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     });
 
     useEffect(() => {
-        NavigationBar.setButtonStyleAsync(theme.navigationBarButtonsStyle);
+        RNNavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
 
         return () => {
-            NavigationBar.setButtonStyleAsync(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
+            RNNavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
 
