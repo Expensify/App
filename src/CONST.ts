@@ -5964,6 +5964,9 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
