@@ -176,13 +176,12 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport);
-    const isArchivedReport = ReportUtils.isArchivedNonExpenseReportWithID(iouReportID);
+    const isArchivedReport = ReportUtils.isArchivedReport(iouReport);
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const shouldShowSubmitButton =
         isOpenExpenseReport &&
-        !isArchivedExpenseReport &&
+        !isArchivedReport &&
         reimbursableSpend !== 0 &&
         !showRTERViolationMessage &&
         !shouldShowBrokenConnectionViolation &&

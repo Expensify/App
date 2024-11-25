@@ -1479,7 +1479,7 @@ function isArchivedExpenseReport(report: OnyxInputOrEntry<Report>, reportNameVal
  * Whether the provided report is an archived report
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedAnyReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
+function isArchivedReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!report?.private_isArchived;
 }
 
@@ -1793,7 +1793,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedAnyReport(moneyRequestReport)) {
+    if (!isMoneyRequestReport(moneyRequestReport) || isArchivedReport(moneyRequestReport)) {
         return false;
     }
 
@@ -2780,8 +2780,8 @@ function getReasonAndReportActionThatRequiresAttention(
     }
 
     if (
-        isArchivedAnyReport(optionOrReport, getReportNameValuePairs(optionOrReport?.reportID)) ||
-        isArchivedAnyReport(getReportOrDraftReport(optionOrReport.parentReportID), getReportNameValuePairs(optionOrReport?.reportID))
+        isArchivedReport(optionOrReport, getReportNameValuePairs(optionOrReport?.reportID)) ||
+        isArchivedReport(getReportOrDraftReport(optionOrReport.parentReportID), getReportNameValuePairs(optionOrReport?.reportID))
     ) {
         return null;
     }
@@ -6430,7 +6430,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
             ? undefined
             : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '-1'}`]?.[report.parentReportActionID ?? '-1'];
 
-    if (!isArchivedAnyReport(report)) {
+    if (!isArchivedReport(report)) {
         if (ReportActionsUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -6541,7 +6541,7 @@ function reasonForReportToBeInOptionList({
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report) &&
             !isChatThread(report) &&
-            !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)) &&
+            !isArchivedReport(report, getReportNameValuePairs(report?.reportID)) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
             !isSelfDM(report) &&
@@ -8625,7 +8625,7 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedExpenseReport,
-    isArchivedAnyReport,
+    isArchivedReport,
     isArchivedNonExpenseReportWithID,
     isClosedReport,
     isCanceledTaskReport,

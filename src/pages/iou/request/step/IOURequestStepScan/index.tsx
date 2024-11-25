@@ -108,7 +108,7 @@ function IOURequestStepScan({
         }
 
         return (
-            !ReportUtils.isArchivedAnyReport(report, reportNameValuePairs) &&
+            !ReportUtils.isArchivedReport(report, reportNameValuePairs) &&
             !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
     }, [report, skipConfirmation, policy, reportNameValuePairs]);

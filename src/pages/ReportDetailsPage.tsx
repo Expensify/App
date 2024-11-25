@@ -223,11 +223,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest =
-        ReportUtils.isExpenseReport(report) &&
-        !ReportUtils.isArchivedExpenseReport(report) &&
-        (ReportUtils.isReportManager(report) || isPolicyAdmin) &&
-        ReportUtils.isReportApproved(report) &&
-        !PolicyUtils.isSubmitAndClose(policy);
+        ReportUtils.isExpenseReport(report) && (ReportUtils.isReportManager(report) || isPolicyAdmin) && ReportUtils.isReportApproved(report) && !PolicyUtils.isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -299,8 +295,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
 
-    const shouldShowCancelPaymentButton =
-        caseID === CASES.MONEY_REPORT && isPayer && isSettled && !ReportUtils.isArchivedExpenseReport(moneyRequestReport) && ReportUtils.isExpenseReport(moneyRequestReport);
+    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
 
     const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
@@ -641,11 +636,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(moneyRequestAction);
-    const shouldShowHoldAction =
-        caseID !== CASES.DEFAULT &&
-        (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !ReportUtils.isArchivedAnyReport(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
-
+    const shouldShowHoldAction = caseID !== CASES.DEFAULT && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest);
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
