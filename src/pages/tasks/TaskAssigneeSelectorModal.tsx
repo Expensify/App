@@ -62,7 +62,6 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            categoryOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 

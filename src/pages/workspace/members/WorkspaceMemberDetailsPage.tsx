@@ -335,9 +335,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
-                                                            contentFit="contain"
-                                                            iconWidth={variables.iconSizeExtraLarge}
-                                                            iconHeight={variables.iconSizeExtraLarge}
+                                                            iconWidth={variables.cardIconWidth}
+                                                            iconHeight={variables.cardIconHeight}
                                                             onPress={() => navigateToDetails(memberCard)}
                                                             shouldRemoveHoverBackground={isCardDeleted}
                                                             disabled={isCardDeleted}
