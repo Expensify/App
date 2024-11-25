@@ -3,6 +3,7 @@ import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
@@ -75,8 +76,6 @@ import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator'
 type AuthScreensProps = {
     /** Session of currently logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
-
-    account: OnyxEntry<OnyxTypes.Account>;
 
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: OnyxEntry<string>;
@@ -228,7 +227,7 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({account, session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth for the root stack navigator
@@ -238,6 +237,7 @@ function AuthScreens({account, session, lastOpenedPublicRoomID, initialLastUpdat
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {toggleSearchRouter} = useSearchRouterContext();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
@@ -596,7 +596,10 @@ function AuthScreens({account, session, lastOpenedPublicRoomID, initialLastUpdat
                 <SearchRouterModal />
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    onClose={() => {
+                        setIsNoDelegateAccessMenuVisible(false);
+                        Session.signOutAndRedirectToSignIn(true);
+                    }}
                     delegatorEmail={account?.delegatedAccess?.delegate ?? ''}
                 />
             </View>
@@ -622,8 +625,5 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-    account: {
-        key: ONYXKEYS.ACCOUNT,
     },
 })(AuthScreensMemoized);
