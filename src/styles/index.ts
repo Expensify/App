@@ -367,6 +367,9 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        verticalAlignTopText: {
+            verticalAlign: 'text-top',
+        },
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -415,7 +418,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -1744,6 +1747,31 @@ const styles = (theme: ThemeColors) =>
 
         onlyEmojisTextLineHeight: {
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        emojisWithTextFontSizeAligned: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            marginVertical: -7,
+        },
+
+        emojisFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        emojisWithTextFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        initialSettingsUsernameEmoji: {
+            fontSize: variables.fontSizeUsernameEmoji,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
@@ -4517,17 +4545,9 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
         },
 
-        assignedCardsIconContainer: {
-            height: variables.bankCardHeight,
-            width: variables.bankCardWidth,
-            borderRadius: 4,
-            overflow: 'hidden',
-            alignSelf: 'center',
-        },
-
         bankIconContainer: {
-            height: variables.bankCardWidth,
-            width: variables.bankCardWidth,
+            height: variables.cardIconWidth,
+            width: variables.cardIconWidth,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
@@ -5191,7 +5211,6 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
-            height: variables.cardIconHeight,
             alignSelf: 'center',
         },
 

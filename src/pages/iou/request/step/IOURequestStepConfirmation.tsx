@@ -51,6 +51,7 @@ function IOURequestStepConfirmation({
         params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
     },
     transaction,
+    isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -238,33 +239,38 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-
-            IOU.requestMoney(
+            IOU.requestMoney({
                 report,
-                transaction.amount,
-                transaction.attendees,
-                transaction.currency,
-                transaction.created,
-                transaction.merchant,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participant,
-                trimmedComment,
-                receiptObj,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                },
                 gpsPoints,
                 action,
-                transaction.actionableWhisperReportActionID,
-                transaction.linkedTrackedExpenseReportAction,
-                transaction.linkedTrackedExpenseReportID,
-            );
+                transactionParams: {
+                    amount: transaction.amount,
+                    attendees: transaction.attendees,
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    comment: trimmedComment,
+                    receipt: receiptObj,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                },
+            });
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
@@ -603,71 +609,73 @@ function IOURequestStepConfirmation({
         createTransaction(listOfParticipants);
     };
 
+    if (isLoadingTransaction) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
-                        }
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Receipt,
-                                text: translate('receipt.addReceipt'),
-                                onSelected: navigateToAddReceipt,
-                            },
-                        ]}
+            <View style={[styles.flex1, styles.mb6]}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    onBackButtonPress={navigateBack}
+                    shouldShowThreeDotsButton={
+                        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                    }
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Receipt,
+                            text: translate('receipt.addReceipt'),
+                            onSelected: navigateToAddReceipt,
+                        },
+                    ]}
+                />
+                {isLoading && <FullScreenLoadingIndicator />}
+                {!!gpsRequired && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onDeny={() => {
+                            IOU.updateLastLocationPermissionPrompt();
+                            createTransaction(selectedParticipantList, false);
+                        }}
                     />
-                    {isLoading && <FullScreenLoadingIndicator />}
-                    {!!gpsRequired && (
-                        <LocationPermissionModal
-                            startPermissionFlow={startLocationPermissionFlow}
-                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => createTransaction(selectedParticipantList, true)}
-                            onDeny={() => {
-                                IOU.updateLastLocationPermissionPrompt();
-                                createTransaction(selectedParticipantList, false);
-                            }}
-                        />
-                    )}
-                    <MoneyRequestConfirmationList
-                        transaction={transaction}
-                        selectedParticipants={participants}
-                        iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
-                        onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
-                        onConfirm={onConfirm}
-                        onSendMoney={sendMoney}
-                        receiptPath={receiptPath}
-                        receiptFilename={receiptFilename}
-                        iouType={iouType}
-                        reportID={reportID}
-                        isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={IOU.getIOURequestPolicyID(transaction, report)}
-                        bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
-                        isDistanceRequest={isDistanceRequest}
-                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                        action={action}
-                        payeePersonalDetails={payeePersonalDetails}
-                        shouldPlaySound={false}
-                        isConfirmed={isConfirmed}
-                    />
-                </View>
-            )}
+                )}
+                <MoneyRequestConfirmationList
+                    transaction={transaction}
+                    selectedParticipants={participants}
+                    iouAmount={Math.abs(transaction?.amount ?? 0)}
+                    iouAttendees={transaction?.attendees ?? []}
+                    iouComment={transaction?.comment?.comment ?? ''}
+                    iouCurrencyCode={transaction?.currency}
+                    iouIsBillable={transaction?.billable}
+                    onToggleBillable={setBillable}
+                    iouCategory={transaction?.category}
+                    onConfirm={onConfirm}
+                    onSendMoney={sendMoney}
+                    receiptPath={receiptPath}
+                    receiptFilename={receiptFilename}
+                    iouType={iouType}
+                    reportID={reportID}
+                    isPolicyExpenseChat={isPolicyExpenseChat}
+                    policyID={IOU.getIOURequestPolicyID(transaction, report)}
+                    bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
+                    iouMerchant={transaction?.merchant}
+                    iouCreated={transaction?.created}
+                    isDistanceRequest={isDistanceRequest}
+                    shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                    action={action}
+                    payeePersonalDetails={payeePersonalDetails}
+                    shouldPlaySound={false}
+                    isConfirmed={isConfirmed}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

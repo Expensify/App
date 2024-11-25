@@ -212,6 +212,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -1337,6 +1338,10 @@ const CONST = {
     STATUS_BAR_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
+    },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
@@ -2843,12 +2848,14 @@ const CONST = {
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
             BUSINESS: 'American Express Business Cards',
+            PERSONAL: 'American Express Personal Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
         CARD_LIST_THRESHOLD: 8,
+        DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -2969,8 +2976,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -3005,6 +3012,10 @@ const CONST = {
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get ALL_EMOJIS() {
+            return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
@@ -5034,7 +5045,7 @@ const CONST = {
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
-                        '1. Click your profile photo.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click Accounting.\n' +
@@ -5959,6 +5970,9 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
@@ -6294,10 +6308,17 @@ const CONST = {
     },
 
     DEBUG: {
+        FORMS: {
+            REPORT: 'report',
+            REPORT_ACTION: 'reportAction',
+            TRANSACTION: 'transaction',
+            TRANSACTION_VIOLATION: 'transactionViolation',
+        },
         DETAILS: 'details',
         JSON: 'json',
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
+        TRANSACTION_VIOLATIONS: 'violations',
     },
 
     REPORT_IN_LHN_REASONS: {

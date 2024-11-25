@@ -39,6 +39,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
 
     const searchedListOptions = useMemo(() => {
         return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
@@ -63,11 +64,13 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             if (!exportMenuItem?.exportType) {
                 return;
             }
-            CompanyCards.setCompanyCardExportAccount(policyID, workspaceAccountID, cardID, exportMenuItem.exportType, value, bank);
+            const isDefaultCardSelected = value === defaultCard;
+            const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
+            CompanyCards.setCompanyCardExportAccount(policyID, workspaceAccountID, cardID, exportMenuItem.exportType, exportValue, bank);
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },
-        [exportMenuItem?.exportType, workspaceAccountID, cardID, policyID, bank],
+        [exportMenuItem?.exportType, workspaceAccountID, cardID, policyID, bank, defaultCard],
     );
 
     return (
