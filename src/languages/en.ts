@@ -3489,7 +3489,7 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type?.toLowerCase()} export`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
@@ -3526,6 +3526,7 @@ const translations = {
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
+                defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {

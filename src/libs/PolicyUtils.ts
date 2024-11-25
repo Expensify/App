@@ -26,6 +26,8 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
+    SageIntacctDataElement,
+    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -711,6 +713,11 @@ function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefin
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
+function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
+    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
+    return selectedVendor ?? vendors?.[0] ?? undefined;
+}
+
 function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
     const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
     return selectedBankAccount ?? accounts?.[0] ?? undefined;
@@ -1185,6 +1192,7 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
+    findSelectedSageVendorWithDefaultSelect,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
