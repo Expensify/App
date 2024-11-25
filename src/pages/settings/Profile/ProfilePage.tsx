@@ -93,23 +93,23 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
-            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
+            action: () => {isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME)},
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
-            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
+            action: () => { isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH)},
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
-            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            action: () => {isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER)},
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
-            pageRoute: ROUTES.SETTINGS_ADDRESS,
+            action: () => {isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_ADDRESS)},
         },
     ];
 
@@ -204,9 +204,7 @@ function ProfilePage() {
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={() => {
-                                                isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(detail.pageRoute);
-                                            }}
+                                            onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
