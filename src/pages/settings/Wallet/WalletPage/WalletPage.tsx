@@ -398,8 +398,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
                                 {hasWallet && (
                                     <Section
-                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'walletEnabledToSendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
-                                        title={translate('walletPage.sendAndReceiveMoney')}
+                                        subtitle={translate(`walletPage.sendAndReceiveMoney`)}
+                                        title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
