@@ -63,9 +63,9 @@ function clearPlaid(): Promise<void | void[]> {
 }
 
 function clearInternationalBankAccount() {
-    clearPlaid();
-    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
-    return Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+    return clearPlaid()
+        .then(() => Onyx.set(ONYXKEYS.CORPAY_FIELDS, null))
+        .then(() => Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, null));
 }
 
 function openPlaidView() {
