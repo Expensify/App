@@ -11,15 +11,15 @@ function ExitSurveyOffline() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <Icon
-                    width={variables.modalTopIconWidth}
-                    height={variables.modalTopIconHeight}
-                    src={ToddBehindCloud}
-                />
-                <Text style={[styles.headerAnonymousFooter, styles.textAlignCenter]}>{translate('exitSurvey.offlineTitle')}</Text>
-                <Text style={[styles.mt2, styles.textAlignCenter]}>{translate('exitSurvey.offline')}</Text>
-            </View>
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <Icon
+                width={variables.modalTopIconWidth}
+                height={variables.modalTopIconHeight}
+                src={ToddBehindCloud}
+            />
+            <Text style={[styles.headerAnonymousFooter, styles.textAlignCenter]}>{translate('exitSurvey.offlineTitle')}</Text>
+            <Text style={[styles.mt2, styles.textAlignCenter]}>{translate('exitSurvey.offline')}</Text>
+        </View>
     );
 }
 
