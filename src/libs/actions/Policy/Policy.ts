@@ -1980,6 +1980,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         expenseCreatedReportActionID,
         customUnitID,
         customUnitRateID,
+        currency: outputCurrency,
     };
 
     Onyx.update(optimisticData);
