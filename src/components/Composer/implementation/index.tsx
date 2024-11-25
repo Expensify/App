@@ -359,7 +359,7 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={(el) => (textInput.current = el)}
             selection={selection}
-            style={[inputStyleMemo, shouldTransparentCursor ? {color: 'transparent'} : undefined]}
+            style={[inputStyleMemo, shouldTransparentCursor ? {caretColor: 'transparent'} : undefined]}
             markdownStyle={markdownStyle}
             value={value}
             defaultValue={defaultValue}
