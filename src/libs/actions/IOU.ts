@@ -6730,6 +6730,25 @@ function getPayMoneyRequestParams(
                 },
             });
         }
+
+        const optimisticTransactionViolations: OnyxUpdate[] = reportTransactions.map(({transactionID}) => {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: null,
+            };
+        });
+        optimisticData.push(...optimisticTransactionViolations);
+
+        const failureTransactionViolations: OnyxUpdate[] = reportTransactions.map(({transactionID}) => {
+            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: violations,
+            };
+        });
+        failureData.push(...failureTransactionViolations);
     }
 
     let optimisticHoldReportID;
