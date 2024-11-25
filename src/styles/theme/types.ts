@@ -1,4 +1,3 @@
-import type {NavigationBarButtonStyle} from 'expo-navigation-bar';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
