@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import * as PerDiem from '@libs/actions/Policy/PerDiem';
+import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -108,7 +109,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         const perDiemAmountColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.AMOUNT);
         const perDiemDestination = spreadsheet?.data[perDiemDestinationColumn].map((destination) => destination) ?? [];
         const perDiemSubRate = spreadsheet?.data[perDiemSubRateColumn].map((subRate) => subRate) ?? [];
-        const perDiemCurrency = spreadsheet?.data[perDiemCurrencyColumn].map((currency) => currency) ?? [];
+        const perDiemCurrency = spreadsheet?.data[perDiemCurrencyColumn].map((currency) => sanitizeCurrencyCode(currency)) ?? [];
         const perDiemAmount = spreadsheet?.data[perDiemAmountColumn].map((amount) => amount) ?? [];
         const perDiemUnits = generatePerDiemUnits(
             perDiemDestination?.slice(containsHeader ? 1 : 0),
