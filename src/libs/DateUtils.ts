@@ -798,15 +798,19 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
 /**
  * Returns a formatted date of departure.
  * Dates are formatted as follows:
- * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
- * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ * 1. When the date refers to the current year: Departs on Sunday, Mar 17 at 8:00. When shorter is true, the output is: Mar 17, 8:00 AM
+ * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00. When shorter is true, the output is: Mar 17, 2023 8:00 AM
  */
-function getFormattedTransportDate(date: Date): string {
+function getFormattedTransportDate(date: Date, shorter = false): string {
     const {translateLocal} = Localize;
     if (isThisYear(date)) {
-        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+        return shorter
+            ? format(date, 'MMM d, h:mm a')
+            : `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
     }
-    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    return shorter
+        ? format(date, 'MMM d, yyyy, h:mm a')
+        : `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
