@@ -50,7 +50,7 @@ Onyx.connect({
     },
 });
 
-function getTripReservationIcon(reservationType: ReservationType): IconAsset {
+function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return Expensicons.Plane;
