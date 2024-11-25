@@ -50,4 +50,35 @@ describe('PolicyUtils', () => {
             });
         });
     });
+
+    describe('getUnitRateValue', () => {
+        it('should return an empty string for NaN', () => {
+            const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as number});
+            expect(rate).toEqual('');
+        });
+
+        describe('withDecimals = false', () => {
+            it('should return value divisible by 100 with no decimal places', () => {
+                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 100});
+                expect(rate).toEqual('1');
+            });
+
+            it('should return non-integer value as is divided by 100', () => {
+                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 11.11});
+                expect(rate).toEqual('0.1111');
+            });
+        });
+
+        describe('withDecimals = true', () => {
+            it('should return value divisible by 100 with 2 decimal places', () => {
+                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 100}, true);
+                expect(rate).toEqual('1.00');
+            });
+
+            it('should return non-integer value as is divided by 100', () => {
+                const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
+                expect(rate).toEqual('0.1111');
+            });
+        });
+    });
 });
