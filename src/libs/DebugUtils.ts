@@ -480,6 +480,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isOptimisticReport':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
+            return validateBoolean(value);
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
