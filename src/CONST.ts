@@ -212,6 +212,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
