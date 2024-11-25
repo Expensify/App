@@ -77,6 +77,7 @@ function ValidateCodeActionModal({
                     <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
                     {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
+                        isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
@@ -86,7 +87,6 @@ function ValidateCodeActionModal({
                         buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        isLoading={isLoading}
                     />
                 </View>
                 {footer?.()}
