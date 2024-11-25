@@ -155,7 +155,7 @@ function SearchRouterList(
                     accountID: details.accountID.toString(),
                 };
             });
-        const currentUser = (filteredOptions.currentUserOption as SearchOption<PersonalDetails>).item;
+        const currentUser = filteredOptions.currentUserOption ? (filteredOptions.currentUserOption as SearchOption<PersonalDetails>).item : undefined;
         if (currentUser) {
             autocompleteOptions.push({
                 name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
