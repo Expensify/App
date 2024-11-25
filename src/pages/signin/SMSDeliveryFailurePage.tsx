@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +18,6 @@ function SMSDeliveryFailurePage() {
     const {translate} = useLocalize();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const login = useMemo(() => {
         if (!credentials?.login) {
@@ -42,9 +40,7 @@ function SMSDeliveryFailurePage() {
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
                     <Text>
-                        {shouldUseNarrowLayout
-                            ? `${translate('welcomeText.welcome')} ${translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} ${SMSDeliveryFailureMessage}`
-                            : `${translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} ${SMSDeliveryFailureMessage}`}
+                        {translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} {SMSDeliveryFailureMessage}
                     </Text>
                 </View>
             </View>
