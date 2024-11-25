@@ -88,7 +88,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                 </Text>
             </View>
         ),
-        [styles, translate],
+        [styles, translate, shouldUseNarrowLayout],
     );
 
     if (sortedCards.length === 0) {
