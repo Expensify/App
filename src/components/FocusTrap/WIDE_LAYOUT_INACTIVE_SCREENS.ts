@@ -1,4 +1,3 @@
-import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
@@ -6,7 +5,6 @@ import SCREENS from '@src/SCREENS';
  * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
  */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
-    NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
     SCREENS.HOME,
     SCREENS.SETTINGS.ROOT,
     SCREENS.REPORT,

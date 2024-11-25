@@ -17,29 +17,23 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
-import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
-import originalGetTopmostReportActionId from './getTopmostReportActionID';
-import originalGetTopmostReportId from './getTopmostReportId';
+import getTopmostReportParam from './getTopmostReportParam';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import linkingConfig from './linkingConfig';
 import createSplitNavigator from './linkingConfig/createSplitNavigator';
+import RELATIONS from './linkingConfig/RELATIONS';
 import linkTo from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
-import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorLHNScreen, SplitNavigatorParamListType, State} from './types';
-
-const SPLIT_NAVIGATOR_TO_SIDEBAR_MAP: Record<keyof SplitNavigatorParamListType, SplitNavigatorLHNScreen> = {
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: SCREENS.HOME,
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SCREENS.SETTINGS.ROOT,
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: SCREENS.WORKSPACE.INITIAL,
-};
+import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
 
 function getSidebarScreenParams(splitNavigatorRoute: NavigationStateRoute) {
     if (splitNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
@@ -74,10 +68,10 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
 }
 
 // Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
+const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParam(state, 'reportID');
 
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
-const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
+const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParam(state, 'reportActionID');
 
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
@@ -282,7 +276,7 @@ function goBack(fallbackRoute?: Route, shouldPopToTop = false) {
     const canGoBack = navigationRef.current?.canGoBack();
 
     if (!canGoBack && isSplitNavigatorName(lastRoute?.name) && lastRoute?.state?.routes?.length === 1) {
-        const name = SPLIT_NAVIGATOR_TO_SIDEBAR_MAP[lastRoute.name];
+        const name = RELATIONS.SPLIT_TO_SIDEBAR[lastRoute.name];
         const params = getSidebarScreenParams(lastRoute);
         navigationRef.dispatch({
             type: 'REPLACE',

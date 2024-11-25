@@ -25,4 +25,5 @@ export default {
     SIDEBAR_TO_RHP,
     WORKSPACE_TO_RHP,
     SIDEBAR_TO_SPLIT,
+    SPLIT_TO_SIDEBAR: createInverseRelation(SIDEBAR_TO_RHP),
 };

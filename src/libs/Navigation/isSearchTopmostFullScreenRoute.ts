@@ -10,7 +10,7 @@ const isSearchTopmostFullScreenRoute = (): boolean => {
         return false;
     }
 
-    return rootState.routes.filter((route) => isFullScreenName(route.name)).at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    return rootState.routes.findLast((route) => isFullScreenName(route.name))?.name === SCREENS.SEARCH.CENTRAL_PANE;
 };
 
 export default isSearchTopmostFullScreenRoute;

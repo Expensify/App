@@ -92,7 +92,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     }, [selectedTab]);
 
     const navigateToSearch = useCallback(() => {
-        if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
+        if (selectedTab === SCREENS.SEARCH.CENTRAL_PANE) {
             return;
         }
         interceptAnonymousUser(() => {

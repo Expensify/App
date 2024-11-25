@@ -1,74 +1,45 @@
-import cloneDeep from 'lodash/cloneDeep';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {CentralPaneName, FullScreenName, OnboardingFlowName, RootStackParamList, SplitNavigatorName, State} from './Navigation/types';
+import type {FullScreenName, OnboardingFlowName, SplitNavigatorLHNScreen, SplitNavigatorName} from './Navigation/types';
 
 const SPLIT_NAVIGATORS = [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
-
-const SPLIT_NAVIGATORS_SET = new Set(SPLIT_NAVIGATORS);
-
-const FULL_SCREEN_ROUTES_SET = new Set([...SPLIT_NAVIGATORS, SCREENS.SEARCH.CENTRAL_PANE]);
-
-const CENTRAL_PANE_SCREEN_NAMES = new Set([
-    SCREENS.SETTINGS.WORKSPACES,
-    SCREENS.SETTINGS.PREFERENCES.ROOT,
-    SCREENS.SETTINGS.SECURITY,
-    SCREENS.SETTINGS.PROFILE.ROOT,
-    SCREENS.SETTINGS.WALLET.ROOT,
-    SCREENS.SETTINGS.ABOUT,
-    SCREENS.SETTINGS.TROUBLESHOOT,
-    SCREENS.SETTINGS.SAVE_THE_WORLD,
-    SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
-    SCREENS.SEARCH.CENTRAL_PANE,
-    SCREENS.REPORT,
-]);
-
-const ONBOARDING_SCREEN_NAMES = new Set([
+const FULL_SCREENS = [...SPLIT_NAVIGATORS, SCREENS.SEARCH.CENTRAL_PANE];
+const SIDEBARS = [SCREENS.HOME, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACE.INITIAL];
+const ONBOARDING_SCREENS = [
     SCREENS.ONBOARDING.PERSONAL_DETAILS,
     SCREENS.ONBOARDING.PURPOSE,
     SCREENS.ONBOARDING_MODAL.ONBOARDING,
     SCREENS.ONBOARDING.EMPLOYEES,
     SCREENS.ONBOARDING.ACCOUNTING,
-]);
+];
 
-const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
-    const stateCopy = cloneDeep(state);
-    // const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
-    // if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
-    //     delete bottomTabRoute.params.policyID;
-    // }
-    return stateCopy;
-};
+const SPLIT_NAVIGATORS_SET = new Set(SPLIT_NAVIGATORS);
+const FULL_SCREENS_SET = new Set(FULL_SCREENS);
+const SIDEBARS_SET = new Set(SIDEBARS);
+const ONBOARDING_SCREENS_SET = new Set(ONBOARDING_SCREENS);
 
-function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
-    if (!screen) {
-        return false;
-    }
-    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
-}
-
-function isOnboardingFlowName(screen: string | undefined): screen is OnboardingFlowName {
+function checkIsScreenHasMatchingNameToSetValues<T extends string>(screen: string | undefined, set: Set<T>): screen is T {
     if (!screen) {
         return false;
     }
 
-    return ONBOARDING_SCREEN_NAMES.has(screen as OnboardingFlowName);
+    return set.has(screen as T);
 }
 
-function isSplitNavigatorName(screen: string | undefined): screen is SplitNavigatorName {
-    if (!screen) {
-        return false;
-    }
-
-    return SPLIT_NAVIGATORS_SET.has(screen as SplitNavigatorName);
+function isOnboardingFlowName(screen: string | undefined) {
+    return checkIsScreenHasMatchingNameToSetValues<OnboardingFlowName>(screen, ONBOARDING_SCREENS_SET);
 }
 
-function isFullScreenName(screen: string | undefined): screen is FullScreenName {
-    if (!screen) {
-        return false;
-    }
-
-    return FULL_SCREEN_ROUTES_SET.has(screen as FullScreenName);
+function isSplitNavigatorName(screen: string | undefined) {
+    return checkIsScreenHasMatchingNameToSetValues<SplitNavigatorName>(screen, SPLIT_NAVIGATORS_SET);
 }
 
-export {isCentralPaneName, isFullScreenName, isOnboardingFlowName, isSplitNavigatorName, removePolicyIDParamFromState};
+function isFullScreenName(screen: string | undefined) {
+    return checkIsScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
+}
+
+function isSidebarScreenName(screen: string | undefined) {
+    return checkIsScreenHasMatchingNameToSetValues<SplitNavigatorLHNScreen>(screen, SIDEBARS_SET);
+}
+
+export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName};

@@ -1569,12 +1569,6 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
-type BottomTabNavigatorParamList = {
-    [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
-    [SCREENS.SETTINGS.ROOT]: {policyID?: string};
-};
-
 type SharedScreensParamList = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -1729,8 +1723,6 @@ type DebugParamList = {
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
-type BottomTabName = keyof BottomTabNavigatorParamList;
-
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
@@ -1764,8 +1756,6 @@ export type {
     CentralPaneName,
     BackToParams,
     BackToAndForwardToParms,
-    BottomTabName,
-    BottomTabNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,

@@ -11,7 +11,11 @@ import type {RootStackParamList} from './types';
  * @param state - The react-navigation state
  * @returns - It's possible that there is no report screen
  */
-function getTopmostReportId(state: NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>): string | undefined {
+
+type State = NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>;
+type ReportParam = 'reportID' | 'reportActionID';
+
+function getTopmostReportParam(state: State, reportParam: ReportParam): string | undefined {
     if (!state) {
         return;
     }
@@ -28,12 +32,9 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    const topmostReportId = topmostReport.params && 'reportID' in topmostReport.params && topmostReport.params?.reportID;
-    if (typeof topmostReportId !== 'string') {
-        return;
-    }
+    const topmostReportParams = topmostReport?.params as Record<string, string>;
 
-    return topmostReportId;
+    return topmostReportParams?.[reportParam];
 }
 
-export default getTopmostReportId;
+export default getTopmostReportParam;
