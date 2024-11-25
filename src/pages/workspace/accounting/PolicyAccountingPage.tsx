@@ -306,14 +306,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
-            {
-                icon: Expensicons.ExpensifyCard,
-                iconRight: Expensicons.ArrowRight,
-                shouldShowRightIcon: true,
-                title: translate('workspace.accounting.cardReconciliation'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                onPress: integrationData?.onCardReconciliationPagePress,
-            },
+            ...(policy?.workspaceAccountID && policy?.areExpensifyCardsEnabled
+                ? [
+                      {
+                          icon: Expensicons.ExpensifyCard,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.cardReconciliation'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: integrationData?.onCardReconciliationPagePress,
+                      },
+                  ]
+                : []),
             {
                 icon: Expensicons.Gear,
                 iconRight: Expensicons.ArrowRight,

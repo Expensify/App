@@ -89,7 +89,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         subtitle={translate('workspace.accounting.saveHoursOnReconciliation')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
-                        disabled={!autoSync}
+                        disabled={!autoSync || !policy?.workspaceAccountID || !policy?.areExpensifyCardsEnabled}
                         isActive={!!isContinuousReconciliationOn}
                         onToggle={toggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
