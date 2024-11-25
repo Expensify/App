@@ -1,7 +1,6 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -17,17 +16,10 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-type DateOfBirthPageOnyxProps = {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-    /** Whether app is loading */
-    isLoadingApp: OnyxEntry<boolean>;
-};
-type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
-
-function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBirthPageProps) {
+function DateOfBirthPage() {
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -85,11 +77,4 @@ function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBi
 
 DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default withOnyx<DateOfBirthPageProps, DateOfBirthPageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(DateOfBirthPage);
+export default DateOfBirthPage;

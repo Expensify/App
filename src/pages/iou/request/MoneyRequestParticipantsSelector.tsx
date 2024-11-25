@@ -102,9 +102,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
             };
         }
 
@@ -139,9 +136,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
             };
         }
 
@@ -162,7 +156,7 @@ function MoneyRequestParticipantsSelector({
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }

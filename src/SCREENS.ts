@@ -117,6 +117,7 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
+            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
@@ -546,6 +547,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         PER_DIEM: 'Per_Diem',
+        PER_DIEM_SETTINGS: 'Per_Diem_Settings',
     },
 
     EDIT_REQUEST: {
@@ -620,6 +622,9 @@ const SCREENS = {
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
         DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        TRANSACTION: 'Debug_Transaction',
+        TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
 } as const;
 

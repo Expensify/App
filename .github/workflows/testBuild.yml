@@ -93,8 +93,6 @@ jobs:
     name: Upload Android app to S3
     needs: [buildAndroid]
     runs-on: ubuntu-latest
-    env:
-      RUBYOPT: '-rostruct'
     outputs:
       S3_APK_PATH: ${{ steps.exportS3Path.outputs.S3_APK_PATH }}
     steps:

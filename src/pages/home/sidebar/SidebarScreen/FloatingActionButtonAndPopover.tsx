@@ -191,11 +191,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
-        if (groupPolicies.length === 0) {
-            return false;
-        }
-        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every(
@@ -505,6 +501,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         isValidReport,
     ]);
 
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -563,6 +562,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   onSelected: () => {
                                       Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
+                                      Task.completeTask(viewTourTaskReport);
                                   },
                               },
                           ]
