@@ -34,13 +34,24 @@ export default function useFetchRoute(
         Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
+        // Handle offline scenario with route error on initial mount
+        if (isOffline && hasRouteError && isDistanceRequest && isInitialMount) {
+            const waypointValues = Object.values(waypoints ?? {});
+            const allWaypointsServerValidated = waypointValues.every((waypoint) => waypoint.lat !== 0 && waypoint.lng !== 0 && waypoint.name);
+
+            if (allWaypointsServerValidated) {
+                TransactionAction.clearError(transaction.transactionID);
+            }
+            return;
+        }
+
         if (isOffline || !shouldFetchRoute || !transaction?.transactionID) {
             return;
         }
 
         TransactionAction.getRoute(transaction.transactionID, validatedWaypoints, transactionState);
         setIsInitialMount(false);
-    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
+    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState, hasRouteError, isDistanceRequest, isInitialMount, waypoints]);
 
     return {shouldFetchRoute, validatedWaypoints};
 }
