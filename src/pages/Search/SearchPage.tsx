@@ -23,7 +23,7 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
-    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
         return null;
