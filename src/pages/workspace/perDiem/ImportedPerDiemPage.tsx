@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: string[], perDiemCurrency: string[], perDiemAmount: string[]) {
     const perDiemUnits: Record<string, Rate> = {};
@@ -128,7 +129,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
-        return;
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID))} />;
     }
 
     const closeImportPageAndModal = () => {
