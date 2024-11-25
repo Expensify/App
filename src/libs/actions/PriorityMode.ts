@@ -1,8 +1,8 @@
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import * as ReportConnection from '@libs/ReportConnection';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getAllReports} from '@libs/ReportConnection';
+import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -77,7 +77,7 @@ function resetHasReadRequiredDataFromStorage() {
 }
 
 function checkRequiredData() {
-    if (ReportConnection.getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
+    if (getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
         return;
     }
 
@@ -98,14 +98,14 @@ function tryFocusModeUpdate() {
         }
 
         const validReports = [];
-        const allReports = ReportConnection.getAllReports();
+        const allReports = getAllReports();
         Object.keys(allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
             if (!report) {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? -1, report)) {
                 return;
             }
 

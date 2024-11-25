@@ -3,15 +3,15 @@ import CONST from '@src/CONST';
 import type {Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
-import * as MainQueue from './MainQueue';
-import * as SequentialQueue from './SequentialQueue';
+import {process, push} from './MainQueue';
+import {flush} from './SequentialQueue';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
-    SequentialQueue.flush();
+    flush();
 
     // Start main queue and process once every n ms delay
-    setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    setInterval(process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
 
 /**
@@ -40,7 +40,7 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
         request.reject = reject;
 
         // Add the request to a queue of actions to perform
-        MainQueue.push(request);
+        push(request);
 
         // This check is mainly used to prevent API commands from triggering calls to MainQueue.process() from inside the context of a previous
         // call to MainQueue.process() e.g. calling a Log command without this would cause the requests in mainQueue to double process
@@ -51,7 +51,7 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
         }
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        MainQueue.process();
+        process();
     });
 }
 

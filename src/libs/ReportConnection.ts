@@ -2,8 +2,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import * as PriorityModeActions from './actions/PriorityMode';
-import * as ReportHelperActions from './actions/Report';
+import {autoSwitchToFocusMode} from './actions/PriorityMode';
+import {handleReportChanged} from './actions/Report';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -19,7 +19,7 @@ Onyx.connect({
             module.triggerUnreadUpdate();
         });
         // Each time a new report is added we will check to see if the user should be switched
-        PriorityModeActions.autoSwitchToFocusMode();
+        autoSwitchToFocusMode();
 
         if (!value) {
             return;
@@ -29,7 +29,7 @@ Onyx.connect({
                 return;
             }
             reportIDToNameMap[report.reportID] = report.reportName ?? report.reportID;
-            ReportHelperActions.handleReportChanged(report);
+            handleReportChanged(report);
         });
     },
 });
