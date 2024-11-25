@@ -2,8 +2,8 @@ import React from 'react';
 import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
-import getTopmostRouteName from './Navigation/getTopmostRouteName';
-import isReportOpenInRHP from './Navigation/isReportOpenInRHP';
+import getTopmostRouteName from './Navigation/helpers/getTopmostRouteName';
+import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;

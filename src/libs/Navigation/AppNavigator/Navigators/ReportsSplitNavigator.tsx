@@ -7,7 +7,7 @@ import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplit
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';

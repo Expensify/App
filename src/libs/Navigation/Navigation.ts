@@ -20,18 +20,20 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import originalCloseRHPFlow from './closeRHPFlow';
-import getPolicyIDFromState from './getPolicyIDFromState';
-import getStateFromPath from './getStateFromPath';
-import getTopmostReportParam from './getTopmostReportParam';
-import isReportOpenInRHP from './isReportOpenInRHP';
+import {
+    createSplitNavigator,
+    getPolicyIDFromState,
+    getStateFromPath,
+    getTopmostReportParam,
+    isReportOpenInRHP,
+    closeRHPFlow as originalCloseRHPFlow,
+    setNavigationActionToMicrotaskQueue,
+} from './helpers';
 import linkingConfig from './linkingConfig';
-import createSplitNavigator from './linkingConfig/createSplitNavigator';
 import RELATIONS from './linkingConfig/RELATIONS';
 import linkTo from './linkTo';
 import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
-import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
 
 function getSidebarScreenParams(splitNavigatorRoute: NavigationStateRoute) {

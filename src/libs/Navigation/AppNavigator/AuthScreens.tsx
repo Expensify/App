@@ -1,5 +1,5 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';

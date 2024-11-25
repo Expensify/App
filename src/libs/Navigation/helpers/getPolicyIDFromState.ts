@@ -1,7 +1,7 @@
+import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
-import type {NavigationPartialRoute, RootStackParamList, State} from './types';
 
 /**
  * returns policyID value if one exists in navigation state

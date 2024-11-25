@@ -1,11 +1,11 @@
 import type {LinkingOptions} from '@react-navigation/native';
+import {createNormalizedConfigs} from '@libs/Navigation/helpers';
+import type {RouteConfig} from '@libs/Navigation/helpers';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import type {RouteConfig} from './createNormalizedConfigs';
-import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {

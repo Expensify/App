@@ -2,18 +2,18 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
+import config from '@libs/Navigation/linkingConfig/config';
+import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {isFullScreenName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
-import extractPolicyIDFromQuery from '@navigation/extractPolicyIDFromQuery';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import config from './config';
 import createSplitNavigator from './createSplitNavigator';
+import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
-import RELATIONS from './RELATIONS';
 import replacePathInNestedState from './replacePathInNestedState';
 
 type GetAdaptedStateReturnType = {

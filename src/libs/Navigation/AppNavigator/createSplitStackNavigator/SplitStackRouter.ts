@@ -2,7 +2,7 @@ import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, St
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getParamsFromRoute from '@libs/Navigation/linkingConfig/getParamsFromRoute';
+import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 import type {SplitStackNavigatorRouterOptions} from './types';

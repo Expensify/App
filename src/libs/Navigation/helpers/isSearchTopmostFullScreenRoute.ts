@@ -1,7 +1,7 @@
+import {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {isFullScreenName} from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
-import {navigationRef} from './Navigation';
-import type {RootStackParamList, State} from './types';
 
 const isSearchTopmostFullScreenRoute = (): boolean => {
     const rootState = navigationRef.getRootState() as State<RootStackParamList>;
