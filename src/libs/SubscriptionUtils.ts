@@ -279,6 +279,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+                    isError: true,
                 };
             }
 
@@ -286,6 +287,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
+                    isError: true,
                 };
             }
         }
@@ -294,6 +296,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasBillingDisputePending()) {
         return {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
+            isError: true,
         };
     }
 
@@ -301,6 +304,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasCardAuthenticatedError()) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
+            isError: true,
         };
     }
 
@@ -308,6 +312,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasInsufficientFundsError()) {
         return {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
+            isError: true,
         };
     }
 
@@ -315,6 +320,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasCardExpiredError()) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRED,
+            isError: true,
         };
     }
 
