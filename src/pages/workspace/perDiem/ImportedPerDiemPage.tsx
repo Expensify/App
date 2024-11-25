@@ -15,7 +15,6 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -129,7 +128,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID))} />;
+        return;
     }
 
     const closeImportPageAndModal = () => {
