@@ -2783,8 +2783,8 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    const allTransactions = TransactionUtils.getAllReportTransactions(optionOrReport?.reportID);
-    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
+    const transactions = TransactionUtils.getAllReportTransactions(optionOrReport?.reportID);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
