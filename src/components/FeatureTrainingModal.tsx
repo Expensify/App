@@ -70,6 +70,9 @@ type FeatureTrainingModalProps = {
 
     /** Link to navigate to when user wants to learn more */
     onHelp?: () => void;
+
+    /** Children to render */
+    children?: React.ReactNode;
 };
 
 function FeatureTrainingModal({
@@ -85,6 +88,7 @@ function FeatureTrainingModal({
     onClose = () => {},
     helpText = '',
     onHelp = () => {},
+    children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -209,6 +213,7 @@ function FeatureTrainingModal({
                                     <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                                    {children}
                                 </View>
                             )}
                             {shouldShowDismissModalOption && (

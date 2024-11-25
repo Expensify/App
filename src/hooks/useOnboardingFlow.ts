@@ -21,6 +21,9 @@ function useOnboardingFlowRouter() {
         selector: hasCompletedHybridAppOnboardingFlowSelector,
     });
 
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
+
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     useEffect(() => {
@@ -29,6 +32,11 @@ function useOnboardingFlowRouter() {
         }
 
         if (NativeModules.HybridAppModule && isLoadingOnyxValue(isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
+            return;
+        }
+
+        if (hasBeenAddedToNudgeMigration) {
+            Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
 
@@ -54,7 +62,15 @@ function useOnboardingFlowRouter() {
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
             OnboardingFlow.startOnboardingFlow();
         }
-    }, [isOnboardingCompleted, isHybridAppOnboardingCompleted, isOnboardingCompletedMetadata, isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata, isSingleNewDotEntry]);
+    }, [
+        isOnboardingCompleted,
+        isHybridAppOnboardingCompleted,
+        isOnboardingCompletedMetadata,
+        isHybridAppOnboardingCompletedMetadata,
+        isSingleNewDotEntryMetadata,
+        isSingleNewDotEntry,
+        hasBeenAddedToNudgeMigration,
+    ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
 }
