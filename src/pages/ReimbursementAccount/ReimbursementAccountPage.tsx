@@ -1,4 +1,4 @@
-import {type RouteProp} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
