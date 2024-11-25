@@ -131,10 +131,14 @@ type ReportActionItemProps = {
     /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
+    isThreadReportParentAction?: boolean;
+
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    hideThreadReplies?: boolean;
 
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
@@ -154,8 +158,8 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     onPress = undefined,
     isFirstVisibleReportAction = false,
+    isThreadReportParentAction = false,
     shouldUseThreadDividerLine = false,
-    hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
@@ -356,9 +360,22 @@ function ReportActionItem({
                 disabledActions,
                 false,
                 setIsEmojiPickerActive as () => void,
+                undefined,
+                isThreadReportParentAction,
             );
         },
-        [draftMessage, action, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport],
+        [
+            draftMessage,
+            action,
+            reportID,
+            toggleContextMenuFromActiveReportAction,
+            originalReportID,
+            shouldDisplayContextMenu,
+            disabledActions,
+            isArchivedRoom,
+            isChronosReport,
+            isThreadReportParentAction,
+        ],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -784,7 +801,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action, reportID);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -970,6 +987,7 @@ function ReportActionItem({
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                isThreadReportParentAction={isThreadReportParentAction}
                                 draftMessage={draftMessage}
                                 isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}

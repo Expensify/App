@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {handleActionButtonPress} from '@libs/actions/Search';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -69,6 +71,7 @@ function ReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+    const {currentSearchHash} = useSearchContext();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -93,7 +96,7 @@ function ReportListItem<TItem extends ListItem>({
     ];
 
     const handleOnButtonPress = () => {
-        onSelectRow(item);
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
@@ -165,6 +168,7 @@ function ReportListItem<TItem extends ListItem>({
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
                         containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
+                        isLoading={reportItem.isActionLoading}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
@@ -199,6 +203,7 @@ function ReportListItem<TItem extends ListItem>({
                                 action={reportItem.action}
                                 goToItem={handleOnButtonPress}
                                 isSelected={item.isSelected}
+                                isLoading={reportItem.isActionLoading}
                             />
                         </View>
                     )}
