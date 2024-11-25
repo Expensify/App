@@ -7,21 +7,21 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import FlightTripDetails from './FlightTripDetails';
 
 type TripDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
 function TripDetails({route}: TripDetailsProps) {
-    const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
@@ -30,11 +30,11 @@ function TripDetails({route}: TripDetailsProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
-    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
 
-    console.log(`transaction = `, transaction);
-    console.log(`report = `, report);
-    console.log(`parentReport = `, parentReport);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
+    const accountID = Object.keys(report?.participants ?? {}).at(0) ?? '-1';
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (data) => data?.[accountID]});
+    const reservationType = transaction?.receipt?.reservationList?.at(0)?.type;
 
     return (
         <ScreenWrapper
@@ -52,26 +52,34 @@ function TripDetails({route}: TripDetailsProps) {
                     title={translate('common.details')}
                     shouldShowBackButton
                 />
-                <MenuItem
-                    title={translate('travel.flightDetails.modifyTrip')}
-                    icon={Expensicons.Pencil}
-                    iconFill={theme.iconSuccessFill}
-                    iconRight={Expensicons.NewWindow}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
-                    }}
-                />
-                <MenuItem
-                    title={translate('travel.tripSupport')}
-                    icon={Expensicons.Phone}
-                    iconFill={theme.iconSuccessFill}
-                    iconRight={Expensicons.NewWindow}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
-                    }}
-                />
+                <ScrollView>
+                    {reservationType === 'flight' && (
+                        <FlightTripDetails
+                            transaction={transaction}
+                            personalDetails={personalDetails}
+                        />
+                    )}
+                    <MenuItem
+                        title={translate('travel.modifyTrip')}
+                        icon={Expensicons.Pencil}
+                        iconFill={theme.iconSuccessFill}
+                        iconRight={Expensicons.NewWindow}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                        }}
+                    />
+                    <MenuItem
+                        title={translate('travel.tripSupport')}
+                        icon={Expensicons.Phone}
+                        iconFill={theme.iconSuccessFill}
+                        iconRight={Expensicons.NewWindow}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                        }}
+                    />
+                </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
