@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -46,6 +47,7 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
+    const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -149,7 +151,9 @@ function AccountSwitcher() {
                                 numberOfLines={1}
                                 style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
-                                {currentUserPersonalDetails?.displayName}
+                                {processedTextArray.length !== 0
+                                    ? EmojiUtils.getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji)
+                                    : currentUserPersonalDetails?.displayName}
                             </Text>
                             {!!canSwitchAccounts && (
                                 <View style={styles.justifyContentCenter}>

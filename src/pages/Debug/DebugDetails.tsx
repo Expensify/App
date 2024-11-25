@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,18 +15,24 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import Debug from '@userActions/Debug';
+import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
-import type {DetailsConstantFieldsKeys, DetailsDatetimeFieldsKeys, DetailsDisabledKeys} from './const';
+import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
+import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
 
 type DebugDetailsProps = {
+    /** Type of debug form - required to access constant field options for a specific form */
+    formType: ValueOf<typeof CONST.DEBUG.FORMS>;
+
     /** The report or report action data to be displayed and editted. */
-    data: OnyxEntry<Report> | OnyxEntry<ReportAction>;
+    data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
     children?: React.ReactNode;
 
@@ -40,10 +47,13 @@ type DebugDetailsProps = {
     validate: (key: any, value: string) => void;
 };
 
-function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetailsProps) {
+function DebugDetails({formType, data, children, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${(data as OnyxEntry<Transaction>)?.reportID ?? ''}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})
@@ -54,9 +64,15 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
     const constantFields = useMemo(
         () =>
             Object.entries(data ?? {})
-                .filter((entry): entry is [string, string] => DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys))
+                .filter((entry): entry is [string, string] => {
+                    // Tag picker needs to be hidden when the policy has no tags available to pick
+                    if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !TagsOptionsListUtils.hasEnabledTags(policyTagLists)) {
+                        return false;
+                    }
+                    return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
+                })
                 .sort((a, b) => a[0].localeCompare(b[0])),
-        [data],
+        [data, formType, policyTagLists],
     );
     const numberFields = useMemo(
         () =>
@@ -69,19 +85,16 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
         () =>
             Object.entries(data ?? {})
                 .filter(
-                    (entry): entry is [string, string | ObjectType] =>
+                    (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
                         (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
-                        !DETAILS_CONSTANT_FIELDS.includes(entry[0] as DetailsConstantFieldsKeys) &&
-                        !DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys),
+                        !DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]) &&
+                        !DETAILS_DATETIME_FIELDS.includes(entry[0]),
                 )
                 .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
                 .sort((a, b) => (a.at(0) ?? '').localeCompare(b.at(0) ?? '')),
-        [data],
+        [data, formType],
     );
-    const dateTimeFields = useMemo(
-        () => Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0] as DetailsDatetimeFieldsKeys)),
-        [data],
-    );
+    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0])), [data]);
 
     const validator = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
@@ -161,7 +174,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                                 numberOfLines={numberOfLines}
                                 multiline={numberOfLines > 1}
                                 defaultValue={value}
-                                disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                                disabled={DETAILS_DISABLED_KEYS.includes(key)}
                                 shouldInterceptSwipe
                             />
                         );
@@ -179,11 +192,11 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             forceActiveLabel
                             label={key}
                             defaultValue={String(value)}
-                            disabled={DETAILS_DISABLED_KEYS.includes(key as DetailsDisabledKeys)}
+                            disabled={DETAILS_DISABLED_KEYS.includes(key)}
                             shouldInterceptSwipe
                         />
                     ))}
-                    {numberFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
+                    {numberFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.constantFields')}</Text>
                 <View style={styles.mb5}>
@@ -192,9 +205,11 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             key={key}
                             InputComponent={ConstantSelector}
                             inputID={key}
+                            formType={formType}
                             name={key}
                             shouldSaveDraft
                             defaultValue={String(value)}
+                            policyID={report?.policyID}
                         />
                     ))}
                     {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
@@ -225,7 +240,7 @@ function DebugDetails({data, children, onSave, onDelete, validate}: DebugDetails
                             defaultValue={value}
                         />
                     ))}
-                    {booleanFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
+                    {booleanFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
                 </View>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>

@@ -1,4 +1,4 @@
-import type {CategorySection} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
@@ -45,7 +45,7 @@ describe('TaxOptionsListUtils', () => {
             taxCode: 'CODE1',
         } as Transaction;
 
-        const resultList: CategorySection[] = [
+        const resultList: Section[] = [
             {
                 data: [
                     {
@@ -84,7 +84,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const searchResultList: CategorySection[] = [
+        const searchResultList: Section[] = [
             {
                 data: [
                     {
@@ -103,7 +103,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const wrongSearchResultList: CategorySection[] = [
+        const wrongSearchResultList: Section[] = [
             {
                 data: [],
                 shouldShow: true,
