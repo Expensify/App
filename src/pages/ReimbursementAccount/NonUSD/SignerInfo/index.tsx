@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -50,6 +51,12 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
+
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+
+    useEffect(() => {
+        BankAccounts.getCorpayOnboardingFields(country);
+    }, [country]);
 
     const submit = () => {
         if (currency === CONST.CURRENCY.AUD) {
