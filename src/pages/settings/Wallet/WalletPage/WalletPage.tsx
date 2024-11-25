@@ -136,6 +136,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
+        description?: string,
     ) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
@@ -157,14 +158,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: description ?? PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: description ?? PaymentUtils.getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }

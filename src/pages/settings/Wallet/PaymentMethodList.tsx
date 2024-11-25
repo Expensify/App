@@ -96,6 +96,7 @@ type PaymentMethodListProps = {
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: number,
+        description?: string,
     ) => void;
 
     /** The policy invoice's transfer bank accountID */
@@ -332,6 +333,7 @@ function PaymentMethodList({
                         },
                         paymentMethod.isDefault,
                         paymentMethod.methodID,
+                        paymentMethod.description,
                     ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
