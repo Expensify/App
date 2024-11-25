@@ -43,7 +43,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const isQuickSettingsFlow = !!backTo;
-
+    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
+    const approver = PersonalDetailsUtils.getPersonalDetailByEmail(tagApprover);
+    const approverText = approver?.displayName ?? tagApprover;
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
 
     useEffect(() => {
@@ -52,12 +54,6 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         }
         navigation.setParams({tagName: currentPolicyTag?.name});
     }, [tagName, currentPolicyTag, navigation]);
-
-    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
-    const approverText = useMemo(() => {
-        const approver = PersonalDetailsUtils.getPersonalDetailByEmail(tagApprover);
-        return approver?.displayName ?? tagApprover;
-    }, [tagApprover]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
