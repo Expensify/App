@@ -61,14 +61,14 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={shouldUseNarrowLayout ? item.lastFourPAN ?? '' : CardUtils.maskCardNumber(item?.cardName ?? '', item.bank)}
+                            cardNumber={item.lastFourPAN ?? ''}
                             name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [cardsList, customCardNames, personalDetails, policyID, styles, shouldUseNarrowLayout],
+        [cardsList, customCardNames, personalDetails, policyID, styles],
     );
 
     const renderListHeader = useCallback(
@@ -84,11 +84,11 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {translate(shouldUseNarrowLayout ? 'workspace.expensifyCard.lastFour' : 'workspace.companyCards.cardNumber')}
+                    {translate('workspace.expensifyCard.lastFour')}
                 </Text>
             </View>
         ),
-        [styles, translate, shouldUseNarrowLayout],
+        [styles, translate],
     );
 
     if (sortedCards.length === 0) {
