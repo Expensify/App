@@ -11,7 +11,7 @@ There are several options for exporting Expensify reports to Sage Intacct. Let's
 
 To access these settings, go to **Settings > Workspace > Group > Connections** and select the **Configure** button.
 
-        ![Highlighting the Configure button for the Sage Intacct Integration]({{site.url}}/assets/images/SageConfigureIntegrationConfigureButton.png){:width="100%"}
+![Highlighting the Configure button for the Sage Intacct Integration]({{site.url}}/assets/images/SageConfigureIntegrationConfigureButton.png){:width="100%"}
 
 ## Export Options
 
@@ -97,7 +97,7 @@ To find the Integration Name in Sage Intacct:
 1. Go to **Platform Services > Objects > List**
 2. Set "filter by application" to "user-defined dimensions."
 
-        ![Image of Sage Intacct Objects filtered by User Defined Dimension]({{site.url}}/assets/images/SageConfigureUserDefinedDimensionsFilter.png){:width="100%"}
+![Image of Sage Intacct Objects filtered by User Defined Dimension]({{site.url}}/assets/images/SageConfigureUserDefinedDimensionsFilter.png){:width="100%"}
 
 Now, in Expensify, navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**, and click **Configure** under Sage Intacct. On the Coding tab, enable the toggle next to User Defined Dimensions. Enter the "Integration name" and choose whether to import it into Expensify as an expense-level Tag or as a Report Field, then click **Save**.
 
