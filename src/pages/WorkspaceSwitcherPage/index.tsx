@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,13 +6,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
@@ -35,8 +31,6 @@ type WorkspaceListItem = {
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
 function WorkspaceSwitcherPage() {
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -166,30 +160,6 @@ function WorkspaceSwitcherPage() {
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
-                        <Text
-                            style={styles.label}
-                            color={theme.textSupporting}
-                        >
-                            {translate('workspace.switcher.everythingSection')}
-                        </Text>
-                    </View>
-                    <UserListItem
-                        item={defaultPolicy}
-                        isFocused={activeWorkspaceID === undefined}
-                        showTooltip={false}
-                        onSelectRow={() => selectPolicy(defaultPolicy)}
-                        pressableStyle={styles.flexRow}
-                        shouldSyncFocus={false}
-                    />
-                    <View style={[styles.ph5, styles.mv2]}>
-                        <Text
-                            style={styles.label}
-                            color={theme.textSupporting}
-                        >
-                            {translate('common.workspaces')}
-                        </Text>
-                    </View>
                     <SelectionList<WorkspaceListItem>
                         ListItem={UserListItem}
                         sections={sections}
@@ -202,6 +172,10 @@ function WorkspaceSwitcherPage() {
                         shouldShowListEmptyContent={shouldShowCreateWorkspace}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                        showConfirmButton
+                        shouldUseDefaultTheme
+                        confirmButtonText={translate('workspace.common.clearFilter')}
+                        onConfirm={() => selectPolicy(defaultPolicy)}
                     />
                 </>
             )}
