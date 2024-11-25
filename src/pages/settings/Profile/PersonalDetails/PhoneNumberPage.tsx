@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -32,9 +32,6 @@ function PhoneNumberPage() {
 
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
@@ -71,66 +68,53 @@ function PhoneNumberPage() {
         [translate, validateLoginError],
     );
 
-    // For delegates, modifying Phone Number is a restricted action.
-    // So, on pressing submit, skip validation and show delegateNoAccessModal
-    const skipValidation = isActingAsDelegate;
-    const handleSubmit = (values: PrivatePersonalDetails) => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        updatePhoneNumber(values);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={PhoneNumberPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.phoneNumber')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            {isLoadingApp ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-                    validate={skipValidation ? undefined : validate}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <OfflineWithFeedback
-                        errors={validateLoginError}
-                        errorRowStyles={styles.mt2}
-                        onClose={() => PersonalDetails.clearPhoneNumberError()}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('common.phoneNumber')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                {isLoadingApp ? (
+                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <FormProvider
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
+                        validate={validate}
+                        onSubmit={updatePhoneNumber}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
                     >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PHONE_NUMBER}
-                            name="lfname"
-                            label={translate('common.phoneNumber')}
-                            aria-label={translate('common.phoneNumber')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={phoneNumber}
-                            spellCheck={false}
-                            onBlur={() => {
-                                if (!validateLoginError) {
-                                    return;
-                                }
-                                PersonalDetails.clearPhoneNumberError();
-                            }}
-                        />
-                    </OfflineWithFeedback>
-                </FormProvider>
-            )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+                        <OfflineWithFeedback
+                            errors={validateLoginError}
+                            errorRowStyles={styles.mt2}
+                            onClose={() => PersonalDetails.clearPhoneNumberError()}
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PHONE_NUMBER}
+                                name="lfname"
+                                label={translate('common.phoneNumber')}
+                                aria-label={translate('common.phoneNumber')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={phoneNumber}
+                                spellCheck={false}
+                                onBlur={() => {
+                                    if (!validateLoginError) {
+                                        return;
+                                    }
+                                    PersonalDetails.clearPhoneNumberError();
+                                }}
+                            />
+                        </OfflineWithFeedback>
+                    </FormProvider>
+                )}
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

@@ -56,9 +56,6 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
-
-    /** Whether or not validation should be skipped */
-    skipValidation?: boolean;
 };
 
 function AddressForm({
@@ -73,7 +70,6 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
-    skipValidation = false,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -143,7 +139,7 @@ function AddressForm({
         <FormProvider
             style={[styles.flexGrow1, styles.mh5]}
             formID={formID}
-            validate={skipValidation ? undefined : validator}
+            validate={validator}
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline

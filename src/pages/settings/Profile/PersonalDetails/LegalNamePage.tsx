@@ -1,7 +1,7 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -33,8 +33,6 @@ function LegalNamePage() {
     const {translate} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
@@ -79,68 +77,55 @@ function LegalNamePage() {
         [translate],
     );
 
-    // For delegates, modifying legal Name is a restricted action.
-    // So, on pressing submit, skip validation and show delegateNoAccessModal
-    const skipValidation = isActingAsDelegate;
-    const handleSubmit = (values: PrivatePersonalDetails) => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        updateLegalName(values);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={LegalNamePage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('privatePersonalDetails.legalName')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            {isLoadingApp ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
-                    validate={skipValidation ? undefined : validate}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={[styles.mb4]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                            name="lfname"
-                            label={translate('privatePersonalDetails.legalFirstName')}
-                            aria-label={translate('privatePersonalDetails.legalFirstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalFirstName}
-                            spellCheck={false}
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                            name="llname"
-                            label={translate('privatePersonalDetails.legalLastName')}
-                            aria-label={translate('privatePersonalDetails.legalLastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalLastName}
-                            spellCheck={false}
-                        />
-                    </View>
-                </FormProvider>
-            )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('privatePersonalDetails.legalName')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                {isLoadingApp ? (
+                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <FormProvider
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
+                        validate={validate}
+                        onSubmit={updateLegalName}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <View style={[styles.mb4]}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                                name="lfname"
+                                label={translate('privatePersonalDetails.legalFirstName')}
+                                aria-label={translate('privatePersonalDetails.legalFirstName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={legalFirstName}
+                                spellCheck={false}
+                            />
+                        </View>
+                        <View>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                                name="llname"
+                                label={translate('privatePersonalDetails.legalLastName')}
+                                aria-label={translate('privatePersonalDetails.legalLastName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={legalLastName}
+                                spellCheck={false}
+                            />
+                        </View>
+                    </FormProvider>
+                )}
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

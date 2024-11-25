@@ -108,13 +108,13 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [navigateBackTo]);
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-            <ScreenWrapper
-                onEntryTransitionEnd={() => loginInputRef.current?.focus()}
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={NewContactMethodPage.displayName}
-            >
+        <ScreenWrapper
+            onEntryTransitionEnd={() => loginInputRef.current?.focus()}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={NewContactMethodPage.displayName}
+        >
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('contacts.newContactMethod')}
                     onBackButtonPress={onBackButtonPress}
@@ -171,8 +171,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     sendValidateCode={() => User.requestValidateCodeAction()}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+            </DelegateNoAccessWrapper>
+        </ScreenWrapper>
     );
 }
 

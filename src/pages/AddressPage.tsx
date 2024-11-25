@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -38,20 +40,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
-    // For delegates, modifying legal address is a restricted action.
-    // So, on pressing submit, skip validation and show delegateNoAccessModal
-    const skipValidation = isActingAsDelegate;
-    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        updateAddress(values);
-    };
 
     useEffect(() => {
         if (!address) {
@@ -97,32 +85,29 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             includeSafeAreaPaddingBottom={false}
             testID={AddressPage.displayName}
         >
-            <HeaderWithBackButton
-                title={title}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(backTo)}
-            />
-            {isLoadingApp ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <AddressForm
-                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    city={city}
-                    country={currentCountry}
-                    onAddressChanged={handleAddressChange}
-                    state={state}
-                    street1={street1}
-                    street2={street2}
-                    zip={zipcode}
-                    skipValidation={skipValidation}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={title}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-            )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+                {isLoadingApp ? (
+                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <AddressForm
+                        formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                        onSubmit={updateAddress}
+                        submitButtonText={translate('common.save')}
+                        city={city}
+                        country={currentCountry}
+                        onAddressChanged={handleAddressChange}
+                        state={state}
+                        street1={street1}
+                        street2={street2}
+                        zip={zipcode}
+                    />
+                )}
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

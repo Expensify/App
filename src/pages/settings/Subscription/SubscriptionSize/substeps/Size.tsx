@@ -1,7 +1,6 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -24,8 +23,6 @@ function Size({onNext}: SizeProps) {
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const {inputCallbackRef} = useAutoFocusInput();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const updateValuesAndNavigateToNextStep = useStepFormSubmit<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>({
         formId: ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM,
@@ -33,17 +30,6 @@ function Size({onNext}: SizeProps) {
         onNext,
         shouldSaveDraft: true,
     });
-    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>) => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        updateValuesAndNavigateToNextStep(values);
-    };
-
-    // For delegates, modifying subscription size is a restricted action.
-    // So, on pressing submit, skip validation and show delegateNoAccessModal
-    const skipValidation = isActingAsDelegate;
 
     const defaultValues = {
         [INPUT_IDS.SUBSCRIPTION_SIZE]: `${privateSubscription?.userCount ?? ''}`,
@@ -69,8 +55,8 @@ function Size({onNext}: SizeProps) {
         <FormProvider
             formID={ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM}
             submitButtonText={translate('common.next')}
-            onSubmit={handleSubmit}
-            validate={skipValidation ? undefined : validate}
+            onSubmit={updateValuesAndNavigateToNextStep}
+            validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline
         >
@@ -89,10 +75,6 @@ function Size({onNext}: SizeProps) {
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.note')}</Text>
             </View>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </FormProvider>
     );
 }

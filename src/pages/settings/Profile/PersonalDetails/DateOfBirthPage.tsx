@@ -1,8 +1,8 @@
 import {subYears} from 'date-fns';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -17,17 +17,12 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
-import type {DateOfBirthForm} from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
     /**
      * @returns An object containing the errors for each inputID
      */
@@ -46,51 +41,38 @@ function DateOfBirthPage() {
         return errors;
     }, []);
 
-    // For delegates, modifying legal DOB is a restricted action.
-    // So, on pressing submit, skip validation and show delegateNoAccessModal
-    const skipValidation = isActingAsDelegate;
-    const handleSubmit = (DOB: DateOfBirthForm) => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        PersonalDetails.updateDateOfBirth(DOB);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={DateOfBirthPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.dob')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            {isLoadingApp ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
-                    validate={skipValidation ? undefined : validate}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.DOB}
-                        label={translate('common.date')}
-                        defaultValue={privatePersonalDetails?.dob ?? ''}
-                        minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                        maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
-                    />
-                </FormProvider>
-            )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('common.dob')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                {isLoadingApp ? (
+                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <FormProvider
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
+                        validate={validate}
+                        onSubmit={PersonalDetails.updateDateOfBirth}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <InputWrapper
+                            InputComponent={DatePicker}
+                            inputID={INPUT_IDS.DOB}
+                            label={translate('common.date')}
+                            defaultValue={privatePersonalDetails?.dob ?? ''}
+                            minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                        />
+                    </FormProvider>
+                )}
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
