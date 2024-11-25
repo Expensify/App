@@ -7,7 +7,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
-        avatarFileName: unknown;
         chatType: unknown;
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
@@ -57,9 +56,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         nonReimbursableTotal: unknown;
         isHidden: unknown;
         privateNotes: unknown;
-        isLoadingPrivateNotes: unknown;
         pendingChatMembers: unknown;
-        transactionThreadReportID: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {

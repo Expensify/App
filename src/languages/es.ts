@@ -307,7 +307,6 @@ const translations = {
         owner: 'Dueño',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
-        notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
         recentDestinations: 'Destinos recientes',
@@ -642,8 +641,8 @@ const translations = {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
+        editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
         deleteConfirmation: ({action}: DeleteConfirmationParams) =>
             `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}?`,
         onlyVisible: 'Visible sólo para',
@@ -1172,7 +1171,9 @@ const translations = {
     updateRequiredView: {
         updateRequired: 'Actualización requerida',
         pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
+        pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
         toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
+        newAppNotAvailable: 'La App New Expensify ya no está disponible.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -1408,11 +1409,9 @@ const translations = {
         secureAccessToYourMoney: 'Acceso seguro a tu dinero',
         receiveMoney: 'Recibe dinero en tu moneda local',
         expensifyWallet: 'Billetera Expensify',
-        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify',
-        enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos.',
-        walletEnabledToSendAndReceiveMoney: 'Tu billetera ha sido habilitada para enviar y recibir dinero con amigos.',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
         enableWallet: 'Habilitar billetera',
-        addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para recibir reembolsos por los gastos que envíes a un espacio de trabajo.',
+        addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
@@ -1617,7 +1616,6 @@ const translations = {
     preferencesPage: {
         appSection: {
             title: 'Preferencias de la aplicación',
-            subtitle: 'Personaliza tu cuenta de Expensify.',
         },
         testSection: {
             title: 'Preferencias para tests',
@@ -2379,7 +2377,7 @@ const translations = {
         uploadID: 'Subir documento de identidad y prueba de domicilio',
         id: 'Identificación (licencia de conducir o pasaporte)',
         personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
-        letsDoubleCheck: 'Vamos a comprobar que todo está bien.',
+        letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
         legalName: 'Nombre legal',
         proofOf: 'Comprobante de domicilio personal',
         enterOneEmail: 'Introduce el correo electrónico del director o alto funcionario en',
@@ -2393,10 +2391,25 @@ const translations = {
     agreementsStep: {
         agreements: 'Acuerdos',
         pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
-        accept: 'Aceptar y añadir cuenta bancaria',
+        regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
+        iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
+        iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
+        termsAndConditions: 'términos y condiciones.',
+        accept: 'Agregar y aceptar cuenta bancaria',
+        error: {
+            authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
+            certify: 'Por favor certifique que la información es verdadera y exacta',
+        },
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
+        letsFinish: '¡Terminemos en el chat!',
+        thanksFor:
+            'Gracias por esos detalles. Un agente de soporte dedicado revisará ahora tu información. Nos pondremos en contacto si necesitamos algo más de tu parte, pero mientras tanto, no dudes en comunicarte con nosotros si tienes alguna pregunta.',
+        iHaveA: 'Tengo una pregunta',
+        enable2FA: 'Habilite la autenticación de dos factores (2FA) para prevenir fraudes',
+        weTake: 'Nos tomamos su seguridad en serio. Por favor, configure 2FA ahora para agregar una capa adicional de protección a su cuenta.',
+        secure: 'Asegure su cuenta',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
@@ -2533,6 +2546,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            defaultCategory: 'Categoría predeterminada',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -3277,6 +3291,8 @@ const translations = {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
                     heading:
                         'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
+                    visa: 'Contamos con integraciones globales con Visa, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nTPara empezar, simplemente:',
+                    mastercard: 'Contamos con integraciones globales con Mastercard, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nPara empezar, simplemente:',
                     vcf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
                     gl1025: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
                     cdf: `1. Visite [este artículo de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Mastercard.\n\n 2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_HELP}) para verificar que admiten un feed personalizado para su programa, y pídales que lo habiliten.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
@@ -3305,6 +3321,7 @@ const translations = {
                 },
                 amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
                 amexBusiness: 'Seleccione esta opción si el frente de sus tarjetas dice “Negocios”',
+                amexPersonal: 'Selecciona esta opción si tus tarjetas son personales',
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
@@ -3512,7 +3529,8 @@ const translations = {
                 cardNumber: 'Número de la tarjeta',
                 cardholder: 'Titular de la tarjeta',
                 cardName: 'Nombre de la tarjeta',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `Exportación a ${integration} ${type?.toLowerCase()}`,
+                integrationExport: ({integration, type}: IntegrationExportParams) =>
+                    integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`,
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) =>
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
                 integrationExportTitleLinkPart: 'opción de exportación',
@@ -3551,6 +3569,7 @@ const translations = {
                 giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
+                defaultCard: 'Tarjeta predeterminada',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
             },
             workflows: {
@@ -4116,7 +4135,6 @@ const translations = {
             unit: 'Unidad',
             taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
             changePromptMessage: ' para hacer ese cambio.',
-            defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
@@ -5827,6 +5845,9 @@ const translations = {
         createReportAction: 'Crear Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        transaction: 'Transacción',
+        violations: 'Violaciones',
+        transactionViolation: 'Violación de transacción',
         hint: 'Los cambios de datos no se enviarán al backend',
         textFields: 'Campos de texto',
         numberFields: 'Campos numéricos',
@@ -5842,6 +5863,8 @@ const translations = {
         true: 'verdadero',
         false: 'falso',
         viewReport: 'Ver Informe',
+        viewTransaction: 'Ver transacción',
+        createTransactionViolation: 'Crear infracción de transacción',
         reasonVisibleInLHN: {
             hasDraftComment: 'Tiene comentario en borrador',
             hasGBR: 'Tiene GBR',
