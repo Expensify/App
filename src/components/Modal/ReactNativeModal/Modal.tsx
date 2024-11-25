@@ -11,8 +11,6 @@ import type ModalProps from './types';
 import type {AnimationEvent, Direction} from './types';
 import {defaultProps} from './utils';
 
-type TransitionType = 'open' | 'close';
-
 function ReactNativeModal(incomingProps: ModalProps) {
     const mergedProps = {...defaultProps, ...incomingProps};
 
@@ -47,7 +45,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const [pan, setPan] = useState<Animated.ValueXY>(new Animated.ValueXY());
     const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
     const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
-    const isSwappable = !!props.swipeDirection;
+    const isSwipeable = !!props.swipeDirection;
     const shouldHideChildren = props.hideModalContentWhileAnimating && isContainerOpen && isTransitioning;
     const currentSwipingDirectionRef = useRef<Direction | null>(null);
 
@@ -151,13 +149,13 @@ function ReactNativeModal(incomingProps: ModalProps) {
     };
 
     useEffect(() => {
-        if (!isSwappable) {
+        if (!isSwipeable) {
             return;
         }
 
         setPan(new Animated.ValueXY());
         buildPanResponder();
-    }, [isSwappable, buildPanResponder]);
+    }, [isSwipeable, buildPanResponder]);
 
     useEffect(() => {
         didUpdateDimensionsEmitter.current = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
@@ -198,7 +196,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             animationOutTiming={animationOutTiming}
             isVisible={isVisibleState}
             style={[computedStyle]}
-            panPosition={isSwappable ? {translateX: Xoffset, translateY: Yoffset} : undefined}
+            panPosition={isSwipeable ? {translateX: Xoffset, translateY: Yoffset} : undefined}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
             onOpenCallBack={() => {
@@ -210,7 +208,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
                 setIsTransitioning(false);
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(isSwappable && panResponder ? panResponder.panHandlers : {})}
+            {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
