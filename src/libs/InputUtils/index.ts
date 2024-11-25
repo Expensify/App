@@ -8,6 +8,15 @@ const scrollToBottom: ScrollToBottom = (input) => {
     input.scrollTop = input.scrollHeight;
 };
 
+const scrollToRight: ScrollToBottom = (input) => {
+    if (!('scrollLeft' in input)) {
+        return;
+    }
+    // Scroll to the far right
+    // eslint-disable-next-line no-param-reassign
+    input.scrollLeft = input.scrollWidth;
+};
+
 const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
     if (!('setSelectionRange' in input)) {
         return;
@@ -16,4 +25,4 @@ const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
     input.setSelectionRange(length, length);
 };
 
-export {scrollToBottom, moveSelectionToEnd};
+export {scrollToBottom, moveSelectionToEnd, scrollToRight};

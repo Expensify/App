@@ -19,7 +19,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import type {ScrollToBottom} from '@libs/InputUtils/types';
+import * as InputUtils from '@libs/InputUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -325,15 +325,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         ],
     );
 
-    const scrollToRight: ScrollToBottom = (input) => {
-        if (!('scrollLeft' in input)) {
-            return;
-        }
-        // Scroll to the far right
-        // eslint-disable-next-line no-param-reassign
-        input.scrollLeft = input.scrollWidth;
-    };
-
     const shouldScrollRef = useRef(false);
     const searchRouterInputRef = useRef(null);
     // Trigger scrollToRight when input value changes and shouldScroll is true
@@ -341,7 +332,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         if (!searchRouterInputRef.current) {
             return;
         }
-        scrollToRight(searchRouterInputRef.current);
+        InputUtils.scrollToRight(searchRouterInputRef.current);
         shouldScrollRef.current = false;
     }, [debouncedInputValue]);
 
