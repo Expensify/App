@@ -2,7 +2,7 @@
 import * as ReactNative from 'react-native';
 import type StartupTimer from '@libs/StartupTimer/types';
 
-const {BootSplash} = ReactNative.NativeModules;
+const {BootSplash, RNNavBarManager} = ReactNative.NativeModules;
 
 jest.doMock('react-native', () => {
     let url = 'https://new.expensify.com/';
@@ -31,6 +31,9 @@ jest.doMock('react-native', () => {
                 navigationBarHeight: number;
             };
             StartupTimer: StartupTimer;
+            RNNavBarManager: typeof ReactNative.NativeModules & {
+                setButtonStyle: typeof RNNavBarManager.setButtonStyle;
+            };
         };
         Linking: typeof ReactNative.Linking & {
             setInitialURL: (newUrl: string) => void;
@@ -50,6 +53,9 @@ jest.doMock('react-native', () => {
                     navigationBarHeight: 0,
                 },
                 StartupTimer: {stop: jest.fn()},
+                RNNavBarManager: {
+                    setButtonStyle: jest.fn(),
+                },
             },
             Linking: {
                 ...ReactNative.Linking,
