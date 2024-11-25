@@ -236,6 +236,12 @@ type Reservation = {
 
     /** Payment type of the reservation */
     paymentType?: string;
+
+    /** Arrival gate details */
+    arrivalGate?: {
+        /** Arrival terminal number */
+        terminal: string;
+    };
 };
 
 /** Model of trip reservation time details */
@@ -257,6 +263,9 @@ type ReservationTimeDetails = {
 
     /** Timezone offset */
     timezoneOffset?: string;
+
+    /** City name */
+    cityName?: string;
 };
 
 /** Model of airline company details */
