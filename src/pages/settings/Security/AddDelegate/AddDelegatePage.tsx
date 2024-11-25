@@ -56,7 +56,7 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });

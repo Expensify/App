@@ -124,7 +124,6 @@ function MoneyRequestParticipantsSelector({
                 canInviteUser: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                maxRecentReportsToShow: 0,
             },
         );
 
@@ -142,7 +141,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],

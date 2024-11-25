@@ -90,7 +90,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const newOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, debouncedInputValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         return {

@@ -66,7 +66,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
-        return OptionsListUtils.filterOptions(defaultOptions, cleanSearchTerm, {
+        return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: 0,

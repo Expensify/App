@@ -109,7 +109,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() => {
             const formattedOptions = OptionsListUtils.getOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
-            OptionsListUtils.filterOptions(formattedOptions, SEARCH_VALUE);
+            OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
         });
     });
 

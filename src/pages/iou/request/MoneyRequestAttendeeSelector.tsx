@@ -86,7 +86,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
         );
         if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, searchTerm, {
+            optionList.recentReports = OptionsListUtils.orderReportOptions(optionList.recentReports, searchTerm, {
                 preferChatroomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -122,7 +122,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
