@@ -40,7 +40,7 @@ export default function useFetchRoute(
             const allWaypointsServerValidated = waypointValues.every((waypoint) => waypoint.lat !== 0 && waypoint.lng !== 0 && waypoint.name);
 
             if (allWaypointsServerValidated) {
-                TransactionAction.clearError(transaction.transactionID);
+                TransactionAction.clearError(transaction.transactionID, transactionState);
             }
             return;
         }

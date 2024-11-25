@@ -457,8 +457,22 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
+function clearError(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
+    Onyx.merge(`${keyPrefix}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
 
 function markAsCash(transactionID: string, transactionThreadReportID: string) {
