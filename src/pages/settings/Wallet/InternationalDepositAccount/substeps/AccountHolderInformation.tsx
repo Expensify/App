@@ -13,7 +13,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
