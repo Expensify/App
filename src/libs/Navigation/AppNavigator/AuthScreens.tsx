@@ -22,6 +22,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -70,8 +71,6 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
-
-const {RNNavBarManager} = NativeModules;
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -259,10 +258,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     });
 
     useEffect(() => {
-        RNNavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
+        NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
 
         return () => {
-            RNNavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
+            NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
 
