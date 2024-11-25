@@ -465,6 +465,7 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
+        goToWorkspace: 'Ir al espacio de trabajo',
     },
     connectionComplete: {
         title: 'Conexión completa',

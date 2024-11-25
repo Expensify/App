@@ -474,6 +474,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        goToWorkspace: 'Go to workspace',
     },
     location: {
         useCurrent: 'Use current location',

@@ -519,6 +519,23 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'common.goToWorkspace',
+                icon: Expensicons.Workspace,
+                action: () => {
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID ?? '-1'));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
         return items;
     }, [
         isSelfDM,
@@ -562,6 +579,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         parentReportAction,
         moneyRequestReport?.reportID,
         isDeletedParentAction,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
