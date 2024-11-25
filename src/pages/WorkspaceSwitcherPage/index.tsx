@@ -172,7 +172,7 @@ function WorkspaceSwitcherPage() {
                         shouldShowListEmptyContent={shouldShowCreateWorkspace}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                        showConfirmButton
+                        showConfirmButton={!!activeWorkspaceID}
                         shouldUseDefaultTheme
                         confirmButtonText={translate('workspace.common.clearFilter')}
                         onConfirm={() => selectPolicy(defaultPolicy)}
