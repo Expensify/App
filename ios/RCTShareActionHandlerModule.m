@@ -86,7 +86,8 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
       NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
       NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
-      
+      NSString *fileUriPath = [@"file://" stringByAppendingString:filePath];
+
       CGFloat aspectRatio = 1.0;
       UIImage *image = [UIImage imageWithContentsOfFile:filePath];
       if (image) {
@@ -102,7 +103,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
     NSDictionary *dict = @{
         @"id" : identifier,
-        @"content" : filePath,
+        @"content" : fileUriPath,
         @"mimeType" : mimeType,
         @"processedAt" : timestamp,
         @"aspectRatio" : @(aspectRatio)

@@ -68,7 +68,7 @@ function ShareDetailsPage({
 
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
 
-    const [message, setMessage] = useState(isTextShared ? currentAttachment?.content : '');
+    const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
 
     const handleShare = () => {
         if (!currentAttachment) {
@@ -91,7 +91,11 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    Report.addAttachment(report.reportID, file, message);
+                    if (isTextShared) {
+                        Report.addComment(report.reportID, message);
+                    } else {
+                        Report.addAttachment(report.reportID, file, message);
+                    }
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
