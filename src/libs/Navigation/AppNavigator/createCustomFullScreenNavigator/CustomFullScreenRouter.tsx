@@ -1,4 +1,4 @@
-import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
+import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -70,8 +70,7 @@ function adaptStateIfNecessary(state: StackState) {
 }
 
 function CustomFullScreenRouter(options: PlatformStackRouterOptions) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const stackRouter = StackRouter(options) as Router<PlatformStackNavigationState<ParamListBase>, any>;
+    const stackRouter = StackRouter(options);
 
     return {
         ...stackRouter,
