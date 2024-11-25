@@ -25,6 +25,7 @@ import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
@@ -401,13 +402,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const CentralPaneScreenOptions = {
+    const CentralPaneScreenOptions: PlatformStackNavigationOptions = {
         ...hideKeyboardOnSwipe,
         headerShown: false,
         title: 'New Expensify',
-
-        // Prevent unnecessary scrolling
-        cardStyle: styles.cardStyleNavigator,
+        web: {
+            // Prevent unnecessary scrolling
+            cardStyle: styles.cardStyleNavigator,
+        },
     };
 
     return (
