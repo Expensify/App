@@ -48,14 +48,18 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getFilteredOptions({
-            reports: listOptions.reports ?? [],
-            personalDetails: listOptions.personalDetails ?? [],
-            betas: betas ?? [],
-            selectedOptions,
-            maxRecentReportsToShow: 0,
-            includeSelfDM: true,
-        });
+        const filteredOptions = OptionsListUtils.getOptions(
+            {
+                reports: listOptions.reports ?? [],
+                personalDetails: listOptions.personalDetails ?? [],
+            },
+            {
+                betas: betas ?? [],
+                selectedOptions,
+                maxRecentReportsToShow: 0,
+                includeSelfDM: true,
+            },
+        );
         return filteredOptions;
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 

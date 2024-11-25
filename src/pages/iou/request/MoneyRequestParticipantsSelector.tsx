@@ -105,25 +105,29 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const optionList = OptionsListUtils.getFilteredOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails,
-            betas,
-            selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+        const optionList = OptionsListUtils.getOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                betas,
+                selectedOptions: participants as Participant[],
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to submit an expense from their admin on their own Workspace Chat.
-            includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+                // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to submit an expense from their admin on their own Workspace Chat.
+                includeOwnedWorkspaceChats:
+                    (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            includeP2P: !isCategorizeOrShareAction,
-            canInviteUser: !isCategorizeOrShareAction,
-            includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
-            action,
-            sortByReportTypeInSearch: isPaidGroupPolicy,
-            searchValue: '',
-            maxRecentReportsToShow: 0,
-        });
+                includeP2P: !isCategorizeOrShareAction,
+                canInviteUser: !isCategorizeOrShareAction,
+                includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
+                action,
+                sortByReportTypeInSearch: isPaidGroupPolicy,
+                maxRecentReportsToShow: 0,
+            },
+        );
 
         return optionList;
     }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPaidGroupPolicy]);

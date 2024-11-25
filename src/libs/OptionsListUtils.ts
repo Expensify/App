@@ -99,7 +99,6 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
-    searchInputValue?: string;
     showChatPreviewLine?: boolean;
     sortPersonalDetailsByAlphaAsc?: boolean;
     forcePolicyNamePreview?: boolean;
@@ -973,23 +972,16 @@ function orderOptions(
 }
 
 function canCreateOptimisticPersonalDetailOption({
-    searchValue,
     recentReportOptions,
     personalDetailsOptions,
     currentUserOption,
 }: {
-    searchValue: string;
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
     excludeUnknownUsers: boolean;
 }) {
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !personalDetailsOptions
-        .concat(recentReportOptions)
-        .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
-
-    return noOptions || noOptionsMatchExactly;
+    return recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
 }
 
 /**
@@ -1067,7 +1059,6 @@ function getOptions(
         includeRecentReports = false,
         // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         sortByReportTypeInSearch = false,
-        searchInputValue = '',
         showChatPreviewLine = false,
         sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
@@ -1088,8 +1079,6 @@ function getOptions(
         shouldBoldTitleByDefault = true,
     }: GetOptionsConfig,
 ): Options {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
     const topmostReportId = Navigation.getTopmostReportId() ?? '-1';
 
     // Filter out all the reports that shouldn't be displayed
@@ -1119,10 +1108,6 @@ function getOptions(
         const report = option.item;
         if (option.private_isArchived) {
             return CONST.DATE.UNIX_EPOCH;
-        }
-
-        if (searchValue) {
-            return [option.isSelfDM, report?.lastVisibleActionCreated];
         }
 
         return report?.lastVisibleActionCreated;
@@ -1196,7 +1181,7 @@ function getOptions(
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
-    if (!includeSelectedOptions || searchInputValue === '') {
+    if (!includeSelectedOptions) {
         optionsToExclude.push(...selectedOptions);
     }
 
@@ -1205,7 +1190,7 @@ function getOptions(
     });
 
     let recentReportOptions: ReportUtils.OptionData[] = [];
-    let personalDetailsOptions: ReportUtils.OptionData[] = [];
+    const personalDetailsOptions: ReportUtils.OptionData[] = [];
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
@@ -1306,7 +1291,6 @@ function getOptions(
     let userToInvite: ReportUtils.OptionData | null = null;
     if (
         canCreateOptimisticPersonalDetailOption({
-            searchValue,
             recentReportOptions,
             personalDetailsOptions,
             currentUserOption,
@@ -1314,7 +1298,7 @@ function getOptions(
         })
     ) {
         userToInvite = getUserToInviteOption({
-            searchValue,
+            searchValue: '',
             excludeUnknownUsers,
             optionsToExclude,
             selectedOptions,
@@ -1323,20 +1307,23 @@ function getOptions(
         });
     }
 
+    // I would remove this because it is only executed in the MoneyRequestFlow i believe because its the only place where we
+    // pass an action. Instead we should call order on our own in the moneyRequestAttendeeSelector
+
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (sortByReportTypeInSearch && (searchValue !== '' || !!action)) {
-        // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
-        // If we're in money request flow, we only order the recent report option.
-        if (!action) {
-            recentReportOptions.push(...personalDetailsOptions);
-            personalDetailsOptions = [];
-        }
-        recentReportOptions = orderOptions(recentReportOptions, searchValue, {
-            preferChatroomsOverThreads: true,
-            preferPolicyExpenseChat: !!action,
-            preferRecentExpenseReports,
-        });
-    }
+    // if (sortByReportTypeInSearch && (searchValue !== '' || !!action)) {
+    //     // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
+    //     // If we're in money request flow, we only order the recent report option.
+    //     if (!action) {
+    //         recentReportOptions.push(...personalDetailsOptions);
+    //         personalDetailsOptions = [];
+    //     }
+    //     recentReportOptions = orderOptions(recentReportOptions, searchValue, {
+    //         preferChatroomsOverThreads: true,
+    //         preferPolicyExpenseChat: !!action,
+    //         preferRecentExpenseReports,
+    //     });
+    // }
 
     return {
         personalDetails: personalDetailsOptions,
@@ -1349,12 +1336,11 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = [], isUsedInChatFinder = true): Options {
+function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
         betas,
-        searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -1375,10 +1361,9 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
     return getOptions(options, {
         betas,
-        searchInputValue: searchValue.trim(),
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         sortByReportTypeInSearch: true,
@@ -1413,77 +1398,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-/**
- * Build the options for the New Group view
- */
-type FilteredOptionsParams = {
-    reports?: Array<SearchOption<Report>>;
-    personalDetails?: Array<SearchOption<PersonalDetails>>;
-    betas?: OnyxEntry<Beta[]>;
-    searchValue?: string;
-    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
-    excludeLogins?: string[];
-    includeOwnedWorkspaceChats?: boolean;
-    includeP2P?: boolean;
-    canInviteUser?: boolean;
-    includeSelectedOptions?: boolean;
-    maxRecentReportsToShow?: number;
-    includeSelfDM?: boolean;
-    includeInvoiceRooms?: boolean;
-    action?: IOUAction;
-    sortByReportTypeInSearch?: boolean;
-};
-
-// It is not recommended to pass a search value to getFilteredOptions when passing reports and personalDetails.
-// If a search value is passed, the search value should be passed to filterOptions.
-// When it is necessary to pass a search value when passing reports and personalDetails, follow these steps:
-// 1. Use getFilteredOptions with reports and personalDetails only, without the search value.
-// 2. Pass the returned options from getFilteredOptions to filterOptions along with the search value.
-// The above constraints are enforced with TypeScript.
-
-type FilteredOptionsParamsWithDefaultSearchValue = Omit<FilteredOptionsParams, 'searchValue'> & {searchValue?: ''};
-
-type FilteredOptionsParamsWithoutOptions = Omit<FilteredOptionsParams, 'reports' | 'personalDetails'> & {reports?: []; personalDetails?: []};
-
-function getFilteredOptions(params: FilteredOptionsParamsWithDefaultSearchValue | FilteredOptionsParamsWithoutOptions) {
-    const {
-        reports = [],
-        personalDetails = [],
-        betas = [],
-        searchValue = '',
-        selectedOptions = [],
-        excludeLogins = [],
-        includeOwnedWorkspaceChats = false,
-        includeP2P = true,
-        canInviteUser = true,
-        includeSelectedOptions = false,
-        maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeSelfDM = false,
-        includeInvoiceRooms = false,
-        action,
-        sortByReportTypeInSearch = false,
-    } = params;
-    return getOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            searchInputValue: searchValue.trim(),
-            selectedOptions,
-            includeRecentReports: true,
-            maxRecentReportsToShow,
-            excludeLogins,
-            includeOwnedWorkspaceChats,
-            includeP2P,
-            canInviteUser,
-            includeSelectedOptions,
-            includeSelfDM,
-            includeInvoiceRooms,
-            action,
-            sortByReportTypeInSearch,
-        },
-    );
-}
-
 function getAttendeeOptions(
     reports: Array<SearchOption<Report>>,
     personalDetails: Array<SearchOption<PersonalDetails>>,
@@ -1501,7 +1415,6 @@ function getAttendeeOptions(
         {reports, personalDetails},
         {
             betas,
-            searchInputValue: '',
             selectedOptions: attendees,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             includeOwnedWorkspaceChats,
@@ -1527,7 +1440,6 @@ function getShareDestinationOptions(
     reports: Array<SearchOption<Report>> = [],
     personalDetails: Array<SearchOption<PersonalDetails>> = [],
     betas: OnyxEntry<Beta[]> = [],
-    searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],
     includeOwnedWorkspaceChats = true,
@@ -1537,7 +1449,6 @@ function getShareDestinationOptions(
         {reports, personalDetails},
         {
             betas,
-            searchInputValue: searchValue.trim(),
             selectedOptions,
             maxRecentReportsToShow: 0, // Unlimited
             includeRecentReports: true,
@@ -1587,7 +1498,6 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     betas: Beta[] = [],
-    searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
@@ -1597,7 +1507,6 @@ function getMemberInviteOptions(
         {reports, personalDetails},
         {
             betas,
-            searchInputValue: searchValue.trim(),
             includeP2P: true,
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
@@ -1864,8 +1773,8 @@ export {
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
+    getOptions,
     getSearchOptions,
-    getFilteredOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
