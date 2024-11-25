@@ -60,18 +60,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         // [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         // [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
-        // Sidebar
-        // [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-        //     path: ROUTES.ROOT,
-        //     initialRouteName: SCREENS.HOME,
-        //     screens: {
-        //         [SCREENS.HOME]: ROUTES.HOME,
-        //         // [SCREENS.SETTINGS.ROOT]: {
-        //         //     path: ROUTES.SETTINGS,
-        //         // },
-        //     },
-        // },
-
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
