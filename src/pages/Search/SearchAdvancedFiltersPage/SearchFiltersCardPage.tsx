@@ -10,10 +10,11 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/CardListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CategorySection} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -27,16 +28,18 @@ function SearchFiltersCardPage() {
     const [newCards, setNewCards] = useState(currentCards ?? []);
 
     const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
+        const newSections: Section[] = [];
         const cards = Object.values(cardList ?? {})
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+                const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+                const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
 
                 return {
                     lastFourPAN: card.lastFourPAN,
                     isVirtual: card?.nameValuePairs?.isVirtual,
-                    text: card.bank,
+                    text,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),
                     bankIcon: icon,
