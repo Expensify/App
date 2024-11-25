@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {ReplaceReceipt, RequestMoney, StartSplitBilActionParams, TrackExpense} from '@libs/actions/IOU';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
@@ -24,8 +25,7 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
 /** Mapping of form fields with error translation keys and variables */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Errors = Record<string, any>;
+type Errors = Record<string, string | null | StartSplitBilActionParams | TrackExpense | RequestMoney | ReplaceReceipt>;
 
 /**
  * Types of avatars

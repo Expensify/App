@@ -572,7 +572,7 @@ function getReceiptError(
                   source: receipt.source?.toString() ?? '',
                   filename: filename ?? '',
                   action: action ?? '',
-                  retryParams: retryParams ?? {},
+                  retryParams: retryParams ?? '',
               },
               errorKey,
           );
