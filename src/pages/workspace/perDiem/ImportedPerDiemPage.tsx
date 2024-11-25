@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
-import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
+import * as PerDiem from '@libs/actions/Policy/PerDiem';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -34,7 +34,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
             subRates: [],
         };
         perDiemUnits[perDiemDestination[i]].subRates?.push({
-            id: generateCustomUnitID(),
+            id: PerDiem.generateCustomUnitID(),
             name: perDiemSubRate.at(i) ?? '',
             rate: Number(perDiemAmount.at(i)) ?? 0,
         });
@@ -94,7 +94,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
-    const importCategories = useCallback(() => {
+    const importPerDiemRates = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -121,7 +121,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits, rowsLength);
+            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit?.customUnitID ?? '', perDiemUnits, rowsLength);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 
@@ -148,7 +148,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
-                importFunction={importCategories}
+                importFunction={importPerDiemRates}
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingPerDiemRates}
