@@ -1470,7 +1470,8 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchRep
 /**
  * Whether the provided report is an archived expense report
  */
-function isArchivedExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function isArchivedExpenseReport(report: OnyxInputOrEntry<Report>, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return isExpenseReport(report) && !!report?.private_isArchived;
 }
 

@@ -6802,12 +6802,8 @@ function canApproveIOU(
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-<<<<<<< HEAD
-    const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport);
-=======
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
->>>>>>> main
+    const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport, reportNameValuePairs);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
