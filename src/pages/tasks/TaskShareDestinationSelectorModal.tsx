@@ -63,7 +63,6 @@ function TaskShareDestinationSelectorModal() {
                 personalDetails: [],
                 userToInvite: null,
                 currentUserOption: null,
-                categoryOptions: [],
                 header: '',
             };
         }
@@ -75,7 +74,6 @@ function TaskShareDestinationSelectorModal() {
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
             header,
         };
     }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);

@@ -1,7 +1,6 @@
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import useIsWindowHeightReducedByKeyboard from '@hooks/useIsWindowHeightReducedByKeyboard';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -11,9 +10,6 @@ type KeyboardStateContextValue = {
 
     /** Height of the keyboard in pixels */
     keyboardHeight: number;
-
-    /** Whether window height is smaller than usual due to the keyboard being open */
-    isWindowHeightReducedByKeyboard?: boolean;
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
@@ -23,7 +19,6 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue>({
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
-    const isWindowHeightReducedByKeyboard = useIsWindowHeightReducedByKeyboard();
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
@@ -43,9 +38,8 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         () => ({
             keyboardHeight,
             isKeyboardShown: keyboardHeight !== 0,
-            isWindowHeightReducedByKeyboard,
         }),
-        [keyboardHeight, isWindowHeightReducedByKeyboard],
+        [keyboardHeight],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
