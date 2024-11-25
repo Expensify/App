@@ -21,9 +21,18 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
 
     const theme = useMemo(() => themes[debouncedTheme], [debouncedTheme]);
 
+    /*
+     * This effect is used to add the autofill input styles to the DOM depending on the theme of the page.
+     * Each page that provides a static ThemeProvider will add the autofill-input styles in a way that works for them
+     * Check SignInPageLayout as an example for a  static theme provider
+
+     */
     useEffect(() => {
+        if (staticThemePreference) {
+            return;
+        }
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
-    }, [theme.text]);
+    }, [staticThemePreference, theme.text]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
