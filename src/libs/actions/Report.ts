@@ -3490,6 +3490,9 @@ function prepareOnboardingOptimisticData(
             data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
         }
     }
+
+    // A guide is assigned to the user if they choose the 'MANAGE_TEAM' onboarding option, except for users with emails containing '+'.
+    // Onboarding tasks for guide-assigned users are posted in the #admins room. For others, the tasks are posted in the Concierge chat.
     const shouldPostTasksInAdminsRoom = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+');
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const actorAccountID = shouldPostTasksInAdminsRoom ? CONST.ACCOUNT_ID.QA_GUIDE : CONST.ACCOUNT_ID.CONCIERGE;

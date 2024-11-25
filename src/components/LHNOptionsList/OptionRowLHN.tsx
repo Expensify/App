@@ -54,6 +54,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
+
+    // A guide is assigned to the user if they choose the 'MANAGE_TEAM' onboarding option, except for users with emails containing '+'.
+    // Onboarding tasks for guide-assigned users are posted in the #admins room. For others, the tasks are posted in the Concierge chat.
+    // So, we should show the "Get started here" tooltip accordingly on the #admins room or Concierge chat on LHN.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowToooltipOnThisReport = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
