@@ -4,6 +4,21 @@ import type {Session} from '@src/types/onyx';
 
 const MASKING_PATTERN = '***';
 
+const emailMap = new Map<string, string>();
+
+const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
+
+const randomizeEmail = (email: string): string => {
+    const [localPart, domain] = email.split('@');
+    const [domainName, tld] = domain.split('.');
+
+    const randomizePart = (part: string) => [...part].map((c) => (/[a-zA-Z0-9]/.test(c) ? getRandomLetter() : c)).join('');
+    const randomLocal = randomizePart(localPart);
+    const randomDomain = randomizePart(domainName);
+
+    return `${randomLocal}@${randomDomain}.${tld}`;
+};
+
 const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
     const session = data.session as Session;
     const maskedData: Record<string, unknown> = {};
@@ -38,16 +53,38 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
             return;
         }
 
-        const value = data[key];
+        // loginList is an object that contains emails as keys, the keys should be masked as well
+        let propertyName = '';
+        if (Str.isValidEmail(key)) {
+            if (emailMap.has(key)) {
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                propertyName = emailMap.get(key) as string;
+            } else {
+                const maskedEmail = randomizeEmail(key);
+                propertyName = maskedEmail;
+            }
+        } else {
+            propertyName = key;
+        }
+
+        const value = data[propertyName];
 
         if (typeof value === 'string' && Str.isValidEmail(value)) {
-            maskedData[key] = MASKING_PATTERN;
-        } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (key === 'text' || key === 'html')) {
-            maskedData[key] = MASKING_PATTERN;
+            let maskedEmail = '';
+            if (!emailMap.has(value)) {
+                maskedEmail = randomizeEmail(value);
+                emailMap.set(value, maskedEmail);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                maskedEmail = emailMap.get(value) as string;
+            }
+            maskedData[propertyName] = maskedEmail;
+        } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
+            maskedData[propertyName] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
-            maskedData[key] = maskFragileData(value as Record<string, unknown>, key.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? key : parentKey);
+            maskedData[propertyName] = maskFragileData(value as Record<string, unknown>, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
         } else {
-            maskedData[key] = value;
+            maskedData[propertyName] = value;
         }
     });
 
