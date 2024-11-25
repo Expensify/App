@@ -26,7 +26,6 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
          * For static themes we don't want to apply the autofill input style globally
          * SignInPageLayout uses static theme and handles this differently.
          */
-
         if (staticThemePreference) {
             return;
         }
