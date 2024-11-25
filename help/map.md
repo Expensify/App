@@ -104,7 +104,106 @@ Workspaces support an unlimited number of custom rooms, each of which can have a
 
   
 ## Search
-The Search page allows you to access all data either owned by you or shared with you.
+The Search page allows you to access all data either owned by you or shared with you, optionally filtered by the global Workspace Filter.  The types of data that can be searched include:
+
+* **Expenses** - Individual and batches of expenses that can be tracked for personal use, or shared with others for reporting or payment.
+* **Chats** - Messages sent from or to you, directly or in a shared room.
+* **Invoices** - Reports sent to customers or clients for payment.
+* **Trips** - Travel bookings for business trips.
+
+### Expense Search
+Whether tracked for personal use or shared with others, all "New Expensify enabled" expenses can be searched here.  (If you do not find an expense here that exists in Classic, reach out to Concierge to discuss how to upgrade your workspace to support New Expensify.)  Expenses can be filtered in two ways:
+
+* **Quick filters** - These are helpful filters for the most common searches, including:
+    * *All* - Shows all expenses, in all states, sorted chronologically.
+    * *Drafts* - Shows expenses on an expense report that has not yet been submitted.
+    * *Outstanding* - Shows expense reports that have been submitted and are awaiting final processing.
+    * *Paid* - Shows expense reports that are fully approved and paid.
+
+* **Advanced filters** - Here you can craft a specific search query based on a number of fields:
+    * *Card* - Limit to one or more connected credit and debit cards
+    * *Category* - Limit to one or more workspace categories
+    * *Currency* - Limit to one or more expense currencies
+    * *Date* - Limit to before a date, after a date, or between two dates
+    * *Description* - Limit to expenses with a merchant matching a keyword
+    * *Expense type* - Limit to one or more of `Card`, `Cash`, or `Distance` expenses
+    * *From* - Limit to expenses created and submitted by a given member
+    * *Has keyword* - Limit to expenses with a merchant or description containing a particular keyword
+    * *Merchant* - Limit to expenses with a merchant containing a particular keyword
+    * *Report ID* -Limit to expenses on a single report
+    * *Tag* - Limit to one or more of workspace tags
+    * *Tax rate* - Limit to one or more workspace tax rate
+    * *To* - Limit to expenses submitted to a particular member for processing
+    * *Total* - Limit to expense greater than, less than, or between amounts
+
+### Chat Search
+Expensify's powerful chat features are optimized for financial collaboration, but can be used to discuss anything with anyone.  Chats can be searched in two ways:
+
+* **Quick filters** - These are helpful filters for the most common searches, including:
+    * *All* - Shows all messages from all senders, in all chats and rooms, sorted chronologically.
+    * *Unread* - Shows all unread messages from all senders, in all chats and rooms.
+    * *Sent* - Shows all messages that you sent, in all chats and rooms.
+    * *Attachments* - Shows all messages containing image, video, or document attachments.
+    * *Links* - Shows all messages containing web links.
+
+* **Advanced filters** - Here you can craft a specific search query based on a number of fields:
+    * *Date* - Limit to before a date, after a date, or between two dates
+    * *From* - Limit to messages sent by a given member
+    * *Has keyword* - Limit to messages containing a particular keyword
+    * *in* - Limit to messages in specific chats or rooms
+
+### Invoice Search
+A major use of Expensify is in sending invoices to clients or customers, for online payment.  Whereas the expenses on an expense report correspond to purchases made by employees who need to be reimbursed, the expenses on an invoice correspond to line items of work or product that need to be paid for.  Invoice line items can be searched in two ways:
+
+* **Quick filters** - These are helpful filters for the most common searches, including:
+    * *All* - Line items on all invoices sent by or to you.
+    * *Outstanding* - Line items on all invoices sent by or to you that have not yet been paid.
+    * *Paid* - Line items on all invoices sent by or to you that have been paid.
+
+* **Advanced filters** - Here you can craft a specific search query based on a number of fields:
+    * *Card* - Limit to one or more connected credit and debit cards
+    * *Category* - Limit to one or more workspace categories
+    * *Currency* - Limit to one or more line item currencies
+    * *Date* - Limit to before a date, after a date, or between two dates
+    * *Description* - Limit to line items with a merchant matching a keyword
+    * *Expense type* - Limit to one or more of `Card`, `Cash`, or `Distance` line items
+    * *From* - Limit to line items created and submitted by a given member
+    * *Has keyword* - Limit to line items with a merchant or description containing a particular keyword
+    * *Merchant* - Limit to line items with a merchant containing a particular keyword
+    * *Report ID* -Limit to line items on a single report
+    * *Tag* - Limit to one or more of workspace tags
+    * *Tax rate* - Limit to one or more workspace tax rate
+    * *To* - Limit to line items submitted to a particular member for processing
+    * *Total* - Limit to line item greater than, less than, or between amounts
+
+### Trip Search
+Expensify does "travel and expense at the speed of chat", with integrated travel booking for companies of all sizes.  Each trip contains one or more expenses, and trip expenses can be searched as follows:
+
+* **Quick filters** - These are helpful filters for the most common searches, including:
+    * *All* - All expenses on all trips, past and future.
+    * *Current* - Expenses on trips that are are in the future or happening right now.
+    * *Past* - Expenses on trips that have completed.
+
+* **Advanced filters** - Here you can craft a specific search query based on a number of fields:
+    * *Card* - Limit to one or more connected credit and debit cards
+    * *Category* - Limit to one or more workspace categories
+    * *Currency* - Limit to one or more expense currencies
+    * *Date* - Limit to before a date, after a date, or between two dates
+    * *Description* - Limit to expenses with a merchant matching a keyword
+    * *Expense type* - Limit to one or more of `Card`, `Cash`, or `Distance` expenses
+    * *From* - Limit to expenses created and submitted by a given member
+    * *Has keyword* - Limit to expenses with a merchant or description containing a particular keyword
+    * *Merchant* - Limit to expenses with a merchant containing a particular keyword
+    * *Report ID* -Limit to expenses on a single report
+    * *Tag* - Limit to one or more of workspace tags
+    * *Tax rate* - Limit to one or more workspace tax rate
+    * *To* - Limit to expenses submitted to a particular member for processing
+    * *Total* - Limit to expense greater than, less than, or between amounts
+
+### Search Router
+In the upper-right corner of every page is a magnifying glass icon that opens the "router".  This is a quick search widget that will route you to wherever you need to go, including:
+
+* 
 
 
 * Inbox
