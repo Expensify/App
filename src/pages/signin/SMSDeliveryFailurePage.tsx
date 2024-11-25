@@ -6,9 +6,12 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
+import Terms from './Terms';
 
 function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
@@ -16,6 +19,7 @@ function SMSDeliveryFailurePage() {
     const {translate} = useLocalize();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const login = useMemo(() => {
         if (!credentials?.login) {
@@ -38,7 +42,9 @@ function SMSDeliveryFailurePage() {
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
                     <Text>
-                        {translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} {SMSDeliveryFailureMessage}
+                        {shouldUseNarrowLayout
+                            ? `${translate('welcomeText.welcome')} ${translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} ${SMSDeliveryFailureMessage}`
+                            : `${translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} ${SMSDeliveryFailureMessage}`}
                     </Text>
                 </View>
             </View>
@@ -50,6 +56,12 @@ function SMSDeliveryFailurePage() {
                     onPress={() => Session.clearSignInData()}
                     pressOnEnter
                 />
+            </View>
+            <View style={[styles.mt3, styles.mb2]}>
+                <ChangeExpensifyLoginLink onPress={() => Session.clearSignInData()} />
+            </View>
+            <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
             </View>
         </>
     );
