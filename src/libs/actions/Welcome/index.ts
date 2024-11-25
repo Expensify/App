@@ -185,7 +185,12 @@ function resetAllChecks() {
     OnboardingFlow.clearInitialPath();
 }
 
-function setSelfTourViewed() {
+function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
+    if (shouldUpdateOnyxDataOnlyLocally) {
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

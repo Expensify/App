@@ -4,7 +4,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import FloatingActionButton from '@components/FloatingActionButton';
@@ -562,14 +562,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
                                       Link.openExternalLink(navatticURL);
-                                      // Mark the tour as seen only locally for anonymous users visiting public rooms
-                                      if (Session.isAnonymousUser()) {
-                                          Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                                              selfTourViewed: true,
-                                          });
-                                          return;
-                                      }
-                                      Welcome.setSelfTourViewed();
+                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
                                       if (viewTourTaskReport) {
                                           Task.completeTask(viewTourTaskReport);
                                       }
