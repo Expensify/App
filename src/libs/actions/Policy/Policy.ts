@@ -1643,7 +1643,7 @@ function buildPolicyData(
                 owner: sessionEmail,
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
-                outputCurrency: currency || outputCurrency,
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -1854,6 +1854,8 @@ function buildPolicyData(
         customUnitID,
         customUnitRateID,
         engagementChoice,
+        currency: outputCurrency,
+        file,
     };
 
     return {successData, optimisticData, failureData, params};
