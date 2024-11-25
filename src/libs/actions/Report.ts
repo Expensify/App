@@ -2330,6 +2330,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+                isOptimisticReport: false,
             },
         },
         {
