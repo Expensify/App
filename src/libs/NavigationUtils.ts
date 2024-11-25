@@ -18,7 +18,7 @@ const FULL_SCREENS_SET = new Set(FULL_SCREENS);
 const SIDEBARS_SET = new Set(SIDEBARS);
 const ONBOARDING_SCREENS_SET = new Set(ONBOARDING_SCREENS);
 
-function checkIsScreenHasMatchingNameToSetValues<T extends string>(screen: string | undefined, set: Set<T>): screen is T {
+function checkIfScreenHasMatchingNameToSetValues<T extends string>(screen: string | undefined, set: Set<T>): screen is T {
     if (!screen) {
         return false;
     }
@@ -27,19 +27,19 @@ function checkIsScreenHasMatchingNameToSetValues<T extends string>(screen: strin
 }
 
 function isOnboardingFlowName(screen: string | undefined) {
-    return checkIsScreenHasMatchingNameToSetValues<OnboardingFlowName>(screen, ONBOARDING_SCREENS_SET);
+    return checkIfScreenHasMatchingNameToSetValues<OnboardingFlowName>(screen, ONBOARDING_SCREENS_SET);
 }
 
 function isSplitNavigatorName(screen: string | undefined) {
-    return checkIsScreenHasMatchingNameToSetValues<SplitNavigatorName>(screen, SPLIT_NAVIGATORS_SET);
+    return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorName>(screen, SPLIT_NAVIGATORS_SET);
 }
 
 function isFullScreenName(screen: string | undefined) {
-    return checkIsScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
+    return checkIfScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
 }
 
 function isSidebarScreenName(screen: string | undefined) {
-    return checkIsScreenHasMatchingNameToSetValues<SplitNavigatorLHNScreen>(screen, SIDEBARS_SET);
+    return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorLHNScreen>(screen, SIDEBARS_SET);
 }
 
 export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName};
