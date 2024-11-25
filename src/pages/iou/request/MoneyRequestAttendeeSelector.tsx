@@ -84,7 +84,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !isCategorizeOrShareAction,
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
-            isPaidGroupPolicy,
         );
         if (optionList.currentUserOption && !isCurrentUserAttendee) {
             optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];
@@ -101,7 +100,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         iouType,
         action,
         isCategorizeOrShareAction,
-        isPaidGroupPolicy,
         isCurrentUserAttendee,
     ]);
 

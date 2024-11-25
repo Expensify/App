@@ -98,7 +98,6 @@ type GetOptionsConfig = {
     includeMultipleParticipantReports?: boolean;
     includeRecentReports?: boolean;
     includeSelfDM?: boolean;
-    sortByReportTypeInSearch?: boolean;
     showChatPreviewLine?: boolean;
     sortPersonalDetailsByAlphaAsc?: boolean;
     forcePolicyNamePreview?: boolean;
@@ -154,13 +153,12 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<
-    GetOptionsConfig,
-    'sortByReportTypeInSearch' | 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'
-> & {
+type FilterOptionsConfig = Pick<GetOptionsConfig, 'canInviteUser' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'> & {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
+    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
+    sortByReportTypeInSearch?: boolean;
 };
 
 /**
@@ -1056,9 +1054,7 @@ function getOptions(
         maxRecentReportsToShow = 0,
         excludeLogins = [],
         includeMultipleParticipantReports = false,
-        includeRecentReports = false,
-        // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
-        sortByReportTypeInSearch = false,
+        includeRecentReports = true,
         showChatPreviewLine = false,
         sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
@@ -1077,7 +1073,7 @@ function getOptions(
         action,
         recentAttendees,
         shouldBoldTitleByDefault = true,
-    }: GetOptionsConfig,
+    }: GetOptionsConfig = {},
 ): Options {
     const topmostReportId = Navigation.getTopmostReportId() ?? '-1';
 
@@ -1341,10 +1337,8 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
         betas,
-        includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        sortByReportTypeInSearch: true,
         showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
         forcePolicyNamePreview: true,
@@ -1364,9 +1358,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
 function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
     return getOptions(options, {
         betas,
-        includeRecentReports: true,
         includeMultipleParticipantReports: true,
-        sortByReportTypeInSearch: true,
         includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
@@ -1409,7 +1401,6 @@ function getAttendeeOptions(
     canInviteUser = true,
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
-    sortByReportTypeInSearch = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -1426,7 +1417,6 @@ function getAttendeeOptions(
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            sortByReportTypeInSearch,
             recentAttendees,
         },
     );
@@ -1451,7 +1441,6 @@ function getShareDestinationOptions(
             betas,
             selectedOptions,
             maxRecentReportsToShow: 0, // Unlimited
-            includeRecentReports: true,
             includeMultipleParticipantReports: true,
             showChatPreviewLine: true,
             forcePolicyNamePreview: true,

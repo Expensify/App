@@ -124,13 +124,12 @@ function MoneyRequestParticipantsSelector({
                 canInviteUser: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                sortByReportTypeInSearch: isPaidGroupPolicy,
                 maxRecentReportsToShow: 0,
             },
         );
 
         return optionList;
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPaidGroupPolicy]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
