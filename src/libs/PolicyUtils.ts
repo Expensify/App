@@ -712,7 +712,7 @@ function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefin
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
-function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorId: string | undefined) {
+function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
     const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
