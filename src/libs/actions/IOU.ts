@@ -6125,6 +6125,7 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
             value: {
                 participants: redundantParticipants,
+                isOptimisticReport: false,
             },
         },
         {
@@ -6140,6 +6141,13 @@ function getSendMoneyParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
