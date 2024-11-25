@@ -107,6 +107,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     };
 
     const handleEmailSubmit = () => {
+        // TODO: the message to the email provided in the previous step should be sent
         setCurrentSubStep(SUBSTEP.HANG_TIGHT);
     };
 
