@@ -1303,24 +1303,6 @@ function getOptions(
         });
     }
 
-    // I would remove this because it is only executed in the MoneyRequestFlow i believe because its the only place where we
-    // pass an action. Instead we should call order on our own in the moneyRequestAttendeeSelector
-
-    // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    // if (sortByReportTypeInSearch && (searchValue !== '' || !!action)) {
-    //     // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
-    //     // If we're in money request flow, we only order the recent report option.
-    //     if (!action) {
-    //         recentReportOptions.push(...personalDetailsOptions);
-    //         personalDetailsOptions = [];
-    //     }
-    //     recentReportOptions = orderOptions(recentReportOptions, searchValue, {
-    //         preferChatroomsOverThreads: true,
-    //         preferPolicyExpenseChat: !!action,
-    //         preferRecentExpenseReports,
-    //     });
-    // }
-
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1787,6 +1769,7 @@ export {
     getShareLogOptions,
     filterOptions,
     filteredPersonalDetailsOfRecentReports,
+    orderOptions,
     createOptionList,
     createOptionFromReport,
     getReportOption,
