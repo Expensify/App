@@ -25,7 +25,20 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    Beta,
+    OnyxInputOrEntry,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReportAction,
+    ReviewDuplicates,
+    TaxRate,
+    TaxRates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -1218,6 +1231,30 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
+/**
+ * Return the sorted list transactions of an iou report
+ */
+function getAllSortedTransactions(iouReportID: string): Array<OnyxEntry<Transaction>> {
+    // We need sort all transactions by sorting the parent report actions because `created` of the transaction only has format `YYYY-MM-DD` which can cause the wrong sorting
+    const allCreatedIOUActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID))
+        ?.filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                return false;
+            }
+            const message = ReportActionsUtils.getOriginalMessage(reportAction);
+            if (!message?.IOUTransactionID) {
+                return false;
+            }
+            return true;
+        })
+        .sort((actionA, actionB) => (actionA.created < actionB.created ? -1 : 1));
+
+    return allCreatedIOUActions.map((iouAction) => {
+        const transactionID = ReportActionsUtils.getOriginalMessage(iouAction)?.IOUTransactionID ?? '-1';
+        return getTransaction(transactionID);
+    });
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1301,6 +1338,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getAllSortedTransactions,
 };
 
 export type {TransactionChanges};

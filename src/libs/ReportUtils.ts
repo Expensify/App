@@ -8387,7 +8387,7 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
     const categoryAppovers: string[] = [];
     const tagApprovers: string[] = [];
-    const allReportTransactions = TransactionUtils.getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+    const allReportTransactions = TransactionUtils.getAllSortedTransactions(expenseReport?.reportID ?? '-1');
 
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.

@@ -37,7 +37,7 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -538,7 +538,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 
     let categoryAppover;
     let tagApprover;
-    const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+    const allTransactions = getAllSortedTransactions(expenseReport?.reportID ?? '-1');
 
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.
