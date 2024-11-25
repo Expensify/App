@@ -612,6 +612,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
     shouldPreventActiveCellVirtualization?: boolean;
+
+    /** Called when scrollable content view of the ScrollView changes */
+    onContentSizeChange?: (w: number, h: number) => void;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

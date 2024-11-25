@@ -114,6 +114,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
+        onContentSizeChange,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -795,6 +796,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 getItemLayout={getItemLayout}
                                 onScroll={onScroll}
                                 onScrollBeginDrag={onScrollBeginDrag}
+                                onContentSizeChange={onContentSizeChange}
                                 keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                 extraData={focusedIndex}
                                 // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash

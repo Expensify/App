@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -58,6 +58,16 @@ function SearchPageBottomTab() {
             scrollOffset.value = currentOffset;
         },
     });
+
+    const onContentSizeChange = useCallback(
+        (w: number, h: number) => {
+            if (windowHeight <= h) {
+                return;
+            }
+            topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+        },
+        [windowHeight, topBarOffset],
+    );
 
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
     const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
@@ -132,6 +142,7 @@ function SearchPageBottomTab() {
                     isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
+                    onContentSizeChange={onContentSizeChange}
                     contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
                 />
             )}
