@@ -28,11 +28,11 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
 
      */
     useEffect(() => {
-        if (staticThemePreference) {
+        if (staticThemePreference ?? !theme.text) {
             return;
         }
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
-    }, [staticThemePreference, theme.text]);
+    }, [staticThemePreference, theme]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
