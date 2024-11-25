@@ -56,6 +56,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const session = useSession();
 
     // A guide is assigned to the user if they choose the 'MANAGE_TEAM' onboarding option, except for users with emails containing '+'.
+    // Posting tasks for users with emails containig '+' in the #admins room is not allowed by the backend.
     // Onboarding tasks for guide-assigned users are posted in the #admins room. For others, the tasks are posted in the Concierge chat.
     // So, we should show the "Get started here" tooltip accordingly on the #admins room or Concierge chat on LHN.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
