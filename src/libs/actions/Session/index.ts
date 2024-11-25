@@ -481,6 +481,15 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
 function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
 
@@ -528,7 +537,14 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {completedHybridAppOnboarding: completedHybridAppOnboarding === 'true'}},
                 }),
             )
-            .then(App.openApp)
+            .then(() => {
+                if (clearOnyxOnStart === 'true') {
+                    return App.openApp();
+                }
+                return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
+                    return App.reconnectApp(lastUpdateId);
+                });
+            })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
