@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -47,6 +47,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID, onboardingPolicyIDResult] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const isOnboardingPolicyIDCleared = useRef(false);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
@@ -59,7 +60,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
     useEffect(() => {
-        if (!isVsb || !!onboardingPolicyID || isLoadingOnyxValue(onboardingPolicyIDResult)) {
+        if (!isVsb || !!onboardingPolicyID || isLoadingOnyxValue(onboardingPolicyIDResult) || isOnboardingPolicyIDCleared.current) {
             return;
         }
 
@@ -166,6 +167,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     );
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
+                        isOnboardingPolicyIDCleared.current = true;
                         Welcome.setOnboardingAdminsChatReportID();
                         Welcome.setOnboardingPolicyID();
                     });
