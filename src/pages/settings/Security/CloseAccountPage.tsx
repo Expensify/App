@@ -1,9 +1,7 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,24 +14,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
-import type {Session} from '@src/types/onyx';
 
-type CloseAccountPageOnyxProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<Session>;
-};
+function CloseAccountPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
-type CloseAccountPageProps = CloseAccountPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
-
-function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
@@ -142,8 +132,4 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
 
 CloseAccountPage.displayName = 'CloseAccountPage';
 
-export default withOnyx<CloseAccountPageProps, CloseAccountPageOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(CloseAccountPage);
+export default CloseAccountPage;

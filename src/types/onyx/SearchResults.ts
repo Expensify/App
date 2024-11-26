@@ -6,8 +6,10 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {ACHAccount} from './Policy';
 import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -184,6 +186,49 @@ type SearchReportAction = {
     reportID: string;
 };
 
+/** Model of policy search result */
+type SearchPolicy = {
+    /** The policy type */
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+    /** Whether the auto reporting is enabled */
+    autoReporting?: boolean;
+
+    /**
+     * The scheduled submit frequency set up on this policy.
+     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
+     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
+     */
+    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** The maximum report total allowed to trigger auto reimbursement */
+    autoReimbursementLimit?: number;
+
+    /** The verified bank account linked to the policy */
+    achAccount?: ACHAccount;
+
+    /** The current user's role in the policy */
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The employee list of the policy */
+    employeeList?: Record<string, Record<string, string>>;
+
+    /** Detailed settings for the autoReimbursement */
+    autoReimbursement?: {
+        /** The auto reimbursement limit */
+        limit: number;
+    };
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApproval?: boolean;
+};
+
 /** Model of transaction search result */
 type SearchTransaction = {
     /** The ID of the transaction */
@@ -293,6 +338,9 @@ type SearchTransaction = {
 
     /** Whether the transaction report has only a single transaction */
     isFromOneTransactionReport?: boolean;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Types of searchable transactions */
@@ -314,7 +362,9 @@ type SearchResults = {
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -322,4 +372,15 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTransaction, SearchTransactionType, SearchTransactionAction, SearchPersonalDetails, SearchDataTypes, SearchReport, SearchReportAction};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTransaction,
+    SearchTransactionType,
+    SearchTransactionAction,
+    SearchPersonalDetails,
+    SearchDataTypes,
+    SearchReport,
+    SearchReportAction,
+    SearchPolicy,
+};

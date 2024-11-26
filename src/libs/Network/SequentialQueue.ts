@@ -4,7 +4,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
-import {sleep} from '@libs/RequestThrottle';
+import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -28,6 +28,7 @@ resolveIsReadyPromise?.();
 let isSequentialQueueRunning = false;
 let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
+const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -112,7 +113,8 @@ function process(): Promise<void> {
                 return process();
             }
             rollbackOngoingRequest();
-            return sleep(error, requestToProcess.command)
+            return sequentialQueueRequestThrottle
+                .sleep(error, requestToProcess.command)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
@@ -271,5 +273,19 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process};
+/**
+ * Clear any pending requests during test runs
+ * This is to prevent previous requests interfering with other tests
+ */
+function resetQueue(): void {
+    isSequentialQueueRunning = false;
+    currentRequestPromise = null;
+    isQueuePaused = false;
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    resolveIsReadyPromise?.();
+}
+
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
 export type {RequestError};
