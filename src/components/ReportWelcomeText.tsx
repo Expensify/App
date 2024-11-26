@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -51,7 +52,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
-        .map((item, index) => `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
+        .map(
+            (item, index) =>
+                `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
+                    Permissions.canUseCombinedTrackSubmit() && item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                )}`,
+        )
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
