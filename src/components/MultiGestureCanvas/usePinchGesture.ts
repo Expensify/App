@@ -128,9 +128,8 @@ const usePinchGesture = ({
             }
 
             const newZoomScale = pinchScale.get() * evt.scale;
-            const zoomScaleValue = zoomScale.get();
             // Limit the zoom scale to zoom range including bounce range
-            if (zoomScaleValue >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScaleValue <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
+            if (zoomScale.get() >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScale.get() <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
                 zoomScale.set(newZoomScale);
                 currentPinchScale.set(evt.scale);
 
@@ -144,7 +143,7 @@ const usePinchGesture = ({
 
             // If the zoom scale is within the zoom range, we perform the regular pinch translation
             // Otherwise it means that we are "overzoomed" or "underzoomed", so we need to bounce back
-            if (zoomScaleValue >= zoomRange.min && zoomScaleValue <= zoomRange.max) {
+            if (zoomScale.get() >= zoomRange.min && zoomScale.get() <= zoomRange.max) {
                 pinchTranslateX.set(newPinchTranslateX);
                 pinchTranslateY.set(newPinchTranslateY);
             } else {

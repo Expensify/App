@@ -204,7 +204,7 @@ const usePanGesture = ({
                 }
             }
 
-            if (previousTouchValue === null) {
+            if (previousTouch.get() === null) {
                 previousTouch.set({
                     x: evt.allTouches.at(0)?.x ?? 0,
                     y: evt.allTouches.at(0)?.y ?? 0,
