@@ -35,7 +35,6 @@ function useOptions() {
             {
                 betas,
                 excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
-                maxRecentReportsToShow: 0,
             },
         );
 

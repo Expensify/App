@@ -56,7 +56,6 @@ function useOptions() {
             {
                 betas: betas ?? [],
                 selectedOptions,
-                maxRecentReportsToShow: 0,
                 includeSelfDM: true,
             },
         );

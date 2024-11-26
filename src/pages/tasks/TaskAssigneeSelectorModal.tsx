@@ -48,7 +48,6 @@ function useOptions() {
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS,
-                maxRecentReportsToShow: 0,
             },
         );
 
@@ -69,7 +68,7 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterAndOrderOptionsrOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
