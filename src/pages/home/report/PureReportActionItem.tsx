@@ -174,12 +174,16 @@ type PureReportActionItemProps = {
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
+    /** Function to deletes the draft for a comment report action. */
     deleteReportActionDraft?: (reportID: string, action: OnyxTypes.ReportAction) => void;
 
+    /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
+    /** Whether the room is a chronos report */
     isChronosReport?: boolean;
 
+    /** Function to toggle emoji reaction */
     toggleEmojiReaction?: (
         reportID: string,
         reportAction: OnyxTypes.ReportAction,
@@ -189,38 +193,51 @@ type PureReportActionItemProps = {
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
+    /** Whether the user has a payment card added to its account. */
     doesUserHavePaymentCardAdded?: boolean | undefined;
 
+    /** Function to create a draft transaction and navigate to participant selector */
     createDraftTransactionAndNavigateToParticipantSelector?: (transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string) => void;
 
+    /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
         reportId: string,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     ) => void;
 
+    /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
 
+    /** What missing payment method does this report action indicate, if any? */
     getIndicatedMissingPaymentMethod?: (userWallet: OnyxEntry<OnyxTypes.UserWallet>, reportId: string, reportAction: OnyxTypes.ReportAction) => MissingPaymentMethod | undefined;
 
+    /** Whether the provided report action is a reimbursement de-queued action */
     isReimbursementDeQueuedAction?: (reportAction: OnyxEntry<OnyxTypes.ReportAction>) => reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>;
 
+    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` action */
     getReimbursementDeQueuedActionMessage?: (
         reportAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
         reportOrID: OnyxEntry<OnyxTypes.Report> | string,
         isLHNPreview?: boolean,
     ) => string;
 
+    /** Get the report action message when expense has been modified. */
     getForReportAction?: (reportID: string | undefined, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => string;
 
+    /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
 
+    /** Whether the current user is the only participant in the report */
     isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
 
+    /** Function to clear an error from a transaction */
     clearError?: (transactionID: string) => void;
 
+    /** Function to clear all errors from a report action */
     clearAllRelatedReportActionErrors?: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
 
+    /** Function to dismiss the actionable whisper for tracking expenses */
     dismissTrackExpenseActionableWhisper?: (reportID: string, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => void;
 };
 
