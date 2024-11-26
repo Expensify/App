@@ -3877,7 +3877,9 @@ function prepareOnboardingOptimisticData(
 
     const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
 
-    if ('video' in data && data.video && videoCommentAction && videoMessage) {
+    // If we post tasks in the #admins room, it means that a guide is assigned and this video is sent from the backend.
+    // If we add an optimistic video message as well, it will be duplicated because backend sends this as-is.
+    if (!shouldPostTasksInAdminsRoom && 'video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
