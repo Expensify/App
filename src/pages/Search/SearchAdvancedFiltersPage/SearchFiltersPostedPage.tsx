@@ -51,7 +51,7 @@ function SearchFiltersPostedPage() {
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={FILTER_KEYS.EXPORTED}
+                    inputID={FILTER_KEYS.POSTED}
                     label={translate('search.filters.posted')}
                     defaultValue={postedDate}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
@@ -62,6 +62,6 @@ function SearchFiltersPostedPage() {
     );
 }
 
-SearchFiltersPostedPage.displayName = 'SearchFiltersExportedPage';
+SearchFiltersPostedPage.displayName = 'SearchFiltersPostedPage';
 
 export default SearchFiltersPostedPage;

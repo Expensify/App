@@ -483,6 +483,15 @@ function buildFilterFormValuesFromQuery(
                 })
                 .join(' ');
         }
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+        ) {
+            filtersForm[filterKey] = ValidationUtils.isValidDate(filterValues.at(0) ?? '') ? filterValues.at(0) : '';
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
             filtersForm[FILTER_KEYS.DATE_BEFORE] =
                 filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
