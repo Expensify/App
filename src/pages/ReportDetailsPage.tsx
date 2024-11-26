@@ -522,7 +522,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         if (report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
-                translationKey: 'common.goToWorkspace',
+                translationKey: 'workspace.common.goToWorkspace',
                 icon: Expensicons.Building,
                 action: () => {
                     if (isSmallScreenWidth) {
