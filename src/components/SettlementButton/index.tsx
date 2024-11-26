@@ -48,6 +48,7 @@ function SettlementButton({
     onPress,
     pressOnEnter = false,
     policyID = '-1',
+    shouldUseSuccessStyle = true,
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
@@ -238,7 +239,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
-                    success
+                    success={shouldUseSuccessStyle}
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
