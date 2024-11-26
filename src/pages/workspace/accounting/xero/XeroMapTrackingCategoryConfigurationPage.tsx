@@ -77,7 +77,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, currentTrackingCategoryValue, policy, policyID],
+        [categoryId, currentTrackingCategoryValue, policy, policyID],
     );
 
     return (
