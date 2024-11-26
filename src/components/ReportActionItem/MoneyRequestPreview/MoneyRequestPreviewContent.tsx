@@ -199,6 +199,10 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
+        if (TransactionUtils.isPending(transaction)) {
+            message += `${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -246,14 +250,8 @@ function MoneyRequestPreviewContent({
         if (isScanning) {
             return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
-        if (TransactionUtils.isPending(transaction)) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
         if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
     };
@@ -262,7 +260,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning');
+            return translate('iou.receiptStatusTitle');
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
@@ -358,6 +356,7 @@ function MoneyRequestPreviewContent({
                                             <Icon
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.danger}
+                                                small
                                             />
                                         )}
                                     </View>
