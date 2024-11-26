@@ -480,7 +480,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isOptimisticReport':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
-        case 'isHidden':
             return validateBoolean(value);
         case 'lastReadSequenceNumber':
         case 'managerID':
@@ -621,7 +620,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
