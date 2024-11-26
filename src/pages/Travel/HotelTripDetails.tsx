@@ -30,6 +30,7 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
     if (!transaction || !hotelReservation) {
         return null;
     }
+
     const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
     const checkInDate = DateUtils.getFormattedTransportDate(new Date(hotelReservation.start.date), true);
     const checkOutDate = DateUtils.getFormattedTransportDate(new Date(hotelReservation.end.date), true);
