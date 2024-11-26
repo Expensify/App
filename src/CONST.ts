@@ -186,7 +186,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
     video: {
         url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
         thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
-        duration: 18,
+        duration: 55,
         width: 1280,
         height: 960,
     },
@@ -4883,7 +4883,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
-                duration: 24,
+                duration: 55,
                 width: 1280,
                 height: 960,
             },
@@ -5025,7 +5025,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
-                duration: 28,
+                duration: 55,
                 width: 1280,
                 height: 960,
             },
@@ -5087,7 +5087,7 @@ const CONST = {
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
-                duration: 24,
+                duration: 55,
                 width: 1280,
                 height: 960,
             },
