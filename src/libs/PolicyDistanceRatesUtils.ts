@@ -35,10 +35,10 @@ function validateRateValue(
 
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
-    if (ratesList.some((r) => r.rate === convertedRate && !(currentRateValue && currentRateValue === r.rate))) {
-        errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: NumberUtils.parseFloatAnyLocale(parsedRate)});
-    } else if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+    if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = Localize.translateLocal('common.error.invalidRateError');
+    } else if (ratesList.some((r) => r.rate === convertedRate && !(currentRateValue && currentRateValue === r.rate))) {
+        errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: Number(values.rate)});
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
         errors.rate = Localize.translateLocal('common.error.lowRateError');
     }
