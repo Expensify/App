@@ -7,6 +7,7 @@ import type {
     NativeSyntheticEvent,
     SectionListData,
     StyleProp,
+    TargetedEvent,
     TextInput,
     TextStyle,
     ViewStyle,
@@ -84,7 +85,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
-    onFocus?: () => void;
+    onFocus?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;

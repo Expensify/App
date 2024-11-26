@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/BaseListItem';
@@ -23,7 +24,7 @@ type SearchQueryListItemProps = {
     isFocused?: boolean;
     showTooltip: boolean;
     onSelectRow: (item: SearchQueryItem) => void;
-    onFocus?: () => void;
+    onFocus?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
     shouldSyncFocus?: boolean;
 };
 
