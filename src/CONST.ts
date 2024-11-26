@@ -212,6 +212,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -1337,6 +1338,10 @@ const CONST = {
     STATUS_BAR_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
+    },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
@@ -2850,6 +2855,7 @@ const CONST = {
             ALLOW: 'personal',
         },
         CARD_LIST_THRESHOLD: 8,
+        DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -6348,6 +6354,10 @@ const CONST = {
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
         },
+    },
+
+    HYBRID_APP: {
+        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
 } as const;
 
