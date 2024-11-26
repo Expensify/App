@@ -3284,8 +3284,8 @@ const translations = {
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutOptions: {
-                    text: 'Conoce más sobre ',
-                    linkText: 'las opciones.',
+                    text: 'Obtén más información sobre ',
+                    linkText: 'estas opciones.',
                 },
                 customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
                 directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
