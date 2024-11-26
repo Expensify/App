@@ -1,6 +1,6 @@
+import type {FullScreenName, OnboardingFlowName, SplitNavigatorLHNScreen, SplitNavigatorName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {FullScreenName, OnboardingFlowName, SplitNavigatorLHNScreen, SplitNavigatorName} from './Navigation/types';
 
 const SPLIT_NAVIGATORS = [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
 const FULL_SCREENS = [...SPLIT_NAVIGATORS, SCREENS.SEARCH.CENTRAL_PANE];

@@ -1,6 +1,6 @@
 import {getPathFromState} from '@react-navigation/native';
-import {isFullScreenName} from '@libs/NavigationUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
+import {isFullScreenName} from './isNavigatorName';
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
     const path = getPathFromState(state, options);

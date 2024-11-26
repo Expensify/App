@@ -7,7 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {isSplitNavigatorName} from '@libs/NavigationUtils';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportConnection from '@libs/ReportConnection';
@@ -22,17 +21,18 @@ import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     createSplitNavigator,
+    getMinimalAction,
     getPolicyIDFromState,
     getStateFromPath,
     getTopmostReportParam,
     isReportOpenInRHP,
+    isSplitNavigatorName,
+    linkTo,
     closeRHPFlow as originalCloseRHPFlow,
     setNavigationActionToMicrotaskQueue,
 } from './helpers';
 import linkingConfig from './linkingConfig';
 import RELATIONS from './linkingConfig/RELATIONS';
-import linkTo from './linkTo';
-import getMinimalAction from './linkTo/getMinimalAction';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
 

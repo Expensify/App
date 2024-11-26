@@ -5,7 +5,6 @@ import {isAnonymousUser} from '@libs/actions/Session';
 import config from '@libs/Navigation/linkingConfig/config';
 import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import {isFullScreenName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,6 +13,7 @@ import SCREENS from '@src/SCREENS';
 import createSplitNavigator from './createSplitNavigator';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
+import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
 type GetAdaptedStateReturnType = {

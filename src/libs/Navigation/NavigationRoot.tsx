@@ -23,10 +23,9 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitStackNavigator/usePreserveSplitNavigatorState';
-import {customGetPathFromState, getAdaptedStateFromPath} from './helpers';
+import {customGetPathFromState, getAdaptedStateFromPath, setupCustomAndroidBackHandler} from './helpers';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
-import setupCustomAndroidBackHandler from './setupCustomAndroidBackHandler';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
