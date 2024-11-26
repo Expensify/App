@@ -48,9 +48,15 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
             key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
             value: {
                 ...optimisticPublicRoom,
-                isOptimisticReport: false,
                 reportID: publicRoomReportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${publicRoomReportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
     ];

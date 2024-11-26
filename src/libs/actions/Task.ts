@@ -153,6 +153,12 @@ function createTaskAndNavigate(
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTaskReport.reportID}`,
+            value: {
                 isOptimisticReport: true,
             },
         },
@@ -175,9 +181,15 @@ function createTaskAndNavigate(
                     description: null,
                     managerID: null,
                 },
-                isOptimisticReport: false,
                 // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
                 participants: {[assigneeAccountID]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTaskReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
         {
