@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +76,11 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}
             defaultOpen
-            onModalClose={onModalClose}
+            onModalClose={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    onModalClose();
+                });
+            }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         />

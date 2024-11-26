@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
@@ -51,9 +52,11 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             report={report}
             source={source}
             onModalClose={() => {
-                Navigation.dismissModal();
-                // This enables Composer refocus when the attachments modal is closed by the browser navigation
-                ComposerFocusManager.setReadyToFocus();
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.dismissModal();
+                    // This enables Composer refocus when the attachments modal is closed by the browser navigation
+                    ComposerFocusManager.setReadyToFocus();
+                });
             }}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
             shouldShowNotFoundPage={!isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID}

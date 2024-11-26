@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +44,9 @@ function ReportAvatar({route}: ReportAvatarProps) {
             defaultOpen
             source={attachment.source}
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+                });
             }}
             isWorkspaceAvatar={attachment.isWorkspaceAvatar}
             maybeIcon

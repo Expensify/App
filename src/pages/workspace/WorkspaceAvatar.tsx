@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -26,7 +27,11 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             headerTitle={policy?.name ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
-            onModalClose={Navigation.goBack}
+            onModalClose={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.goBack();
+                });
+            }}
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
