@@ -843,6 +843,8 @@ const translations = {
         submitExpense: 'Submit expense',
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
+        chooseRecipient: 'Choose recipient',
+        confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -2475,6 +2477,7 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            goToWorkspace: 'Go to workspace',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
@@ -3228,9 +3231,8 @@ const translations = {
             collect: 'Collect',
         },
         companyCards: {
-            addCompanyCards: 'Add company cards',
-            selectCardFeed: 'Select card feed',
-            addCardFeed: 'Add card feed',
+            addCards: 'Add cards',
+            selectCards: 'Select cards',
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -3242,9 +3244,9 @@ const translations = {
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
-                learnMoreAboutConnections: {
-                    text: 'Learn more about the ',
-                    linkText: 'connection methods.',
+                learnMoreAboutOptions: {
+                    text: 'Learn more about these ',
+                    linkText: 'options.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
                 directFeedDetails: 'Connect now using your master credentials. This is most common.',
@@ -3478,7 +3480,6 @@ const translations = {
                         assignCards: 'Assign cards to the entire team',
                         automaticImport: 'Automatic transaction import',
                     },
-                    ctaTitle: 'Add company cards',
                 },
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
