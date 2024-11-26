@@ -52,7 +52,6 @@ function BaseGenericTooltip({
             StyleUtils.getTooltipStyles({
                 // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
-                currentSize: animation.value,
                 windowWidth,
                 xOffset,
                 yOffset,
@@ -70,7 +69,6 @@ function BaseGenericTooltip({
             }),
         [
             StyleUtils,
-            animation,
             windowWidth,
             xOffset,
             yOffset,

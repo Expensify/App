@@ -1,6 +1,6 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
-import {cancelAnimation, runOnJS, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -59,9 +59,9 @@ function GenericTooltip({
     const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
     // Whether the tooltip is first tooltip to activate the TooltipSense
-    const animationSharedValue = useSharedValue<number>(0);
-    const isTooltipSenseInitiatorShared = useSharedValue<boolean>(true);
-    const isAnimationCanceledShared = useSharedValue<boolean>(false);
+    const animation = useSharedValue<number>(0);
+    const isTooltipSenseInitiator = useSharedValue<boolean>(true);
+    const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
 
     useEffect(() => {
@@ -78,14 +78,14 @@ function GenericTooltip({
         setIsRendered(true);
         setIsVisible(true);
 
-        cancelAnimation(animationSharedValue);
+        cancelAnimation(animation);
 
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
-            animationSharedValue.value = 1;
+            animation.value = 1;
         } else {
-            isTooltipSenseInitiatorShared.value = true;
-            animationSharedValue.value = withDelay(
+            isTooltipSenseInitiator.value = true;
+            animation.value = withDelay(
                 500,
                 withTiming(
                     1,
@@ -93,25 +93,23 @@ function GenericTooltip({
                         duration: 140,
                     },
                     (finished) => {
-                        runOnJS(() => {
-                            isAnimationCanceledShared.value = !finished;
-                        })();
+                        isAnimationCanceled.value = !finished;
                     },
                 ),
             );
         }
         TooltipSense.activate();
-    }, [shouldForceAnimate]);
+    }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
-        if (isVisible && isAnimationCanceledShared.value && text && prevText !== text) {
-            isAnimationCanceledShared.value = false;
+        if (isVisible && isAnimationCanceled.value && text && prevText !== text) {
+            isAnimationCanceled.value = false;
             showTooltip();
         }
-    }, [isVisible, text, prevText, showTooltip]);
+    }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
     /**
      * Update the tooltip's target bounding rectangle
@@ -130,19 +128,19 @@ function GenericTooltip({
      * Hide the tooltip in an animation.
      */
     const hideTooltip = useCallback(() => {
-        cancelAnimation(animationSharedValue);
+        cancelAnimation(animation);
 
-        if (TooltipSense.isActive() && !isTooltipSenseInitiatorShared.value) {
+        if (TooltipSense.isActive() && !isTooltipSenseInitiator.value) {
             // eslint-disable-next-line react-compiler/react-compiler
-            animationSharedValue.value = 0;
+            animation.value = 0;
         } else {
             // Hide the first tooltip which initiated the TooltipSense with animation
-            isTooltipSenseInitiatorShared.value = false;
-            animationSharedValue.value = 0;
+            isTooltipSenseInitiator.value = false;
+            animation.value = 0;
         }
         TooltipSense.deactivate();
         setIsVisible(false);
-    }, []);
+    }, [animation, isTooltipSenseInitiator]);
 
     const onPressOverlay = useCallback(() => {
         if (!shouldUseOverlay) {
@@ -164,7 +162,7 @@ function GenericTooltip({
             {isRendered && (
                 <BaseGenericTooltip
                     // eslint-disable-next-line react-compiler/react-compiler
-                    animation={animationSharedValue}
+                    animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
                     yOffset={yOffset}
