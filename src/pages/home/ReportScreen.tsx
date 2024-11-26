@@ -64,6 +64,7 @@ const defaultReportMetadata = {
     hasLoadingOlderReportActionsError: false,
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
+    isOptimisticReport: false,
 };
 
 /** Get the currently viewed report ID as number */
@@ -166,7 +167,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
      * put this into onyx selector as it will be the same.
      */
     const report = useMemo(
-        (): OnyxEntry<OnyxTypes.Report> =>
+        () =>
             reportOnyx && {
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID ?? '',
@@ -202,7 +203,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyName: reportOnyx.policyName,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: reportOnyx.private_isArchived,
-                isOptimisticReport: reportOnyx.isOptimisticReport,
+                isOptimisticReport: reportMetadata.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
                 permissions,
@@ -210,7 +211,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyAvatar: reportOnyx.policyAvatar,
                 pendingChatMembers: reportOnyx.pendingChatMembers,
             },
-        [reportOnyx, permissions],
+        [reportOnyx, permissions, reportMetadata],
     );
     const reportID = report?.reportID;
 
