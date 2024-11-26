@@ -34,7 +34,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 }
 
                 field.validationRules.forEach((rule) => {
-                    if (rule.regEx) {
+                    if (!rule.regEx) {
                         return;
                     }
 

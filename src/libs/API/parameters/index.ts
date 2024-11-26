@@ -8,6 +8,7 @@ export type {default as RestartBankAccountSetupParams} from './RestartBankAccoun
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
 export type {default as BankAccountHandlePlaidErrorParams} from './BankAccountHandlePlaidErrorParams';
+export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as BeginAppleSignInParams} from './BeginAppleSignInParams';
 export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams';
 export type {default as BeginSignInParams} from './BeginSignInParams';

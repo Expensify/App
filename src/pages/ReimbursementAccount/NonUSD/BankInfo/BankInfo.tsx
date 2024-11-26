@@ -1,16 +1,20 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './substeps/AccountHolderDetails';
 import BankAccountDetails from './substeps/BankAccountDetails';
 import Confirmation from './substeps/Confirmation';
 import UploadStatement from './substeps/UploadStatement';
 import type {BankInfoSubStepProps} from './types';
+
+const {DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type BankInfoProps = {
     /** Handles back button press */
@@ -24,14 +28,20 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
+    const country = reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
 
     const submit = () => {
         onSubmit();
     };
+
+    useEffect(() => {
+        BankAccounts.getCorpayBankAccountFields(country, currency);
+    }, [country, currency]);
 
     const bodyContent: Array<ComponentType<BankInfoSubStepProps>> =
         currency !== CONST.CURRENCY.AUD ? [BankAccountDetails, AccountHolderDetails, Confirmation] : [BankAccountDetails, AccountHolderDetails, UploadStatement, Confirmation];
@@ -72,6 +82,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
                 onNext={nextScreen}
                 onMove={moveTo}
                 corpayFields={corpayFields?.formFields}
+                preferredMethod={corpayFields?.preferredMethod}
             />
         </InteractiveStepWrapper>
     );

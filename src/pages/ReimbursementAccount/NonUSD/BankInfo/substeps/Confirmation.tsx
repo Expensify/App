@@ -10,11 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
+function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -58,6 +59,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         [corpayFields, onMove, reimbursementAccountDraft, translate, values],
     );
 
+    const handleNext = () => {
+        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, preferredMethod} as ReimbursementAccountForm);
+        onNext();
+    };
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -72,7 +78,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                         <Button
                             success
                             style={[styles.w100]}
-                            onPress={onNext}
+                            onPress={handleNext}
                             large
                             text={translate('common.confirm')}
                         />

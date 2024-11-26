@@ -35,6 +35,8 @@ type CorpayFormFields = {
     destinationCountry: string;
     /** Form fields for the Corpay form */
     formFields: CorpayFormField[];
+    /** Preferred method for the bank */
+    preferredMethod: string;
 };
 
 export default CorpayFormFields;
