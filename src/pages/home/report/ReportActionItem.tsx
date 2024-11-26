@@ -1,8 +1,12 @@
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+import * as Report from '@userActions/Report';
+import * as ReportActions from '@userActions/ReportActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PureReportActionItemProps} from './PureReportActionItem';
@@ -52,6 +56,20 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             parentReport={parentReport}
             personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
+            originalReportID={originalReportID}
+            deleteReportActionDraft={Report.deleteReportActionDraft}
+            isArchivedRoom={ReportUtils.isArchivedRoomWithID(originalReportID)}
+            isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
+            toggleEmojiReaction={Report.toggleEmojiReaction}
+            doesUserHavePaymentCardAdded={doesUserHavePaymentCardAdded()}
+            createDraftTransactionAndNavigateToParticipantSelector={ReportUtils.createDraftTransactionAndNavigateToParticipantSelector}
+            resolveActionableReportMentionWhisper={Report.resolveActionableReportMentionWhisper}
+            isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses}
+            isReimbursementDeQueuedAction={ReportActionsUtils.isReimbursementDeQueuedAction}
+            getForReportAction={ModifiedExpenseMessage.getForReportAction}
+            getTransactionsWithReceipts={ReportUtils.getTransactionsWithReceipts}
+            isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
+            clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}
         />
     );
 }
