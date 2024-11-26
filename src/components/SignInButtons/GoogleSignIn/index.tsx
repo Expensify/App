@@ -27,7 +27,7 @@ const signIn = (response: Response) => {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
+function GoogleSignIn({isDesktopFlow = false, onPress}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const loadScript = useCallback(() => {
@@ -76,6 +76,7 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
                 id={desktopId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
+                onPointerDown={onPress}
             />
         </View>
     ) : (
@@ -84,6 +85,7 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
                 id={mainId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
+                onPointerDown={onPress}
             />
         </View>
     );
