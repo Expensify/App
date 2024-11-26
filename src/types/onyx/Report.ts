@@ -37,11 +37,11 @@ type PendingChatMember = {
 
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** What is the role of the participant in the report */
+    role?: ValueOf<typeof CONST.REPORT.ROLE>;
+
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
-
-    /** What is the role of the participant in the report */
-    role?: 'admin' | 'member';
 }>;
 
 /** Types of invoice receivers in a report */
@@ -211,9 +211,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
         nonReimbursableTotal?: number;
 
-        /** Whether the report is hidden from options list */
-        isHidden?: boolean;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
@@ -242,7 +239,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
     },
-    PolicyReportField['fieldID']
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
@@ -250,4 +247,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver};

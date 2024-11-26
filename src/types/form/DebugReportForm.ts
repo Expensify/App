@@ -44,6 +44,7 @@ const INPUT_IDS = {
     UNHELD_TOTAL: 'unheldTotal',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
+    VISIBILITY: 'visibility',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -91,6 +92,7 @@ type DebugReportForm = Form<
         [INPUT_IDS.UNHELD_TOTAL]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+        [INPUT_IDS.VISIBILITY]: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     }
 >;
 
