@@ -54,11 +54,11 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
-        [FILTER_KEYS.SUBMITTED]: string[];
-        [FILTER_KEYS.APPROVED]: string[];
-        [FILTER_KEYS.PAID]: string[];
-        [FILTER_KEYS.EXPORTED]: string[];
-        [FILTER_KEYS.POSTED]: string[];
+        [FILTER_KEYS.SUBMITTED]: string;
+        [FILTER_KEYS.APPROVED]: string;
+        [FILTER_KEYS.PAID]: string;
+        [FILTER_KEYS.EXPORTED]: string;
+        [FILTER_KEYS.POSTED]: string;
     }
 >;
 
