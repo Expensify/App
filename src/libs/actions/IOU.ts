@@ -38,6 +38,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as Localize from '@libs/Localize';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7544,6 +7545,7 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         };
     }
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
