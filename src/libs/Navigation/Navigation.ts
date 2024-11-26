@@ -196,7 +196,7 @@ type GoBackOptions = {
     shouldPopToTop?: boolean;
 };
 
-const defaultGoUpOptions: Required<GoBackOptions> = {
+const defaultGoBackOptions: Required<GoBackOptions> = {
     compareParams: true,
     shouldPopToTop: false,
 };
@@ -206,7 +206,7 @@ function isRootNavigatorState(state: State): state is State<RootStackParamList> 
 }
 
 function goUp(fallbackRoute: Route, options?: GoBackOptions) {
-    const compareParams = options?.compareParams ?? defaultGoUpOptions.compareParams;
+    const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
 
     if (!canNavigate('goBack')) {
         return;

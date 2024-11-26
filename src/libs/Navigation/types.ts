@@ -22,7 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type LHN_TO_SPLIT_NAVIGATOR_NAME from './linkingConfig/RELATIONS/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
+import type SIDEBAR_TO_SPLIT from './linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -53,7 +53,7 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type SplitNavigatorSidebarScreen = keyof typeof LHN_TO_SPLIT_NAVIGATOR_NAME;
+type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
 type SplitNavigatorParamListType = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
@@ -61,7 +61,7 @@ type SplitNavigatorParamListType = {
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
 };
 
-type SplitNavigatorByLHN<T extends SplitNavigatorSidebarScreen> = (typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T];
+type SplitNavigatorBySidebar<T extends SplitNavigatorSidebarScreen> = (typeof SIDEBAR_TO_SPLIT)[T];
 
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
@@ -1752,18 +1752,20 @@ declare global {
 export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
-    CentralPaneScreensParamList,
-    CentralPaneName,
-    BackToParams,
     BackToAndForwardToParms,
+    BackToParams,
+    CentralPaneName,
+    CentralPaneScreensParamList,
+    DebugParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
+    FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
-    WorkspaceScreenName,
-    WorkspaceSplitNavigatorParamList,
+    FullScreenName,
     LeftModalNavigatorParamList,
+    MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
     NavigationRef,
@@ -1771,8 +1773,8 @@ export type {
     NavigationStateRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardingModalNavigatorParamList,
     OnboardingFlowName,
+    OnboardingModalNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -1783,34 +1785,32 @@ export type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
+    RestrictedActionParamList,
     RightModalNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchAdvancedFiltersParamList,
+    SearchReportParamList,
+    SearchSavedSearchParamList,
     SettingsNavigatorParamList,
     SettingsSplitNavigatorParamList,
     SignInNavigatorParamList,
-    FeatureTrainingNavigatorParamList,
     SplitDetailsNavigatorParamList,
+    SplitNavigatorBySidebar,
+    SplitNavigatorName,
+    SplitNavigatorParamListType,
+    SplitNavigatorScreenName,
+    SplitNavigatorSidebarScreen,
     StackNavigationAction,
     State,
     StateOrRoute,
     SwitchPolicyIDParams,
-    TravelNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
+    TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
-    TransactionDuplicateNavigatorParamList,
-    SearchReportParamList,
-    SearchAdvancedFiltersParamList,
-    SearchSavedSearchParamList,
-    RestrictedActionParamList,
-    MissingPersonalDetailsParamList,
-    DebugParamList,
-    SplitNavigatorName,
-    SplitNavigatorScreenName,
-    FullScreenName,
-    SplitNavigatorSidebarScreen,
-    SplitNavigatorParamListType,
-    SplitNavigatorByLHN,
+    WorkspaceScreenName,
+    WorkspaceSplitNavigatorParamList,
 };
