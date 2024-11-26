@@ -174,7 +174,7 @@ type PureReportActionItemProps = {
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
-    deleteReportActionDraft: (reportID: string, action: OnyxTypes.ReportAction) => void;
+    deleteReportActionDraft?: (reportID: string, action: OnyxTypes.ReportAction) => void;
 
     isArchivedRoom?: boolean;
 
@@ -189,39 +189,39 @@ type PureReportActionItemProps = {
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
-    doesUserHavePaymentCardAdded: boolean | undefined;
+    doesUserHavePaymentCardAdded?: boolean | undefined;
 
-    createDraftTransactionAndNavigateToParticipantSelector: (transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string) => void;
+    createDraftTransactionAndNavigateToParticipantSelector?: (transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string) => void;
 
-    resolveActionableReportMentionWhisper: (
+    resolveActionableReportMentionWhisper?: (
         reportId: string,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     ) => void;
 
-    isClosedExpenseReportWithNoExpenses: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
+    isClosedExpenseReportWithNoExpenses?: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
 
-    getIndicatedMissingPaymentMethod: (userWallet: OnyxEntry<OnyxTypes.UserWallet>, reportId: string, reportAction: OnyxTypes.ReportAction) => MissingPaymentMethod | undefined;
+    getIndicatedMissingPaymentMethod?: (userWallet: OnyxEntry<OnyxTypes.UserWallet>, reportId: string, reportAction: OnyxTypes.ReportAction) => MissingPaymentMethod | undefined;
 
-    isReimbursementDeQueuedAction: (reportAction: OnyxEntry<OnyxTypes.ReportAction>) => reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>;
+    isReimbursementDeQueuedAction?: (reportAction: OnyxEntry<OnyxTypes.ReportAction>) => reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>;
 
-    getReimbursementDeQueuedActionMessage: (
+    getReimbursementDeQueuedActionMessage?: (
         reportAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
         reportOrID: OnyxEntry<OnyxTypes.Report> | string,
         isLHNPreview?: boolean,
     ) => string;
 
-    getForReportAction: (reportID: string | undefined, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => string;
+    getForReportAction?: (reportID: string | undefined, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => string;
 
-    getTransactionsWithReceipts: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
+    getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
 
-    isCurrentUserTheOnlyParticipant: (participantAccountIDs?: number[]) => boolean;
+    isCurrentUserTheOnlyParticipant?: (participantAccountIDs?: number[]) => boolean;
 
-    clearError: (transactionID: string) => void;
+    clearError?: (transactionID: string) => void;
 
-    clearAllRelatedReportActionErrors: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
+    clearAllRelatedReportActionErrors?: (reportID: string, reportAction: OnyxTypes.ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) => void;
 
-    dismissTrackExpenseActionableWhisper: (reportID: string, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => void;
+    dismissTrackExpenseActionableWhisper?: (reportID: string, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => void;
 };
 
 function PureReportActionItem({
@@ -260,13 +260,14 @@ function PureReportActionItem({
     toggleEmojiReaction = () => {},
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
-    isClosedExpenseReportWithNoExpenses,
-    isCurrentUserTheOnlyParticipant,
-    getIndicatedMissingPaymentMethod,
-    isReimbursementDeQueuedAction,
-    getReimbursementDeQueuedActionMessage,
-    getForReportAction,
-    getTransactionsWithReceipts,
+    isClosedExpenseReportWithNoExpenses = () => false,
+    isCurrentUserTheOnlyParticipant = () => false,
+    getIndicatedMissingPaymentMethod = () => undefined,
+    isReimbursementDeQueuedAction = (reportAction: OnyxEntry<OnyxTypes.ReportAction>): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED> =>
+        false,
+    getReimbursementDeQueuedActionMessage = () => '',
+    getForReportAction = () => '',
+    getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
@@ -698,7 +699,7 @@ function PureReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1] ?? {});
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod?.(userWallet, linkedReport?.reportID ?? '-1', action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
