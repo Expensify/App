@@ -47,6 +47,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
+                testID={translate('workspace.switcher.headerTitle')}
                 onPress={() => {
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {

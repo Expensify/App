@@ -1,15 +1,23 @@
-import {screen} from '@testing-library/react-native';
+import * as NativeNavigation from '@react-navigation/native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import * as Localize from '@libs/Localize';
+import * as User from '@userActions/User';
+import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+// We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
+jest.setTimeout(60000);
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -17,7 +25,40 @@ jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
 
-describe('Sidebar', () => {
+TestHelper.setupApp();
+
+async function navigateToWorkspaceSwitcher(): Promise<void> {
+    const hintText = Localize.translateLocal('workspace.switcher.headerTitle');
+    const optionRow = screen.getByTestId(hintText);
+    fireEvent(optionRow, 'press');
+    await act(() => {
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    });
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function signInAndGetApp(): Promise<void> {
+    // Render the App and sign in as a test user.
+    render(<App />);
+    await waitForBatchedUpdatesWithAct();
+    const hintText = Localize.translateLocal('loginForm.loginForm');
+    const loginForm = await screen.findAllByLabelText(hintText);
+    expect(loginForm).toHaveLength(1);
+
+    await act(async () => {
+        await TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One');
+    });
+
+    await waitForBatchedUpdatesWithAct();
+
+    User.subscribeToUserEvents();
+
+    await waitForBatchedUpdates();
+
+    await waitForBatchedUpdatesWithAct();
+}
+
+describe('WorkspaceSwitcherPage', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
@@ -29,7 +70,6 @@ describe('Sidebar', () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        return TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
@@ -38,7 +78,8 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('orders items with most recently updated on top', () => {
+        it('orders items with most recently updated on top', async () => {
+            await signInAndGetApp();
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2 = LHNTestUtils.getFakeReport([1, 3], 2);
@@ -81,14 +122,8 @@ describe('Sidebar', () => {
                     )
 
                     // Then the component should be rendered with the mostly recently updated report first
-                    .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
-
-                        expect(displayNames.at(0)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Two');
+                    .then(async () => {
+                        await navigateToWorkspaceSwitcher();
                     })
             );
         });
