@@ -12,6 +12,7 @@ import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -266,6 +267,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         if (isPreviousPolicy) {

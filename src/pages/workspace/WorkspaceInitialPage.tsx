@@ -93,7 +93,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
-    const hasSyncError = PolicyUtils.hasSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
@@ -152,7 +152,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
+    const hasMembersError = PolicyUtils.shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
         !isEmptyObject(policy?.errorFields?.name ?? {}) ||
@@ -286,7 +286,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.Coins,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
-            brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: PolicyUtils.shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
