@@ -31,18 +31,15 @@ function SearchButton({style}: SearchButtonProps) {
                 nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={() => {
-                    if (!Session.checkIfActionIsAllowed(() => true)) {
-                        return;
-                    }
-
+                // eslint-disable-next-line react-compiler/react-compiler
+                onPress={Session.checkIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
 
                     Timing.start(CONST.TIMING.OPEN_SEARCH);
                     Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
                     openSearchRouter();
-                }}
+                })}
             >
                 <Icon
                     src={Expensicons.MagnifyingGlass}
