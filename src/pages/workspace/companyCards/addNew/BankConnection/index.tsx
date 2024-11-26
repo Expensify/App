@@ -89,7 +89,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <BlockingView
