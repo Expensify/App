@@ -1,4 +1,4 @@
-import type {FullScreenName, OnboardingFlowName, SplitNavigatorLHNScreen, SplitNavigatorName} from '@libs/Navigation/types';
+import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -39,7 +39,7 @@ function isFullScreenName(screen: string | undefined) {
 }
 
 function isSidebarScreenName(screen: string | undefined) {
-    return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorLHNScreen>(screen, SIDEBARS_SET);
+    return checkIfScreenHasMatchingNameToSetValues<SplitNavigatorSidebarScreen>(screen, SIDEBARS_SET);
 }
 
 export {isFullScreenName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName};

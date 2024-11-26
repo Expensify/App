@@ -53,7 +53,7 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type SplitNavigatorLHNScreen = keyof typeof LHN_TO_SPLIT_NAVIGATOR_NAME;
+type SplitNavigatorSidebarScreen = keyof typeof LHN_TO_SPLIT_NAVIGATOR_NAME;
 
 type SplitNavigatorParamListType = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
@@ -61,7 +61,7 @@ type SplitNavigatorParamListType = {
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
 };
 
-type SplitNavigatorByLHN<T extends SplitNavigatorLHNScreen> = (typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T];
+type SplitNavigatorByLHN<T extends SplitNavigatorSidebarScreen> = (typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T];
 
 type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
@@ -1810,7 +1810,7 @@ export type {
     SplitNavigatorName,
     SplitNavigatorScreenName,
     FullScreenName,
-    SplitNavigatorLHNScreen,
+    SplitNavigatorSidebarScreen,
     SplitNavigatorParamListType,
     SplitNavigatorByLHN,
 };

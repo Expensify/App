@@ -1,13 +1,13 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import LHN_TO_SPLIT_NAVIGATOR_NAME from '@libs/Navigation/linkingConfig/RELATIONS/LHN_TO_SPLIT_NAVIGATOR_MAPPING';
-import type {NavigationPartialRoute, SplitNavigatorByLHN, SplitNavigatorLHNScreen, SplitNavigatorParamListType} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, SplitNavigatorByLHN, SplitNavigatorParamListType, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
 
-type ExtractRouteType<T extends SplitNavigatorLHNScreen> = Extract<keyof SplitNavigatorParamListType[(typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T]], string>;
+type ExtractRouteType<T extends SplitNavigatorSidebarScreen> = Extract<keyof SplitNavigatorParamListType[(typeof LHN_TO_SPLIT_NAVIGATOR_NAME)[T]], string>;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-function createSplitNavigator<T extends SplitNavigatorLHNScreen>(
+function createSplitNavigator<T extends SplitNavigatorSidebarScreen>(
     splitNavigatorLHN: NavigationPartialRoute<T>,
     route?: NavigationPartialRoute<ExtractRouteType<T>>,
     splitNavigatorParams?: Record<string, string>,

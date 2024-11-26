@@ -1,8 +1,8 @@
 // @TODO Remove this file before merging to the main.
-import type {SplitNavigatorLHNScreen, SplitNavigatorScreenName} from '@navigation/types';
+import type {SplitNavigatorScreenName, SplitNavigatorSidebarScreen} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const TAB_TO_CENTRAL_PANE_MAPPING: Record<SplitNavigatorLHNScreen, SplitNavigatorScreenName[]> = {
+const TAB_TO_CENTRAL_PANE_MAPPING: Record<SplitNavigatorSidebarScreen, SplitNavigatorScreenName[]> = {
     [SCREENS.HOME]: [SCREENS.REPORT],
     [SCREENS.SETTINGS.ROOT]: [
         SCREENS.SETTINGS.PROFILE.ROOT,
