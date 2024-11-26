@@ -402,6 +402,11 @@ function AdvancedSearchFilters() {
             let filterTitle;
             if (
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
