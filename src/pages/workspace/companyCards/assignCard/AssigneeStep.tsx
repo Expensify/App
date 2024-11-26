@@ -68,7 +68,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data: {
                 email: selectedMember,
-                cardName: `${memberName}'s card`,
+                cardName: CardUtils.getDefaultCardName(memberName),
             },
             isEditing: false,
         });

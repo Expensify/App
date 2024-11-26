@@ -355,6 +355,13 @@ function hasOnlyOneCardToAssign(list: FilteredCardList) {
     return Object.keys(list).length === 1;
 }
 
+function getDefaultCardName(cardholder?: string) {
+    if (!cardholder) {
+        return '';
+    }
+    return `${cardholder}'s card`;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -382,4 +389,5 @@ export {
     removeExpensifyCardFromCompanyCards,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
+    getDefaultCardName,
 };
