@@ -73,7 +73,7 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
             {!!hotelReservation.confirmations?.at(0)?.value && (
                 <View style={styles.w50}>
                     <MenuItemWithTopDescription
-                        description={translate('travel.flightDetails.recordLocator')}
+                        description={translate('travel.hotelDetails.confirmation')}
                         title={hotelReservation.confirmations?.at(0)?.value}
                         interactive={false}
                     />
@@ -83,6 +83,6 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
     );
 }
 
-HotelTripDetails.displayName = 'FlightTripDetails';
+HotelTripDetails.displayName = 'HotelTripDetails';
 
 export default HotelTripDetails;
