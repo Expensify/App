@@ -445,66 +445,68 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeys[currentType].map((section) => {
-        return section
-            .map((key) => {
-                const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
-                let filterTitle;
-                if (
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
-                ) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-                    if (!shouldDisplayCategoryFilter) {
-                        return;
+    const filters = typeFiltersKeys[currentType]
+        .map((section) => {
+            return section
+                .map((key) => {
+                    const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
+                    let filterTitle;
+                    if (
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+                    ) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+                        if (!shouldDisplayCategoryFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+                        if (!shouldDisplayTagFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+                        if (!shouldDisplayCardFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
+                        if (!shouldDisplayCardFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+                        if (!shouldDisplayTaxFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
                     }
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-                    if (!shouldDisplayTagFilter) {
-                        return;
-                    }
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-                    if (!shouldDisplayCardFilter) {
-                        return;
-                    }
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                    if (!shouldDisplayCardFilter) {
-                        return;
-                    }
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-                    if (!shouldDisplayTaxFilter) {
-                        return;
-                    }
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
-                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
-                }
-                return {
-                    key,
-                    title: filterTitle,
-                    description: translate(baseFilterConfig[key].description),
-                    onPress,
-                };
-            })
-            .filter((filter) => !!filter);
-    });
+                    return {
+                        key,
+                        title: filterTitle,
+                        description: translate(baseFilterConfig[key].description),
+                        onPress,
+                    };
+                })
+                .filter((filter) => !!filter);
+        })
+        .filter((section) => !!section.length);
     const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
@@ -514,13 +516,13 @@ function AdvancedSearchFilters() {
                     {filters.map((section, index) => {
                         return (
                             <>
-                                {index !== 0 && !!section.length && (
+                                {index !== 0 && (
                                     <SpacerView
                                         shouldShow
                                         style={[styles.reportHorizontalRule]}
                                     />
                                 )}
-                                {section?.map((item) => {
+                                {section.map((item) => {
                                     return (
                                         <MenuItemWithTopDescription
                                             key={item.description}
