@@ -2422,7 +2422,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop
         Navigation.setShouldPopAllStateOnUP(true);
     }
     // @TODO: Check if this method works the same as on the main branch
-    Navigation.goBack(undefined, shouldPopToTop);
+    Navigation.goBack(undefined, {shouldPopToTop});
     navigateToConciergeChat();
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);

@@ -4,7 +4,7 @@ import ROUTES from '@src/ROUTES';
 
 const navigateAfterJoinRequest = () => {
     // @TODO: Check if this method works the same as on the main branch
-    Navigation.goBack(undefined, true);
+    Navigation.goBack(undefined, {shouldPopToTop: true});
     if (getIsSmallScreenWidth()) {
         Navigation.navigate(ROUTES.SETTINGS);
     }
