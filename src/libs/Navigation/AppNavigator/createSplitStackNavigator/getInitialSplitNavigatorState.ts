@@ -7,7 +7,7 @@ type ExtractRouteType<T extends SplitNavigatorSidebarScreen> = Extract<keyof Spl
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-function createSplitNavigator<T extends SplitNavigatorSidebarScreen>(
+function getInitialSplitNavigatorState<T extends SplitNavigatorSidebarScreen>(
     splitNavigatorLHN: NavigationPartialRoute<T>,
     route?: NavigationPartialRoute<ExtractRouteType<T>>,
     splitNavigatorParams?: Record<string, string>,
@@ -26,4 +26,4 @@ function createSplitNavigator<T extends SplitNavigatorSidebarScreen>(
     };
 }
 
-export default createSplitNavigator;
+export default getInitialSplitNavigatorState;

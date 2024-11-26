@@ -19,8 +19,8 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getInitialSplitNavigatorState from './AppNavigator/createSplitStackNavigator/getInitialSplitNavigatorState';
 import {
-    createSplitNavigator,
     getMinimalAction,
     getPolicyIDFromState,
     getStateFromPath,
@@ -314,7 +314,7 @@ function resetToHome() {
               name: SCREENS.REPORT,
           }
         : undefined;
-    const payload = createSplitNavigator({name: SCREENS.HOME}, splitNavigatorMainScreen);
+    const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
     navigationRef.dispatch({payload, type: 'REPLACE', target: rootState.key});
 }
 

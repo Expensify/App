@@ -3,7 +3,6 @@ export * from './isNavigatorName';
 export * from './linkTo/types';
 export {default as closeRHPFlow} from './closeRHPFlow';
 export {default as createNormalizedConfigs} from './createNormalizedConfigs';
-export {default as createSplitNavigator} from './createSplitNavigator';
 export {default as customGetPathFromState} from './customGetPathFromState';
 export {default as extractPolicyIDFromQuery} from './extractPolicyIDFromQuery';
 export {default as getAdaptedStateFromPath} from './getAdaptedStateFromPath';

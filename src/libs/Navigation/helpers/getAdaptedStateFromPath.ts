@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
+import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitStackNavigator/getInitialSplitNavigatorState';
 import config from '@libs/Navigation/linkingConfig/config';
 import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -10,7 +11,6 @@ import * as ReportConnection from '@libs/ReportConnection';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import createSplitNavigator from './createSplitNavigator';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
@@ -70,7 +70,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
     }
 
     if (RELATIONS.RHP_TO_SIDEBAR[route.name]) {
-        return createSplitNavigator(
+        return getInitialSplitNavigatorState(
             {
                 name: RELATIONS.RHP_TO_SIDEBAR[route.name],
             },
@@ -82,7 +82,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
     if (RELATIONS.RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_WORKSPACE[route.name]);
 
-        return createSplitNavigator(
+        return getInitialSplitNavigatorState(
             {
                 name: SCREENS.WORKSPACE.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -97,7 +97,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
     if (RELATIONS.RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RELATIONS.RHP_TO_SETTINGS[route.name]);
 
-        return createSplitNavigator(
+        return getInitialSplitNavigatorState(
             {
                 name: SCREENS.SETTINGS.ROOT,
             },
@@ -128,7 +128,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
             return fallbackRoute;
         }
 
-        return createSplitNavigator(
+        return getInitialSplitNavigatorState(
             {
                 name: SCREENS.HOME,
             },
