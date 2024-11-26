@@ -316,7 +316,6 @@ const translations = {
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
-        notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
         recentDestinations: 'Recent destinations',
@@ -844,6 +843,8 @@ const translations = {
         submitExpense: 'Submit expense',
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
+        chooseRecipient: 'Choose recipient',
+        confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -1173,7 +1174,9 @@ const translations = {
     updateRequiredView: {
         updateRequired: 'Update required',
         pleaseInstall: 'Please update to the latest version of New Expensify',
+        pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
         toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
+        newAppNotAvailable: 'The New Expensify app is no longer available.',
     },
     initialSettingsPage: {
         about: 'About',
@@ -1407,11 +1410,9 @@ const translations = {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends',
-        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
-        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        addBankAccountToSendAndReceive: 'Add a bank account to get paid back for expenses you submit to a workspace.',
+        addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -1465,7 +1466,7 @@ const translations = {
         workflowTitle: 'Spend',
         workflowDescription: 'Configure a workflow from the moment spend occurs, including approval and payment.',
         delaySubmissionTitle: 'Delay submissions',
-        delaySubmissionDescription: 'Delay expense submissions based on a custom schedule, or keep this option disabled to maintain realtime spend visibility.',
+        delaySubmissionDescription: 'Choose a custom schedule for submitting expenses, or leave this off for realtime updates on spending.',
         submissionFrequency: 'Submission frequency',
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
@@ -1615,7 +1616,6 @@ const translations = {
     preferencesPage: {
         appSection: {
             title: 'App preferences',
-            subtitle: 'Customize your Expensify account.',
         },
         testSection: {
             title: 'Test preferences',
@@ -2369,10 +2369,25 @@ const translations = {
     agreementsStep: {
         agreements: 'Agreements',
         pleaseConfirm: 'Please confirm the agreements below',
+        regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
+        iAmAuthorized: 'I am authorized to use the business bank account for business spend.',
+        iCertify: 'I certify that the information provided is true and accurate.',
+        termsAndConditions: 'terms and conditions.',
         accept: 'Accept and add bank account',
+        error: {
+            authorized: 'You must be a controlling officer with authorization to operate the business bank account',
+            certify: 'Please certify that the information is true and accurate',
+        },
     },
     finishStep: {
         connect: 'Connect bank account',
+        letsFinish: "Let's finish in chat!",
+        thanksFor:
+            "Thanks for those details. A dedicated support agent will now review your information. We'll circle back if we need anything else from you, but in the meantime, feel free to reach out to us with any questions.",
+        iHaveA: 'I have a question',
+        enable2FA: 'Enable two-factor authentication (2FA) to prevent fraud',
+        weTake: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
+        secure: 'Secure your account',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
@@ -2462,6 +2477,7 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            goToWorkspace: 'Go to workspace',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
@@ -2509,6 +2525,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            defaultCategory: 'Default category',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -3237,7 +3254,9 @@ const translations = {
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
-                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them toenable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    visa: 'We have global integrations with Visa, though eligibility varies by bank and card program.\n\nTo get started, simply:',
+                    mastercard: 'We have global integrations with Mastercard, though eligibility varies by bank and card program.\n\nTo get started, simply:',
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) to find out if American Express can enable a custom feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
                     cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_HELP}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_HELP}) to verify they support a custom feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
@@ -3265,6 +3284,7 @@ const translations = {
                 },
                 amexCorporate: 'Select this if the front of your cards say “Corporate”',
                 amexBusiness: 'Select this if the front of your cards say “Business”',
+                amexPersonal: 'Select this if your cards are personal',
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',
@@ -3470,7 +3490,7 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type?.toLowerCase()} export`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
@@ -3507,6 +3527,7 @@ const translations = {
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
+                defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
@@ -4071,7 +4092,6 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
             changePromptMessage: ' to make that change.',
-            defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -5308,6 +5328,9 @@ const translations = {
         createReportAction: 'Create Report Action',
         reportAction: 'Report Action',
         report: 'Report',
+        transaction: 'Transaction',
+        violations: 'Violations',
+        transactionViolation: 'Transaction Violation',
         hint: "Data changes won't be sent to the backend",
         textFields: 'Text fields',
         numberFields: 'Number fields',
@@ -5323,6 +5346,8 @@ const translations = {
         true: 'true',
         false: 'false',
         viewReport: 'View Report',
+        viewTransaction: 'View transaction',
+        createTransactionViolation: 'Create transaction violation',
         reasonVisibleInLHN: {
             hasDraftComment: 'Has draft comment',
             hasGBR: 'Has GBR',

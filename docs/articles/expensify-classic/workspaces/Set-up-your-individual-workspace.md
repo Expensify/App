@@ -10,7 +10,7 @@ To set up your individual workspace,
 
 1. Hover over Settings, then click **Workspaces**. 
 2. Click the **Individual** tab on the left. 
-3. Select the policy type that best fits your needs. 
+3. Select the workspace type that best fits your needs. 
 4. Set up your workspace details including the workspace name, expense rules, categories, and more. 
 
 {% include info.html %}
