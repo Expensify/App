@@ -28,6 +28,7 @@
 * [Contributor License Agreement](contributingGuides/CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [Onyx Update Manager](contributingGuides/ONYX_UPDATE_MANAGER.md)
 
 ----
 
@@ -450,11 +451,11 @@ This application is built with the following principles.
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
     ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
-1. **Offline first**
+2. **Offline first**
     - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
-1. **UI Binds to data on disk**
+3. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
     - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
@@ -465,7 +466,7 @@ This application is built with the following principles.
         - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-1. **Actions manage Onyx Data**
+4. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
@@ -479,11 +480,20 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-1. **Cross Platform 99.9999%**
+5. **Handling local data synchronization, integrity and consistency**
+    - In order to ensure all data received from the backend is
+       1. received and persisted to the local Onyx database and
+       2. strictly applied in the correct order,
+    - we are using a library called the `OnyxUpdateManager`. It gets triggered whenever we detect a gap in the updates that are applied locally, to ensure correct order and integrity of the updates.
+    - These updates can come either from push notifications, Pusher updates or from a sent backend query. Because push notifications and Pusher updates are received unannounced, they can also interrupt ongoing backend queries, if we are currently awaiting a response.
+    - Every update comes with an ID that specifies the order in which it must be applied locally. The `OnyxUpdateManager` compares the IDs of these updates, applies them in order and fetches missing updates, in case a gap is detected.
+    - More detailled information about the implementation and characteristics of the `OnyxUpdateManager` can be found in [Onyx Update Manager](contributingGuides/ONYX_UPDATE_MANAGER.md).
+
+6. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
-    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
-    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+    2. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
+    3. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
+    4. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 
 ----
 
@@ -624,7 +634,7 @@ Some pointers:
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
-  - zero: Used when there are no items **(optional)**. 
+  - zero: Used when there are no items **(optional)**.
   - one: Used when there's exactly one item.
   - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
