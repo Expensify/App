@@ -1,5 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
@@ -23,7 +23,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -157,6 +156,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
+    const navigation = useNavigation();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -355,24 +355,18 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction?.created]);
 
-    const {removeHighlight} = useContext(ReportActionHighlightContext);
+    const {removeHighlight, linkedReportActionID: ctxlinkedReportActionID} = useContext(ReportActionHighlightContext);
 
     useEffect(() => {
-        const unsubscribeOnyxModal = onyxSubscribe({
-            key: ONYXKEYS.MODAL,
-            callback: (modal) => {
-                if (modal === undefined) {
-                    return;
-                }
-                if (modal?.isVisible) {
-                    removeHighlight();
-                }
-            },
+        const unsubscribe = navigation.addListener('blur', () => {
+            if (linkedReportActionID !== ctxlinkedReportActionID) {
+                return;
+            }
+            removeHighlight();
         });
-        return () => {
-            unsubscribeOnyxModal();
-        };
-    }, [removeHighlight]);
+
+        return unsubscribe;
+    }, [linkedReportActionID, removeHighlight, report.reportID, navigation, ctxlinkedReportActionID]);
 
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);

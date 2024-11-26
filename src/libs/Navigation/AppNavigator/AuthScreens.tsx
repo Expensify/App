@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import ReportActionHighlightProvider from '@components/ReportActionHighlightProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
@@ -421,7 +422,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     };
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider, ReportActionHighlightProvider]}>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator
                     screenOptions={screenOptions.centralPaneNavigator}

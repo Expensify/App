@@ -286,9 +286,10 @@ function ReportActionCompose({
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
+        removeHighlight();
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
-    }, []);
+    }, [removeHighlight]);
 
     const onBlur = useCallback(
         (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
