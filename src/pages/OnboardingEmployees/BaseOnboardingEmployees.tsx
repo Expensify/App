@@ -43,20 +43,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         });
     }, [translate, selectedCompanySize]);
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
-    const setOptimticQAGuidePersonalDetail = () => {
-        const actorAccountID = CONST.ACCOUNT_ID.QA_GUIDE;
-        const optimisticPersonalDetailForQAGuide = {
-            accountID: actorAccountID,
-            avatar: allPersonalDetails?.[actorAccountID]?.avatar,
-            displayName: allPersonalDetails?.[actorAccountID]?.displayName ?? CONST.EMAIL.QA_GUIDE,
-            login: CONST.EMAIL.QA_GUIDE,
-        };
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[actorAccountID]: optimisticPersonalDetailForQAGuide});
-    };
-
     const footerContent = (
         <>
             {!!error && (
@@ -81,7 +67,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
-                        setOptimticQAGuidePersonalDetail();
                     }
 
                     Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
