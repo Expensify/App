@@ -56,7 +56,9 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
+            if (value !== qboConfig?.collectionAccountID) {
+                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
+            }
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
         [policyID, qboConfig?.collectionAccountID],
