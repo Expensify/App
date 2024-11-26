@@ -559,6 +559,10 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type CustomUnitRateParams = {
+    rate: number;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -761,4 +765,5 @@ export type {
     ImportedTypesParams,
     CurrencyCodeParams,
     CompanyNameParams,
+    CustomUnitRateParams,
 };

@@ -2,6 +2,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
+import {convertToBackendAmount} from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as Localize from './Localize';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
@@ -11,14 +12,22 @@ type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | ty
 
 type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
 
-function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: string, toLocaleDigit: (arg: string) => string): FormInputErrors<RateValueForm> {
+function validateRateValue(
+    values: FormOnyxValues<RateValueForm>,
+    customUnitRates: Record<string, Rate>,
+    currency: string,
+    toLocaleDigit: (arg: string) => string,
+): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
+    const ratesList = Object.values(customUnitRates);
 
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
-    if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+    if (ratesList.some((r) => r.rate === convertToBackendAmount(Number(parsedRate)))) {
+        errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: NumberUtils.parseFloatAnyLocale(parsedRate)});
+    } else if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = Localize.translateLocal('common.error.invalidRateError');
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
         errors.rate = Localize.translateLocal('common.error.lowRateError');
