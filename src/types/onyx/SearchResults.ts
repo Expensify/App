@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
 
 /** Types of search data */
@@ -77,9 +78,13 @@ type SearchPersonalDetails = {
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
 /** Model of report search result */
+/** Model of report search result */
 type SearchReport = {
     /** The ID of the report */
-    reportID?: string;
+    reportID: string;
+
+    /** ID of the chat report */
+    chatReportID?: string;
 
     /** The name of the report */
     reportName?: string;
@@ -107,6 +112,43 @@ type SearchReport = {
 
     /** The action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The type of chat if this is a chat report */
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+
+    /** Invoice room receiver data */
+    invoiceReceiver?: InvoiceReceiver;
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
+    /** Whether the report is waiting on a bank account */
+    isWaitingOnBankAccount?: boolean;
+
+    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
+    nonReimbursableTotal?: number;
+
+    /** Account ID of the report owner */
+    ownerAccountID?: number;
+
+    /** The state that the report is currently in */
+    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the current report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** For expense reports, this is the total amount requested */
+    unheldTotal?: number;
+
+    /** Whether the report is archived */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    private_isArchived?: string;
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
 };
 
 /** Model of report action search result */

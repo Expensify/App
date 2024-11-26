@@ -7,11 +7,11 @@ import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@sr
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as CurrencyUtils from './CurrencyUtils';
-import * as PolicyUtils from './PolicyUtils';
-import * as ReportConnection from './ReportConnection';
-import * as ReportUtils from './ReportUtils';
-import * as TransactionUtils from './TransactionUtils';
+import {getCurrencySymbol} from './CurrencyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getPolicy, getUnitRateValue} from './PolicyUtils';
+import {getAllReports} from './ReportConnection';
+import {isPolicyExpenseChat} from './ReportUtils';
+import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -40,7 +40,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
@@ -82,7 +82,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
         return undefined;
     }
 
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const distanceUnit = getDistanceRateCustomUnit(policy);
     if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
@@ -154,9 +154,9 @@ function getRateForDisplay(
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
+    const formattedRate = getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+    const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
 }
@@ -242,7 +242,7 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
     ensureRateDefined(mileageRate.rate);
 
     // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = TransactionUtils.getCurrency(transaction) === currency ? transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate : mileageRate.rate;
+    const rate = getCurrency(transaction) === currency ? transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate : mileageRate.rate;
     return {
         ...mileageRate,
         currency: currencyWithExistingRate,
@@ -282,13 +282,13 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  * Returns custom unit rate ID for the distance transaction
  */
 function getCustomUnitRateID(reportID: string) {
-    const allReports = ReportConnection.getAllReports();
+    const allReports = getAllReports();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
+    const policy = getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
-    if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+    if (isPolicyExpenseChat(report) || isPolicyExpenseChat(parentReport)) {
         const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? '-1';
         const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
@@ -306,9 +306,9 @@ function getCustomUnitRateID(reportID: string) {
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    const customUnitRate = PolicyUtils.getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    if (!distanceUnit || !distanceUnit?.customUnitID || !customUnitRate) {
+    const distanceUnit = getDistanceRateCustomUnit(policy);
+    const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    if (!distanceUnit?.customUnitID || !customUnitRate) {
         return 0;
     }
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
@@ -341,10 +341,10 @@ function getRate({
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+    const customUnitRateID = getRateID(transaction) ?? '';
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,

@@ -4,7 +4,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
-import * as ReportConnection from '@libs/ReportConnection';
+import {getAllReports} from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -66,7 +66,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
         originalDismissModal(ref);
         return;
     }
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
