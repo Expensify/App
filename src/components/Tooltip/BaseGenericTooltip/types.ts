@@ -1,6 +1,5 @@
 import type {SharedValue} from 'react-native-reanimated';
 import type {SharedTooltipProps} from '@components/Tooltip/types';
-import { SharedValue } from "react-native-reanimated";
 
 type BaseGenericTooltipProps = {
     /** Window width */
