@@ -55,6 +55,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     useEffect(() => {
+        if (!country) {
+            return;
+        }
+
         BankAccounts.getCorpayOnboardingFields(country);
     }, [country]);
 
