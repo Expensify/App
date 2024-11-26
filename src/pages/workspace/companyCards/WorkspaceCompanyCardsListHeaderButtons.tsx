@@ -83,7 +83,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                 </PressableWithFeedback>
 
                 <View style={[styles.flexRow, styles.gap2]}>
-                    {shouldShowAssignCardButton && (
+                    {!!shouldShowAssignCardButton && (
                         <Button
                             success
                             isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
