@@ -65,6 +65,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             doesUserHavePaymentCardAdded={doesUserHavePaymentCardAdded()}
             createDraftTransactionAndNavigateToParticipantSelector={ReportUtils.createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={Report.resolveActionableReportMentionWhisper}
+            resolveActionableMentionWhisper={Report.resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses}
             isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
             getIndicatedMissingPaymentMethod={ReportUtils.getIndicatedMissingPaymentMethod}

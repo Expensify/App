@@ -206,6 +206,13 @@ type PureReportActionItemProps = {
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
     ) => void;
 
+    /** Function to resolve actionable mention whisper */
+    resolveActionableMentionWhisper?: (
+        reportId: string,
+        reportAction: OnyxEntry<OnyxTypes.ReportAction>,
+        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
+    ) => void;
+
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
 
@@ -277,6 +284,7 @@ function PureReportActionItem({
     doesUserHavePaymentCardAdded,
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
+    resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses = () => false,
     isCurrentUserTheOnlyParticipant = () => false,
     getIndicatedMissingPaymentMethod = () => undefined,
@@ -609,13 +617,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.invite',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
                 isPrimary: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
     }, [
@@ -626,6 +634,7 @@ function PureReportActionItem({
         dismissTrackExpenseActionableWhisper,
         doesUserHavePaymentCardAdded,
         resolveActionableReportMentionWhisper,
+        resolveActionableMentionWhisper,
     ]);
 
     /**
