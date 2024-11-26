@@ -12,7 +12,7 @@
     "startAndroidEmulator": "./scripts/start-android.sh",
     "postinstall": "./scripts/postInstall.sh",
     "clean": "./scripts/clean.sh",
-    "clean-standalone": "./scripts/clean.sh",
+    "clean-standalone": "./scripts/clean.sh --new-dot",
     "android": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android",
     "android-standalone": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android --new-dot",
     "ios": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --ios",
