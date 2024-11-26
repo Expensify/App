@@ -108,7 +108,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() => {
-            const formattedOptions = OptionsListUtils.getOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
+            const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
             OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
         });
     });

@@ -40,7 +40,7 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,

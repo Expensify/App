@@ -414,7 +414,10 @@ describe('OptionsListUtils', () => {
 
     it('orderOptions()', () => {
         // When we call getOptions() with no search value
-        let results: Pick<OptionsListUtils.Options, 'personalDetails' | 'recentReports'> = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+        let results: Pick<OptionsListUtils.Options, 'personalDetails' | 'recentReports'> = OptionsListUtils.getValidOptions({
+            reports: OPTIONS.reports,
+            personalDetails: OPTIONS.personalDetails,
+        });
         results = OptionsListUtils.orderOptions(results);
 
         // We should expect all personalDetails except the currently logged in user to be returned
@@ -438,7 +441,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailWithExistingReport?.reportID).toBe('2');
 
         // When we only pass personal details
-        results = OptionsListUtils.getOptions({personalDetails: OPTIONS.personalDetails, reports: []});
+        results = OptionsListUtils.getValidOptions({personalDetails: OPTIONS.personalDetails, reports: []});
         results = OptionsListUtils.orderOptions(results);
 
         // We should expect personal details sorted alphabetically
@@ -450,7 +453,7 @@ describe('OptionsListUtils', () => {
 
     it('getOptions()', () => {
         // When we don't include personal detail to the result
-        let results = OptionsListUtils.getOptions({
+        let results = OptionsListUtils.getValidOptions({
             personalDetails: [],
             reports: [],
         });
@@ -460,7 +463,7 @@ describe('OptionsListUtils', () => {
 
         // Test for Concierge's existence in chat options
 
-        results = OptionsListUtils.getOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the currently logged in user)
@@ -469,7 +472,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getOptions(
+        results = OptionsListUtils.getValidOptions(
             {
                 reports: OPTIONS_WITH_CONCIERGE.reports,
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
@@ -485,7 +488,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -493,7 +496,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getOptions(
+        results = OptionsListUtils.getValidOptions(
             {
                 reports: OPTIONS_WITH_RECEIPTS.reports,
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
@@ -511,7 +514,7 @@ describe('OptionsListUtils', () => {
 
     it('getOptions() for group Chat', () => {
         // When we call getOptions() with no search value
-        let results = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+        let results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // We should expect all the personalDetails to show except the currently logged in user
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -523,7 +526,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we limit getOptions()
-        results = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
@@ -531,14 +534,14 @@ describe('OptionsListUtils', () => {
         // expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(false);
 
         // When we provide a "selected" option to getOptions()
-        results = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
 
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
 
         // Test Concierge's existence in new group options
-        results = OptionsListUtils.getOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the currently logged in user)
@@ -547,7 +550,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getOptions(
+        results = OptionsListUtils.getValidOptions(
             {
                 reports: OPTIONS_WITH_CONCIERGE.reports,
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
@@ -565,7 +568,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
 
         // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
@@ -575,7 +578,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
-        results = OptionsListUtils.getOptions(
+        results = OptionsListUtils.getValidOptions(
             {
                 reports: OPTIONS_WITH_RECEIPTS.reports,
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
@@ -766,7 +769,7 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS});
             const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
             expect(filterOptions.recentReports.length).toBe(0);
         });
@@ -860,7 +863,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should show the option from personal details when searching for personal detail with no existing report (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'hulk');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -870,7 +873,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'marc@expensify');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -879,7 +882,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'marc@expensify.com');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -888,7 +891,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return user to invite when search term has a period with options for it that do not contain the period (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'peter.parker@expensify.com');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -896,7 +899,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '5005550006');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -906,7 +909,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '+15005550006');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -916,7 +919,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '+1 (800)324-3233');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -926,7 +929,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options or user to invite if contact number contains alphabet characters (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '998243aaaa');
 
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -935,14 +938,14 @@ describe('OptionsListUtils', () => {
         });
 
         it('should not return any options if search value does not match any personal details (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'magneto');
 
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
         it('should return one recent report and no personal details if a search value provides an email (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
@@ -950,7 +953,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return all matching reports and personal details (getOptions)', () => {
-            const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
 
             expect(filteredOptions.personalDetails.length).toBe(2);

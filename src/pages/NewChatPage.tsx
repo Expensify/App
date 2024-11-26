@@ -48,7 +48,7 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getOptions(
+        const filteredOptions = OptionsListUtils.getValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],

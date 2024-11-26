@@ -27,7 +27,7 @@ function useOptions() {
     const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,

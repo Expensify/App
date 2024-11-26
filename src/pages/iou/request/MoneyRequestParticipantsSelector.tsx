@@ -105,7 +105,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const optionList = OptionsListUtils.getOptions(
+        const optionList = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,

@@ -54,7 +54,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getOptions(
+        return OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,

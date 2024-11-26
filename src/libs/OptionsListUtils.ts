@@ -1061,11 +1061,10 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-// TODO: rename
 /**
- * filter options based on specific conditions
+ * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
-function getOptions(
+function getValidOptions(
     options: OptionList,
     {
         reportActions = {},
@@ -1311,7 +1310,7 @@ function getOptions(
 function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-    const optionList = getOptions(options, {
+    const optionList = getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
         showChatPreviewLine: isUsedInChatFinder,
@@ -1331,7 +1330,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
 }
 
 function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
-    return getOptions(options, {
+    return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
         includeP2P: true,
@@ -1377,7 +1376,7 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
-    return getOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -1409,7 +1408,7 @@ function getShareDestinationOptions(
     includeOwnedWorkspaceChats = true,
     excludeUnknownUsers = true,
 ) {
-    return getOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -1465,7 +1464,7 @@ function getMemberInviteOptions(
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
 ): Options {
-    const options = getOptions(
+    const options = getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -1784,7 +1783,7 @@ export {
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
-    getOptions,
+    getValidOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
