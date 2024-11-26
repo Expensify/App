@@ -7,6 +7,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PureReportActionItemProps} from './PureReportActionItem';
@@ -65,11 +66,15 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             createDraftTransactionAndNavigateToParticipantSelector={ReportUtils.createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={Report.resolveActionableReportMentionWhisper}
             isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses}
+            isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
+            getIndicatedMissingPaymentMethod={ReportUtils.getIndicatedMissingPaymentMethod}
             isReimbursementDeQueuedAction={ReportActionsUtils.isReimbursementDeQueuedAction}
+            getReimbursementDeQueuedActionMessage={ReportUtils.getReimbursementDeQueuedActionMessage}
             getForReportAction={ModifiedExpenseMessage.getForReportAction}
             getTransactionsWithReceipts={ReportUtils.getTransactionsWithReceipts}
-            isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
+            clearError={Transaction.clearError}
             clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}
+            dismissTrackExpenseActionableWhisper={Report.dismissTrackExpenseActionableWhisper}
         />
     );
 }
