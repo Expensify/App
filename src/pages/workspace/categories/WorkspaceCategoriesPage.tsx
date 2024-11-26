@@ -368,6 +368,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack(backTo);
                     }}
                     shouldShowThreeDotsButton
+                    style={styles.headerBarDesktopHeight}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
