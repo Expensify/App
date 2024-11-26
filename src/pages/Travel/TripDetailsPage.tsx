@@ -18,6 +18,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import CarTripDetails from './CarTripDetails';
 import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
 
@@ -32,9 +33,8 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
 
-    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(report?.parentReportID);
     const accountID = Object.keys(report?.participants ?? {}).at(0) ?? '-1';
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (data) => data?.[accountID]});
     const reservationType = transaction?.receipt?.reservationList?.at(0)?.type;
@@ -64,6 +64,12 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     )}
                     {reservationType === 'hotel' && (
                         <HotelTripDetails
+                            transaction={transaction}
+                            personalDetails={personalDetails}
+                        />
+                    )}
+                    {reservationType === 'car' && (
+                        <CarTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
                         />
