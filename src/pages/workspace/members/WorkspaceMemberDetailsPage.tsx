@@ -326,7 +326,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     >
                                                         <MenuItem
                                                             key={memberCard.cardID}
-                                                            title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                             badgeText={
                                                                 memberCard.bank === CONST.EXPENSIFY_CARD.BANK
                                                                     ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
@@ -335,9 +335,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
-                                                            contentFit="contain"
-                                                            iconWidth={variables.iconSizeExtraLarge}
-                                                            iconHeight={variables.iconSizeExtraLarge}
+                                                            iconWidth={variables.cardIconWidth}
+                                                            iconHeight={variables.cardIconHeight}
                                                             onPress={() => navigateToDetails(memberCard)}
                                                             shouldRemoveHoverBackground={isCardDeleted}
                                                             disabled={isCardDeleted}
