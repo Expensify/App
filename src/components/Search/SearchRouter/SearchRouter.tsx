@@ -361,7 +361,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             // Store the previous newUserQuery
             prevUserQueryRef.current = newUserQuery;
         },
-        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, isLargeScreenWidth],
+        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, isLargeScreenWidth, setInitialFocus],
     );
 
     const onSearchSubmit = useCallback(
