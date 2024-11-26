@@ -13,6 +13,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -250,6 +251,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [didPusherInit, setDidPusherInit] = useState(false);
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {delegatorEmail} = useDelegateUserDetails();
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
@@ -610,7 +612,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         setIsNoDelegateAccessMenuVisible(false);
                         Session.signOutAndRedirectToSignIn(true);
                     }}
-                    delegatorEmail={account?.delegatedAccess?.delegate ?? ''}
+                    delegatorEmail={delegatorEmail ?? ''}
                 />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
