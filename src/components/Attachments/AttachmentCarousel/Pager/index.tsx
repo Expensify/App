@@ -105,7 +105,7 @@ function AttachmentCarouselPager(
     );
 
     const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: isScrollEnabled.value,
+        scrollEnabled: isScrollEnabled.get(),
     }));
 
     /**
