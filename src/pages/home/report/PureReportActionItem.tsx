@@ -1206,10 +1206,17 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
-        prevProps.emojiReactions === nextProps.emojiReactions &&
-        prevProps.userWallet === nextProps.userWallet &&
-        prevProps.linkedTransactionRouteError === nextProps.linkedTransactionRouteError &&
+        lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
+        lodashIsEqual(prevProps.userWallet, nextProps.userWallet) &&
+        lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
+        lodashIsEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
-        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID
+        prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
+        lodashIsEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        lodashIsEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
+        prevProps.originalReportID === nextProps.originalReportID &&
+        prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
+        prevProps.isChronosReport === nextProps.isChronosReport &&
+        prevProps.doesUserHavePaymentCardAdded === nextProps.doesUserHavePaymentCardAdded
     );
 });
