@@ -451,7 +451,7 @@ Currently, the production Expensify app contains both "Expensify Classic" and "N
         - 📂 [**iOS**](https://github.com/Expensify/Mobile-Expensify/tree/main/iOS): Expensify Classic iOS specific code
         - 📂 [**app**](https://github.com/Expensify/Mobile-Expensify/tree/main/app): Expensify Classic JavaScript logic (aka YAPL)
 
-If you have access to [`Mobile-Expensify`](https://github.com/Expensify/Mobile-Expensify), you are eligible to build HybridApp. Otherwise you can still continue working on the standalone `NewDot` application.
+You can only build HybridApp if you have been granted access to [`Mobile-Expensify`](https://github.com/Expensify/Mobile-Expensify). For most contributors, you will be working on the standalone NewDot application.
 
 ## Getting started with HybridApp
 
