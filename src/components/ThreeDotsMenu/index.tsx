@@ -1,7 +1,6 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -31,7 +30,6 @@ function ThreeDotsMenu({
     shouldSetModalVisibility = true,
     disabled = false,
 }: ThreeDotsMenuProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
     const theme = useTheme();
@@ -42,18 +40,12 @@ function ThreeDotsMenu({
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
 
     const showPopoverMenu = () => {
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.OPEN_CALL_POPOVER,
-        });
         setPopupMenuVisible(true);
     };
 
     const hidePopoverMenu = useCallback(() => {
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.CLOSE_CALL_POPOVER,
-        });
         setPopupMenuVisible(false);
-    }, [actionSheetAwareScrollViewContext]);
+    }, []);
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {
