@@ -413,7 +413,6 @@ function AdvancedSearchFilters() {
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
-                    key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED ||
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
                     key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
@@ -437,6 +436,11 @@ function AdvancedSearchFilters() {
                         return;
                     }
                     filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
+                    if (!shouldDisplayCardFilter) {
+                        return;
+                    }
+                    filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                 } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                     if (!shouldDisplayTaxFilter) {
                         return;
@@ -468,7 +472,7 @@ function AdvancedSearchFilters() {
                     {filters.map((section, index) => {
                         return (
                             <>
-                                {index !== 0 && (
+                                {index !== 0 && !!section.length && (
                                     <SpacerView
                                         shouldShow
                                         style={[styles.reportHorizontalRule]}
