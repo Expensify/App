@@ -1848,7 +1848,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
-
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;

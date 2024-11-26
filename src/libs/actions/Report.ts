@@ -87,6 +87,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
@@ -128,7 +129,6 @@ import {
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 import * as OnboardingFlow from './Welcome/OnboardingFlow';
-import { generateAccountID } from '@libs/UserUtils';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -3498,9 +3498,9 @@ function prepareOnboardingOptimisticData(
     const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom ? adminsChatReport : ReportUtils.getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? "Setup Specialist";
+    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
-    let assignedGuideAccountID : number;
+    let assignedGuideAccountID: number;
     if (assignedGuidePersonalDetail) {
         assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
     } else {
