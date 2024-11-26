@@ -31,13 +31,11 @@ RCT_EXPORT_MODULE()
 - (void)handleAppDidFinishLaunching:(NSNotification *)notification {
     NSLog(@"[ReactNativeBackgroundTask] Registering background task handler");
     
-    if (@available(iOS 13.0, *)) {
-        [[BGTaskScheduler sharedScheduler] registerForTaskWithIdentifier:@"com.szymonrybczak.chat"
-                                                            usingQueue:dispatch_get_main_queue()
-                                                        launchHandler:^(__kindof BGTask * _Nonnull task) {
-            [self handleBackgroundTask:task];
-        }];
-    }
+      [[BGTaskScheduler sharedScheduler] registerForTaskWithIdentifier:@"com.szymonrybczak.chat"
+                                                          usingQueue:dispatch_get_main_queue()
+                                                      launchHandler:^(__kindof BGTask * _Nonnull task) {
+          [self handleBackgroundTask:task];
+      }];
 }
 
 - (void)handleBackgroundTask:(BGTask *)task API_AVAILABLE(ios(13.0)) {
