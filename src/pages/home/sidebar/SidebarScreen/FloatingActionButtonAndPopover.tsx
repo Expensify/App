@@ -36,6 +36,7 @@ import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -560,9 +561,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   text: translate('tour.takeATwoMinuteTour'),
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
-                                      Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
-                                      Task.completeTask(viewTourTaskReport);
+                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
+                                      if (viewTourTaskReport) {
+                                          Task.completeTask(viewTourTaskReport);
+                                      }
                                   },
                               },
                           ]

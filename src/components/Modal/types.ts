@@ -56,6 +56,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent?: boolean;
 
+    /** Whether the modal should go under the system navigation bar */
+    navigationBarTranslucent?: boolean;
+
     /** Whether the modal should avoid the keyboard */
     avoidKeyboard?: boolean;
 
