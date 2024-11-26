@@ -1613,8 +1613,6 @@ function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.Optio
     return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
 }
 
-// TODO: try to see if all screens really need userToInvite & currentUserOption, or if this can be separate
-// TODO: cleanup all config types
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
