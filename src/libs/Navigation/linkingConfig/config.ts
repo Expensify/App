@@ -882,7 +882,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
@@ -940,6 +943,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
                         },
                     },
                 },
@@ -1406,6 +1412,42 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
                             path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
                             exact: true,
+                        },
+                        [SCREENS.DEBUG.TRANSACTION]: {
+                            path: ROUTES.DEBUG_TRANSACTION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                                violations: {
+                                    path: ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.route,
+                                    exact: true,
+                                },
+                            },
+                        },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+                            path: ROUTES.DEBUG_TRANSACTION_VIOLATION.route,
+                            exact: true,
+                            screens: {
+                                details: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS.route,
+                                    exact: true,
+                                },
+                                json: {
+                                    path: ROUTES.DEBUG_TRANSACTION_VIOLATION_TAB_JSON.route,
+                                    exact: true,
+                                },
+                            },
                         },
                     },
                 },

@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -33,7 +33,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
     const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
-    const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
+    const submit = (taxes: TaxOptionsListUtils.TaxRatesOption) => {
         setForeignCurrencyDefault(policyID, taxes.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };

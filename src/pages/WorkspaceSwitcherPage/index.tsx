@@ -25,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
-import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
@@ -185,7 +184,14 @@ function WorkspaceSwitcherPage() {
                         pressableStyle={styles.flexRow}
                         shouldSyncFocus={false}
                     />
-                    <WorkspacesSectionHeader shouldShowCreateWorkspaceIcon={!shouldShowCreateWorkspace} />
+                    <View style={[styles.ph5, styles.mv2]}>
+                        <Text
+                            style={styles.label}
+                            color={theme.textSupporting}
+                        >
+                            {translate('common.workspaces')}
+                        </Text>
+                    </View>
                     <SelectionList<WorkspaceListItem>
                         ListItem={UserListItem}
                         sections={sections}

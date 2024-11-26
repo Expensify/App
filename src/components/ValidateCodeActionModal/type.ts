@@ -15,7 +15,7 @@ type ValidateCodeActionModalProps = {
     descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Function to be called when the modal is closed */
     onModalHide?: () => void;
@@ -41,7 +41,7 @@ type ValidateCodeActionModalProps = {
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
 
-    /** Wheather the form is loading or not */
+    /** Whether the form is loading or not */
     isLoading?: boolean;
 };
 
