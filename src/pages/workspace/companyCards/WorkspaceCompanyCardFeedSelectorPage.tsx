@@ -54,9 +54,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
@@ -79,7 +79,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
@@ -91,7 +91,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     initiallyFocusedOptionKey={selectedFeed}
                     listFooterContent={
                         <MenuItem
-                            title={translate('workspace.companyCards.addCompanyCards')}
+                            title={translate('workspace.companyCards.addCards')}
                             icon={Expensicons.Plus}
                             onPress={() => {
                                 CompanyCards.clearAddNewCardFlow();

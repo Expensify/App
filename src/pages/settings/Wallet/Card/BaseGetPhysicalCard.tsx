@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
@@ -104,6 +105,8 @@ function BaseGetPhysicalCard({
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const [currentCardID, setCurrentCardID] = useState<string | undefined>(cardToBeIssued?.cardID.toString());
     const errorMessage = ErrorUtils.getLatestErrorMessageField(cardToBeIssued);
+
+    useBeforeRemove(() => setActionCodeModalVisible(false));
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
