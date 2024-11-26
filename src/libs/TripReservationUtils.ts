@@ -63,11 +63,19 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string};
+
+function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
-        .map((item) => item?.receipt?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+        .flatMap(
+            (item) =>
+                item?.receipt?.reservationList?.map((reservation) => ({
+                    reservation,
+                    transactionID: item.transactionID,
+                    reportID: item.reportID,
+                })) ?? [],
+        )
+        .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
 function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
@@ -115,3 +123,4 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         });
 }
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, bookATrip};
+export type {ReservationData};
