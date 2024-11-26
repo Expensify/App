@@ -1339,6 +1339,10 @@ const CONST = {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
     },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
@@ -3811,8 +3815,8 @@ const CONST = {
         },
         GA: {},
         GB: {
-            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*[0-9][A-Z-CIKMOV]{2}$/,
-            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH',
+            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*([0-9][ABD-HJLNP-UW-Z]{2})?$/,
+            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH, W1U',
         },
         GD: {},
         GE: {
@@ -6350,6 +6354,10 @@ const CONST = {
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
         },
+    },
+
+    HYBRID_APP: {
+        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
 } as const;
 

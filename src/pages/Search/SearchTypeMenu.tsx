@@ -244,7 +244,10 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
-        <>
+        <ScrollView
+            onScroll={onScroll}
+            ref={scrollViewRef}
+        >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
                     const onPress = singleExecution(() => {
@@ -272,16 +275,11 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             {shouldShowSavedSearchesMenuItemTitle && (
                 <>
                     <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
-                    <ScrollView
-                        onScroll={onScroll}
-                        ref={scrollViewRef}
-                    >
-                        {renderSavedSearchesSection(savedSearchesMenuItems())}
-                    </ScrollView>
+                    {renderSavedSearchesSection(savedSearchesMenuItems())}
                     <DeleteConfirmModal />
                 </>
             )}
-        </>
+        </ScrollView>
     );
 }
 
