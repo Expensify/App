@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import * as Localize from '@libs/Localize';
+import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
@@ -29,7 +30,7 @@ TestHelper.setupApp();
 
 async function navigateToWorkspaceSwitcher(): Promise<void> {
     const hintText = Localize.translateLocal('workspace.switcher.headerTitle');
-    const optionRow = screen.getByTestId(hintText);
+    const optionRow = await screen.findByTestId(hintText);
     fireEvent(optionRow, 'press');
     await act(() => {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
@@ -54,6 +55,10 @@ async function signInAndGetApp(): Promise<void> {
     User.subscribeToUserEvents();
 
     await waitForBatchedUpdates();
+
+    await act(() => {
+        AppActions.setSidebarLoaded();
+    });
 
     await waitForBatchedUpdatesWithAct();
 }
