@@ -2,7 +2,9 @@ import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '.';
+import CollectionDataSet from '../utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
@@ -1864,9 +1866,13 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 };
 
+/** Collection of reports, indexed by report_{reportID} */
+type PolicyCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.POLICY>;
+
 export default Policy;
 
 export type {
+    PolicyCollectionDataSet,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,
