@@ -2,7 +2,6 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
-import {convertToBackendAmount} from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as Localize from './Localize';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
@@ -23,10 +22,20 @@ function validateRateValue(
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
     const ratesList = Object.values(customUnitRates);
+    // The following logic replicates the backend's handling of rates:
+    // - Multiply the rate by 100 (CUSTOM_UNIT_RATE_BASE_OFFSET) to scale it, ensuring precision.
+    // - This ensures rates are converted as follows:
+    //   12       -> 1200
+    //   12.1     -> 1210
+    //   12.01    -> 1201
+    //   12.001   -> 1200.1
+    //   12.0001  -> 1200.01
+    // - Using parseFloat and toFixed(10) retains the necessary precision.
+    const convertedRate = parseFloat((Number(values.rate || 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(10));
 
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
-    if (ratesList.some((r) => r.rate === convertToBackendAmount(Number(parsedRate)) && !(currentRateValue && currentRateValue === r.rate))) {
+    if (ratesList.some((r) => r.rate === convertedRate && !(currentRateValue && currentRateValue === r.rate))) {
         errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: NumberUtils.parseFloatAnyLocale(parsedRate)});
     } else if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = Localize.translateLocal('common.error.invalidRateError');
