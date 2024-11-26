@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import FlightTripDetails from './FlightTripDetails';
+import HotelTripDetails from './HotelTripDetails';
 
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
@@ -57,6 +58,12 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 <ScrollView>
                     {reservationType === 'flight' && (
                         <FlightTripDetails
+                            transaction={transaction}
+                            personalDetails={personalDetails}
+                        />
+                    )}
+                    {reservationType === 'hotel' && (
+                        <HotelTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
                         />
