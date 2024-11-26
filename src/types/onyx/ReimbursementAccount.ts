@@ -230,6 +230,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
+    /** Where the request is successful */
+    isSuccess?: boolean;
+
     /** A date that indicates the user has been throttled */
     throttledDate?: string;
 
