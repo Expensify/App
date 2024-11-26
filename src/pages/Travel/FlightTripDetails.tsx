@@ -28,29 +28,26 @@ function FlightTripDetails({transaction, personalDetails}: FlightTripDetailsProp
     return (
         <>
             <MenuItem
-                description={`${transaction?.receipt?.reservationList?.at(0)?.start.longName} (${transaction?.receipt?.reservationList?.at(0)?.start.shortName})`}
-                // TODO: blazejkustra - Use the actual duration
-                title={`1h 43m ${translate('travel.flightDetails.layover')}`}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                secondaryIcon={Expensicons.Chair}
-                wrapperStyle={[styles.taskDescriptionMenuItem]}
-                numberOfLinesDescription={2}
-                iconHeight={20}
-                iconWidth={20}
-                iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                secondaryIconFill={theme.icon}
+                label={translate('travel.flightDetails.passenger')}
+                title={personalDetails?.displayName}
+                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                iconType={CONST.ICON_TYPE_AVATAR}
+                description={personalDetails?.login}
                 interactive={false}
+                wrapperStyle={styles.pb3}
             />
-            <View style={[styles.borderBottom, styles.mh5, styles.mt3, styles.mb6]} />
 
-            {transaction?.receipt?.reservationList?.map((reservation) => {
+            {transaction?.receipt?.reservationList?.map((reservation, index) => {
                 const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
                 const startDate = DateUtils.getFormattedTransportDate(new Date(reservation.start.date), true);
                 const endDate = DateUtils.getFormattedTransportDate(new Date(reservation.end.date), true);
 
+                const nextFlightStartDate = transaction.receipt?.reservationList?.at(index + 1)?.start.date;
+                const layover = nextFlightStartDate && DateUtils.getFormattedDurationBetweenDates(new Date(reservation.end.date), new Date(nextFlightStartDate));
+
                 return (
                     <>
-                        <Text style={[styles.textSupporting, styles.mh5, styles.mb2]}>{translate('travel.flight')}</Text>
+                        <Text style={[styles.textSupporting, styles.mh5, styles.mt3, styles.mb2]}>{translate('travel.flight')}</Text>
                         <Text style={[styles.textHeadlineH1, styles.mh5, styles.mb3]}>
                             {reservation.start.cityName} ({reservation.start.shortName}) {translate('common.conjunctionTo')} {reservation.end.cityName} ({reservation.end.shortName})
                         </Text>
@@ -72,26 +69,18 @@ function FlightTripDetails({transaction, personalDetails}: FlightTripDetailsProp
                             description={translate('travel.flightDetails.takeOff')}
                             title={startDate}
                             helperText={`${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                            helperTextStyle={styles.mtn2}
+                            helperTextStyle={[styles.pb3, styles.mtn2]}
                             interactive={false}
                         />
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.landing')}
                             title={endDate}
                             helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
-                            helperTextStyle={styles.mtn2}
+                            helperTextStyle={[styles.pb3, styles.mtn2]}
                             interactive={false}
                         />
-                        <View style={[styles.borderBottom, styles.mh5, styles.mt1, styles.mb3]} />
-                        <MenuItem
-                            label={translate('travel.flightDetails.passenger')}
-                            title={personalDetails?.displayName}
-                            icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                            iconType={CONST.ICON_TYPE_AVATAR}
-                            description={personalDetails?.login}
-                            interactive={false}
-                        />
-                        <View style={[styles.flexRow, styles.flexWrap, styles.mb6]}>
+
+                        <View style={[styles.flexRow, styles.flexWrap]}>
                             {!!reservation.route?.number && (
                                 <View style={styles.w50}>
                                     <MenuItemWithTopDescription
@@ -120,6 +109,25 @@ function FlightTripDetails({transaction, personalDetails}: FlightTripDetailsProp
                                 </View>
                             )}
                         </View>
+                        <View style={[styles.borderBottom, styles.mh5, styles.mv3]} />
+                        {!!layover && (
+                            <>
+                                <MenuItem
+                                    description={`${transaction?.receipt?.reservationList?.at(0)?.start.longName} (${transaction?.receipt?.reservationList?.at(0)?.start.shortName})`}
+                                    title={`${layover} ${translate('travel.flightDetails.layover')}`}
+                                    descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                                    secondaryIcon={Expensicons.Chair}
+                                    wrapperStyle={[styles.taskDescriptionMenuItem]}
+                                    numberOfLinesDescription={2}
+                                    iconHeight={20}
+                                    iconWidth={20}
+                                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                                    secondaryIconFill={theme.icon}
+                                    interactive={false}
+                                />
+                                <View style={[styles.borderBottom, styles.mh5, styles.mv3]} />
+                            </>
+                        )}
                     </>
                 );
             })}

@@ -13,6 +13,7 @@ import {
     formatDistance,
     getDate,
     getDay,
+    intervalToDuration,
     isAfter,
     isBefore,
     isSameDay,
@@ -813,6 +814,15 @@ function getFormattedTransportDate(date: Date, shorter = false): string {
         : `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
+/**
+ * Returns a formatted layover duration in format "2h 30m".
+ */
+function getFormattedDurationBetweenDates(start: Date, end: Date): string {
+    const {days, hours, minutes} = intervalToDuration({start, end});
+
+    return `${days ? `${days}d ` : ''}${hours ? `${hours}h ` : ''}${minutes}m`;
+}
+
 function doesDateBelongToAPastYear(date: string): boolean {
     const transactionYear = new Date(date).getFullYear();
     return transactionYear !== new Date().getFullYear();
@@ -897,6 +907,7 @@ const DateUtils = {
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
+    getFormattedDurationBetweenDates,
 };
 
 export default DateUtils;

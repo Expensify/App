@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Link from '@userActions/Link';
@@ -23,6 +24,7 @@ type TripDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREEN
 
 function TripDetails({route}: TripDetailsProps) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
 
@@ -68,6 +70,7 @@ function TripDetails({route}: TripDetailsProps) {
                         onPress={() => {
                             Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
                         }}
+                        wrapperStyle={styles.mt3}
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
