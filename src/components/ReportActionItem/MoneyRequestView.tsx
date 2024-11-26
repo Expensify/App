@@ -695,7 +695,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
                         onPress={() =>
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()))
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.parentReportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()))
                         }
                     />
                 )}
