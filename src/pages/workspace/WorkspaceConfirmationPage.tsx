@@ -99,7 +99,7 @@ function WorkspaceConfirmationPage() {
             testID={WorkspaceConfirmationPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.editor.nameInputLabel')}
+                title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
 
