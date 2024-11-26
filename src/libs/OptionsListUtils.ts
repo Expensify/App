@@ -641,6 +641,7 @@ function createOption(
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
+        lastVisibleActionCreated: undefined,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -677,6 +678,7 @@ function createOption(
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
         result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
+        result.lastVisibleActionCreated = report.lastVisibleActionCreated;
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -937,13 +939,8 @@ function orderReportOptions(
     return lodashOrderBy(
         options,
         [
-            // Sort descending by lastVisibleActionCreated
             (option) => option?.lastVisibleActionCreated ?? 0,
             (option) => {
-                // TODO: what the fuck this is at the bottom already, is this even needed? i don't think so …
-                // if (option.private_isArchived) {
-                //     return CONST.DATE.UNIX_EPOCH; // Keep archived at bottom
-                // }
                 if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
                     return 0;
                 }

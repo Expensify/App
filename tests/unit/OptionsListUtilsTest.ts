@@ -669,7 +669,13 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {sortByReportTypeInSearch: true});
 
+            // When sortByReportTypeInSearch is true, we expect all options to be part of the recentReports list:
+            expect(filteredOptions.personalDetails.length).toBe(0);
+
+            // Expect to only find reports that matched our search text:
             expect(filteredOptions.recentReports.length).toBe(4);
+
+            // This items should be ordered by most recent action (and other criteria such as whether they are archived):
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
             expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
@@ -944,15 +950,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return all matching reports and personal details (getOptions)', () => {
-            console.log({
-                reports: OPTIONS.reports.length,
-                personalDetails: OPTIONS.personalDetails.length,
-            });
             const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
-            console.log('after getOptions', {
-                reports: options.recentReports.length,
-                personalDetails: options.personalDetails.length,
-            });
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
 
             expect(filteredOptions.personalDetails.length).toBe(2);
