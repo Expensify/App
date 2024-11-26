@@ -17,6 +17,7 @@ function validateRateValue(
     customUnitRates: Record<string, Rate>,
     currency: string,
     toLocaleDigit: (arg: string) => string,
+    currentRateValue?: number,
 ): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
@@ -25,7 +26,7 @@ function validateRateValue(
 
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
-    if (ratesList.some((r) => r.rate === convertToBackendAmount(Number(parsedRate)))) {
+    if (ratesList.some((r) => r.rate === convertToBackendAmount(Number(parsedRate)) && !(currentRateValue && currentRateValue === r.rate))) {
         errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: NumberUtils.parseFloatAnyLocale(parsedRate)});
     } else if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = Localize.translateLocal('common.error.invalidRateError');
