@@ -2441,6 +2441,7 @@ const translations = {
         },
         car: 'Car',
         carDetails: {
+            rentalCar: 'Rental car',
             pickUp: 'Pick-up',
             dropOff: 'Drop-off',
             driver: 'Driver',
