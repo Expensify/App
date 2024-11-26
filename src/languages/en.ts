@@ -2432,6 +2432,7 @@ const translations = {
         },
         hotel: 'Hotel',
         hotelDetails: {
+            guest: 'Guest',
             checkIn: 'Check-in',
             checkOut: 'Check-out',
             roomType: 'Room type',
