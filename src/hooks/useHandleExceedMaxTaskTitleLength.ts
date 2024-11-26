@@ -3,7 +3,7 @@ import {useCallback, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 
 const useHandleExceedMaxTaskTitleLength = () => {
-    const [hasExceededMaxTitleLength, setHasExceededMaxTitleLength] = useState(false);
+    const [hasExceededMaxTaskTitleLength, setHasExceededMaxTitleLength] = useState(false);
 
     const handleValueChange = useCallback((value: string) => {
         const match = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
@@ -17,9 +17,9 @@ const useHandleExceedMaxTaskTitleLength = () => {
         return false;
     }, []);
 
-    const validateTitleMaxLength = useMemo(() => debounce(handleValueChange, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [handleValueChange]);
+    const validateTaskTitleMaxLength = useMemo(() => debounce(handleValueChange, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [handleValueChange]);
 
-    return {hasExceededMaxTitleLength, validateTitleMaxLength};
+    return {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength};
 };
 
 export default useHandleExceedMaxTaskTitleLength;

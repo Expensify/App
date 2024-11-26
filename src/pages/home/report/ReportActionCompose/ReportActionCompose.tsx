@@ -310,7 +310,7 @@ function ReportActionCompose({
     }, [onComposerFocus]);
 
     useEffect(() => {
-        if (hasExceededMaxTitleLength) {
+        if (hasExceededMaxTaskTitleLength) {
             setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
             return;
         }
@@ -319,7 +319,7 @@ function ReportActionCompose({
             return;
         }
         setExceededMaxLength(null);
-    }, [hasExceededMaxTitleLength, hasExceededMaxCommentLength]);
+    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
@@ -414,12 +414,12 @@ function ReportActionCompose({
             if (value.length === 0 && isComposerFullSize) {
                 Report.setIsComposerFullSize(reportID, false);
             }
-            if (validateTitleMaxLength(value)) {
+            if (validateTaskTitleMaxLength(value)) {
                 return;
             }
             validateCommentMaxLength(value, {reportID});
         },
-        [isComposerFullSize, reportID, validateCommentMaxLength, validateTitleMaxLength],
+        [isComposerFullSize, reportID, validateCommentMaxLength, validateTaskTitleMaxLength],
     );
 
     return (
@@ -570,7 +570,7 @@ function ReportActionCompose({
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTitleLength}
+                                isTaskTitle={hasExceededMaxTaskTitleLength}
                             />
                         )}
                     </View>
