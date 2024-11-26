@@ -85,11 +85,18 @@ type CommonListItemProps<TItem extends ListItem> = {
     alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
-    onFocus?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
+    onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
+
+type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+
+type ExtendedTargetedEvent = TargetedEvent & {
+    /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
+    sourceCapabilities?: unknown;
+};
 
 type ListItem = {
     /** Text to display */
@@ -654,6 +661,7 @@ export type {
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
+    ListItemFocusEventHandler,
     ListItemProps,
     RadioListItemProps,
     ReportListItemProps,

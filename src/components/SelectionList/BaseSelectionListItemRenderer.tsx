@@ -1,5 +1,4 @@
 import React from 'react';
-import type {TargetedEvent} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import * as Browser from '@libs/Browser';
@@ -14,11 +13,6 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
     };
-
-// `sourceCapabilities` property exists in Chrome.
-type ExtendedTargetedEvent = TargetedEvent & {
-    sourceCapabilities?: unknown;
-};
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
     ListItem,
@@ -85,7 +79,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                         return;
                     }
                     // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                    if (Browser.isMobileChrome() && event?.nativeEvent && !(event.nativeEvent as ExtendedTargetedEvent).sourceCapabilities) {
+                    if (Browser.isMobileChrome() && event?.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex);
