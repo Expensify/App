@@ -153,6 +153,7 @@ function WorkspaceSwitcherPage() {
         <ScreenWrapper
             testID={WorkspaceSwitcherPage.displayName}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
                 <>
