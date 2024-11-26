@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -10,7 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -19,6 +22,8 @@ type SelectDelegateRolePageProps = StackScreenProps<SettingsNavigatorParamList, 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -30,39 +35,41 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     }));
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={SelectDelegateRolePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('delegate.accessLevel')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
-            />
-            <SelectionList
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={4}
-                initiallyFocusedOptionKey={roleOptions.find((role) => role.isSelected)?.keyForList}
-                shouldUpdateFocusedIndex
-                headerContent={
-                    <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <>
-                            {translate('delegate.accessLevelDescription')}{' '}
-                            <TextLink
-                                style={[styles.link]}
-                                href={CONST.COPILOT_HELP_URL}
-                            >
-                                {translate('common.learnMore')}
-                            </TextLink>
-                        </>
-                    </Text>
-                }
-                onSelectRow={(option) => {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
-                }}
-                sections={[{data: roleOptions}]}
-                ListItem={RadioListItem}
-            />
-        </ScreenWrapper>
+        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={SelectDelegateRolePage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('delegate.accessLevel')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
+                />
+                <SelectionList
+                    isAlternateTextMultilineSupported
+                    alternateTextNumberOfLines={4}
+                    initiallyFocusedOptionKey={roleOptions.find((role) => role.isSelected)?.keyForList}
+                    shouldUpdateFocusedIndex
+                    headerContent={
+                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <>
+                                {translate('delegate.accessLevelDescription')}{' '}
+                                <TextLink
+                                    style={[styles.link]}
+                                    href={CONST.COPILOT_HELP_URL}
+                                >
+                                    {translate('common.learnMore')}
+                                </TextLink>
+                            </>
+                        </Text>
+                    }
+                    onSelectRow={(option) => {
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
+                    }}
+                    sections={[{data: roleOptions}]}
+                    ListItem={RadioListItem}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as User from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Delegate from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ type DelegateMagicCodeModalProps = {
 function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
@@ -47,17 +49,19 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     };
 
     return (
-        <ValidateCodeActionModal
-            clearError={clearError}
-            onClose={onBackButtonPress}
-            validateError={validateLoginError}
-            isVisible={isValidateCodeActionModalVisible}
-            title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => User.requestValidateCodeAction()}
-            hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
-            handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
-            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
-        />
+        <AccessOrNotFoundWrapper shouldBeBlocked={isActingAsDelegate}>
+            <ValidateCodeActionModal
+                clearError={clearError}
+                onClose={onBackButtonPress}
+                validateError={validateLoginError}
+                isVisible={isValidateCodeActionModalVisible}
+                title={translate('delegate.makeSureItIsYou')}
+                sendValidateCode={() => User.requestValidateCodeAction()}
+                hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
+                handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
+                descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 
