@@ -854,7 +854,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
+function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): report is Report {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
@@ -1659,6 +1659,8 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
+function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report>): reportOrID is Report;
+function isMoneyRequestReport(reportOrID: SearchReport | string): boolean;
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string): boolean {
     const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
@@ -2837,7 +2839,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
 
 function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, allReportsDict?: OnyxCollection<Report>): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? ReportConnection.getAllReports();
-    let moneyRequestReport;
+    let moneyRequestReport: OnyxEntry<Report>;
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         moneyRequestReport = report;
     }

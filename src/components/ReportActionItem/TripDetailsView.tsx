@@ -11,11 +11,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
+import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 
 type TripDetailsViewProps = {
@@ -28,9 +30,11 @@ type TripDetailsViewProps = {
 
 type ReservationViewProps = {
     reservation: Reservation;
+    transactionID: string;
+    reportID: string;
 };
 
-function ReservationView({reservation}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, reportID}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -129,6 +133,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, Navigation.getReportRHPActiveRoute()))}
         />
     );
 }
@@ -138,7 +143,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const {translate} = useLocalize();
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
-    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
         <View>
@@ -153,11 +158,17 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservations.map((reservation) => (
-                    <OfflineWithFeedback>
-                        <ReservationView reservation={reservation} />
-                    </OfflineWithFeedback>
-                ))}
+                {reservationsData.map(({reservation, transactionID, reportID}) => {
+                    return (
+                        <OfflineWithFeedback>
+                            <ReservationView
+                                reservation={reservation}
+                                transactionID={transactionID}
+                                reportID={reportID}
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}

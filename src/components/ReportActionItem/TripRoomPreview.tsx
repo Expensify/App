@@ -18,7 +18,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportActionText} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -104,7 +103,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     );
 }
 
-const renderItem = ({item}: {item: Reservation}) => <ReservationView reservation={item} />;
+const renderItem = ({item}: {item: TripReservationUtils.ReservationData}) => <ReservationView reservation={item.reservation} />;
 
 function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
@@ -112,31 +111,22 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
 
-    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.iouReportID, 'reportID');
-    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.reportID);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
     const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
 
+    const currency = iouReport?.currency ?? chatReport?.currency;
     const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {
-            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, currency);
         }
 
-        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
-        let displayAmountValue = '';
-        const actionMessage = getReportActionText(action) ?? '';
-        const splits = actionMessage.split(' ');
-
-        splits.forEach((split) => {
-            if (!/\d/.test(split)) {
-                return;
-            }
-
-            displayAmountValue = split;
-        });
-
-        return displayAmountValue;
-    }, [action, iouReport?.currency, totalDisplaySpend]);
+        return CurrencyUtils.convertToDisplayString(
+            tripTransactions.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+            currency,
+        );
+    }, [currency, totalDisplaySpend, tripTransactions]);
 
     return (
         <OfflineWithFeedback
@@ -179,7 +169,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                             </View>
                         </View>
                         <FlatList
-                            data={reservations}
+                            data={reservationsData}
                             style={styles.gap3}
                             renderItem={renderItem}
                         />
