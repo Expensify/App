@@ -203,7 +203,7 @@ function SearchPageHeader({queryJSON, hash}: SearchPageHeaderProps) {
 
         const shouldShowPayOption =
             !isOffline &&
-            // !isAnyTransactionOnHold &&
+            !isAnyTransactionOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
                 : selectedTransactionsKeys.every(
