@@ -45,12 +45,12 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         }
 
         if (route.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
-            Navigation.goUp(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.SETTINGS);
             return;
         }
 
         if (route.name === SCREENS.WORKSPACE.INITIAL) {
-            Navigation.goUp(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.SETTINGS);
             if (shouldUseNarrowLayout) {
                 Navigation.navigate(ROUTES.SETTINGS, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
             }

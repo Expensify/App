@@ -57,7 +57,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!isSuccessful) {
             return;
         }
-        Navigation.goUp(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
         Card.clearIssueNewCardFlow();
     }, [backTo, policyID, isSuccessful]);
 

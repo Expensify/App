@@ -186,23 +186,26 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
     return shallowCompare(routeParams, minimalActionParams);
 }
 
-type GoUpOptions = {
+type GoBackOptions = {
     /** If we should compare params when searching for a route in state to go up to.
      * There are situations where we want to compare params when going up e.g. goUp to a specific report.
      * Sometimes we want to go up and update params of screen e.g. country picker.
      * In that case we want to goUp to a country picker with any params so we don't compare them. */
     compareParams?: boolean;
+
+    shouldPopToTop?: boolean;
 };
 
-const defaultGoUpOptions: Required<GoUpOptions> = {
+const defaultGoUpOptions: Required<GoBackOptions> = {
     compareParams: true,
+    shouldPopToTop: false,
 };
 
 function isRootNavigatorState(state: State): state is State<RootStackParamList> {
     return state.key === navigationRef.current?.getRootState().key;
 }
 
-function goUp(fallbackRoute: Route, options?: GoUpOptions) {
+function goUp(fallbackRoute: Route, options?: GoBackOptions) {
     const compareParams = options?.compareParams ?? defaultGoUpOptions.compareParams;
 
     if (!canNavigate('goBack')) {
@@ -253,10 +256,12 @@ function goUp(fallbackRoute: Route, options?: GoUpOptions) {
  * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute?: Route, shouldPopToTop = false) {
+function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     if (!canNavigate('goBack')) {
         return;
     }
+
+    const shouldPopToTop = options?.shouldPopToTop ?? false;
 
     if (shouldPopToTop) {
         if (shouldPopAllStateOnUP) {
@@ -267,7 +272,7 @@ function goBack(fallbackRoute?: Route, shouldPopToTop = false) {
     }
 
     if (fallbackRoute) {
-        goUp(fallbackRoute);
+        goUp(fallbackRoute, options);
         return;
     }
 
@@ -485,7 +490,6 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
-    goUp,
 };
 
 export {navigationRef};

@@ -57,7 +57,7 @@ function CardSection() {
     const requestRefund = useCallback(() => {
         User.requestRefund();
         setIsRequestRefundModalVisible(false);
-        Navigation.goUp(ROUTES.HOME);
+        Navigation.goBack(ROUTES.HOME);
     }, []);
 
     const viewPurchases = useCallback(() => {
