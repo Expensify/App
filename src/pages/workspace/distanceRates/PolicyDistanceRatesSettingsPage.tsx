@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import CategorySelector from '@components/CategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -28,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
 type PolicyDistanceRatesSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
@@ -61,14 +61,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit) {
+        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
             return;
         }
 
-        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
-            ...customUnit,
-            defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
-        });
+        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, category.searchText);
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
@@ -125,7 +122,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 >
                                     <CategorySelector
                                         policyID={policyID}
-                                        label={translate('workspace.distanceRates.defaultCategory')}
+                                        label={translate('workspace.common.defaultCategory')}
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         setNewCategory={setNewCategory}
