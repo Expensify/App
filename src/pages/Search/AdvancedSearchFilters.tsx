@@ -10,6 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchFilterKey} from '@components/Search/types';
+import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +31,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SpacerView from '@components/SpacerView';
 
 const baseFilterConfig = {
     date: {
@@ -206,7 +206,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
 
@@ -503,7 +503,7 @@ function AdvancedSearchFilters() {
                     onPress,
                 };
             })
-            .filter((filter) => !!filter)
+            .filter((filter) => !!filter);
     });
     const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
