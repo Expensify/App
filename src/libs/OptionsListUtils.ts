@@ -1617,84 +1617,26 @@ function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.Optio
     return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
 }
 
-/**
- * Filters options based on the search input value
- */
+// TODO: try to see if all screens really need userToInvite & currentUserOption, or if this can be separate
+// TODO: cleanup all config types
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {sortByReportTypeInSearch = false, canInviteUser = true, maxRecentReportsToShow = 0, excludeLogins = []} = config ?? {};
-    if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
-        const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
-        const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
-        return {
-            ...options,
-            recentReports,
-            personalDetails,
-        };
-    }
-
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const recentReports = filterReports(options.recentReports, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
 
-    excludeLogins.forEach((login) => {
-        optionsToExclude.push({login});
-    });
-
-    const matchResults = searchTerms.reduceRight((items, term) => {
-        const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
-            const values: string[] = [];
-            if (item.text) {
-                values.push(item.text);
-            }
-
-            if (item.login) {
-                values.push(item.login);
-                values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
-            }
-
-            if (item.isThread) {
-                if (item.alternateText) {
-                    values.push(item.alternateText);
-                }
-            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
-                if (item.subtitle) {
-                    values.push(item.subtitle);
-                }
-            }
-
-            return uniqFast(values);
-        });
-        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) => uniqFast(getPersonalDetailSearchTerms(item)));
-
-        const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
-
-        const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
-        return {
-            recentReports: recentReports ?? [],
-            personalDetails: personalDetails ?? [],
-            userToInvite: null,
-            currentUserOption,
-        };
-    }, options);
-
-    const {recentReports, personalDetails} = matchResults;
-
-    console.log('pre', {sortByReportTypeInSearch, pD: personalDetails.length, recentReports: recentReports.length});
-    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
-    console.log('post', personalDetailsWithoutDMs.length);
-
-    let filteredPersonalDetails: ReportUtils.OptionData[] = personalDetailsWithoutDMs;
-    let filteredRecentReports: ReportUtils.OptionData[] = recentReports;
-    if (sortByReportTypeInSearch) {
-        filteredRecentReports = recentReports.concat(personalDetailsWithoutDMs);
-        filteredPersonalDetails = [];
-    }
-
+    const {canInviteUser = true, excludeLogins = []} = config ?? {};
     let userToInvite = null;
     if (canInviteUser) {
         if (recentReports.length === 0 && personalDetails.length === 0) {
+            const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+
+            excludeLogins.forEach((login) => {
+                optionsToExclude.push({login});
+            });
+
             userToInvite = getUserToInviteOption({
                 searchValue,
                 selectedOptions: config?.selectedOptions,
@@ -1703,33 +1645,123 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         }
     }
 
-    console.log('wat', filteredPersonalDetails.length);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+
     return {
-        personalDetails: filteredPersonalDetails,
-        recentReports: filteredRecentReports,
+        personalDetails,
+        recentReports,
         userToInvite,
-        currentUserOption: matchResults.currentUserOption,
+        currentUserOption,
     };
 }
 
-type FilterAndOrderConfig = FilterOptionsConfig & OrderOptionsConfig;
-function filterAndOrderOptions(options: Options, searchInputValue: string, config?: FilterAndOrderConfig): Options {
-    const filteredOptions = filterOptions(options, searchInputValue, config);
-    console.log('after filterOptions', {
-        reports: filteredOptions.recentReports.length,
-        personalDetails: filteredOptions.personalDetails.length,
-    });
-    const {personalDetails, recentReports} = orderOptions(filteredOptions, searchInputValue, config);
+/**
+ * Filters options based on the search input value
+ */
+function filterReports(reports: ReportUtils.OptionData[], searchTerms: string[]): ReportUtils.OptionData[] {
+    // We search eventually for multiple whitespace separated search terms.
+    // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
+    // We repeat (reduce) this until all search terms have been used:
+    const filteredReports = searchTerms.reduceRight(
+        (items, term) =>
+            filterArrayByMatch(items, term, (item) => {
+                const values: string[] = [];
+                if (item.text) {
+                    values.push(item.text);
+                }
 
-    let orderedReports = recentReports;
+                if (item.login) {
+                    values.push(item.login);
+                    values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+                }
+
+                if (item.isThread) {
+                    if (item.alternateText) {
+                        values.push(item.alternateText);
+                    }
+                } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                    if (item.subtitle) {
+                        values.push(item.subtitle);
+                    }
+                }
+
+                return uniqFast(values);
+            }),
+        // We start from all unfiltered reports:
+        reports,
+    );
+
+    return filteredReports;
+}
+
+function filterPersonalDetails(personalDetails: ReportUtils.OptionData[], searchTerms: string[]): ReportUtils.OptionData[] {
+    return searchTerms.reduceRight(
+        (items, term) =>
+            filterArrayByMatch(items, term, (item) => {
+                const values = getPersonalDetailSearchTerms(item);
+                return uniqFast(values);
+            }),
+        personalDetails,
+    );
+}
+
+function filterCurrentUserOption(currentUserOption: ReportUtils.OptionData | null | undefined, searchTerms: string[]): ReportUtils.OptionData | null | undefined {
+    return searchTerms.reduceRight((item, term) => {
+        if (!item) {
+            return null;
+        }
+
+        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
+        return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
+    }, currentUserOption);
+}
+
+type FilterAndOrderConfig = FilterOptionsConfig & OrderOptionsConfig;
+function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
+    const {maxRecentReportsToShow = 0, sortByReportTypeInSearch = false} = config;
+
+    // Fast route: there's no search input value and we're limiting the number of recent reports to show
+    if (searchInputValue.trim().length === 0 && maxRecentReportsToShow > 0) {
+        const {personalDetails, recentReports} = orderOptions(options, searchInputValue, config);
+        const limitedRecentReports = recentReports.slice(0, maxRecentReportsToShow);
+        const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(limitedRecentReports, personalDetails);
+
+        return {
+            ...options,
+            personalDetails: filteredPersonalDetails,
+            recentReports: limitedRecentReports,
+        };
+    }
+
+    const filteredOptions = filterOptions(options, searchInputValue, config);
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredOptions.recentReports, filteredOptions.personalDetails);
+
+    // sortByReportTypeInSearch option will show the personal details as part of the recent reports
+    let filteredPersonalDetails: ReportUtils.OptionData[] = personalDetailsWithoutDMs;
+    let filteredRecentReports: ReportUtils.OptionData[] = filteredOptions.recentReports;
+    if (sortByReportTypeInSearch) {
+        filteredRecentReports = filteredOptions.recentReports.concat(personalDetailsWithoutDMs);
+        filteredPersonalDetails = [];
+    }
+
+    const orderedOptions = orderOptions(
+        {
+            recentReports: filteredRecentReports,
+            personalDetails: filteredPersonalDetails,
+        },
+        searchInputValue,
+        config,
+    );
+
+    let orderedReports = orderedOptions.recentReports;
     if (config?.maxRecentReportsToShow) {
         orderedReports = orderedReports.slice(0, config.maxRecentReportsToShow);
     }
 
     return {
         ...filteredOptions,
-        personalDetails,
         recentReports: orderedReports,
+        personalDetails: orderedOptions.personalDetails,
     };
 }
 
