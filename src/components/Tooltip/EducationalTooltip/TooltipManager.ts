@@ -2,6 +2,7 @@
 // We're using the timeout because when a tooltip is used inside an animated view (e.g., popover),
 // we need to wait for the animation to finish before measuring content.
 const pendingTooltips = new Set<NodeJS.Timeout>();
+
 // We store the callback for closing a tooltip here.
 const activeTooltips = new Set<() => void>();
 
