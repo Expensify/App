@@ -100,7 +100,16 @@ The format looks like this:
 
 Many of the UI features of our application should go through rigorous testing by you, your PR reviewer, and finally QA before deployment. However, the code is mature enough now that protecting code against regressions is the top priority.
 
-**What's a "good reason" to write a test?**
+**What's a "good reason" to skip writing a test?**
+
+- App build configurations
+- Changes to Github actions (for now)
+- Copy changes
+- Help site changes
+- Style changes (for now)
+- When fixing a deploy blocker, it's OK to not include the automated tests in the blocker-fixing PR, but make sure to follow up in a separate PR once the deploy blocker is resolved
+
+**What changes to definitely cover by tests?**
 
 - Any PR that fixes a bug
 - When introducing a new feature, cover as much logic as possible by unit tests
