@@ -37,7 +37,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;

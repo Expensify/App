@@ -778,7 +778,6 @@ describe('actions/Report', () => {
 
         for (let i = 0; i < 5; i++) {
             Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
                 reportID: REPORT_ID,
             });
         }
@@ -805,7 +804,6 @@ describe('actions/Report', () => {
                 reportID = `${i}`;
             }
             Report.openReport(reportID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
                 reportID: REPORT_ID,
             });
         }
@@ -1305,7 +1303,6 @@ describe('actions/Report', () => {
             undefined,
             ['test@user.com'],
             {
-                isOptimisticReport: true,
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
                 reportID: '2',

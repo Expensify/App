@@ -203,7 +203,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyName: reportOnyx.policyName,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: reportOnyx.private_isArchived,
-                isOptimisticReport: reportMetadata.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
                 permissions,
@@ -211,7 +210,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyAvatar: reportOnyx.policyAvatar,
                 pendingChatMembers: reportOnyx.pendingChatMembers,
             },
-        [reportOnyx, permissions, reportMetadata],
+        [reportOnyx, permissions],
     );
     const reportID = report?.reportID;
 

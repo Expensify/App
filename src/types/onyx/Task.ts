@@ -28,10 +28,7 @@ type Task = {
     parentReportID?: string;
 
     /** Chat report with assignee of task */
-    assigneeChatReport?: Report & {
-        /** Indicates if this is an optimistic report created before server confirmation */
-        isOptimisticReport: boolean;
-    };
+    assigneeChatReport?: Report;
 
     /** If set, skip confirmation when creating the task */
     skipConfirmation?: boolean;
