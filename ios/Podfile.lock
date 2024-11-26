@@ -287,6 +287,27 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NitroModules (0.17.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
     - DoubleConversion
@@ -1873,27 +1894,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.1.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-release-profiler (0.2.1):
     - DoubleConversion
     - glog
@@ -2461,6 +2461,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - Turf
     - Yoga
+  - RNNitroSQLite (9.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNPermissions (3.10.1):
     - DoubleConversion
     - glog
@@ -2759,6 +2781,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -2807,7 +2830,6 @@ DEPENDENCIES:
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
-  - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
@@ -2853,6 +2875,7 @@ DEPENDENCIES:
   - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNLocalize (from `../node_modules/react-native-localize`)
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
+  - RNNitroSQLite (from `../node_modules/react-native-nitro-sqlite`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -2940,6 +2963,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-08-15-RNv0.75.1-4b3bf912cc0f705b51b71ce1a5b8bd79b93a451b
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroModules:
+    :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
   RCT-Folly:
@@ -3032,8 +3057,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-plaid-link-sdk:
     :path: "../node_modules/react-native-plaid-link-sdk"
-  react-native-quick-sqlite:
-    :path: "../node_modules/react-native-quick-sqlite"
   react-native-release-profiler:
     :path: "../node_modules/react-native-release-profiler"
   react-native-safe-area-context:
@@ -3124,6 +3147,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-localize"
   rnmapbox-maps:
     :path: "../node_modules/@rnmapbox/maps"
+  RNNitroSQLite:
+    :path: "../node_modules/react-native-nitro-sqlite"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
@@ -3193,6 +3218,7 @@ SPEC CHECKSUMS:
   MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NitroModules: 119541aaf2162753c635912a987d0da7f429c131
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
@@ -3243,7 +3269,6 @@ SPEC CHECKSUMS:
   react-native-pdf: dd6ae39a93607a80919bef9f3499e840c693989d
   react-native-performance: 3c608307be10964f8a97d3af462f37125b6d8fa5
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
-  react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
   react-native-safe-area-context: 38fdd9b3c5561de7cabae64bd0cd2ce05d2768a1
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
@@ -3289,6 +3314,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 8338447b39fcd86596c74b9e0e9509e365a2dd3b
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
+  RNNitroSQLite: baa56030b3fe4626331355c4121bafbb1733a72b
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: 2d728bad3a69119be89c3431ee0ccda026ecffdc
