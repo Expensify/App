@@ -152,7 +152,7 @@
     "react-native-launch-arguments": "^4.0.2",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-nitro-modules": "^0.17.0",
+    "react-native-nitro-modules": "^0.16.1",
     "react-native-nitro-sqlite": "^9.0.1",
     "react-native-onyx": "git+https://github.com/margelo/react-native-onyx#3b624bb8a0a328ec258b785d41081e462435711a",
     "react-native-pager-view": "6.5.0",
