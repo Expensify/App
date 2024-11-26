@@ -3284,8 +3284,8 @@ const translations = {
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutOptions: {
-                    text: 'Conoce más sobre ',
-                    linkText: 'las opciones.',
+                    text: 'Obtén más información sobre estas ',
+                    linkText: 'opciones.',
                 },
                 customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
                 directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
@@ -5732,7 +5732,7 @@ const translations = {
             addPaymentCard: 'Añade tarjeta de pago',
             enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago',
             security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
-            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
+            learnMoreAboutSecurity: 'Obtén más información sobre nuestra seguridad.',
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',

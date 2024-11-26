@@ -3245,7 +3245,7 @@ const translations = {
                 whoIsYourBankAccount: 'Who’s your bank?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
-                    text: 'Learn more about the ',
+                    text: 'Learn more about these ',
                     linkText: 'options.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
