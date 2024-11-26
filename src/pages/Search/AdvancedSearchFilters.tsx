@@ -504,7 +504,7 @@ function AdvancedSearchFilters() {
                         onPress,
                     };
                 })
-                .filter((filter) => !!filter);
+                .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
     const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
