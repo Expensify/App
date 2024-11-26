@@ -329,7 +329,6 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
     | 'avatarUrl'
     | 'invoiceReceiver'
-    | 'isHidden'
 > & {
     isOptimisticReport: true;
 };
@@ -5165,6 +5164,7 @@ function buildOptimisticReportPreview(
         actorAccountID: hasReceipt ? currentUserAccountID : reportActorAccountID,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
+        childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) ? {[transaction?.transactionID ?? '-1']: created} : undefined,
     };
@@ -6517,8 +6517,6 @@ function reasonForReportToBeInOptionList({
         !report?.reportID ||
         !report?.type ||
         report?.reportName === undefined ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        report?.isHidden ||
         (!report?.participants &&
             // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
@@ -7399,7 +7397,6 @@ function getTaskAssigneeChatOnyxData(
                     pendingFields: {
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
-                    isHidden: false,
                 },
             },
             {

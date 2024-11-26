@@ -50,6 +50,7 @@ function PopoverWithMeasuredContent({
     shouldCloseOnOutsideClick = false,
     shouldSetModalVisibility = true,
     statusBarTranslucent = true,
+    navigationBarTranslucent = true,
     avoidKeyboard = false,
     hideModalContentWhileAnimating = false,
     anchorDimensions = {
@@ -169,6 +170,7 @@ function PopoverWithMeasuredContent({
             shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
             shouldSetModalVisibility={shouldSetModalVisibility}
             statusBarTranslucent={statusBarTranslucent}
+            navigationBarTranslucent={navigationBarTranslucent}
             avoidKeyboard={avoidKeyboard}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             modalId={modalId}

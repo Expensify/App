@@ -316,7 +316,6 @@ const translations = {
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
-        notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
         recentDestinations: 'Recent destinations',
@@ -844,6 +843,8 @@ const translations = {
         submitExpense: 'Submit expense',
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
+        chooseRecipient: 'Choose recipient',
+        confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -1409,11 +1410,9 @@ const translations = {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends',
-        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
-        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
         enableWallet: 'Enable wallet',
-        addBankAccountToSendAndReceive: 'Add a bank account to get paid back for expenses you submit to a workspace.',
+        addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
@@ -1617,7 +1616,6 @@ const translations = {
     preferencesPage: {
         appSection: {
             title: 'App preferences',
-            subtitle: 'Customize your Expensify account.',
         },
         testSection: {
             title: 'Test preferences',
@@ -2479,6 +2477,7 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            goToWorkspace: 'Go to workspace',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
@@ -2526,6 +2525,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            defaultCategory: 'Default category',
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -3490,7 +3490,7 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type?.toLowerCase()} export`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
@@ -3527,6 +3527,7 @@ const translations = {
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
+                defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
@@ -4091,7 +4092,6 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
             changePromptMessage: ' to make that change.',
-            defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
