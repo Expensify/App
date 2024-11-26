@@ -20,9 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import FlightTripDetails from './FlightTripDetails';
 
-type TripDetailsProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
+type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
-function TripDetails({route}: TripDetailsProps) {
+function TripDetailsPage({route}: TripDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,7 +43,7 @@ function TripDetails({route}: TripDetailsProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetails.displayName}
+            testID={TripDetailsPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -88,6 +88,6 @@ function TripDetails({route}: TripDetailsProps) {
     );
 }
 
-TripDetails.displayName = 'TripDetails';
+TripDetailsPage.displayName = 'TripDetailsPage';
 
-export default TripDetails;
+export default TripDetailsPage;
