@@ -217,6 +217,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     );
 }
 
-ActionSheetKeyboardSpace.displayName = 'ReportKeyboardSpace';
+ActionSheetKeyboardSpace.displayName = 'ActionSheetKeyboardSpace';
 
 export default ActionSheetKeyboardSpace;
