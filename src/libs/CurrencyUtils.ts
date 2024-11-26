@@ -164,8 +164,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
-        minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
-        maximumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
+        minimumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
 }
 

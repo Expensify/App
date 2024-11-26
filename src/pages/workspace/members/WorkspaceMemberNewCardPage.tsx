@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
@@ -36,6 +37,7 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Sta
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    const policy = PolicyUtils.getPolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -46,7 +48,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
-    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds?.settings?.companyCards);
+    const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
+    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const filteredCardList = CardUtils.getFilteredCardList(list);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -63,14 +69,26 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
         } else {
+            const data: Partial<AssignCardData> = {
+                email: memberLogin,
+                bankName: selectedFeed,
+                cardName: `${memberName}'s card`,
+            };
+            let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+
+            if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+                data.cardNumber = Object.keys(filteredCardList).at(0);
+                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            }
             CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CARD,
-                data: {
-                    email: memberLogin,
-                },
+                currentStep,
+                data,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
+            Navigation.setNavigationActionToMicrotaskQueue(() =>
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))),
+            );
         }
     };
 
@@ -87,32 +105,33 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
 
-    const feeds = workspaceAccountID
-        ? [
-              ...companyCardFeeds,
-              {
-                  value: CONST.EXPENSIFY_CARD.NAME,
-                  text: translate('workspace.common.expensifyCard'),
-                  keyForList: CONST.EXPENSIFY_CARD.NAME,
-                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                  leftElement: (
-                      <Icon
-                          src={ExpensifyCardImage}
-                          width={variables.cardIconWidth}
-                          height={variables.cardIconHeight}
-                          additionalStyles={[styles.cardIcon, styles.mr3]}
-                      />
-                  ),
-              },
-          ]
-        : companyCardFeeds;
+    const feeds =
+        workspaceAccountID && policy?.areExpensifyCardsEnabled
+            ? [
+                  ...companyCardFeeds,
+                  {
+                      value: CONST.EXPENSIFY_CARD.NAME,
+                      text: translate('workspace.common.expensifyCard'),
+                      keyForList: CONST.EXPENSIFY_CARD.NAME,
+                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                      leftElement: (
+                          <Icon
+                              src={ExpensifyCardImage}
+                              width={variables.cardIconWidth}
+                              height={variables.cardIconHeight}
+                              additionalStyles={[styles.cardIcon, styles.mr3]}
+                          />
+                      ),
+                  },
+              ]
+            : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 

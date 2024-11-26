@@ -112,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                                title={CardUtils.maskCardNumber(card?.cardName ?? '')}
+                                title={CardUtils.maskCardNumber(card?.cardName ?? '', bank)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -124,18 +124,23 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                    title={customCardNames?.[cardID] ?? ''}
+                                    title={customCardNames?.[cardID] ?? CardUtils.getDefaultCardName(cardholder?.firstName)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
                                 />
                             </OfflineWithFeedback>
-                            {!!exportMenuItem && (
+                            {exportMenuItem?.shouldShowMenuItem ? (
                                 <OfflineWithFeedback
-                                    pendingAction={card?.nameValuePairs?.pendingFields?.exportAccountDetails}
+                                    pendingAction={exportMenuItem?.exportType ? card?.nameValuePairs?.pendingFields?.[exportMenuItem.exportType] : undefined}
                                     errorRowStyles={[styles.ph5, styles.mb3]}
-                                    errors={ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, 'exportAccountDetails')}
-                                    onClose={() => CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'exportAccountDetails')}
+                                    errors={exportMenuItem.exportType ? ErrorUtils.getLatestErrorField(card?.nameValuePairs ?? {}, exportMenuItem.exportType) : undefined}
+                                    onClose={() => {
+                                        if (!exportMenuItem.exportType) {
+                                            return;
+                                        }
+                                        CompanyCards.clearCompanyCardErrorField(workspaceAccountID, cardID, bank, exportMenuItem.exportType);
+                                    }}
                                 >
                                     <MenuItemWithTopDescription
                                         description={exportMenuItem.description}
@@ -144,7 +149,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank))}
                                     />
                                 </OfflineWithFeedback>
-                            )}
+                            ) : null}
                             <MenuItemWithTopDescription
                                 shouldShowRightComponent={card?.isLoadingLastUpdated}
                                 rightComponent={
