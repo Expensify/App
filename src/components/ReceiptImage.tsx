@@ -82,6 +82,9 @@ type ReceiptImageProps = (
     fallbackIconBackground?: string;
 
     isEmptyReceipt?: boolean;
+
+    /** Callback to be called on pressing the image */
+    onPress?: () => void;
 };
 
 function ReceiptImage({
@@ -101,11 +104,18 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
+    onPress,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
     if (isEmptyReceipt) {
-        return <ReceiptEmptyState isThumbnail />;
+        return (
+            <ReceiptEmptyState
+                isThumbnail
+                onPress={onPress}
+                disabled={!onPress}
+            />
+        );
     }
 
     if (isPDFThumbnail) {

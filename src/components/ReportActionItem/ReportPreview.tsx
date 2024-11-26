@@ -450,6 +450,12 @@ function ReportPreview({
         }
     }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
+    const openReportFromPreview = useCallback(() => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+    }, [iouReportID]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -458,11 +464,7 @@ function ReportPreview({
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
-                    onPress={() => {
-                        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-                        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
-                    }}
+                    onPress={openReportFromPreview}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
@@ -476,6 +478,7 @@ function ReportPreview({
                             images={lastThreeReceipts}
                             total={allTransactions.length}
                             size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                            onPress={openReportFromPreview}
                         />
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>

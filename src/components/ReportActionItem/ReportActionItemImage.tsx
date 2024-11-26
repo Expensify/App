@@ -60,6 +60,9 @@ type ReportActionItemImageProps = {
 
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
+
+    /** Callback to be called on pressing the image */
+    onPress?: () => void;
 };
 
 /**
@@ -82,6 +85,7 @@ function ReportActionItemImage({
     readonly = false,
     shouldMapHaveBorderRadius,
     isFromReviewDuplicates = false,
+    onPress,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,6 +136,7 @@ function ReportActionItemImage({
             source: thumbnail ?? image ?? '',
             shouldUseInitialObjectPosition: isDistanceRequest,
             isEmptyReceipt,
+            onPress,
         };
     }
 

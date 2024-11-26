@@ -319,6 +319,8 @@ function MoneyRequestPreviewContent({
         }
     };
 
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -343,6 +345,7 @@ function MoneyRequestPreviewContent({
                         images={receiptImages}
                         isHovered={isHovered || isScanning}
                         size={1}
+                        onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
                     />
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
@@ -437,8 +440,6 @@ function MoneyRequestPreviewContent({
     if (!onPreviewPressed) {
         return childContainer;
     }
-
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
         <PressableWithoutFeedback
