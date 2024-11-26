@@ -282,7 +282,6 @@ function PaymentCardForm({
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />
