@@ -59,8 +59,8 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.maskCardNumber(item?.cardName ?? '', item.bank)}
-                            name={customCardNames?.[item.cardID] ?? ''}
+                            cardNumber={item.lastFourPAN ?? ''}
+                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
@@ -82,7 +82,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {translate('workspace.companyCards.cardNumber')}
+                    {translate('workspace.expensifyCard.lastFour')}
                 </Text>
             </View>
         ),
