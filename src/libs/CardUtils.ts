@@ -369,6 +369,16 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+    const prevFeeds = Object.keys(prevFeedsData);
+    const currentFeeds = Object.keys(currentFeedsData);
+
+    return {
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
+    };
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -396,5 +406,6 @@ export {
     removeExpensifyCardFromCompanyCards,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
+    checkIfNewFeedConnected,
     getDefaultCardName,
 };
