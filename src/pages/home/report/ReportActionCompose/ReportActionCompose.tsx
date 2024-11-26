@@ -312,13 +312,11 @@ function ReportActionCompose({
     useEffect(() => {
         if (hasExceededMaxTaskTitleLength) {
             setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
-            return;
-        }
-        if (hasExceededMaxCommentLength) {
+        } else if (hasExceededMaxCommentLength) {
             setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
-            return;
+        } else {
+            setExceededMaxLength(null);
         }
-        setExceededMaxLength(null);
     }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
