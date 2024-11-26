@@ -279,7 +279,14 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
     };
 
-    return feedNamesMapping[feedType];
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+
+    if (!feedKey) {
+        return '';
+    }
+
+    return feedNamesMapping[feedKey];
 }
 
 const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
