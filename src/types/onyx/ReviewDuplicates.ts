@@ -31,7 +31,7 @@ type ReviewDuplicates = {
     /** Description  which user want to keep */
     description: string;
 
-    /** Description  which user want to keep */
+    /** NVPs of the transaction that we want to keep */
     comment: Comment;
 
     /** Whether the transaction is reimbursable */
