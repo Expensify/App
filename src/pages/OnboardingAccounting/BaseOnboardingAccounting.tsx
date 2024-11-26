@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingAccountingProps} from './types';
 
@@ -47,7 +48,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID, onboardingPolicyIDResult] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const isOnboardingPolicyIDCleared = useRef(false);
+    const [allPolicies, allPoliciesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
@@ -60,14 +61,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
     useEffect(() => {
-        if (!isVsb || !!onboardingPolicyID || isLoadingOnyxValue(onboardingPolicyIDResult) || isOnboardingPolicyIDCleared.current) {
+        if (!isVsb || !!onboardingPolicyID || !isEmptyObject(allPolicies) || isLoadingOnyxValue(onboardingPolicyIDResult, allPoliciesResult)) {
             return;
         }
 
         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
         Welcome.setOnboardingPolicyID(policyID);
-    }, [isVsb, onboardingPolicyID, onboardingPolicyIDResult]);
+    }, [isVsb, onboardingPolicyID, onboardingPolicyIDResult, allPolicies, allPoliciesResult]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
@@ -167,7 +168,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     );
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
-                        isOnboardingPolicyIDCleared.current = true;
                         Welcome.setOnboardingAdminsChatReportID();
                         Welcome.setOnboardingPolicyID();
                     });
