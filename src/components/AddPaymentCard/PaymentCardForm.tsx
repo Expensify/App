@@ -165,10 +165,6 @@ function PaymentCardForm({
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
-        }
-
         if (!values.acceptTerms) {
             errors.acceptTerms = translate('common.error.acceptTerms');
         }
