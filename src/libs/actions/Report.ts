@@ -3574,7 +3574,8 @@ function prepareOnboardingOptimisticData(
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             );
-            const emailCreatingAction = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? CONST.EMAIL.QA_GUIDE : CONST.EMAIL.CONCIERGE;
+            const emailCreatingAction =
+                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
             const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
                 currentTask.reportID,
