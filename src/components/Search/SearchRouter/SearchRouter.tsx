@@ -337,13 +337,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         listRef.current?.setFocusedIndex(initialFocusIndex);
     }, [sortedRecentSearches, contextualReportData]);
 
-    useEffect(() => {
-        if (!isLargeScreenWidth || textInputValue) {
-            return;
-        }
-        setInitialFocus();
-    }, [setInitialFocus, textInputValue, isLargeScreenWidth]);
-
     const onSearchChange = useCallback(
         (userQuery: string) => {
             let newUserQuery = userQuery;
@@ -361,6 +354,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else if (!isLargeScreenWidth) {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
+            } else {
+                setInitialFocus();
             }
 
             // Store the previous newUserQuery

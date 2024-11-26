@@ -148,7 +148,7 @@ function SearchRouterList(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -325,6 +325,7 @@ function SearchRouterList(
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
+            initiallyFocusedOptionKey={isLargeScreenWidth ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
         />
     );
