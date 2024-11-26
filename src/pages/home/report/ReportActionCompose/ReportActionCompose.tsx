@@ -173,7 +173,7 @@ function ReportActionCompose({
      * Shows red borders and prevents the comment from being sent
      */
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTitleLength, validateTitleMaxLength} = useHandleExceedMaxTaskTitleLength();
+    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength} = useHandleExceedMaxTaskTitleLength();
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
