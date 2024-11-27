@@ -76,21 +76,17 @@ function WorkspaceSwitcherPage() {
     );
 
     const selectPolicy = useCallback(
-        (option?: WorkspaceListItem) => {
-            if (!option) {
-                return;
-            }
-
-            let {policyID} = option;
+        (policyID?: string) => {
+            let newPolicyID = policyID;
 
             if (policyID && policyID === activeWorkspaceID) {
-                policyID = undefined;
+                newPolicyID = undefined;
             }
 
-            setActiveWorkspaceID(policyID);
+            setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
-            if (policyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID});
+            if (newPolicyID !== activeWorkspaceID) {
+                Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],
@@ -145,14 +141,6 @@ function WorkspaceSwitcherPage() {
     const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
     const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
-    const defaultPolicy = {
-        text: CONST.WORKSPACE_SWITCHER.NAME,
-        icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
-        brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
-        keyForList: CONST.WORKSPACE_SWITCHER.NAME,
-        isSelected: activeWorkspaceID === undefined,
-    };
-
     return (
         <ScreenWrapper
             testID={WorkspaceSwitcherPage.displayName}
@@ -168,7 +156,7 @@ function WorkspaceSwitcherPage() {
                     <SelectionList<WorkspaceListItem>
                         ListItem={UserListItem}
                         sections={sections}
-                        onSelectRow={selectPolicy}
+                        onSelectRow={(option) => selectPolicy(option.policyID)}
                         textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
@@ -180,7 +168,7 @@ function WorkspaceSwitcherPage() {
                         showConfirmButton={!!activeWorkspaceID}
                         shouldUseDefaultTheme
                         confirmButtonText={translate('workspace.common.clearFilter')}
-                        onConfirm={() => selectPolicy(defaultPolicy)}
+                        onConfirm={() => selectPolicy(undefined)}
                     />
                 </>
             )}
