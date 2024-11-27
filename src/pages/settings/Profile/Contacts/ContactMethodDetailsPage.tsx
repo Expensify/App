@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
@@ -135,14 +136,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         User.deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
 
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        User.requestContactMethodValidateCode(contactMethod);
-    };
-
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -154,6 +147,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
@@ -276,9 +271,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         setIsValidateCodeActionModalVisible(false);
                     }}
-                    sendValidateCode={sendValidateCode}
-                    description={translate('contacts.enterMagicCode', {contactMethod})}
-                    footer={() => getMenuItems()}
+                    sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}

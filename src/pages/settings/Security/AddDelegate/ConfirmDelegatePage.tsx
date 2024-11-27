@@ -7,6 +7,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,8 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     const submitButton = (
         <Button
@@ -73,20 +76,18 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
                 shouldShowRightIcon
             />
-
-            {isValidateCodeActionModalVisible && (
-                <DelegateMagicCodeModal
-                    login={login}
-                    role={role}
-                    onClose={() => {
-                        if (!showValidateActionModal) {
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                    }}
-                />
-            )}
+            <DelegateMagicCodeModal
+                login={login}
+                role={role}
+                onClose={() => {
+                    if (!showValidateActionModal) {
+                        setIsValidateCodeActionModalVisible(false);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                }}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+            />
         </HeaderPageLayout>
     );
 }

@@ -89,7 +89,7 @@ function SubscriptionDetails() {
             <View style={[styles.flexShrink1, styles.w100, styles.justifyContentBetween]}>
                 <View style={styles.flexRow}>
                     <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.details.title')}</Text>
-                    {privateTaxExempt && (
+                    {!!privateTaxExempt && (
                         <Badge
                             badgeStyles={styles.mtn1}
                             text={translate('subscription.details.taxExemptEnabled')}

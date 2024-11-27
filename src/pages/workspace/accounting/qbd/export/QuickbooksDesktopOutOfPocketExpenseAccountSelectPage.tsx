@@ -6,7 +6,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -29,8 +28,6 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-
-    const {canUseNewDotQBD} = usePermissions();
 
     const [title, description] = useMemo(() => {
         let titleText: TranslationPaths | undefined;
@@ -61,7 +58,9 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             value: account,
             text: account.name,
             keyForList: account.name,
-            isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
+            // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            isSelected: account.id === (qbdConfig?.export?.reimbursableAccount || accounts.at(0)?.id),
         }));
     }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export?.reimbursableAccount]);
 
@@ -94,7 +93,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopOutOfPocketExpenseAccountSelectPage.displayName}
             sections={data.length ? [{data}] : []}
@@ -104,7 +103,6 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             onSelectRow={selectExportAccount}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title={title}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT)}

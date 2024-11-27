@@ -41,12 +41,9 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {queryJSON && (
+                {!!queryJSON && (
                     <>
-                        <SearchPageHeader
-                            queryJSON={queryJSON}
-                            hash={queryJSON.hash}
-                        />
+                        <SearchPageHeader queryJSON={queryJSON} />
                         <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>

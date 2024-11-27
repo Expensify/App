@@ -115,8 +115,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -144,9 +145,7 @@ function MoneyRequestPreviewContent({
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
-    const hasDuplicates = duplicates.length > 0;
-
-    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasDuplicates;
+    const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
@@ -294,8 +293,13 @@ function MoneyRequestPreviewContent({
 
     const navigateToReviewFields = () => {
         const backTo = route.params.backTo;
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? ''});
+
+        // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
+        // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
+        Transaction.abandonReviewDuplicateTransactions();
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID ?? '');
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
+
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
         } else if ('category' in comparisonResult.change) {

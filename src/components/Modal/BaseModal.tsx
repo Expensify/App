@@ -43,6 +43,7 @@ function BaseModal(
         animationInTiming,
         animationOutTiming,
         statusBarTranslucent = true,
+        navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
@@ -193,7 +194,7 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -256,6 +257,7 @@ function BaseModal(
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
+                    navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}

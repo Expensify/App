@@ -1,5 +1,6 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -10,21 +11,25 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
+import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -43,7 +48,6 @@ import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import toggleTestToolsModal from '@userActions/TestTool';
-import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -203,6 +207,8 @@ const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
+        // Since we don't cancel the tooltip in setModalVisibility, we need to do it here so it will be cancelled when a modal screen is shown.
+        TooltipManager.cancelPendingAndActiveTooltips();
         Modal.setModalVisibility(true);
     },
     blur: () => {
@@ -224,6 +230,7 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth for the root stack navigator
@@ -242,27 +249,28 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-
-    let initialReportID: string | undefined;
-    const isInitialRender = useRef(true);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (isInitialRender.current) {
-        Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-
+    const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
-        if (currentURL) {
-            initialReportID = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        if (reportIdFromPath) {
+            return reportIdFromPath;
         }
 
-        if (!initialReportID) {
-            const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-            initialReportID = initialReport?.reportID ?? '';
-        }
+        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+        return initialReport?.reportID ?? '';
+    });
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        isInitialRender.current = false;
-    }
+    useEffect(() => {
+        if (!NavBarManager) {
+            Log.hmmm('RNNavBarManager not found in AuthScreens');
+            return;
+        }
+        NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
+
+        return () => {
+            NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
+        };
+    }, [theme]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -286,13 +294,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             setDidPusherInit(true);
         });
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        if (SessionUtils.didUserLogInDuringSession()) {
-            App.openApp();
-        } else {
-            Log.info('[AuthScreens] Sending ReconnectApp');
-            App.reconnectApp(initialLastUpdateIDAppliedToClient);
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!NativeModules.HybridAppModule) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+            if (SessionUtils.didUserLogInDuringSession()) {
+                App.openApp();
+            } else {
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+            }
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -306,8 +317,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
-
-        Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
@@ -362,6 +371,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.checkIfActionIsAllowed(() => {
+                    const state = navigationRef.getRootState();
+                    const currentFocusedRoute = findFocusedRoute(state);
+                    if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                        return;
+                    }
                     toggleSearchRouter();
                 })();
             },
@@ -382,7 +396,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
             debugShortcutConfig.shortcutKey,
-            () => Modal.close(toggleTestToolsModal),
+            () => toggleTestToolsModal(),
             debugShortcutConfig.descriptionKey,
             debugShortcutConfig.modifiers,
             true,

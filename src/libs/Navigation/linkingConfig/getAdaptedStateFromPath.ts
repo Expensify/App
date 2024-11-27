@@ -20,6 +20,7 @@ import config, {normalizedConfigs} from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
+import getOnboardingAdaptedState from './getOnboardingAdaptedState';
 import replacePathInNestedState from './replacePathInNestedState';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [
@@ -253,7 +254,15 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         if (onboardingModalNavigator) {
-            routes.push(onboardingModalNavigator);
+            if (onboardingModalNavigator.state) {
+                // Build the routes list based on the current onboarding step, so going back will go to the previous step instead of closing the onboarding flow
+                routes.push({
+                    ...onboardingModalNavigator,
+                    state: getOnboardingAdaptedState(onboardingModalNavigator.state),
+                });
+            } else {
+                routes.push(onboardingModalNavigator);
+            }
         }
 
         if (welcomeVideoModalNavigator) {

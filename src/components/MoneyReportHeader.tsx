@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,8 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import isReportOpenInRHP from '@libs/Navigation/isReportOpenInRHP';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -23,6 +23,7 @@ import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -65,6 +66,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const route = useRoute();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? '-1'}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? '-1'}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -103,8 +105,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID), [moneyRequestReport?.reportID, transactions]);
+    const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID, transactions), [moneyRequestReport?.reportID, transactions]);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -119,10 +120,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
-        [moneyRequestReport, chatReport, policy, transaction],
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, transactionViolations, onlyShowPayElsewhere),
+        [moneyRequestReport, chatReport, policy, transaction, transactionViolations],
     );
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
 
@@ -134,7 +136,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy), [moneyRequestReport, policy]);
+    const shouldShowApproveButton = useMemo(
+        () => IOU.canApproveIOU(moneyRequestReport, policy, transactionViolations) && !hasOnlyPendingTransactions,
+        [moneyRequestReport, policy, hasOnlyPendingTransactions, transactionViolations],
+    );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -169,15 +174,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
-    const displayedAmount = isAnyTransactionOnHold && canAllowSettlement ? nonHeldAmount : formattedAmount;
+    const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const isReportInRHP = isReportOpenInRHP(navigationRef?.getRootState());
-    const shouldDisplaySearchRouter = !isReportInRHP;
+    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
+    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -379,7 +384,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                {!!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
                             policy={policy}
@@ -410,7 +415,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            {isMoreContentShown && (
+            {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
@@ -443,7 +448,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isLoading={!isOffline && !canAllowSettlement}
                             />
                         )}
-                        {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                        {!!shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                             <ExportWithDropdownMenu
                                 policy={policy}
                                 report={moneyRequestReport}
@@ -469,7 +474,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                     </View>
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
-                    {statusBarProps && (
+                    {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
                             description={statusBarProps.description}
@@ -479,7 +484,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             )}
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}

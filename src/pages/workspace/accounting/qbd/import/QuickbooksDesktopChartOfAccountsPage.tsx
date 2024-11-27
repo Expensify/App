@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -20,7 +19,6 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const {canUseNewDotQBD} = usePermissions();
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     return (
@@ -29,11 +27,10 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
             displayName={QuickbooksDesktopChartOfAccountsPage.displayName}
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbd.accountsDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] Will be removed when release
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID))}
         >
             <ToggleSettingOptionRow

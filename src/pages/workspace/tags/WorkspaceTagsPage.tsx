@@ -73,7 +73,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.hasSyncError(policy, isSyncInProgress);
+    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
@@ -253,7 +253,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (enabledTagCount > 0) {
             options.push({
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
@@ -265,7 +265,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: Expensicons.Document,
+                icon: Expensicons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {

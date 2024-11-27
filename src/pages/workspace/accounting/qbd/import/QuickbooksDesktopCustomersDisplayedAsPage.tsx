@@ -3,7 +3,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -21,7 +20,6 @@ type CardListItem = ListItem & {
 
 function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const {canUseNewDotQBD} = usePermissions();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
@@ -56,7 +54,7 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopCustomersDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
@@ -65,7 +63,6 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
             onSelectRow={selectDisplayedAs}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.common.displayedAs"
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
