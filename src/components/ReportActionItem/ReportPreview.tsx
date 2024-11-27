@@ -330,14 +330,14 @@ function ReportPreview({
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, transactionViolations, onlyShowPayElsewhere),
-        [iouReport, chatReport, policy, allTransactions, transactionViolations],
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, onlyShowPayElsewhere),
+        [iouReport, chatReport, policy, allTransactions],
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy, transactionViolations), [iouReport, policy, transactionViolations]);
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
