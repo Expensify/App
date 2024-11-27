@@ -163,7 +163,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const chatWithAMText = useMemo(() => {
+    const chatWithAccountManagerText = useMemo(() => {
         if (accountManagerReportID) {
             const participants = ReportUtils.getParticipantsAccountIDsForDisplay(accountManagerReport, false, true);
             const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([participants?.at(0) ?? -1], personalDetails);
@@ -171,7 +171,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                return translate('common.chatWithAM', {AMDisplayName: `${displayName} (${login})`});
+                return translate('common.chatWithAccountManager', {accountManagerDisplayName: `${displayName} (${login})`});
             }
         }
         return '';
@@ -781,7 +781,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                         {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
                                 containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAMText}
+                                text={chatWithAccountManagerText}
                                 onClose={dismissBanner}
                                 onButtonPress={chatWithAccountManager}
                                 shouldShowCloseButton

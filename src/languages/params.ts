@@ -559,8 +559,8 @@ type CompanyNameParams = {
     companyName: string;
 };
 
-type ChatWithAMParams = {
-    AMDisplayName: string;
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -765,5 +765,5 @@ export type {
     ImportedTypesParams,
     CurrencyCodeParams,
     CompanyNameParams,
-    ChatWithAMParams,
+    ChatWithAccountManagerParams,
 };

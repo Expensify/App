@@ -39,7 +39,7 @@ import type {
     ChangeTypeParams,
     CharacterLengthLimitParams,
     CharacterLimitParams,
-    ChatWithAMParams,
+    ChatWithAccountManagerParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
     CompanyNameParams,
@@ -475,7 +475,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
-        chatWithAM: ({AMDisplayName}: ChatWithAMParams) => `Need something specific? Chat with your account manager, ${AMDisplayName}.`,
+        chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
     location: {
