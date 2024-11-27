@@ -12,6 +12,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
+import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
@@ -209,6 +210,8 @@ const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
+        // Since we don't cancel the tooltip in setModalVisibility, we need to do it here so it will be cancelled when a modal screen is shown.
+        TooltipManager.cancelPendingAndActiveTooltips();
         Modal.setModalVisibility(true);
     },
     blur: () => {
@@ -264,6 +267,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     });
 
     useEffect(() => {
+        if (!NavBarManager) {
+            Log.hmmm('RNNavBarManager not found in AuthScreens');
+            return;
+        }
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
 
         return () => {
