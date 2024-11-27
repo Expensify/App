@@ -82,7 +82,7 @@ Any transactions that were posted prior to this date will not be imported into E
 Click the Assign button
 Once assigned, you will see each cardholder associated with their card as well as the start date listed.
 
-If you're using a connected accounting system such as NetSuite, Xero, Intacct, Quickbooks Desktop, or QuickBooks Online, you can also connect the card to export to a specific credit card GL account.
+If you're using a connected accounting system such as NetSuite, Xero, Intacct, QuickBooks Desktop, or QuickBooks Online, you can also connect the card to export to a specific credit card GL account.
 
 Go to Settings > Domains > [Domain name] > Company Cards
 Click Edit Exports on the right-hand side of the card table and select the GL account you want to export expenses to.
