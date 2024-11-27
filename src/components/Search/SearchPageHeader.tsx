@@ -25,14 +25,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
-<<<<<<< HEAD
-import SearchButton from './SearchRouter/SearchButton';
-import SearchRouterInput from './SearchRouter/SearchRouterInput';
-import type {PaymentData, SearchQueryJSON} from './types';
-=======
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 import type {SearchQueryJSON} from './types';
->>>>>>> main
 
 type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
