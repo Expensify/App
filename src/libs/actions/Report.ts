@@ -3882,6 +3882,27 @@ function prepareOnboardingOptimisticData(
         guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
+    const selfDMReportID = ReportUtils.findSelfDMReportID();
+    const selfDMReport = ReportConnection.getReport(selfDMReportID ?? '-1');
+
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+            value: {
+                isPinned: false,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+            value: {
+                isPinned: selfDMReport?.isPinned,
+            },
+        });
+    }
+
     guidedSetupData.push(...tasksForParameters);
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
