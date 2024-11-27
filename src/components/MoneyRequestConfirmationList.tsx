@@ -697,7 +697,7 @@ function MoneyRequestConfirmationList({
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyTagLists, policyTags]);
+    }, [transactionID, policyTagLists, policyTags]);
 
     /**
      * Navigate to report details or profile of selected user
