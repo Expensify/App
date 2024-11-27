@@ -369,6 +369,9 @@ function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends Conn
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (settingValue === oldSettingValue) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
