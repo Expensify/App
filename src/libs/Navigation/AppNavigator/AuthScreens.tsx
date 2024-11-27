@@ -261,10 +261,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     });
 
     useEffect(() => {
-        if (!NavBarManager) {
-            Log.hmmm('RNNavBarManager not found in AuthScreens');
-            return;
-        }
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
 
         return () => {
