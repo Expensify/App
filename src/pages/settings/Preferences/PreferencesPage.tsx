@@ -52,19 +52,11 @@ function PreferencesPage() {
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
-                        subtitle={translate('preferencesPage.appSection.subtitle')}
                         isCentralPane
-                        subtitleMuted
                         illustration={LottieAnimations.PreferencesDJ}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mb2]}
-                                numberOfLines={1}
-                            >
-                                {translate('common.notifications')}
-                            </Text>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
                                     <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>

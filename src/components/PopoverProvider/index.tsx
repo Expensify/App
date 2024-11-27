@@ -7,6 +7,7 @@ import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types'
 const PopoverContext = createContext<PopoverContextValue>({
     onOpen: () => {},
     popover: null,
+    popoverAnchor: null,
     close: () => {},
     isOpen: false,
 });
@@ -21,6 +22,7 @@ function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, 
 function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
+    const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current']>(null);
 
     const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
@@ -30,6 +32,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
         activePopoverRef.current.close();
         activePopoverRef.current = null;
         setIsOpen(false);
+        setActivePopoverAnchor(null);
         return true;
     }, []);
 
@@ -108,6 +111,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
                 closePopover(activePopoverRef.current.anchorRef);
             }
             activePopoverRef.current = popoverParams;
+            setActivePopoverAnchor(popoverParams.anchorRef.current);
             setIsOpen(true);
         },
         [closePopover],
@@ -119,9 +123,10 @@ function PopoverContextProvider(props: PopoverContextProps) {
             close: closePopover,
             // eslint-disable-next-line react-compiler/react-compiler
             popover: activePopoverRef.current,
+            popoverAnchor: activePopoverAnchor,
             isOpen,
         }),
-        [onOpen, closePopover, isOpen],
+        [onOpen, closePopover, isOpen, activePopoverAnchor],
     );
 
     return <PopoverContext.Provider value={contextValue}>{props.children}</PopoverContext.Provider>;
