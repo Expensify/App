@@ -266,7 +266,7 @@ function MoneyRequestParticipantsSelector({
     useEffect(() => {
         getContactPermission().then((status) => {
             setContactPermissionState(status);
-            if (status !== RESULTS.BLOCKED) {
+            if (status !== RESULTS.BLOCKED && status !== RESULTS.UNAVAILABLE) {
                 setSoftPermissionModalVisible(true);
             }
         });
