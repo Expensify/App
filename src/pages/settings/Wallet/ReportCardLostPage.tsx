@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
@@ -81,6 +82,9 @@ function ReportCardLostPage({
     const {paddingBottom} = useStyledSafeAreaInsets();
 
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
+    const primaryLogin = account?.primaryLogin ?? '';
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading)) {
@@ -132,8 +136,6 @@ function ReportCardLostPage({
     };
 
     const sendValidateCode = () => {
-        const primaryLogin = account?.primaryLogin ?? '';
-
         if (loginList?.[primaryLogin]?.validateCodeSent) {
             return;
         }
@@ -201,7 +203,7 @@ function ReportCardLostPage({
                             onClose={() => setIsValidateCodeActionModalVisible(false)}
                             isVisible={isValidateCodeActionModalVisible}
                             title={translate('cardPage.validateCardTitle')}
-                            description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                         />
                     </>
                 ) : (

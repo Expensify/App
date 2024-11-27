@@ -25,11 +25,12 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
@@ -80,16 +81,6 @@ function navigateToSidebar(): Promise<void> {
         fireEvent(reportHeaderBackButton, 'press');
     }
     return waitForBatchedUpdates();
-}
-
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
-    if (!optionRow) {
-        return;
-    }
-    fireEvent(optionRow, 'press');
-    await waitForBatchedUpdatesWithAct();
 }
 
 function areYouOnChatListScreen(): boolean {

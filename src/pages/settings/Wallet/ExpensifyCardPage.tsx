@@ -13,6 +13,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,6 +85,9 @@ function ExpensifyCardPage({
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
@@ -307,7 +311,7 @@ function ExpensifyCardPage({
                         isVisible={isValidateCodeActionModalVisible}
                         hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                         title={translate('cardPage.validateCardTitle')}
-                        description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                        descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     />
                 </>
             )}
