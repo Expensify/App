@@ -142,6 +142,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** The testID of the button. Used to locate this view in end-to-end tests. */
+    testID?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -242,6 +245,7 @@ function Button(
         link = false,
         isContentCentered = false,
         isPressOnEnterActive,
+        testID,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -410,6 +414,7 @@ function Button(
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
+                testID={testID}
             >
                 {renderContent()}
                 {isLoading && (

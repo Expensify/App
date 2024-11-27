@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -72,6 +73,10 @@ function IOURequestStartPage({
         }
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
+
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE);
+    }, []);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
