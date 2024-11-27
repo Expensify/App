@@ -43,6 +43,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {connection} = route.params;
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
+    const shouldShow = policy?.achAccount?.bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.areExpensifyCardsEnabled;
 
     const toggleContinuousReconciliation = (value: boolean) => {
         Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
@@ -75,6 +76,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -89,7 +91,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         subtitle={translate('workspace.accounting.saveHoursOnReconciliation')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
-                        disabled={!autoSync || !policy?.workspaceAccountID || !policy?.areExpensifyCardsEnabled}
+                        disabled={!autoSync}
                         isActive={!!isContinuousReconciliationOn}
                         onToggle={toggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}

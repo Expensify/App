@@ -104,6 +104,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
+    const shouldShowCardReconciliationOption =
+        policy?.achAccount?.bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.areExpensifyCardsEnabled;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -306,7 +308,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
-            ...(policy?.workspaceAccountID && policy?.areExpensifyCardsEnabled
+            ...(shouldShowCardReconciliationOption
                 ? [
                       {
                           icon: Expensicons.ExpensifyCard,
@@ -329,10 +331,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
             },
         ];
-
-        if (!policy?.areExpensifyCardsEnabled) {
-            configurationOptions.splice(2, 1);
-        }
 
         return [
             {
@@ -398,6 +396,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         canUseNetSuiteUSATax,
+        shouldShowCardReconciliationOption,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
