@@ -9,8 +9,6 @@ type ContactImportResult = {
     permissionStatus: PermissionStatus;
 };
 
-type PermissionResponse = 'granted' | 'denied' | 'blocked';
-
 type DeviceContact = {
     firstName?: string;
     lastName?: string;
@@ -19,4 +17,4 @@ type DeviceContact = {
     imageData?: string;
 };
 
-export type {StringHolder, ContactImportResult, PermissionResponse, DeviceContact};
+export type {StringHolder, ContactImportResult, DeviceContact};

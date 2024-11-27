@@ -434,7 +434,7 @@ function MoneyRequestParticipantsSelector({
         );
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
-    const handlePermissionGrant = useCallback(() => {
+    const handleSoftPermissionGrant = useCallback(() => {
         setSoftPermissionModalVisible(false);
         InteractionManager.runAfterInteractions(handleContactImport);
         setTextInputAutoFocus(true);
@@ -542,7 +542,7 @@ function MoneyRequestParticipantsSelector({
                 <ContactPermissionModal
                     startPermissionFlow={softPermissionModalVisible}
                     resetPermissionFlow={handleSoftPermissionDeny}
-                    onGrant={handlePermissionGrant}
+                    onGrant={handleSoftPermissionGrant}
                     onDeny={handleSoftPermissionDeny}
                 />
             )}
