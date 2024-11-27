@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useMemo, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {SearchFilterKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
@@ -29,6 +30,9 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
+import * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as ReportUserActions from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,16 +55,14 @@ type SearchRouterListProps = {
     /** Any extra sections that should be displayed in the router list */
     additionalSections?: Array<SectionListDataType<OptionData | SearchQueryItem>>;
 
-    shouldPreventDefault?: boolean;
-
     /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
-    /** Callback to call when an item is focused via arrow buttons */
-    onListItemFocus: (item: SearchQueryItem) => void;
+    /** Callback to call when user did not click an item but still text query should be changed */
+    setTextQuery: (item: string) => void;
 
-    /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null;
+    /** Callback to call when the list of autocomplete substitutions should be updated */
+    updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
 };
 
 const defaultListOptions = {
@@ -109,7 +111,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, shouldPreventDefault = true, onListItemFocus, onListItemPress, initiallyFocusedOptionKey}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions, initiallyFocusedOptionKey}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -119,6 +121,26 @@ function SearchRouterList(
     const {activeWorkspaceID} = useActiveWorkspace();
     const policy = usePolicy(activeWorkspaceID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+
+    const personalDetails = usePersonalDetails();
+    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const taxRates = getAllTaxRates();
+
+    const sortedRecentSearches = useMemo(() => {
+        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    }, [recentSearches]);
+
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
+        return {
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
+            singleIcon: Expensicons.History,
+            searchQuery: query,
+            keyForList: timestamp,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+        };
+    });
 
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
@@ -174,7 +196,6 @@ function SearchRouterList(
         return autocompleteOptions;
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
 
-    const taxRates = getAllTaxRates();
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -351,6 +372,11 @@ function SearchRouterList(
         cardAutocompleteList,
     ]);
 
+    useEffect(() => {
+        ReportUserActions.searchInServer(autocompleteQueryValue.trim());
+    }, [autocompleteQueryValue]);
+
+    /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -358,6 +384,29 @@ function SearchRouterList(
     if (searchQueryItem) {
         sections.push({data: [searchQueryItem]});
     }
+
+    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
+    }
+
+    const recentReportsOptions = useMemo(() => {
+        if (autocompleteQueryValue.trim() === '') {
+            return searchOptions.recentReports.slice(0, 20);
+        }
+
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        const filteredOptions = OptionsListUtils.filterOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+
+        const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
+        if (filteredOptions.userToInvite) {
+            reportOptions.push(filteredOptions.userToInvite);
+        }
+        return reportOptions.slice(0, 20);
+    }, [autocompleteQueryValue, searchOptions]);
+
+    const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
+    sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID}) => {
@@ -379,11 +428,13 @@ function SearchRouterList(
     }
 
     const onArrowFocus = (focusedItem: OptionData | SearchQueryItem) => {
-        if (!isSearchQueryItem(focusedItem) || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+        if (!isSearchQueryItem(focusedItem) || !focusedItem.searchQuery || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
             return;
         }
 
-        onListItemFocus(focusedItem);
+        const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+        setTextQuery(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
+        updateAutocompleteSubstitutions(focusedItem);
     };
 
     return (
@@ -403,9 +454,8 @@ function SearchRouterList(
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
-            shouldPreventDefault={shouldPreventDefault}
             ref={ref}
-            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            initiallyFocusedOptionKey={shouldUseNarrowLayout ? undefined : styledRecentReports.at(0)?.keyForList}
             shouldScrollToFocusedIndex={!isInitialRender}
         />
     );

@@ -91,7 +91,6 @@ function SearchRouterInput(
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View style={styles.flex1}>
                     <TextInput
-                        ref={ref}
                         testID="search-router-text-input"
                         value={value}
                         onChangeText={onSearchQueryChange}
@@ -122,6 +121,7 @@ function SearchRouterInput(
                             onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
+                        ref={ref}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
@@ -137,4 +137,4 @@ function SearchRouterInput(
 
 SearchRouterInput.displayName = 'SearchRouterInput';
 
-export default forwardRef(SearchRouterInput);
+export default React.forwardRef(SearchRouterInput);
