@@ -15,15 +15,15 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
-import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
-import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -873,6 +873,17 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
+ * Checks if any non-hold violations for the provided transaction are of type 'violation'
+ */
+function hasNonHoldViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) =>
+            violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
+            violation.name !== CONST.VIOLATIONS.HOLD &&
+            (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
+    );
+}
+/**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
@@ -1219,88 +1230,89 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
 }
 
 export {
+    allHavePendingRTERViolation,
+    areRequiredFieldsEmpty,
+    buildNewTransactionAfterReviewingDuplicates,
     buildOptimisticTransaction,
+    buildTransactionsMergeParams,
     calculateTaxAmount,
-    getWorkspaceTaxesSettingsName,
-    getDefaultTaxCode,
-    transformedTaxRates,
-    getTaxValue,
-    getTaxName,
-    getEnabledTaxRateCount,
-    getUpdatedTransaction,
-    getDescription,
-    getRequestType,
-    isManualRequest,
-    isScanRequest,
+    compareDuplicateTransactionFields,
+    didReceiptScanSucceed,
+    getAllReportTransactions,
     getAmount,
     getAttendees,
-    getTaxAmount,
-    getTaxCode,
-    getCurrency,
-    getDistanceInMeters,
+    getBillable,
     getCardID,
-    getOriginalCurrency,
-    getOriginalAmount,
+    getCardName,
+    getCategory,
+    getCreated,
+    getCurrency,
+    getDefaultTaxCode,
+    getDescription,
+    getDistanceInMeters,
+    getEnabledTaxRateCount,
     getFormattedAttendees,
+    getFormattedCreated,
+    getMCCGroup,
     getMerchant,
     getMerchantOrDescription,
-    getMCCGroup,
-    getCreated,
-    getFormattedCreated,
-    getCategory,
-    getBillable,
+    getOriginalAmount,
+    getOriginalCurrency,
+    getRateID,
+    getRecentTransactions,
+    getReimbursable,
+    getRequestType,
     getTag,
     getTagArrayFromName,
     getTagForDisplay,
+    getTaxAmount,
+    getTaxCode,
+    getTaxName,
+    getTaxValue,
+    getTransaction,
+    getTransactionID,
     getTransactionViolations,
-    getAllReportTransactions,
-    hasReceipt,
-    hasEReceipt,
-    hasRoute,
-    isReceiptBeingScanned,
-    didReceiptScanSucceed,
+    getUpdatedTransaction,
     getValidWaypoints,
-    isDistanceRequest,
-    isFetchingWaypointsFromServer,
-    isExpensifyCardTransaction,
+    getWaypointIndex,
+    getWaypoints,
+    getWorkspaceTaxesSettingsName,
+    hasBrokenConnectionViolation,
+    hasEReceipt,
+    hasMissingSmartscanFields,
+    hasNonHoldViolations,
+    hasNoticeTypeViolation,
+    hasPendingRTERViolation,
+    hasPendingUI,
+    hasReceipt,
+    hasReceiptSource,
+    hasReservationList,
+    hasRoute,
+    hasViolation,
+    hasWarningTypeViolation,
+    isAmountMissing,
     isCardTransaction,
+    isCreatedMissing,
+    isCustomUnitRateIDForP2P,
+    isDistanceRequest,
     isDuplicate,
-    isPending,
-    isPosted,
+    isExpensifyCardTransaction,
+    isFetchingWaypointsFromServer,
+    isManualRequest,
+    isMerchantMissing,
     isOnHold,
     isOnHoldByTransactionID,
-    getWaypoints,
-    isAmountMissing,
-    isMerchantMissing,
     isPartialMerchant,
-    isCreatedMissing,
-    areRequiredFieldsEmpty,
-    hasMissingSmartscanFields,
-    hasPendingRTERViolation,
-    allHavePendingRTERViolation,
-    hasPendingUI,
-    getWaypointIndex,
-    waypointHasValidAddress,
-    getRecentTransactions,
-    hasReservationList,
-    hasViolation,
-    hasBrokenConnectionViolation,
-    shouldShowBrokenConnectionViolation,
-    hasNoticeTypeViolation,
-    hasWarningTypeViolation,
-    isCustomUnitRateIDForP2P,
-    getRateID,
-    getTransaction,
-    compareDuplicateTransactionFields,
-    getTransactionID,
-    buildNewTransactionAfterReviewingDuplicates,
-    buildTransactionsMergeParams,
-    getReimbursable,
     isPayAtEndExpense,
+    isPending,
+    isPosted,
+    isReceiptBeingScanned,
+    isScanRequest,
     removeSettledAndApprovedTransactions,
-    getCardName,
-    hasReceiptSource,
     shouldShowAttendees,
+    shouldShowBrokenConnectionViolation,
+    transformedTaxRates,
+    waypointHasValidAddress,
 };
 
 export type {TransactionChanges};

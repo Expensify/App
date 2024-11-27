@@ -6836,7 +6836,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
     const allViolations = violations ?? allTransactionViolations;
-    const hasNonHeldViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations) && !ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '-1');
+    const hasNonHeldViolations = ReportUtils.hasNonHoldViolations(iouReport?.reportID ?? '-1', allViolations);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6906,7 +6906,7 @@ function canIOUBePaid(
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const allViolations = violations ?? allTransactionViolations;
     const shouldBeApproved = canApproveIOU(iouReport, policy, allViolations);
-    const hasNonHeldViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations) && !ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '-1');
+    const hasNonHeldViolations = ReportUtils.hasNonHoldViolations(iouReport?.reportID ?? '-1', allViolations);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
     return (
