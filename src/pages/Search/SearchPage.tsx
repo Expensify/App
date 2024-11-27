@@ -43,10 +43,7 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <>
-                        <SearchPageHeader
-                            queryJSON={queryJSON}
-                            hash={queryJSON.hash}
-                        />
+                        <SearchPageHeader queryJSON={queryJSON} />
                         <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>
