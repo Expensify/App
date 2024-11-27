@@ -2612,7 +2612,7 @@ const translations = {
                     'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Desktop and sync the connection again.',
+            noAccountsFoundDescription: 'Add the account in QuickBooks Desktop and sync the connection again.',
             qbdSetup: 'QuickBooks Desktop setup',
             requiredSetupDevice: {
                 title: "Can't connect from this device",
@@ -2652,7 +2652,7 @@ const translations = {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
-            accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
+            accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
@@ -2713,10 +2713,10 @@ const translations = {
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
-                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
+                inviteEmployeesDescription: 'Import QuickBooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the QuickBooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
@@ -2745,7 +2745,7 @@ const translations = {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
+            noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',
@@ -3783,15 +3783,15 @@ const translations = {
             settings: 'settings',
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
-            qbo: 'Quickbooks Online',
-            qbd: 'Quickbooks Desktop',
+            qbo: 'QuickBooks Online',
+            qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
+                        return 'QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:

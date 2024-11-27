@@ -2575,8 +2575,8 @@ const CONST = {
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                quickbooksOnline: 'Quickbooks Online',
-                quickbooksDesktop: 'Quickbooks Desktop',
+                quickbooksOnline: 'QuickBooks Online',
+                quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
