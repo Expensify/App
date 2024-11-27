@@ -49,6 +49,7 @@ function TableListItem<TItem extends ListItem>({
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
+            isLongPressDisabled={!!isDisabled && !item.shouldPreventDisableCheckboxIfDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onLongPressRow={onLongPressRow}
