@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -9,13 +9,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
+import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import * as MemberAction from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
@@ -28,33 +31,45 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
+    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [selectedPolicyID, setSelectedPolicyID] = useState<string | null | undefined>();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING);
 
-    const handleJoinWorkspace = (policyID: string, automaticJoiningEnabled: boolean) => {
-        Report.completeOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND], policyID);
-        Welcome.setOnboardingAdminsChatReportID();
-        Welcome.setOnboardingPolicyID(policyID);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
 
-        if (automaticJoiningEnabled) {
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+
+    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+
+    const {canUseDefaultRooms} = usePermissions();
+    const {activeWorkspaceID} = useActiveWorkspace();
+
+    const handleJoinWorkspace = React.useCallback(
+        (policyID: string) => {
             MemberAction.addMemberToPrivateDomainWorkspace(policyID);
-            navigateAfterJoinRequest();
-        } else {
-            Report.navigateToConciergeChat();
-        }
-    };
+            Report.completeOnboarding(
+                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                onboardingPersonalDetails?.firstName ?? '',
+                onboardingPersonalDetails?.lastName ?? '',
+                undefined,
+                policyID,
+            );
+            Welcome.setOnboardingAdminsChatReportID();
+            Welcome.setOnboardingPolicyID(policyID);
 
+            navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, policyID, activeWorkspaceID, route.params?.backTo);
+        },
+        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, activeWorkspaceID, route.params?.backTo],
+    );
     const policyIDItems = useMemo(() => {
         return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
             return {
                 text: policyInfo.policyName,
                 alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
                 keyForList: policyInfo.policyID,
-                isSelected: policyInfo.policyID === selectedPolicyID,
                 rightElement: (
                     <Button
                         isDisabled={isOffline}
@@ -62,7 +77,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                         medium
                         text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
                         onPress={() => {
-                            handleJoinWorkspace(policyInfo.policyID, policyInfo.automaticJoiningEnabled);
+                            handleJoinWorkspace(policyInfo.policyID);
                         }}
                     />
                 ),
@@ -77,7 +92,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 ],
             };
         });
-    }, [translate, selectedPolicyID, isOffline, joinablePolicies]);
+    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace]);
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
@@ -89,6 +104,14 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
     }, [joinablePoliciesLoading, joinablePolicies, route.params?.backTo]);
 
+    const handleBackButtonPress = useCallback(() => {
+        if (isValidated) {
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+            return;
+        }
+        Navigation.goBack();
+    }, [isValidated]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -98,7 +121,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={80}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.flex1, styles.mb5, styles.mt8]}>
                 <View style={[wrapperPadding, styles.mb5]}>
@@ -109,9 +132,8 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 <SelectionList
                     sections={[{data: policyIDItems}]}
                     onSelectRow={(item) => {
-                        setSelectedPolicyID(item.keyForList);
+                        handleJoinWorkspace(item.keyForList);
                     }}
-                    initiallyFocusedOptionKey={policyIDItems.find((item) => item.keyForList === selectedPolicyID)?.keyForList}
                     shouldUpdateFocusedIndex
                     ListItem={UserListItem}
                     listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}

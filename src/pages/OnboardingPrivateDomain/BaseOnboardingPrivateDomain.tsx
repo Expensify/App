@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,9 +26,12 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+
+    const isValidated = UserUtils.isCurrentUserValidated(loginList);
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
@@ -42,8 +46,13 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [credentials?.login]);
 
     useEffect(() => {
-        sendValidateCode();
-    }, [sendValidateCode]);
+        if (!isValidated) {
+            sendValidateCode();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+    }, [sendValidateCode, isValidated]);
 
     return (
         <ScreenWrapper
