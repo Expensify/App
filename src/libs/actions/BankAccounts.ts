@@ -12,6 +12,7 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
+import type {SaveCorpayOnboardingDirectorInformation} from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
@@ -513,6 +514,13 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
     });
 }
 
+function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformation, bankAccountID: number) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, {
+        inputs: JSON.stringify(parameters),
+        bankAccountID,
+    });
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -745,6 +753,7 @@ export {
     getCorpayBankAccountFields,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingDirectorInformation,
 };
 
 export type {BusinessAddress, PersonalAddress};

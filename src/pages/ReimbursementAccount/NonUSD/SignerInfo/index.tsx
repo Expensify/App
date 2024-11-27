@@ -1,4 +1,4 @@
-import type {ComponentType} from 'react';
+import { ComponentType, useMemo } from "react";
 import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -18,6 +18,7 @@ import DateOfBirth from './substeps/DateOfBirth';
 import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import UploadDocuments from './substeps/UploadDocuments';
+import getSubstepValues from "@pages/ReimbursementAccount/utils/getSubstepValues";
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -36,6 +37,19 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const bodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 
+const INPUT_KEYS = {
+    SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME,
+    SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_DATE_OF_BIRTH,
+    SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE,
+    SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL,
+    SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+    SECOND_SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME,
+    SECOND_SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH,
+    SECOND_SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE,
+    SECOND_SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL,
+    SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+};
+
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
@@ -44,6 +58,9 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
+    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+
     // TODO set this based on param from redirect or BE response
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
@@ -66,6 +83,18 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
+            BankAccounts.saveCorpayOnboardingDirectorInformation({
+                signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
+                signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
+                signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
+                signerEmail: onyxValues[INPUT_KEYS.SIGNER_EMAIL],
+                signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                secondSignerFullName: onyxValues[INPUT_KEYS.SECOND_SIGNER_FULL_NAME],
+                secondSignerDateOfBirth: onyxValues[INPUT_KEYS.SECOND_SIGNER_DATE_OF_BIRTH],
+                secondSignerJobTitle: onyxValues[INPUT_KEYS.SECOND_SIGNER_JOB_TITLE],
+                secondSignerEmail: onyxValues[INPUT_KEYS.SECOND_SIGNER_EMAIL],
+                secondSignerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+            }, bankAccountID);
             onSubmit();
         }
     };
