@@ -46,8 +46,7 @@ RCT_EXPORT_MODULE()
 
 - (void)handleBackgroundTask:(BGTask *)task API_AVAILABLE(ios(13.0)) {
     // Create a task request to schedule the next background task
-//    BGProcessingTaskRequest TODO: use it
-    BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
+    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
     request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // Schedule for 15 minutes from now
     
     NSError *error = nil;
@@ -105,7 +104,7 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     }];
     
     
-    BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
+    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
             // Set earliest begin date to some time in the future
             request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
             
