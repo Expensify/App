@@ -6359,9 +6359,9 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 /**
  * Checks to see if a report contains non-hold violations
  */
-function hasNonHoldViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
+function hasNonHoldViolation(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = reportsTransactions[reportID] ?? [];
-    return transactions.some((transaction) => TransactionUtils.hasNonHoldViolations(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => TransactionUtils.hasNonHoldViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
 /**
@@ -8585,7 +8585,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
-    hasNonHoldViolations,
+    hasNonHoldViolation,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     isActionCreator,
