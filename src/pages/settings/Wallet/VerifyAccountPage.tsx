@@ -31,7 +31,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
-    const navigateBackTo = route?.params?.backTo;
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
