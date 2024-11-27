@@ -12,6 +12,7 @@ import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -64,6 +65,19 @@ async function signInAndGetApp(): Promise<void> {
 }
 
 describe('WorkspaceSwitcherPage', () => {
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+
+            // Unsubscribe to pusher channels
+            PusherHelper.teardown();
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        jest.clearAllMocks();
+    });
+
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
@@ -77,11 +91,6 @@ describe('WorkspaceSwitcherPage', () => {
         // Initialize the network key for OfflineWithFeedback
     });
 
-    // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
-    });
-
     describe('in default mode', () => {
         it('orders items with most recently updated on top', async () => {
             await signInAndGetApp();
@@ -90,7 +99,7 @@ describe('WorkspaceSwitcherPage', () => {
             const report2 = LHNTestUtils.getFakeReport([1, 3], 2);
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
-            const policy1 = LHNTestUtils.getFakePolicy('1', 'A');
+            const policy1 = LHNTestUtils.getFakePolicy('1', 'Workspace A');
             const policy2 = LHNTestUtils.getFakePolicy('2', 'B');
             const policy3 = LHNTestUtils.getFakePolicy('3', 'C');
 
@@ -129,6 +138,14 @@ describe('WorkspaceSwitcherPage', () => {
                     // Then the component should be rendered with the mostly recently updated report first
                     .then(async () => {
                         await navigateToWorkspaceSwitcher();
+                    })
+                    .then(() => {
+                        LHNTestUtils.getDefaultWorkspaceSwitcher();
+                    })
+                    .then(async () => {
+                        const hintText = Localize.translateLocal('workspace.switcher.headerTitle');
+                        const optionRow = await screen.findByTestId(hintText);
+                        expect(optionRow).toBeOnTheScreen();
                     })
             );
         });

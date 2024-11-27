@@ -10,9 +10,12 @@ import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
+import * as Localize from '@libs/Localize';
+import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
+import WorkspaceSwitcherPage from '@pages/WorkspaceSwitcherPage';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
@@ -267,6 +270,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * only in testing environment.
              *  */}
             <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+                <TopBar breadcrumbLabel={Localize.translateLocal('common.inbox')} />
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -278,6 +282,10 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
             </ReportIDsContextProvider>
         </ComposeProviders>
     );
+}
+
+function MockedWorkspaceSwitcherPage() {
+    return <WorkspaceSwitcherPage />;
 }
 
 function getDefaultRenderedSidebarLinks(currentReportID = '') {
@@ -293,6 +301,25 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
         // and there are a lot of render warnings. It needs to be done like this because normally in
         // our app (App.js) is when the react application is wrapped in the context providers
         render(<MockedSidebarLinks currentReportID={currentReportID} />);
+        return waitForBatchedUpdatesWithAct();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function getDefaultWorkspaceSwitcher(currentReportID = '') {
+    // A try-catch block needs to be added to the rendering so that any errors that happen while the component
+    // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
+    // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
+    // any errors are caught and logged, allowing you to identify the exact error that might be causing a rendering issue
+    // when developing tests.
+
+    try {
+        // Wrap the SideBarLinks inside of LocaleContextProvider so that all the locale props
+        // are passed to the component. If this is not done, then all the locale props are missing
+        // and there are a lot of render warnings. It needs to be done like this because normally in
+        // our app (App.js) is when the react application is wrapped in the context providers
+        render(<WorkspaceSwitcherPage />);
         return waitForBatchedUpdatesWithAct();
     } catch (error) {
         console.error(error);
@@ -354,4 +381,6 @@ export {
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,
+    MockedWorkspaceSwitcherPage,
+    getDefaultWorkspaceSwitcher,
 };
