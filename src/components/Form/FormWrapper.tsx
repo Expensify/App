@@ -128,6 +128,7 @@ function FormWrapper({
         [
             formID,
             style,
+            styles.mb5,
             styles.mh0,
             styles.mt5,
             styles.flex1,
