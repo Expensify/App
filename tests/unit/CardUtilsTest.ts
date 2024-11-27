@@ -34,11 +34,50 @@ const customFeedsWithoutExpensifyBank = {
 };
 const directFeeds = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
-        accountList: ['CREDIT CARD...6607'],
+        accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
         credentials: 'xxxxx',
         expiration: 1730998958,
     },
 };
+
+const directFeedCardsList: OnyxTypes.WorkspaceCardsList = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '21570652': {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+        cardID: 21570652,
+        cardName: 'CREDIT CARD...5501',
+        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        fraud: 'none',
+        lastFourPAN: '5501',
+        lastScrape: '',
+        lastUpdated: '',
+        scrapeMinDate: '2024-08-27',
+        state: 3,
+    },
+};
+const customFeedCardsList = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '21310091': {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+        cardID: 21310091,
+        cardName: '480801XXXXXX2554',
+        domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+        fraud: 'none',
+        lastFourPAN: '2554',
+        lastUpdated: '',
+        lastScrape: '2024-11-27 11:00:53',
+        scrapeMinDate: '2024-10-17',
+        state: 3,
+    },
+    cardList: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        '480801XXXXXX2554': 'ENCRYPTED_CARD_NUMBER',
+    },
+} as unknown as OnyxTypes.WorkspaceCardsList;
 const allFeeds: CompanyFeeds = {...customFeeds, ...directFeeds};
 const customFeedName = 'Custom feed name';
 
@@ -270,6 +309,25 @@ describe('CardUtils', () => {
             const feed = 'vvcf' as OnyxTypes.CompanyCardFeed;
             const feedName = CardUtils.getCardFeedName(feed);
             expect(feedName).toBe('');
+        });
+    });
+
+    describe('getFilteredCardList', () => {
+        it('Should return filtered custom feed cards list', () => {
+            const cardsList = CardUtils.getFilteredCardList(customFeedCardsList, undefined);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(cardsList).toStrictEqual({'480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER'});
+        });
+
+        it('Should return filtered direct feed cards list', () => {
+            const cardsList = CardUtils.getFilteredCardList(directFeedCardsList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
+        });
+
+        it('Should return empty object if no data was provided', () => {
+            const cardsList = CardUtils.getFilteredCardList(undefined, undefined);
+            expect(cardsList).toStrictEqual({});
         });
     });
 });
