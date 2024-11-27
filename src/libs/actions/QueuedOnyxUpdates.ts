@@ -8,11 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 let queuedOnyxUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
-/**
- * isPreservedKeysFilterEnabled is a flag used in flushQueue unit tests to mock and control whether the preserved keys filtering logic executes.
- */
-const isPreservedKeysFilterEnabled = false;
-
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
@@ -25,11 +20,12 @@ Onyx.connect({
  */
 function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
     queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
+
     return Promise.resolve();
 }
 
 function flushQueue(): Promise<void> {
-    if (!currentAccountID && (!CONFIG.IS_TEST_ENV || isPreservedKeysFilterEnabled)) {
+    if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
         const preservedKeys: OnyxKey[] = [
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
