@@ -1380,9 +1380,15 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRIP_SUMMARY]: {
+        reportID: string;
+        transactionID: string;
+        backTo?: string;
+    };
     [SCREENS.TRAVEL.TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
+        reservationIndex: number;
         backTo?: string;
     };
 };

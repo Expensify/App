@@ -15,9 +15,9 @@ import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
+type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_SUMMARY>;
 
-function TripDetailsPage({route}: TripDetailsPageProps) {
+function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
 
@@ -30,7 +30,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetailsPage.displayName}
+            testID={TripSummaryPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -60,6 +60,6 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     );
 }
 
-TripDetailsPage.displayName = 'TripDetailsPage';
+TripSummaryPage.displayName = 'TripSummaryPage';
 
-export default TripDetailsPage;
+export default TripSummaryPage;
