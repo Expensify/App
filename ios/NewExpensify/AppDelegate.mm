@@ -9,6 +9,8 @@
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
 #import <HardwareShortcuts.h>
+#import <BackgroundTasks/BackgroundTasks.h>
+#import <expensify-react-native-background-task/RNBackgroundTaskManager.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
@@ -49,7 +51,17 @@
       [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
       [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
   }
-
+  
+  [[BGTaskScheduler sharedScheduler] registerForTaskWithIdentifier:@"com.szymonrybczak.chat"
+                                                        usingQueue:nil
+                                                     launchHandler:^(BGTask * _Nonnull task) {
+    NSLog(@"[ReactNativeBackgroundTask] Executing background task: %@", task.identifier);
+    void (^handler)(BGTask * _Nonnull) = [[RNBackgroundTaskManager shared] handlerForIdentifier:task.identifier];
+    if (handler) {
+      handler(task);
+    }
+  }];
+  
   return YES;
 }
 
