@@ -44,8 +44,8 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
                 menuItems={companyCardFeatures}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
                 subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
-                ctaText={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
-                ctaAccessibilityLabel={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
+                ctaText={translate('workspace.companyCards.addCards')}
+                ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={startFlow}
                 illustrationBackgroundColor={colors.blue700}
                 illustration={Illustrations.CompanyCardsEmptyState}

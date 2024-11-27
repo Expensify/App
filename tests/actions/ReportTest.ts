@@ -393,8 +393,10 @@ describe('actions/Report', () => {
                 jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
 
-                if (optimisticReportActions.value?.[400]) {
-                    optimisticReportActions.value[400].created = reportActionCreatedDate;
+                const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
+
+                if (optimisticReportActionsValue?.[400]) {
+                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
                 }
 
                 // When we emit the events for these pending created actions to update them to not pending
