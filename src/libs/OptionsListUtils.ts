@@ -2,8 +2,8 @@
 import {Str} from 'expensify-common';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSortBy from 'lodash/sortBy';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {IOUAction} from '@src/CONST';
@@ -489,7 +489,12 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
+function getLastMessageTextForReport(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    personalDetailList: OnyxInputOrEntry<PersonalDetailsList>,
+    policy?: OnyxEntry<Policy>,
+): string {
     const reportID = report?.reportID ?? '-1';
     const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
@@ -592,6 +597,33 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportActionUtils.getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && ReportActionUtils.isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = ReportActionUtils.getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (lastReportAction?.actionName && ReportActionUtils.isAddCommentAction(lastReportAction)) {
+        const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+        const accountIDToName: Record<string, string> = {};
+        const originalMessageHtml = ReportActionUtils.getOriginalMessage(lastReportAction)?.html;
+        if (originalMessageHtml) {
+            const accountIDs = Array.from(originalMessageHtml.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
+            const getDisplayName = (personalDetails: OnyxEntry<PersonalDetails>): string => {
+                if (!personalDetails) {
+                    return '';
+                }
+                return personalDetails.login ?? personalDetails.displayName ?? '';
+            };
+
+            if (accountIDs && originalMessageHtml) {
+                const personalDetailsForAccountIDs = getPersonalDetailsForAccountIDs(accountIDs, personalDetailList);
+                accountIDs.forEach((id) => {
+                    if (!id) {
+                        return;
+                    }
+                    accountIDToName[id] = getDisplayName(personalDetailsForAccountIDs[id]);
+                });
+            }
+
+            if (accountIDToName) {
+                lastMessageTextFromReport = Str.removeSMSDomain(Parser.htmlToText(originalMessageHtml, {accountIDToName}));
+            }
+        }
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -689,7 +721,7 @@ function createOption(
 
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? -1] ?? null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, personalDetails);
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];

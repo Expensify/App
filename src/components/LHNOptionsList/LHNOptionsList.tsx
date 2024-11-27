@@ -165,7 +165,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy);
+            const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(itemFullReport, lastActorDetails, personalDetails, itemPolicy);
 
             return (
                 <OptionRowLHNData
