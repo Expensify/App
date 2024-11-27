@@ -1,18 +1,31 @@
-import type {SafeAreaUtils} from '@hooks/useSafeAreaUtils';
-import useSafeAreaUtils from '@hooks/useSafeAreaUtils';
-
-type SafeAreaConsumerProps = {
-    children: React.FC<SafeAreaUtils>;
-};
+import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import useStyleUtils from '@hooks/useStyleUtils';
+import type SafeAreaConsumerProps from './types';
 
 /**
  * This component is a light wrapper around the SafeAreaInsetsContext.Consumer. There are several places where we
  * may need not just the insets, but the computed styles so we save a few lines of code with this.
  */
 function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
-    const safeAreaUtils = useSafeAreaUtils();
+    const StyleUtils = useStyleUtils();
 
-    return children(safeAreaUtils);
+    return (
+        <SafeAreaInsetsContext.Consumer>
+            {(safeAreaInsets) => {
+                const insets = StyleUtils.getSafeAreaInsets(safeAreaInsets);
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+
+                return children({
+                    paddingTop,
+                    paddingBottom,
+                    insets,
+                    safeAreaPaddingBottomStyle: {paddingBottom},
+                });
+            }}
+        </SafeAreaInsetsContext.Consumer>
+    );
 }
 
 SafeAreaConsumer.displayName = 'SafeAreaConsumer';

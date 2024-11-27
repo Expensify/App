@@ -19,8 +19,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaUtils from '@hooks/useSafeAreaUtils';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -131,7 +131,7 @@ function NewChatPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const {insets} = useSafeAreaUtils();
+    const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 

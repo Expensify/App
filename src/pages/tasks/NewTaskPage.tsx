@@ -12,7 +12,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import useSafeAreaUtils from '@hooks/useSafeAreaUtils';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -51,7 +51,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
-    const {paddingBottom} = useSafeAreaUtils();
+    const {paddingBottom} = useStyledSafeAreaInsets();
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);

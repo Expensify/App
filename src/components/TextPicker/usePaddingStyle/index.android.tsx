@@ -1,7 +1,7 @@
-import useSafeAreaUtils from '@hooks/useSafeAreaUtils';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 
 export default function usePaddingStyle() {
-    const {paddingTop} = useSafeAreaUtils();
+    const {paddingTop} = useStyledSafeAreaInsets();
 
     return {paddingTop};
 }
