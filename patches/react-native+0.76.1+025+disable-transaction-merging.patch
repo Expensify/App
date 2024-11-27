@@ -1,0 +1,26 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
+index 3332d68..cf40804 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
+@@ -477,20 +477,7 @@ void Binding::schedulerDidFinishTransaction(
+     return;
+   }
+ 
+-  std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
+-  auto pendingTransaction = std::find_if(
+-      pendingTransactions_.begin(),
+-      pendingTransactions_.end(),
+-      [&](const auto& transaction) {
+-        return transaction.getSurfaceId() ==
+-            mountingTransaction->getSurfaceId();
+-      });
+-
+-  if (pendingTransaction != pendingTransactions_.end()) {
+-    pendingTransaction->mergeWith(std::move(*mountingTransaction));
+-  } else {
+-    pendingTransactions_.push_back(std::move(*mountingTransaction));
+-  }
++  pendingTransactions_.push_back(std::move(*mountingTransaction));
+ }
+ 
+ void Binding::schedulerShouldRenderTransactions(
