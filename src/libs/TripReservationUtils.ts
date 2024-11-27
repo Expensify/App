@@ -63,16 +63,17 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string; reservationIndex: number};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
         .flatMap(
             (item) =>
-                item?.receipt?.reservationList?.map((reservation) => ({
+                item?.receipt?.reservationList?.map((reservation, reservationIndex) => ({
                     reservation,
                     transactionID: item.transactionID,
                     reportID: item.reportID,
+                    reservationIndex,
                 })) ?? [],
         )
         .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
