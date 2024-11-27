@@ -1,6 +1,6 @@
 ---
-title: Configure Quickbooks Desktop
-description: Configure Quickbooks Desktop
+title: Configure QuickBooks Desktop
+description: Configure QuickBooks Desktop
 ---
 Our new QuickBooks Desktop integration allows you to automate the import and export process with Expensify.
 
@@ -71,7 +71,7 @@ For manual syncing, we recommend completing this process at least once a week an
 
 When syncing Expensify to QuickBooks Desktop, we recommend waiting until the sync finishes to access either Expensify and/or QuickBooks Desktop, as performance may vary during this process. You cannot open an instance of QuickBooks Desktop while a program is syncing - this may cause QuickBooks Desktop to behave unexpectedly.
 
-## **What are the different types of accounts that can be imported from Quickbooks Desktop?**
+## **What are the different types of accounts that can be imported from QuickBooks Desktop?**
 
 Here is the list of accounts from QuickBooks Desktop and how they are pulled into Expensify:
 

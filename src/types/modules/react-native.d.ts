@@ -16,6 +16,10 @@ type RNTextInputResetModule = {
     resetKeyboardInput: (nodeHandle: number | null) => void;
 };
 
+type RNNavBarManagerModule = {
+    setButtonStyle: (style: 'light' | 'dark') => void;
+};
+
 declare module 'react-native' {
     interface TextInputFocusEventData extends TargetedEvent {
         text: string;
@@ -43,6 +47,7 @@ declare module 'react-native' {
         HybridAppModule: HybridAppModule;
         StartupTimer: StartupTimer;
         RNTextInputReset: RNTextInputResetModule;
+        RNNavBarManager: RNNavBarManagerModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
     }
