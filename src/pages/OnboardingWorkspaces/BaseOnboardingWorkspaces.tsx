@@ -54,8 +54,6 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 onboardingPersonalDetails?.firstName ?? '',
                 onboardingPersonalDetails?.lastName ?? '',
-                undefined,
-                policyID,
             );
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID(policyID);
