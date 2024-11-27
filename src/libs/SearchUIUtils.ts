@@ -289,7 +289,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
 
     if (
-        IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) &&
+        IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, undefined, false, chatReportRNVP, invoiceReceiverPolicy) &&
         !ReportUtils.hasOnlyHeldExpenses(report.reportID, allReportTransactions)
     ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
@@ -461,7 +461,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
         // We are guaranteed that both a and b will be string or number at the same time
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
+            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
 
         const aNum = aValue as number;
