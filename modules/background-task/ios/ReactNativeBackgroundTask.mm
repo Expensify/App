@@ -1,6 +1,7 @@
 #import "ReactNativeBackgroundTask.h"
 #import <UIKit/UIKit.h>
 #import <BackgroundTasks/BackgroundTasks.h>
+#import "RNBackgroundTaskManager.h"
 
 @implementation ReactNativeBackgroundTask {
     NSMutableDictionary *_taskExecutors;
@@ -27,19 +28,25 @@ RCT_EXPORT_MODULE()
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
-
-- (void)handleAppDidFinishLaunching:(NSNotification *)notification {
-    NSLog(@"[ReactNativeBackgroundTask] Registering background task handler");
-    
-      [[BGTaskScheduler sharedScheduler] registerForTaskWithIdentifier:@"com.szymonrybczak.chat"
-                                                          usingQueue:dispatch_get_main_queue()
-                                                      launchHandler:^(__kindof BGTask * _Nonnull task) {
-          [self handleBackgroundTask:task];
-      }];
-}
+//
+//- (void)handleAppDidFinishLaunching:(NSNotification *)notification {
+//    NSLog(@"[ReactNativeBackgroundTask] handleAppDidFinishLaunching");
+//    
+//    if (@available(iOS 13.0, *)) {
+//        // Ensure we're on the main thread
+//        if ([NSThread isMainThread]) {
+//            [self registerBackgroundTask];
+//        } else {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                [self registerBackgroundTask];
+//            });
+//        }
+//    }
+//}
 
 - (void)handleBackgroundTask:(BGTask *)task API_AVAILABLE(ios(13.0)) {
     // Create a task request to schedule the next background task
+//    BGProcessingTaskRequest TODO: use it
     BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
     request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // Schedule for 15 minutes from now
     
@@ -78,10 +85,30 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
         reject(@"ERR_INVALID_TASK_EXECUTOR", @"Task executor must be provided", nil);
         return;
     }
-
+    
     NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
+    
+    [[RNBackgroundTaskManager shared] setHandlerForIdentifier:@"com.szymonrybczak.chat" completion:^(BGTask * _Nonnull task) {
+        // Your background task handling code
+        NSLog(@"[ReactNativeBackgroundTask] Executing background task's handler");
+        [task setTaskCompletedWithSuccess:YES];
+    }];
+    
+    
+    BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
+            // Set earliest begin date to some time in the future
+            request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
+            
+            NSError *error = nil;
+            if ([[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error]) {
+                resolve(@YES);
+            } else {
+                reject(@"error", error.localizedDescription, error);
+            }
+
+    
     _taskExecutors[taskName] = taskExecutor;
-    resolve(nil);
+//    resolve(nil);
 }
 
 // Don't compile this code when we build for the old architecture.
