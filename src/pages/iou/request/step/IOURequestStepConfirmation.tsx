@@ -88,7 +88,6 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
@@ -113,26 +112,14 @@ function IOURequestStepConfirmation({
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isSubmittingFromTrackExpense) {
-            return translate('iou.submitExpense');
-        }
         if (isSharingTrackExpense) {
             return translate('iou.share');
-        }
-        if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.splitExpense');
-        }
-        if (iouType === CONST.IOU.TYPE.TRACK) {
-            return translate('iou.trackExpense');
-        }
-        if (iouType === CONST.IOU.TYPE.PAY) {
-            return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
         if (iouType === CONST.IOU.TYPE.INVOICE) {
             return translate('workspace.invoices.sendInvoice');
         }
-        return translate('iou.submitExpense');
-    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
+        return translate('iou.confirmDetails');
+    }, [iouType, translate, isSharingTrackExpense, isCategorizingTrackExpense]);
 
     const participants = useMemo(
         () =>

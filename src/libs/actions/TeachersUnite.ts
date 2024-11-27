@@ -137,6 +137,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+                isOptimisticReport: false,
                 pendingAction: null,
             },
         },
