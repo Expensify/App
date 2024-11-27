@@ -5,6 +5,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -326,7 +327,7 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = getPlatform() === CONST.PLATFORM.IOS ? variables.safeInsertPercentage : 1): SafeAreaPadding {
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -1125,19 +1126,19 @@ function getAmountWidth(amount: string): number {
  * Single true value will give result accordingly.
  */
 function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
-    let backgroundColor;
-
     if (isSelected) {
-        backgroundColor = selectedBG;
-    } else if (isDisabled) {
-        backgroundColor = undefined;
-    } else if (isFocused) {
-        backgroundColor = focusedBG;
+        return {backgroundColor: selectedBG};
     }
 
-    return {
-        backgroundColor,
-    };
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
 }
 
 const staticStyleUtils = {

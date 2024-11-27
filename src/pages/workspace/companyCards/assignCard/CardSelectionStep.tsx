@@ -45,11 +45,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    const filteredCardList = Object.fromEntries(
-        Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))),
-    );
+    const filteredCardList = CardUtils.getFilteredCardList(list);
+
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
@@ -77,9 +74,9 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
@@ -105,14 +102,14 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
-        text: CardUtils.maskCardNumber(cardNumber),
+        text: CardUtils.maskCardNumber(cardNumber, feed),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
+                height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));

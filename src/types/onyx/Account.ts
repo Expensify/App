@@ -60,6 +60,15 @@ type DelegatedAccess = {
     errorFields?: DelegateErrors;
 };
 
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -145,6 +154,9 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    /** Indicates SMS delivery failure status and associated information */
+    SMSDeliveryFailureStatus?: SMSDeliveryFailureStatus;
 };
 
 export default Account;
