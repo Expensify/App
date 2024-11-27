@@ -2313,6 +2313,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -2332,6 +2333,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {

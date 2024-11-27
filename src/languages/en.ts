@@ -844,6 +844,8 @@ const translations = {
         submitExpense: 'Submit expense',
         createExpense: 'Create expense',
         trackExpense: 'Track expense',
+        chooseRecipient: 'Choose recipient',
+        confirmDetails: 'Confirm details',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -1409,9 +1411,7 @@ const translations = {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money with friends',
-        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
-        walletEnabledToSendAndReceiveMoney: 'Your wallet has been enabled to send and receive money with friends.',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
@@ -1824,6 +1824,9 @@ const translations = {
         helpConfigure: ' but you may need your IT department to help configure your email settings.',
         onceTheAbove: 'Once the above steps are completed, please reach out to ',
         toUnblock: ' to unblock your login.',
+    },
+    smsDeliveryFailurePage: {
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -2478,6 +2481,7 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            goToWorkspace: 'Go to workspace',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
@@ -2526,6 +2530,7 @@ const translations = {
                 }
             },
             planType: 'Plan type',
+            submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
         perDiem: {
@@ -2613,7 +2618,7 @@ const translations = {
                     'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Desktop and sync the connection again.',
+            noAccountsFoundDescription: 'Add the account in QuickBooks Desktop and sync the connection again.',
             qbdSetup: 'QuickBooks Desktop setup',
             requiredSetupDevice: {
                 title: "Can't connect from this device",
@@ -2653,7 +2658,7 @@ const translations = {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
-            accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
+            accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
@@ -2714,10 +2719,10 @@ const translations = {
             advancedConfig: {
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
-                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
+                inviteEmployeesDescription: 'Import QuickBooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the QuickBooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
@@ -2746,7 +2751,7 @@ const translations = {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
+            noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',
@@ -3232,9 +3237,8 @@ const translations = {
             collect: 'Collect',
         },
         companyCards: {
-            addCompanyCards: 'Add company cards',
-            selectCardFeed: 'Select card feed',
-            addCardFeed: 'Add card feed',
+            addCards: 'Add cards',
+            selectCards: 'Select cards',
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -3246,9 +3250,9 @@ const translations = {
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
-                learnMoreAboutConnections: {
-                    text: 'Learn more about the ',
-                    linkText: 'connection methods.',
+                learnMoreAboutOptions: {
+                    text: 'Learn more about these ',
+                    linkText: 'options.',
                 },
                 customFeedDetails: 'Requires setup with your bank. This is most common for larger companies, and the best option, if you qualify.',
                 directFeedDetails: 'Connect now using your master credentials. This is most common.',
@@ -3482,7 +3486,6 @@ const translations = {
                         assignCards: 'Assign cards to the entire team',
                         automaticImport: 'Automatic transaction import',
                     },
-                    ctaTitle: 'Add company cards',
                 },
                 disableCardTitle: 'Disable company cards',
                 disableCardPrompt: 'You can’t disable company cards because this feature is in use. Reach out to the Concierge for next steps.',
@@ -3491,7 +3494,7 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
-                integrationExport: ({integration, type}: IntegrationExportParams) => `${integration} ${type?.toLowerCase()} export`,
+                integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
@@ -3528,6 +3531,7 @@ const translations = {
                 giveItNameInstruction: 'Give the card a name that sets it apart from the others.',
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
+                defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
             },
             workflows: {
@@ -3785,15 +3789,15 @@ const translations = {
             settings: 'settings',
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
-            qbo: 'Quickbooks Online',
-            qbd: 'Quickbooks Desktop',
+            qbo: 'QuickBooks Online',
+            qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
+                        return 'QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
@@ -4212,6 +4216,11 @@ const translations = {
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
                 onlyAvailableOnPlan: 'Advanced approvals are only available on the Control plan, which starts at ',
             },
+            categories: {
+                title: 'Categories',
+                description: `Categories help you better organize expenses to keep track of where you're spending your money. Use our suggested categories list or create your own.`,
+                onlyAvailableOnPlan: 'Categories are available on the Collect plan, starting at ',
+            },
             glCodes: {
                 title: 'GL codes',
                 description: `Add GL codes to your categories and tags for easy export of expenses to your accounting and payroll systems.`,
@@ -4244,6 +4253,7 @@ const translations = {
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
             pricing: {
+                collect: '$5 ',
                 amount: '$9 ',
                 perActiveMember: 'per active member per month.',
             },
@@ -4256,6 +4266,7 @@ const translations = {
             completed: {
                 headline: `You've upgraded your workspace!`,
                 successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded ${policyName} to the Control plan!`,
+                categorizeMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can categorize your expenses!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
