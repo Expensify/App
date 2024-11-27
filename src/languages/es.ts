@@ -2504,6 +2504,7 @@ const translations = {
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             goToWorkspace: 'Ir al espacio de trabajo',
+            clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
             workspaceOwner: 'Dueño',
             workspaceType: 'Tipo de espacio de trabajo',
@@ -3751,7 +3752,7 @@ const translations = {
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
         },
         switcher: {
-            headerTitle: 'Elige un espacio de trabajo',
+            headerTitle: 'Filtrar por espacio de trabajo',
             everythingSection: 'Todo',
             placeholder: 'Encuentra un espacio de trabajo',
         },

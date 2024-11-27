@@ -476,6 +476,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
+    /** Whether to use the default theme for the confirm button */
+    shouldUseDefaultTheme?: boolean;
+
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
