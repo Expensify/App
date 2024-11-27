@@ -216,6 +216,7 @@ function FormProvider(
         isSubmittingRef.current = true;
         KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
 
+        // eslint-disable-next-line no-unused-expressions
         () => (isSubmittingRef.current = false);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
