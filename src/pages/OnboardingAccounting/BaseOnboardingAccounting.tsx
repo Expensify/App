@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
@@ -28,7 +29,6 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingAccountingProps} from './types';
 
@@ -61,7 +61,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
     useEffect(() => {
-        if (!isVsb || !isEmptyObject(allPolicies) || isLoadingOnyxValue(allPoliciesResult)) {
+        const filteredPolicies = Object.values(allPolicies ?? {}).filter(PolicyUtils.isPaidGroupPolicy);
+        if (!isVsb || filteredPolicies.length > 0 || isLoadingOnyxValue(allPoliciesResult)) {
             return;
         }
 
