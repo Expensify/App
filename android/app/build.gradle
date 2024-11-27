@@ -199,7 +199,7 @@ afterEvaluate {
     def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
 
     android.applicationVariants.configureEach { variant ->
-        if (variant.buildType.name == "release") {
+        if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
             def variantName = variant.name.capitalize()
             def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
 
