@@ -2678,7 +2678,7 @@ const translations = {
             classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/proyectos',
-            accountsDescription: 'Tu plan de cuentas de Quickbooks Online se importará a Expensify como categorías.',
+            accountsDescription: 'Tu plan de cuentas de QuickBooks Online se importará a Expensify como categorías.',
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
@@ -2740,11 +2740,11 @@ const translations = {
             advancedConfig: {
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
-                inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
+                inviteEmployeesDescription: 'Importe los registros de los empleados de QuickBooks Online e invítelos a este espacio de trabajo.',
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Online si aún no existen, y creará automáticamente clientes al exportar facturas.',
                 reimbursedReportsDescription:
-                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks Online indicadas a continuación.',
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de QuickBooks Online indicadas a continuación.',
                 qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
                 qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
                 accountSelectDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en QuickBooks Online.',
@@ -2776,7 +2776,7 @@ const translations = {
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
+            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
         },
         xero: {
             organization: 'Organización Xero',
@@ -3270,9 +3270,8 @@ const translations = {
             collect: 'Recopilar',
         },
         companyCards: {
-            addCompanyCards: 'Agregar tarjetas de empresa',
-            selectCardFeed: 'Seleccionar feed de tarjetas',
-            addCardFeed: 'Añadir alimentación de tarjeta',
+            addCards: 'Añadir tarjetas',
+            selectCards: 'Seleccionar tarjetas',
             addNewCard: {
                 other: 'Otros',
                 cardProviders: {
@@ -3284,9 +3283,9 @@ const translations = {
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
-                learnMoreAboutConnections: {
-                    text: 'Obtén más información sobre ',
-                    linkText: 'los métodos de conexión.',
+                learnMoreAboutOptions: {
+                    text: 'Obtén más información sobre estas ',
+                    linkText: 'opciones.',
                 },
                 customFeedDetails: 'Requiere configuración con tu banco. Esto es más común para empresas grandes, y la mejor opción, si calificas.',
                 directFeedDetails: 'Conéctate ahora usando tus credenciales maestras. Esto es lo más común.',
@@ -3523,7 +3522,6 @@ const translations = {
                         assignCards: 'Asignar tarjetas a todo el equipo',
                         automaticImport: 'Importación automática de transacciones',
                     },
-                    ctaTitle: 'Añadir tarjetas de empresa',
                 },
                 disableCardTitle: 'Deshabilitar tarjetas de empresa',
                 disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
@@ -3793,15 +3791,15 @@ const translations = {
             settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
-            qbo: 'Quickbooks Online',
-            qbd: 'Quickbooks Desktop',
+            qbo: 'QuickBooks Online',
+            qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
+                        return 'QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
@@ -5734,7 +5732,7 @@ const translations = {
             addPaymentCard: 'Añade tarjeta de pago',
             enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago',
             security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
-            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
+            learnMoreAboutSecurity: 'Obtén más información sobre nuestra seguridad.',
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',

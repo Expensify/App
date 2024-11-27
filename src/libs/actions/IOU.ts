@@ -6230,9 +6230,11 @@ function getSendMoneyParams(
             },
         );
 
-        if (optimisticChatReportActionsData.value) {
+        const optimisticChatReportActionsValue = optimisticChatReportActionsData.value as Record<string, OnyxTypes.ReportAction>;
+
+        if (optimisticChatReportActionsValue) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
+            optimisticChatReportActionsValue[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
         }
     } else {
         failureData.push({
