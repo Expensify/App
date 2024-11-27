@@ -76,12 +76,12 @@ function IOURequestStepAmount({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (isSplitBill || !skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
