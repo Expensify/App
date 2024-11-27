@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -17,25 +17,25 @@ function useOnboardingFlowRouter() {
     const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [isHybridAppOnboardingCompleted, isHybridAppOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
-        selector: hasCompletedHybridAppOnboardingFlowSelector,
+    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+        selector: tryNewDotOnyxSelector,
     });
+    const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
 
-        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
+        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
             return;
         }
 
-        if (hasBeenAddedToNudgeMigration) {
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.nudgeMigrationWelcomeModal) {
             Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
@@ -66,10 +66,13 @@ function useOnboardingFlowRouter() {
         isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        isHybridAppOnboardingCompletedMetadata,
+        tryNewDotdMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,
+        dismissedProductTrainingMetadata,
+        dismissedProductTraining?.nudgeMigrationWelcomeModal,
+        dismissedProductTraining,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

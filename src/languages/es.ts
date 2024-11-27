@@ -5913,6 +5913,16 @@ const translations = {
         takeATwoMinuteTour: 'Haz un tour de 2 minutos',
         exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
     },
+    migratedUserWelcomeModal: {
+        title: 'Travel and expense at the speed of chat!',
+        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        confirmText: "Let's go!",
+        features: {
+            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
+            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
+            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

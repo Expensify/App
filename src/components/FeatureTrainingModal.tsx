@@ -1,6 +1,7 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,8 +40,17 @@ type FeatureTrainingModalProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
+    /** Style for the animation container */
+    animationContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to render the animation instead of the video */
+    animationStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to render the animation instead of the video */
+    shouldRenderAnimation?: boolean;
+
     /** URL for the video */
-    videoURL: string;
+    videoURL?: string;
 
     videoAspectRatio?: number;
 
@@ -77,11 +87,14 @@ type FeatureTrainingModalProps = {
 
 function FeatureTrainingModal({
     animation,
+    animationStyle,
+    animationContainerStyle,
     videoURL,
     videoAspectRatio: videoAspectRatioProp,
     title = '',
     description = '',
     secondaryDescription = '',
+    shouldRenderAnimation = false,
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
@@ -137,13 +150,13 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    {aspectRatio},
+                    !shouldRenderAnimation && {aspectRatio},
                 ]}
             >
-                {videoStatus === 'video' ? (
+                {!shouldRenderAnimation && videoStatus === 'video' ? (
                     <GestureHandlerRootView>
                         <VideoPlayer
-                            url={videoURL}
+                            url={videoURL ?? ''}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                             onVideoLoaded={setAspectRatio}
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
@@ -153,19 +166,36 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 ) : (
-                    <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
-                        <Lottie
-                            source={animation ?? LottieAnimations.Hands}
-                            style={styles.h100}
-                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                            autoPlay
-                            loop
-                        />
+                    <View style={[styles.flex1, styles.alignItemsCenter, !shouldRenderAnimation && {aspectRatio}, animationContainerStyle]}>
+                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, animationStyle]}>
+                            <Lottie
+                                source={animation ?? LottieAnimations.Hands}
+                                style={styles.h100}
+                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
+                                autoPlay
+                                loop
+                            />
+                        </View>
                     </View>
                 )}
             </View>
         );
-    }, [animation, videoURL, videoAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
+    }, [
+        videoAspectRatio,
+        styles.w100,
+        styles.onboardingVideoPlayer,
+        styles.flex1,
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        styles.h100,
+        shouldRenderAnimation,
+        videoStatus,
+        videoURL,
+        animationContainerStyle,
+        animationStyle,
+        animation,
+        shouldUseNarrowLayout,
+    ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 

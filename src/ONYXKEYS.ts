@@ -359,6 +359,9 @@ const ONYXKEYS = {
     // Stores onboarding last visited path
     ONBOARDING_LAST_VISITED_PATH: 'onboardingLastVisitedPath',
 
+    // Whether the user has dismissed the product training element (Modal, Tooltip, etc.)
+    NVP_DISMISSED_PRODUCT_TRAINING: 'nvp_dismissedProductTraining',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -1023,6 +1026,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

@@ -1,41 +1,56 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Welcome from '@libs/actions/Welcome';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
+import LottieAnimations from './LottieAnimations';
 import MenuItem from './MenuItem';
 
 const ExpensifyFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
+        icon: Illustrations.ChatBubbles,
+        translationKey: 'migratedUserWelcomeModal.features.chat',
     },
     {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.emptyWorkspace.features.companyCards',
+        icon: Illustrations.Flash,
+        translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
     },
     {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
+        icon: Illustrations.ExpensifyMobileApp,
+        translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
     },
 ];
 
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     return (
         <FeatureTrainingModal
-            title={translate('onboarding.welcomeVideo.title')}
-            description={translate('onboarding.welcomeVideo.description')}
-            confirmText={translate('onboarding.getStarted')}
-            videoURL={CONST.WELCOME_VIDEO_URL}
+            title={translate('migratedUserWelcomeModal.title')}
+            description={translate('migratedUserWelcomeModal.subtitle')}
+            confirmText={translate('migratedUserWelcomeModal.confirmText')}
+            animation={LottieAnimations.WorkspacePlanet}
+            onClose={() => {
+                Welcome.dismissProductTrainingElement('nudgeMigrationWelcomeModal');
+            }}
+            shouldRenderAnimation
+            animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
+            animationContainerStyle={[
+                StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor ?? theme.appBG),
+                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusLarge),
+                styles.pv4,
+            ]}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
+            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}
@@ -43,6 +58,7 @@ function OnboardingWelcomeVideo() {
                     >
                         <MenuItem
                             title={translate(translationKey)}
+                            shouldRenderAsHTML
                             icon={icon}
                             iconWidth={variables.menuIconSize}
                             iconHeight={variables.menuIconSize}
@@ -50,6 +66,7 @@ function OnboardingWelcomeVideo() {
                             displayInDefaultIconColor
                             wrapperStyle={[styles.p0, styles.cursorAuto]}
                             containerStyle={[styles.m0, styles.wAuto]}
+                            titleContainerStyle={styles.ml6}
                             numberOfLinesTitle={0}
                         />
                     </View>
