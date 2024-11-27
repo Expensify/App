@@ -858,7 +858,7 @@ function setAssigneeValue(
                 pendingFields: report?.pendingFields,
                 pendingAction: report?.pendingAction,
             },
-            reportMetadata?.isOptimisticReport ?? false,
+            reportMetadata ? reportMetadata.isOptimisticReport : true,
         );
 
         // If there is no share destination set, automatically set it to the assignee chat report
