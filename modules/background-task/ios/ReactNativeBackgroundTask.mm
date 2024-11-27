@@ -89,8 +89,18 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
     
     [[RNBackgroundTaskManager shared] setHandlerForIdentifier:@"com.szymonrybczak.chat" completion:^(BGTask * _Nonnull task) {
-        // Your background task handling code
         NSLog(@"[ReactNativeBackgroundTask] Executing background task's handler");
+        
+        // Execute all registered tasks
+        [_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
+            NSLog(@"[ReactNativeBackgroundTask] Executing task: %@", taskName);
+            executor(@[@{
+                @"taskName": taskName,
+                @"type": @"background",
+                @"identifier": task.identifier
+            }]);
+        }];
+        
         [task setTaskCompletedWithSuccess:YES];
     }];
     
