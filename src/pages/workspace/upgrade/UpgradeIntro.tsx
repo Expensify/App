@@ -21,9 +21,10 @@ type Props = {
     loading?: boolean;
     feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
+    isCategorizing?: boolean;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -59,7 +60,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
+                        <Text style={[styles.textSupporting, styles.textBold]}>
+                            {isCategorizing ? translate(`workspace.upgrade.pricing.collect`) : translate(`workspace.upgrade.pricing.amount`)}
+                        </Text>
                         {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>

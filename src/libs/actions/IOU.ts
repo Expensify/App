@@ -6836,7 +6836,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
     const allViolations = violations ?? allTransactionViolations;
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
+    const hasNonHoldViolation = ReportUtils.hasNonHoldViolation(iouReport?.reportID ?? '-1', allViolations);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6849,7 +6849,7 @@ function canApproveIOU(
         }
     }
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned && !hasViolations;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned && !hasNonHoldViolation;
 }
 
 function canIOUBePaid(
@@ -6906,7 +6906,7 @@ function canIOUBePaid(
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     const allViolations = violations ?? allTransactionViolations;
     const shouldBeApproved = canApproveIOU(iouReport, policy, allViolations);
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
+    const hasNonHoldViolation = ReportUtils.hasNonHoldViolation(iouReport?.reportID ?? '-1', allViolations);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
     return (
@@ -6918,7 +6918,7 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !shouldBeApproved &&
-        !hasViolations &&
+        !hasNonHoldViolation &&
         !isPayAtEndExpenseReport
     );
 }
