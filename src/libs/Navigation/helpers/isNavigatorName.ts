@@ -18,6 +18,10 @@ const FULL_SCREENS_SET = new Set(FULL_SCREENS);
 const SIDEBARS_SET = new Set(SIDEBARS);
 const ONBOARDING_SCREENS_SET = new Set(ONBOARDING_SCREENS);
 
+/**
+ * Functions defined below are used to check whether a screen belongs to a specific group.
+ * It is mainly used to filter routes in the navigation state.
+ */
 function checkIfScreenHasMatchingNameToSetValues<T extends string>(screen: string | undefined, set: Set<T>): screen is T {
     if (!screen) {
         return false;

@@ -2,6 +2,7 @@ import {getPathFromState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {isFullScreenName} from './isNavigatorName';
 
+// This function adds the policyID param to the url.
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
     const path = getPathFromState(state, options);
     const fullScreenRoute = state.routes.findLast((route) => isFullScreenName(route.name));

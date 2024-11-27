@@ -6,9 +6,10 @@ import SCREENS from '@src/SCREENS';
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
- * Find the last visited report screen in the navigation state and get the id of it.
+ * Find the last visited report screen in the navigation state and get its specific param (id or action id).
  *
  * @param state - The react-navigation state
+ * @param reportParam - param to get from the report route params
  * @returns - It's possible that there is no report screen
  */
 
