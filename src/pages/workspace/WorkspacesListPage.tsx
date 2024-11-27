@@ -156,7 +156,13 @@ function WorkspacesListPage() {
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
-            const threeDotsMenuItems: PopoverMenuItem[] = [];
+            const threeDotsMenuItems: PopoverMenuItem[] = [
+                {
+                    icon: Expensicons.Building,
+                    text: translate('workspace.common.goToWorkspace'),
+                    onSelected: item.action,
+                },
+            ];
 
             if (isOwner) {
                 threeDotsMenuItems.push({
@@ -338,12 +344,13 @@ function WorkspacesListPage() {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator:
-                        reimbursementAccountBrickRoadIndicator ??
-                        PolicyUtils.getPolicyBrickRoadIndicatorStatus(
-                            policy,
-                            isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                        ),
+                    brickRoadIndicator: !PolicyUtils.isPolicyAdmin(policy)
+                        ? undefined
+                        : reimbursementAccountBrickRoadIndicator ??
+                          PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                              policy,
+                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                          ),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -366,7 +373,6 @@ function WorkspacesListPage() {
     const getHeaderButton = () => (
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
-            success
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
             icon={Expensicons.Plus}
