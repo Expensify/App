@@ -81,7 +81,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             recentAttendees ?? [],
             iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
             !isCategorizeOrShareAction,
-            !isCategorizeOrShareAction,
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
         );

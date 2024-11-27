@@ -121,7 +121,6 @@ function MoneyRequestParticipantsSelector({
                     (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
                 includeP2P: !isCategorizeOrShareAction,
-                canInviteUser: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 maxRecentReportsToShow: 0,
@@ -143,7 +142,6 @@ function MoneyRequestParticipantsSelector({
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
