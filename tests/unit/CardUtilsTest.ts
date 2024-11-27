@@ -38,9 +38,14 @@ const directFeeds = {
         credentials: 'xxxxx',
         expiration: 1730998958,
     },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: {
+        accountList: ['CREDIT CARD...1233', 'CREDIT CARD...5678', 'CREDIT CARD...4444', 'CREDIT CARD...3333', 'CREDIT CARD...7788'],
+        credentials: 'xxxxx',
+        expiration: 1730998959,
+    },
 };
 
-const directFeedCardsList: OnyxTypes.WorkspaceCardsList = {
+const directFeedCardsSingleList: OnyxTypes.WorkspaceCardsList = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570652': {
         accountID: 18439984,
@@ -50,6 +55,36 @@ const directFeedCardsList: OnyxTypes.WorkspaceCardsList = {
         domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
         fraud: 'none',
         lastFourPAN: '5501',
+        lastScrape: '',
+        lastUpdated: '',
+        scrapeMinDate: '2024-08-27',
+        state: 3,
+    },
+};
+const directFeedCardsMultipleList: OnyxTypes.WorkspaceCardsList = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '21570655': {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+        cardID: 21570655,
+        cardName: 'CREDIT CARD...5678',
+        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        fraud: 'none',
+        lastFourPAN: '5678',
+        lastScrape: '',
+        lastUpdated: '',
+        scrapeMinDate: '2024-08-27',
+        state: 3,
+    },
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '21570656': {
+        accountID: 18439984,
+        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+        cardID: 21570656,
+        cardName: 'CREDIT CARD...4444',
+        domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+        fraud: 'none',
+        lastFourPAN: '5678',
         lastScrape: '',
         lastUpdated: '',
         scrapeMinDate: '2024-08-27',
@@ -76,6 +111,8 @@ const customFeedCardsList = {
         '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '480801XXXXXX2554': 'ENCRYPTED_CARD_NUMBER',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
     },
 } as unknown as OnyxTypes.WorkspaceCardsList;
 const allFeeds: CompanyFeeds = {...customFeeds, ...directFeeds};
@@ -316,13 +353,19 @@ describe('CardUtils', () => {
         it('Should return filtered custom feed cards list', () => {
             const cardsList = CardUtils.getFilteredCardList(customFeedCardsList, undefined);
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            expect(cardsList).toStrictEqual({'480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER'});
+            expect(cardsList).toStrictEqual({'480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER', '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER'});
         });
 
-        it('Should return filtered direct feed cards list', () => {
-            const cardsList = CardUtils.getFilteredCardList(directFeedCardsList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
+        it('Should return filtered direct feed cards list with a single card', () => {
+            const cardsList = CardUtils.getFilteredCardList(directFeedCardsSingleList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
+        });
+
+        it('Should return filtered direct feed cards list with multiple cards', () => {
+            const cardsList = CardUtils.getFilteredCardList(directFeedCardsMultipleList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(cardsList).toStrictEqual({'CREDIT CARD...1233': 'CREDIT CARD...1233', 'CREDIT CARD...3333': 'CREDIT CARD...3333', 'CREDIT CARD...7788': 'CREDIT CARD...7788'});
         });
 
         it('Should return empty object if no data was provided', () => {
