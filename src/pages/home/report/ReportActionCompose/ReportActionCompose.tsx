@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -127,6 +128,7 @@ function ReportActionCompose({
     const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [isCreatingTaskComment, setIsCreatingTaskComment] = useState(false);
 
     /**
      * Updates the Highlight state of the composer
@@ -310,14 +312,14 @@ function ReportActionCompose({
     }, [onComposerFocus]);
 
     useEffect(() => {
-        if (hasExceededMaxTaskTitleLength) {
+        if (hasExceededMaxTaskTitleLength && isCreatingTaskComment) {
             setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
         } else if (hasExceededMaxCommentLength) {
             setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
         } else {
             setExceededMaxLength(null);
         }
-    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
+    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength, isCreatingTaskComment]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
@@ -407,17 +409,29 @@ function ReportActionCompose({
         ],
     );
 
+    const debouncedValidate = lodashDebounce(
+        (value: string) => {
+            const taskCommentMatch = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            setIsCreatingTaskComment(!!taskCommentMatch);
+            if (taskCommentMatch) {
+                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
+                validateTaskTitleMaxLength(title);
+            } else {
+                validateCommentMaxLength(value, {reportID});
+            }
+        },
+        CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME,
+        {leading: true},
+    );
+
     const onValueChange = useCallback(
         (value: string) => {
             if (value.length === 0 && isComposerFullSize) {
                 Report.setIsComposerFullSize(reportID, false);
             }
-            if (validateTaskTitleMaxLength(value)) {
-                return;
-            }
-            validateCommentMaxLength(value, {reportID});
+            debouncedValidate(value);
         },
-        [isComposerFullSize, reportID, validateCommentMaxLength, validateTaskTitleMaxLength],
+        [isComposerFullSize, reportID, debouncedValidate],
     );
 
     return (
