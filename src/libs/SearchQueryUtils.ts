@@ -5,7 +5,7 @@ import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchQue
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import * as CardUtils from './CardUtils';
@@ -341,8 +341,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
-    const dateFilter = buildDateFilterQuery(filterValues);
-    filtersString.push(dateFilter);
+    DATE_FILTER_KEYS.forEach((dateKey) => {
+        const dateFilter = buildDateFilterQuery(filterValues, dateKey);
+        filtersString.push(dateFilter);
+    });
 
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);

@@ -21,9 +21,11 @@ function SearchFiltersSubmittedPage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const submittedDate = searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED] ? format(searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED], 'yyyy-MM-dd') : undefined;
 
-    const updateSubmittedFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+    const dateAfter = searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED_AFTER] ? format(searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED_AFTER], 'yyyy-MM-dd') : undefined;
+    const dateBefore = searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED_BEFORE] ? format(searchAdvancedFiltersForm?.[FILTER_KEYS.SUBMITTED_BEFORE], 'yyyy-MM-dd') : undefined;
+
+    const updateDateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
@@ -45,15 +47,23 @@ function SearchFiltersSubmittedPage() {
             <FormProvider
                 style={[styles.flex1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                onSubmit={updateSubmittedFilter}
+                onSubmit={updateDateFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={DatePicker}
-                    inputID={FILTER_KEYS.SUBMITTED}
-                    label={translate('search.filters.submitted')}
-                    defaultValue={submittedDate}
+                    inputID={FILTER_KEYS.SUBMITTED_AFTER}
+                    label={translate('search.filters.date.after')}
+                    defaultValue={dateAfter}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                />
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={FILTER_KEYS.SUBMITTED_BEFORE}
+                    label={translate('search.filters.date.before')}
+                    defaultValue={dateBefore}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />

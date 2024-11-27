@@ -1,5 +1,15 @@
 import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import type Form from './Form';
+
+const DATE_FILTER_KEYS = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+];
 
 const FILTER_KEYS = {
     TYPE: 'type',
@@ -74,3 +84,4 @@ type SearchAdvancedFiltersForm = Form<
 
 export type {SearchAdvancedFiltersForm};
 export default FILTER_KEYS;
+export {DATE_FILTER_KEYS};

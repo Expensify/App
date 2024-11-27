@@ -247,9 +247,17 @@ const sortOptionsWithEmptyValue = (a: string, b: string) => {
 };
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
+    if (
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+    ) {
         // the value of date filter is a combination of dateBefore + dateAfter values
-        const {dateAfter, dateBefore} = filters;
+        const dateBefore = filters[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+        const dateAfter = filters[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
         let dateValue = '';
         if (dateBefore) {
             dateValue = translate('search.filters.date.before', {date: dateBefore});
