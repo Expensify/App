@@ -6832,7 +6832,7 @@ function canApproveIOU(
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(iouReport?.reportID);
-    const isArchivedExpenseReport = ReportUtils.isArchivedExpenseReport(iouReport, reportNameValuePairs);
+    const isArchivedExpenseReport = ReportUtils.isArchivedReport(iouReport, reportNameValuePairs);
     const allViolations = violations ?? allTransactionViolations;
     const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
     let isTransactionBeingScanned = false;
