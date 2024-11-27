@@ -2549,6 +2549,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
         perDiem: {
