@@ -32,9 +32,10 @@ type ReservationViewProps = {
     reservation: Reservation;
     transactionID: string;
     reportID: string;
+    reservationIndex: number;
 };
 
-function ReservationView({reservation, transactionID, reportID}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, reportID, reservationIndex}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -133,7 +134,7 @@ function ReservationView({reservation, transactionID, reportID}: ReservationView
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
-            onPress={() => Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, Navigation.getReportRHPActiveRoute()))}
+            onPress={() => Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, reservationIndex, Navigation.getReportRHPActiveRoute()))}
         />
     );
 }
@@ -158,13 +159,14 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
                 </View>
             </View>
             <>
-                {reservationsData.map(({reservation, transactionID, reportID}) => {
+                {reservationsData.map(({reservation, transactionID, reportID, reservationIndex}) => {
                     return (
                         <OfflineWithFeedback>
                             <ReservationView
                                 reservation={reservation}
                                 transactionID={transactionID}
                                 reportID={reportID}
+                                reservationIndex={reservationIndex}
                             />
                         </OfflineWithFeedback>
                     );
@@ -181,3 +183,4 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
 TripDetailsView.displayName = 'TripDetailsView';
 
 export default TripDetailsView;
+export {ReservationView};
