@@ -6357,7 +6357,7 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 }
 
 /**
- * Checks to see if a report contains a violations and the transaction is not on hold
+ * Checks to see if a report contains non-hold violations
  */
 function hasNonHoldViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = reportsTransactions[reportID] ?? [];
