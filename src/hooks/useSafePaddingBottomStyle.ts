@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
-import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
+import useSafeAreaUtils from './useSafeAreaUtils';
 import useThemeStyles from './useThemeStyles';
 
 // This hook is useful for adding extra bottom padding to a component based on the device's safe area
@@ -22,7 +22,7 @@ const useSafePaddingBottomStyle = () => {
         };
     }, []);
 
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaUtils();
 
     const extraPaddingBottomStyle = useMemo(() => {
         // Do not add extra padding at the bottom if the keyboard is open or if there is no safe area bottom padding style.
