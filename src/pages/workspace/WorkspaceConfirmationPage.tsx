@@ -109,6 +109,7 @@ function WorkspaceConfirmationPage() {
             <AvatarWithImagePicker
                 isUsingDefaultAvatar={!stashedLocalAvatarImage}
                 // eslint-disable-next-line react-compiler/react-compiler
+                avatarID={policyID}
                 source={stashedLocalAvatarImage}
                 onImageSelected={(image) => {
                     setAvatarFile(image);
@@ -124,10 +125,10 @@ function WorkspaceConfirmationPage() {
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 shouldUseStyleUtilityForAnchorPosition
-                // style={styles.w100}
                 type={CONST.ICON_TYPE_WORKSPACE}
                 style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
                 DefaultAvatar={DefaultAvatar}
+                editorMaskImage={Expensicons.ImageCropSquareMask}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
