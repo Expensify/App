@@ -40,7 +40,7 @@ import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
-import registerBackgroundFetch from './setup/backgroundTask';
+import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 type AppProps = {
@@ -64,11 +64,6 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
-
-    // TODO: move to correct place
-    useEffect(() => {
-        registerBackgroundFetch();
-    }, []);
 
     return (
         <StrictModeWrapper>
