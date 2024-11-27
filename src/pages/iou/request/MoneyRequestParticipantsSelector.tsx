@@ -127,8 +127,16 @@ function MoneyRequestParticipantsSelector({
             },
         );
 
+        if (isPaidGroupPolicy) {
+            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, undefined, {
+                preferChatroomsOverThreads: true,
+                preferPolicyExpenseChat: !!action,
+                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            });
+        }
+
         return optionList;
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, isPaidGroupPolicy, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
