@@ -3815,8 +3815,8 @@ const CONST = {
         },
         GA: {},
         GB: {
-            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*[0-9][A-Z-CIKMOV]{2}$/,
-            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH',
+            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*([0-9][ABD-HJLNP-UW-Z]{2})?$/,
+            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH, W1U',
         },
         GD: {},
         GE: {
@@ -4974,9 +4974,8 @@ const CONST = {
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Add or import your own categories.\n' +
-                        "6. Disable any default categories you don't need.\n" +
-                        '7. Require a category for every expense in *Settings*.\n' +
+                        "5. Disable any categories you don't need.\n" +
+                        '6. Add your own categories in the top right.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
@@ -5949,6 +5948,7 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+    MIN_TAX_RATE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
