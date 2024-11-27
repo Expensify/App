@@ -287,6 +287,7 @@ function NewChatPage() {
                         text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
+                        style={styles.mb5}
                     />
                 )}
             </>
@@ -297,7 +298,7 @@ function NewChatPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -331,6 +332,7 @@ function NewChatPage() {
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
+                    includeSafeAreaPaddingBottom={false}
                 />
                 {isSmallScreenWidth && (
                     <>
