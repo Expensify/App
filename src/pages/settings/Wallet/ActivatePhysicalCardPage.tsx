@@ -46,7 +46,7 @@ function ActivatePhysicalCardPage({
     const [formError, setFormError] = useState('');
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
-    const [shouldShowError, setShouldShowError] = useState<boolean>(false);
+    const [shouldAllowToShowError, setShouldAllowToShowError] = useState<boolean>(false);
 
     const inactiveCard = cardList?.[cardID];
     const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
@@ -100,7 +100,7 @@ function ActivatePhysicalCardPage({
     };
 
     const submitAndNavigateToNextPage = useCallback(() => {
-        setShouldShowError(true);
+        setShouldAllowToShowError(true);
         activateCardCodeInputRef.current?.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
@@ -139,7 +139,7 @@ function ActivatePhysicalCardPage({
                     lastPressedDigit={lastPressedDigit}
                     onChangeText={onCodeInput}
                     onFulfill={submitAndNavigateToNextPage}
-                    errorText={shouldShowError ? formError || cardError : ''}
+                    errorText={shouldAllowToShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
             </View>
