@@ -425,13 +425,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     useEffect(() => {
         const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
         const delegates = account?.delegatedAccess?.delegates ?? [];
-        const isAccessRemoved = delegates.findIndex((delegate) => delegate.email === session?.email) === -1;
+        const isAccessRemoved = delegates.findIndex((delegate) => delegate.email === account?.delegatedAccess?.delegate) === -1;
         if (!isActingAsDelegate || !isAccessRemoved) {
             return;
         }
         disconnect();
         setIsNoDelegateAccessMenuVisible(true);
-    }, [account, session?.email]);
+    }, [account]);
 
     const CentralPaneScreenOptions = {
         headerShown: false,
