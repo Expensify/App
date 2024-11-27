@@ -77,11 +77,7 @@ function WorkspaceSwitcherPage() {
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
-            let newPolicyID = policyID;
-
-            if (policyID && policyID === activeWorkspaceID) {
-                newPolicyID = undefined;
-            }
+            const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
