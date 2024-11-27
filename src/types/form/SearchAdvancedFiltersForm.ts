@@ -6,6 +6,16 @@ const FILTER_KEYS = {
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    SUBMITTED_AFTER: 'submittedAfter',
+    SUBMITTED_BEFORE: 'submittedBefore',
+    APPROVED_AFTER: 'approvedAfter',
+    APPROVED_BEFORE: 'approvedBefore',
+    PAID_AFTER: 'paidAfter',
+    PAID_BEFORE: 'paidBefore',
+    EXPORTED_AFTER: 'exportedAfter',
+    EXPORTED_BEFORE: 'exportedBefore',
+    POSTED_AFTER: 'postedAfter',
+    POSTED_BEFORE: 'postedBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
@@ -22,11 +32,6 @@ const FILTER_KEYS = {
     FROM: 'from',
     TO: 'to',
     IN: 'in',
-    SUBMITTED: 'submitted',
-    APPROVED: 'approved',
-    PAID: 'paid',
-    EXPORTED: 'exported',
-    POSTED: 'posted',
 } as const;
 
 type InputID = ValueOf<typeof FILTER_KEYS>;
@@ -38,6 +43,16 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.STATUS]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
+        [FILTER_KEYS.SUBMITTED_AFTER]: string;
+        [FILTER_KEYS.SUBMITTED_BEFORE]: string;
+        [FILTER_KEYS.APPROVED_AFTER]: string;
+        [FILTER_KEYS.APPROVED_BEFORE]: string;
+        [FILTER_KEYS.PAID_AFTER]: string;
+        [FILTER_KEYS.PAID_BEFORE]: string;
+        [FILTER_KEYS.EXPORTED_AFTER]: string;
+        [FILTER_KEYS.EXPORTED_BEFORE]: string;
+        [FILTER_KEYS.POSTED_AFTER]: string;
+        [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string;
@@ -54,11 +69,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
-        [FILTER_KEYS.SUBMITTED]: string;
-        [FILTER_KEYS.APPROVED]: string;
-        [FILTER_KEYS.PAID]: string;
-        [FILTER_KEYS.EXPORTED]: string;
-        [FILTER_KEYS.POSTED]: string;
     }
 >;
 

@@ -6077,6 +6077,10 @@ const CONST = {
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
         },
+        DATE_MODIFIERS: {
+            BEFORE: 'Before',
+            AFTER: 'After',
+        },
     },
 
     REFERRER: {

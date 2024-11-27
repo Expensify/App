@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -48,19 +48,19 @@ function sanitizeSearchValue(str: string) {
  * @private
  * Returns date filter value for QueryString.
  */
-function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const dateBefore = filterValues[FILTER_KEYS.DATE_BEFORE];
-    const dateAfter = filterValues[FILTER_KEYS.DATE_AFTER];
+function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
+    const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+    const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
 
     let dateFilter = '';
     if (dateBefore) {
-        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<${dateBefore}`;
+        dateFilter += `${filterKey}<${dateBefore}`;
     }
     if (dateBefore && dateAfter) {
         dateFilter += ' ';
     }
     if (dateAfter) {
-        dateFilter += `${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>${dateAfter}`;
+        dateFilter += `${filterKey}>${dateAfter}`;
     }
 
     return dateFilter;
@@ -303,17 +303,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
-            if (
-                (filterKey === FILTER_KEYS.MERCHANT ||
-                    filterKey === FILTER_KEYS.DESCRIPTION ||
-                    filterKey === FILTER_KEYS.REPORT_ID ||
-                    filterKey === FILTER_KEYS.SUBMITTED ||
-                    filterKey === FILTER_KEYS.APPROVED ||
-                    filterKey === FILTER_KEYS.PAID ||
-                    filterKey === FILTER_KEYS.EXPORTED ||
-                    filterKey === FILTER_KEYS.POSTED) &&
-                filterValue
-            ) {
+            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
@@ -439,19 +429,19 @@ function buildFilterFormValuesFromQuery(
                 .join(' ');
         }
         if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
         ) {
-            filtersForm[filterKey] = ValidationUtils.isValidDate(filterValues.at(0) ?? '') ? filterValues.at(0) : '';
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
-            filtersForm[FILTER_KEYS.DATE_BEFORE] =
-                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
-            filtersForm[FILTER_KEYS.DATE_AFTER] =
-                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_AFTER];
+            filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`] =
+                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ??
+                filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+            filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`] =
+                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ??
+                filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
