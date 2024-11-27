@@ -25,6 +25,7 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -1205,6 +1206,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,

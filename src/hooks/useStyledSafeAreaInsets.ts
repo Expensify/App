@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
 /**
