@@ -132,6 +132,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             success: true,
                         },
                     ],
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 return {
@@ -165,6 +166,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                         },
                     ],
                     headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -174,6 +176,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -204,7 +207,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 subtitle={content.subtitle}
                 buttons={content.buttons}
                 headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                lottieWebViewStyles={content.lottieWebViewStyles}
             />
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
