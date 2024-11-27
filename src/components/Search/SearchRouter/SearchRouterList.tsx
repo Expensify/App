@@ -300,13 +300,6 @@ function SearchRouterList(
         [setTextInputValue, textInputValue, onAutocompleteSuggestionClick],
     );
 
-    useEffect(() => {
-        if (textInputValue) {
-            return;
-        }
-        setIsInitialRender(true);
-    }, [textInputValue]);
-
     return (
         <SelectionList<OptionData | SearchQueryItem>
             sections={sections}

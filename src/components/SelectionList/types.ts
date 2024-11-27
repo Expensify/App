@@ -621,7 +621,6 @@ type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
     clearInputAfterSelect?: () => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
-    setFocusedIndex: (index: number) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
 };

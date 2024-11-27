@@ -61,8 +61,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteItemData[] | undefined>([]);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
 
-    const {isLargeScreenWidth} = useResponsiveLayout();
-
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
@@ -332,11 +330,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         Report.searchInServer(debouncedInputValue.trim());
     }, [debouncedInputValue]);
 
-    const setInitialFocus = useCallback(() => {
-        const initialFocusIndex = (sortedRecentSearches?.slice(0, 5).length ?? 0) + (contextualReportData ? 1 : 0);
-        listRef.current?.setFocusedIndex(initialFocusIndex);
-    }, [sortedRecentSearches, contextualReportData]);
-
     const onSearchChange = useCallback(
         (userQuery: string) => {
             let newUserQuery = userQuery;
@@ -352,16 +345,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             if (newUserQuery || !isEmpty(prevUserQueryRef.current)) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
-            } else if (!isLargeScreenWidth) {
-                listRef.current?.updateAndScrollToFocusedIndex(-1);
             } else {
-                setInitialFocus();
+                listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
 
             // Store the previous newUserQuery
             prevUserQueryRef.current = newUserQuery;
         },
-        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete, isLargeScreenWidth, setInitialFocus],
+        [autocompleteSubstitutions, autocompleteSuggestions, setTextInputValue, updateAutocomplete],
     );
 
     const onSearchSubmit = useCallback(

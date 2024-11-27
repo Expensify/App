@@ -721,13 +721,12 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, setFocusedIndex}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex}), [
         scrollAndHighlightItem,
         clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
         updateExternalTextInputFocus,
         scrollToIndex,
-        setFocusedIndex,
     ]);
 
     /** Selects row when pressing Enter */
