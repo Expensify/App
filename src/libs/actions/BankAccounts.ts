@@ -351,7 +351,40 @@ function getCorpayBankAccountFields(country: string, currency: string) {
         isBusinessBankAccount: true,
     };
 
-    return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: true,
+                    isSuccess: false,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CORPAY_FIELDS,
+                value: {
+                    isLoading: false,
+                    isSuccess: false,
+                },
+            },
+        ],
+    };
+
+    return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
 function createCorpayBankAccount(fields: ReimbursementAccountForm) {
@@ -390,7 +423,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 value: {
                     isLoading: false,
                     isSuccess: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.validationAmounts'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],

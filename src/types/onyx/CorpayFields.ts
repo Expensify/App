@@ -37,6 +37,10 @@ type CorpayFormFields = {
     formFields: CorpayFormField[];
     /** Preferred method for the bank */
     preferredMethod: string;
+    /** Indicates if the fields are loading */
+    isLoading: boolean;
+    /** Indicates if the fields loaded successfully */
+    isSuccess: boolean;
 };
 
 export default CorpayFormFields;

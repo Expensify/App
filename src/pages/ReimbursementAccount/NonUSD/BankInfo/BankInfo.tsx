@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +69,10 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
             prevScreen();
         }
     };
+
+    if (corpayFields?.isLoading !== undefined && !corpayFields?.isLoading && corpayFields?.isSuccess !== undefined && !corpayFields?.isSuccess) {
+        return <NotFoundPage />;
+    }
 
     return (
         <InteractiveStepWrapper
