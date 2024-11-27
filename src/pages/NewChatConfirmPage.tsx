@@ -177,6 +177,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     confirmButtonText={translate('newChatPage.startGroup')}
                     onConfirm={createGroup}
                     shouldHideListOnInitialRender={false}
+                    submitButtonStyles={styles.mb5}
                 />
             </View>
         </ScreenWrapper>
