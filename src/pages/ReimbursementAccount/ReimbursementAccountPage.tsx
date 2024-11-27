@@ -12,6 +12,7 @@ import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,13 +41,13 @@ import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
-import Agreements from './NonUSD/Agreements/Agreements';
+import Agreements from './NonUSD/Agreements';
 import BankInfo from './NonUSD/BankInfo/BankInfo';
 import BeneficialOwnerInfo from './NonUSD/BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './NonUSD/BusinessInfo/BusinessInfo';
 import Country from './NonUSD/Country/Country';
-import Finish from './NonUSD/Finish/Finish';
-import SignerInfo from './NonUSD/SignerInfo/SignerInfo';
+import Finish from './NonUSD/Finish';
+import SignerInfo from './NonUSD/SignerInfo';
 import RequestorStep from './RequestorStep';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
@@ -266,6 +267,8 @@ function ReimbursementAccountPage({route, policy}: ReimbursementAccountPageProps
         const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         if (isPreviousPolicy) {

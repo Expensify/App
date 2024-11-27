@@ -443,6 +443,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
+    /** Whether the text input should be shown after list header */
+    shouldShowTextInputAfterHeader?: boolean;
+
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
+
     /** Callback to fire when the list is scrolled */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
@@ -609,7 +615,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
-    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
+    scrollAndHighlightItem?: (items: string[]) => void;
     clearInputAfterSelect?: () => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;

@@ -12,7 +12,9 @@ import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
@@ -205,7 +207,7 @@ function FormProvider(
             return;
         }
 
-        onSubmit(trimmedStringValues);
+        KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
     // Keep track of the focus state of the current screen.
@@ -244,9 +246,20 @@ function FormProvider(
         setErrors({});
     }, [formID]);
 
+    const resetFormFieldError = useCallback(
+        (inputID: keyof Form) => {
+            const newErrors = {...errors};
+            delete newErrors[inputID];
+            FormActions.setErrors(formID, newErrors as Errors);
+            setErrors(newErrors);
+        },
+        [errors, formID],
+    );
+
     useImperativeHandle(forwardedRef, () => ({
         resetForm,
         resetErrors,
+        resetFormFieldError,
     }));
 
     const registerInput = useCallback<RegisterInput>(

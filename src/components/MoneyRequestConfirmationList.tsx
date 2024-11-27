@@ -685,9 +685,12 @@ function MoneyRequestConfirmationList({
     useEffect(() => {
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
-            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
             const isTagListRequired = tagList.required ?? false;
-            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+            if (!isTagListRequired) {
+                return;
+            }
+            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
+            if (enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index);
@@ -697,7 +700,7 @@ function MoneyRequestConfirmationList({
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyTagLists, policyTags]);
+    }, [transactionID, policyTagLists, policyTags]);
 
     /**
      * Navigate to report details or profile of selected user
@@ -706,14 +709,14 @@ function MoneyRequestConfirmationList({
         const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
             return;
         }
 
         if (option.accountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
         }
     };
 

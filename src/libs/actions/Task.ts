@@ -312,6 +312,10 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
+    ReportConnection.updateReportData(parentReportID, {
+        lastReadTime: currentTime,
+    });
+
     if (!isCreatedUsingMarkdown) {
         clearOutTaskInfo();
         Navigation.dismissModal(parentReportID);
@@ -772,13 +776,19 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID, currentUserAccountID]);
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport(
+        [assigneeAccountID, currentUserAccountID],
+        '',
+        undefined,
+        CONST.POLICY.OWNER_EMAIL_FAKE,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    );
 
-    // When assigning a task to a new user, by default we share the task in their DM
-    // However, the DM doesn't exist yet - and will be created optimistically once the task is created
-    // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
-    // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-    report.isHidden = true;
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
     const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
@@ -967,9 +977,10 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1');
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '-1', canUserPerformWriteAction);
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction?.message,
@@ -1006,8 +1017,14 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
             value: {
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '-1', optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ?? '',
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport?.reportID ?? '-1', optimisticReportActions as OnyxTypes.ReportActions)?.created,
+                lastMessageText:
+                    ReportActionsUtils.getLastVisibleMessage(parentReport?.reportID ?? '-1', canUserPerformWriteAction, optimisticReportActions as OnyxTypes.ReportActions).lastMessageText ??
+                    '',
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(
+                    parentReport?.reportID ?? '-1',
+                    canUserPerformWriteAction,
+                    optimisticReportActions as OnyxTypes.ReportActions,
+                )?.created,
                 hasOutstandingChildTask,
             },
         },

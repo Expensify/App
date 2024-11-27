@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
@@ -24,7 +25,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -93,7 +93,7 @@ function IOURequestStepScan({
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
-    const isTabActive = useTabNavigatorFocus({tabIndex});
+    const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
@@ -280,22 +280,26 @@ function IOURequestStepScan({
                     currentUserPersonalDetails.accountID,
                     participant,
                     '',
+                    false,
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
+                IOU.requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -365,6 +369,7 @@ function IOURequestStepScan({
                                     currentUserPersonalDetails.accountID,
                                     participant,
                                     '',
+                                    false,
                                     receipt,
                                     '',
                                     '',
@@ -380,31 +385,30 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
+                                IOU.requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {

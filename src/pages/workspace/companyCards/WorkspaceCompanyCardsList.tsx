@@ -36,17 +36,20 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
+            const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
                 <OfflineWithFeedback
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
                     errorRowStyles={styles.ph5}
                     errors={item.errors}
+                    pendingAction={item.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                         accessibilityLabel="row"
                         hoverStyle={styles.hoveredComponentBG}
+                        disabled={isCardDeleted}
                         onPress={() => {
                             if (!cardID || !item?.accountID) {
                                 return;
@@ -56,8 +59,8 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN)}
-                            name={customCardNames?.[item.cardID] ?? ''}
+                            cardNumber={item.lastFourPAN ?? ''}
+                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
@@ -79,7 +82,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {translate('workspace.companyCards.cardNumber')}
+                    {translate('workspace.expensifyCard.lastFour')}
                 </Text>
             </View>
         ),
