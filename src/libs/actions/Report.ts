@@ -3490,9 +3490,7 @@ function prepareOnboardingOptimisticData(
         }
     }
 
-    // A guide is assigned to the user if they choose the 'MANAGE_TEAM' onboarding option, except for users with emails containing '+'.
-    // Posting tasks for users with emails containig '+' in the #admins room is not allowed by the backend.
-    // Onboarding tasks for guide-assigned users are posted in the #admins room. For others, the tasks are posted in the Concierge chat.
+    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+');
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
     const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
