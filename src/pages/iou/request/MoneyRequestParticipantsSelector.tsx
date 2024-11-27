@@ -102,9 +102,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
             };
         }
 
@@ -139,9 +136,6 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
             };
         }
 
@@ -162,7 +156,7 @@ function MoneyRequestParticipantsSelector({
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -241,7 +235,7 @@ function MoneyRequestParticipantsSelector({
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getInvoicePrimaryWorkspace(activePolicyID, currentUserLogin)?.id;
+                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getInvoicePrimaryWorkspace(currentUserLogin)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,

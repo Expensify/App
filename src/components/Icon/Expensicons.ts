@@ -8,6 +8,7 @@ import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
+import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
 import AnnounceRoomAvatar from '@assets/images/avatars/announce-room.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
@@ -217,6 +218,7 @@ export {
     ArrowsUpDown,
     ArrowUpLong,
     ArrowDownLong,
+    AttachmentNotFound,
     Wrench,
     BackArrow,
     Bank,

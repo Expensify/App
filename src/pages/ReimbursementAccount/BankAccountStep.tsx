@@ -227,7 +227,8 @@ function BankAccountStep({
                         </PressableWithoutFeedback>
                         <ValidateCodeActionModal
                             title={translate('contacts.validateAccount')}
-                            description={translate('contacts.featureRequiresValidate')}
+                            descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                             isVisible={!!isValidateCodeActionModalVisible}
                             hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
