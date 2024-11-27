@@ -93,7 +93,7 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     iosSafeAreaInsetsPercentage: 0.7,
-    androidSafeAreaInsetsPercentage: 1.2,
+    androidSafeAreaInsetsPercentage: 0.8,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
