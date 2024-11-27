@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,13 +16,27 @@ import type {PersonalDetails, Transaction} from '@src/types/onyx';
 type FlightTripDetailsProps = {
     transaction: OnyxEntry<Transaction>;
     personalDetails: OnyxEntry<PersonalDetails>;
+    reservationIndex: number;
 };
 
-function FlightTripDetails({transaction, personalDetails}: FlightTripDetailsProps) {
+function FlightTripDetails({transaction, personalDetails, reservationIndex}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    const flightReservation = transaction?.receipt?.reservationList?.at(reservationIndex);
+
+    if (!flightReservation) {
+        return null;
+    }
+
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(flightReservation.type);
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(flightReservation.start.date));
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(flightReservation.end.date));
+
+    const prevFlightStartDate = reservationIndex > 0 && transaction?.receipt?.reservationList?.at(reservationIndex - 1)?.end.date;
+    const layover = prevFlightStartDate && DateUtils.getFormattedDurationBetweenDates(new Date(prevFlightStartDate), new Date(flightReservation.start.date));
 
     return (
         <>
@@ -37,100 +50,86 @@ function FlightTripDetails({transaction, personalDetails}: FlightTripDetailsProp
                 wrapperStyle={styles.pb3}
             />
 
-            {transaction?.receipt?.reservationList?.map((reservation, index) => {
-                const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
-                const startDate = DateUtils.getFormattedTransportDate(new Date(reservation.start.date), true);
-                const endDate = DateUtils.getFormattedTransportDate(new Date(reservation.end.date), true);
+            {!!layover && (
+                <>
+                    <MenuItem
+                        description={`${transaction?.receipt?.reservationList?.at(0)?.start.longName} (${transaction?.receipt?.reservationList?.at(0)?.start.shortName})`}
+                        title={`${layover} ${translate('travel.flightDetails.layover')}`}
+                        descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                        secondaryIcon={Expensicons.Chair}
+                        wrapperStyle={[styles.taskDescriptionMenuItem]}
+                        numberOfLinesDescription={2}
+                        iconHeight={20}
+                        iconWidth={20}
+                        iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                        secondaryIconFill={theme.icon}
+                        interactive={false}
+                    />
+                    <View style={[styles.borderBottom, styles.mh5, styles.mv3]} />
+                </>
+            )}
 
-                const nextFlightStartDate = transaction.receipt?.reservationList?.at(index + 1)?.start.date;
-                const layover = nextFlightStartDate && DateUtils.getFormattedDurationBetweenDates(new Date(reservation.end.date), new Date(nextFlightStartDate));
+            <MenuItem
+                title={`${flightReservation.start.cityName} (${flightReservation.start.shortName}) ${translate('common.conjunctionTo')} ${flightReservation.end.cityName} (${
+                    flightReservation.end.shortName
+                })`}
+                description={`${flightReservation.company?.longName} ${CONST.DOT_SEPARATOR} ${flightReservation.route?.airlineCode}`}
+                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                secondaryIcon={reservationIcon}
+                wrapperStyle={[styles.taskDescriptionMenuItem]}
+                numberOfLinesDescription={2}
+                iconHeight={20}
+                iconWidth={20}
+                iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                secondaryIconFill={theme.icon}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                description={`${translate('travel.flightDetails.takeOff')} ${CONST.DOT_SEPARATOR} ${startDate.date}`}
+                title={startDate.hour}
+                helperText={`${flightReservation.start.longName} (${flightReservation.start.shortName})${
+                    flightReservation.arrivalGate?.terminal ? `, ${flightReservation.arrivalGate?.terminal}` : ''
+                }`}
+                helperTextStyle={[styles.pb3, styles.mtn2]}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                description={`${translate('travel.flightDetails.landing')} ${CONST.DOT_SEPARATOR} ${endDate.date}`}
+                title={endDate.hour}
+                helperText={`${flightReservation.end.longName} (${flightReservation.end.shortName})`}
+                helperTextStyle={[styles.pb3, styles.mtn2]}
+                interactive={false}
+            />
 
-                return (
-                    <>
-                        <Text style={[styles.textSupporting, styles.mh5, styles.mt3, styles.mb2]}>{translate('travel.flight')}</Text>
-                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mb3]}>
-                            {reservation.start.cityName} ({reservation.start.shortName}) {translate('common.conjunctionTo')} {reservation.end.cityName} ({reservation.end.shortName})
-                        </Text>
-                        <MenuItem
-                            // TODO: blazejkustra - Use the actual duration
-                            description={`2h 15m ${CONST.DOT_SEPARATOR} ${reservation.end.longName}`}
-                            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                            title={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
-                            secondaryIcon={reservationIcon}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            numberOfLinesDescription={2}
-                            iconHeight={20}
-                            iconWidth={20}
-                            iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                            secondaryIconFill={theme.icon}
-                            interactive={false}
-                        />
+            <View style={[styles.flexRow, styles.flexWrap]}>
+                {!!flightReservation.route?.number && (
+                    <View style={styles.w50}>
                         <MenuItemWithTopDescription
-                            description={translate('travel.flightDetails.takeOff')}
-                            title={startDate}
-                            helperText={`${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                            helperTextStyle={[styles.pb3, styles.mtn2]}
+                            description={translate('travel.flightDetails.seat')}
+                            title={flightReservation.route?.number}
                             interactive={false}
                         />
+                    </View>
+                )}
+                {!!flightReservation.route?.class && (
+                    <View style={styles.w50}>
                         <MenuItemWithTopDescription
-                            description={translate('travel.flightDetails.landing')}
-                            title={endDate}
-                            helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
-                            helperTextStyle={[styles.pb3, styles.mtn2]}
+                            description={translate('travel.flightDetails.class')}
+                            title={flightReservation.route.class}
                             interactive={false}
                         />
-
-                        <View style={[styles.flexRow, styles.flexWrap]}>
-                            {!!reservation.route?.number && (
-                                <View style={styles.w50}>
-                                    <MenuItemWithTopDescription
-                                        description={translate('travel.flightDetails.seat')}
-                                        title={reservation.route?.number}
-                                        interactive={false}
-                                    />
-                                </View>
-                            )}
-                            {!!reservation.route?.class && (
-                                <View style={styles.w50}>
-                                    <MenuItemWithTopDescription
-                                        description={translate('travel.flightDetails.class')}
-                                        title={reservation.route.class}
-                                        interactive={false}
-                                    />
-                                </View>
-                            )}
-                            {!!reservation.confirmations?.at(0)?.value && (
-                                <View style={styles.w50}>
-                                    <MenuItemWithTopDescription
-                                        description={translate('travel.flightDetails.recordLocator')}
-                                        title={reservation.confirmations?.at(0)?.value}
-                                        interactive={false}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        <View style={[styles.borderBottom, styles.mh5, styles.mv3]} />
-                        {!!layover && (
-                            <>
-                                <MenuItem
-                                    description={`${transaction?.receipt?.reservationList?.at(0)?.start.longName} (${transaction?.receipt?.reservationList?.at(0)?.start.shortName})`}
-                                    title={`${layover} ${translate('travel.flightDetails.layover')}`}
-                                    descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                                    secondaryIcon={Expensicons.Chair}
-                                    wrapperStyle={[styles.taskDescriptionMenuItem]}
-                                    numberOfLinesDescription={2}
-                                    iconHeight={20}
-                                    iconWidth={20}
-                                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                                    secondaryIconFill={theme.icon}
-                                    interactive={false}
-                                />
-                                <View style={[styles.borderBottom, styles.mh5, styles.mv3]} />
-                            </>
-                        )}
-                    </>
-                );
-            })}
+                    </View>
+                )}
+                {!!flightReservation.confirmations?.at(0)?.value && (
+                    <View style={styles.w50}>
+                        <MenuItemWithTopDescription
+                            description={translate('travel.flightDetails.recordLocator')}
+                            title={flightReservation.confirmations?.at(0)?.value}
+                            interactive={false}
+                        />
+                    </View>
+                )}
+            </View>
         </>
     );
 }

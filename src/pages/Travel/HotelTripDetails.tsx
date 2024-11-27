@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -32,8 +31,8 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
     }
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
-    const checkInDate = DateUtils.getFormattedTransportDate(new Date(hotelReservation.start.date), true);
-    const checkOutDate = DateUtils.getFormattedTransportDate(new Date(hotelReservation.end.date), true);
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.start.date));
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.end.date));
 
     return (
         <>
@@ -46,12 +45,10 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />
-            <Text style={[styles.textSupporting, styles.mh5, styles.mt3, styles.mb2]}>{translate('travel.hotel')}</Text>
-            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mb3]}>{hotelReservation.start.longName}</Text>
             <MenuItem
-                description={hotelReservation.start.address}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
                 title={hotelReservation.start.longName}
+                description={translate('travel.hotel')}
+                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
                 secondaryIcon={reservationIcon}
                 wrapperStyle={[styles.taskDescriptionMenuItem]}
                 numberOfLinesDescription={2}
@@ -62,13 +59,18 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('travel.hotelDetails.checkIn')}
-                title={checkInDate}
+                description={translate('common.address')}
+                title={hotelReservation.start.address}
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('travel.hotelDetails.checkOut')}
-                title={checkOutDate}
+                description={`${translate('travel.hotelDetails.checkIn')} ${CONST.DOT_SEPARATOR} ${checkInDate.date}`}
+                title={checkInDate.hour}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                description={`${translate('travel.hotelDetails.checkOut')} ${CONST.DOT_SEPARATOR} ${checkOutDate.date}`}
+                title={checkOutDate.hour}
                 interactive={false}
             />
             {!!hotelReservation.confirmations?.at(0)?.value && (

@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -32,8 +31,8 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
     }
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(carReservation.type);
-    const checkInDate = DateUtils.getFormattedTransportDate(new Date(carReservation.start.date), true);
-    const checkOutDate = DateUtils.getFormattedTransportDate(new Date(carReservation.end.date), true);
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.start.date));
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.end.date));
 
     return (
         <>
@@ -46,12 +45,10 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />
-            <Text style={[styles.textSupporting, styles.mh5, styles.mt3, styles.mb2]}>{translate('travel.carDetails.rentalCar')}</Text>
-            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mb3]}>{carReservation.vendor}</Text>
             <MenuItem
-                description={carReservation.start.location}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
                 title={carReservation.vendor}
+                description={translate('travel.carDetails.rentalCar')}
+                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
                 secondaryIcon={reservationIcon}
                 wrapperStyle={[styles.taskDescriptionMenuItem]}
                 numberOfLinesDescription={2}
@@ -62,15 +59,15 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
                 interactive={false}
             />
             <MenuItemWithTopDescription
-                description={translate('travel.carDetails.pickUp')}
-                title={checkInDate}
+                description={`${translate('travel.carDetails.pickUp')} ${CONST.DOT_SEPARATOR} ${pickUpDate.date}`}
+                title={pickUpDate.hour}
                 interactive={false}
                 helperText={carReservation.start.location}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             <MenuItemWithTopDescription
-                description={translate('travel.carDetails.dropOff')}
-                title={checkOutDate}
+                description={`${translate('travel.carDetails.dropOff')} ${CONST.DOT_SEPARATOR} ${dropOffDate.date}`}
+                title={dropOffDate.hour}
                 interactive={false}
                 helperText={carReservation.end.location}
                 helperTextStyle={[styles.pb3, styles.mtn2]}

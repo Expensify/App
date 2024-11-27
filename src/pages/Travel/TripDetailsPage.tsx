@@ -52,7 +52,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}
             >
                 <HeaderWithBackButton
-                    title={translate('common.details')}
+                    title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
                     shouldShowBackButton
                 />
                 <ScrollView>
@@ -60,6 +60,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         <FlightTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
+                            reservationIndex={route.params.reservationIndex}
                         />
                     )}
                     {reservationType === 'hotel' && (
