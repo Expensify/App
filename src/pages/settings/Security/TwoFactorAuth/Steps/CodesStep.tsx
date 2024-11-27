@@ -13,6 +13,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -56,9 +57,12 @@ function CodesStep({backTo}: CodesStepProps) {
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const hasMagicCodeBeenSent = !!validateCodeAction?.validateCodeSent;
 
+    const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
+
     const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
+        setIsValidateModalVisible(!isUserValidated);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
@@ -66,6 +70,8 @@ function CodesStep({backTo}: CodesStepProps) {
         Session.toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated]);
+
+    useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
         <StepWrapper
@@ -173,7 +179,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     title={translate('contacts.validateAccount')}
                     descriptionPrimary={translate('contacts.featureRequiresValidate')}
                     descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                    isVisible={!isUserValidated}
+                    isVisible={isValidateModalVisible}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                     sendValidateCode={() => User.requestValidateCodeAction()}
@@ -181,7 +187,10 @@ function CodesStep({backTo}: CodesStepProps) {
                     validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                     clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                     onModalHide={() => {}}
-                    onClose={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
+                    onClose={() => {
+                        setIsValidateModalVisible(false);
+                        TwoFactorAuthActions.quitAndNavigateBack(backTo);
+                    }}
                 />
             </ScrollView>
         </StepWrapper>
