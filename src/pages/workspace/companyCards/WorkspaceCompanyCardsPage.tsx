@@ -42,7 +42,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     const policy = PolicyUtils.getPolicy(policyID);
 
-    const filteredCardList = CardUtils.getFilteredCardList(cardsList);
+    const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
