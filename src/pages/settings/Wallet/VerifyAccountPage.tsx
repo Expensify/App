@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -29,7 +30,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
-    const navigateBackTo = route?.params?.backTo;
+    const navigateForwardTo = route.params?.forwardTo;
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
@@ -58,12 +61,12 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (navigateBackTo) {
-            Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
+        if (navigateForwardTo) {
+            Navigation.navigate(navigateForwardTo, CONST.NAVIGATION.TYPE.UP);
         } else {
             Navigation.goBack();
         }
-    }, [isUserValidated, navigateBackTo]);
+    }, [isUserValidated, navigateForwardTo]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

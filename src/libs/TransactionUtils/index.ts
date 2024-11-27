@@ -15,18 +15,19 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
-import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
-import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -715,7 +716,7 @@ function hasBrokenConnectionViolation(transactionID: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return (
         hasBrokenConnectionViolation(transactionID) &&
         (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
@@ -872,6 +873,17 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
+ * Checks if any non-hold violations for the provided transaction are of type 'violation'
+ */
+function hasNonHoldViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) =>
+            violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
+            violation.name !== CONST.VIOLATIONS.HOLD &&
+            (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
+    );
+}
+/**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
@@ -883,11 +895,11 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
-function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean | null): boolean {
+function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
-            (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING && (showInReview === null || showInReview === (violation.showInReview ?? false)),
+            (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
         ) ?? [];
 
     const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
@@ -1043,10 +1055,10 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(transactionID: string, reportID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+function compareDuplicateTransactionFields(reviewingTransactionID: string, reportID: string, selectedTransactionID?: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
+    const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1097,6 +1109,14 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
         if (differentValues.length > 0) {
             change[fieldName] = differentValues;
         }
+    }
+
+    // The comment object needs to be stored only when selecting a specific transaction to keep.
+    // It contains details such as 'customUnit' and 'waypoints,' which remain unchanged during the review steps
+    // but are essential for displaying complete information on the confirmation page.
+    if (selectedTransactionID) {
+        const selectedTransaction = transactions.find((t) => t?.transactionID === selectedTransactionID);
+        keep.comment = selectedTransaction?.comment ?? {};
     }
 
     for (const fieldName in fieldsToCompare) {
@@ -1195,7 +1215,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         ...restReviewDuplicateTransaction,
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
-        comment: {comment: reviewDuplicateTransaction?.description},
+        comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
     };
 }
 
@@ -1283,6 +1303,7 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasNonHoldViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
     hasNoticeTypeViolation,

@@ -108,7 +108,8 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
-        backTo: Routes;
+        backTo?: Routes;
+        forwardTo?: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
@@ -898,6 +899,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
+        policyID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {
@@ -1168,6 +1172,13 @@ type MoneyRequestNavigatorParamList = {
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
@@ -1626,14 +1637,26 @@ type DebugParamList = {
         reportID: string;
     };
     [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
+        formType: string;
         fieldName: string;
         fieldValue?: string;
+        policyID?: string;
         backTo?: string;
     };
     [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
         fieldName: string;
         fieldValue?: string;
         backTo?: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE]: {
+        transactionID: string;
+    };
+    [SCREENS.DEBUG.TRANSACTION_VIOLATION]: {
+        transactionID: string;
+        index: string;
     };
 };
 

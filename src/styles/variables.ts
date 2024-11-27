@@ -48,8 +48,6 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
-    fontSizeOnlyEmojis: 30,
-    fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
@@ -89,8 +87,6 @@ export default {
     sidebarAvatarSize: 28,
     iconHeader: 48,
     iconSection: 68,
-    emojiSize: 20,
-    emojiLineHeight: 28,
     iouAmountTextSize: 40,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
@@ -204,8 +200,6 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
-    bankCardWidth: 40,
-    bankCardHeight: 26,
     popoverzIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
@@ -217,6 +211,14 @@ export default {
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
+
+    // Emoji related variables
+    fontSizeOnlyEmojis: 30,
+    fontSizeOnlyEmojisHeight: 35,
+    emojiSize: 20,
+    emojiLineHeight: 28,
+    fontSizeUsernameEmoji: 19,
+    fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -234,8 +236,8 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardIconWidth: 40,
-    cardIconHeight: 25.29,
-    cardBorderRadius: 2.35,
+    cardIconHeight: 26,
+    cardBorderRadius: 4,
 
     cardNameWidth: 156,
     holdMenuIconSize: 64,

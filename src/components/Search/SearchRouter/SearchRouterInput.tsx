@@ -17,7 +17,7 @@ type SearchRouterInputProps = {
     value: string;
 
     /** Callback to update search in SearchRouter */
-    updateSearch: (searchTerm: string) => void;
+    onSearchQueryChange: (searchTerm: string) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
@@ -33,6 +33,12 @@ type SearchRouterInputProps = {
 
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
+
+    /** Callback to call when the input gets focus */
+    onFocus?: () => void;
+
+    /** Callback to call when the input gets blur */
+    onBlur?: () => void;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -52,13 +58,15 @@ type SearchRouterInputProps = {
 
 function SearchRouterInput({
     value,
-    updateSearch,
+    onSearchQueryChange,
     onSubmit = () => {},
     routerListRef,
     isFullWidth,
     disabled = false,
     shouldShowOfflineMessage = false,
     autoFocus = true,
+    onFocus,
+    onBlur,
     caretHidden = false,
     wrapperStyle,
     wrapperFocusedStyle,
@@ -81,7 +89,7 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={updateSearch}
+                        onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
@@ -101,10 +109,12 @@ function SearchRouterInput({
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
+                            onFocus?.();
                         }}
                         onBlur={() => {
                             setIsFocused(false);
                             routerListRef?.current?.updateExternalTextInputFocus(false);
+                            onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
                     />

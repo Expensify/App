@@ -156,7 +156,11 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_VERIFY_ACCOUNT: {route: 'settings/wallet/verify', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/verify', backTo)},
+    SETTINGS_WALLET_VERIFY_ACCOUNT: {
+        route: 'settings/wallet/verify',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
+    },
     SETTINGS_WALLET_DOMAINCARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -470,6 +474,11 @@ const ROUTES = {
         route: ':action/:iouType/attendees/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/attendees/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_UPGRADE: {
+        route: ':action/:iouType/upgrade/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
@@ -1295,6 +1304,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/per-diem',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
     },
+    WORKSPACE_PER_DIEM_SETTINGS: {
+        route: 'settings/workspaces/:policyID/per-diem/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/settings` as const,
+    },
     RULES_CUSTOM_NAME: {
         route: 'settings/workspaces/:policyID/rules/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,
@@ -1777,12 +1790,45 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
     },
     DETAILS_CONSTANT_PICKER_PAGE: {
-        route: 'debug/details/constant/:fieldName',
-        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/constant/${fieldName}?fieldValue=${fieldValue}`, backTo),
+        route: 'debug/:formType/details/constant/:fieldName',
+        getRoute: (formType: string, fieldName: string, fieldValue?: string, policyID?: string, backTo?: string) =>
+            getUrlWithBackToParam(`debug/${formType}/details/constant/${fieldName}?fieldValue=${fieldValue}&policyID=${policyID}`, backTo),
     },
     DETAILS_DATE_TIME_PICKER_PAGE: {
         route: 'debug/details/datetime/:fieldName',
         getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
+    },
+    DEBUG_TRANSACTION: {
+        route: 'debug/transaction/:transactionID',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}` as const,
+    },
+    DEBUG_TRANSACTION_TAB_DETAILS: {
+        route: 'debug/transaction/:transactionID/details',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/details` as const,
+    },
+    DEBUG_TRANSACTION_TAB_JSON: {
+        route: 'debug/transaction/:transactionID/json',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/json` as const,
+    },
+    DEBUG_TRANSACTION_TAB_VIOLATIONS: {
+        route: 'debug/transaction/:transactionID/violations',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_CREATE: {
+        route: 'debug/transaction/:transactionID/violations/create',
+        getRoute: (transactionID: string) => `debug/transaction/${transactionID}/violations/create` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION: {
+        route: 'debug/transaction/:transactionID/violations/:index',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_DETAILS: {
+        route: 'debug/transaction/:transactionID/violations/:index/details',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/details` as const,
+    },
+    DEBUG_TRANSACTION_VIOLATION_TAB_JSON: {
+        route: 'debug/transaction/:transactionID/violations/:index/json',
+        getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
 } as const;
 

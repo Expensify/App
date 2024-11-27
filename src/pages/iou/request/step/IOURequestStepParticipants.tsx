@@ -48,9 +48,6 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.SUBMIT) {
-            return translate('iou.submitExpense');
-        }
         if (action === CONST.IOU.ACTION.SHARE) {
             return translate('iou.share');
         }
@@ -63,7 +60,7 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.INVOICE) {
             return translate('workspace.invoices.sendInvoice');
         }
-        return translate('iou.submitExpense');
+        return translate('iou.chooseRecipient');
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
