@@ -1227,6 +1227,8 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
 
 /**
  * Only returns true if this is the Expensify DM report.
+ *
+ * Note that this chat is no longer used for new users. We still need this function for users who have this chat.
  */
 function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
@@ -6650,18 +6652,6 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 }
 
 /**
- * Returns the system report from the list of reports.
- */
-function getSystemChat(): OnyxEntry<Report> {
-    const allReports = ReportConnection.getAllReports();
-    if (!allReports) {
-        return undefined;
-    }
-
-    return Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM);
-}
-
-/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = ReportConnection.getAllReports(), shouldIncludeGroupChats = false): OnyxEntry<Report> {
@@ -8557,7 +8547,6 @@ export {
     getRoom,
     getRootParentReport,
     getRouteFromLink,
-    getSystemChat,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
