@@ -167,7 +167,7 @@ function IOURequestStepScan({
                 setCameraPermissionState('denied');
             });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [videoConstraints]);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
