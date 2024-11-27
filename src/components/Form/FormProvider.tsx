@@ -192,7 +192,7 @@ function FormProvider(
             return;
         }
 
-        //Return early to avoid multiple execution of onSubmit function
+        // Return early to avoid multiple execution of onSubmit function
         if (isSubmittingRef.current) {
             return;
         }
@@ -214,9 +214,8 @@ function FormProvider(
         }
 
         isSubmittingRef.current = true;
-        KeyboardUtils.dismiss().then(() => {
-            onSubmit(trimmedStringValues);
-        });
+        KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+
         () => (isSubmittingRef.current = false);
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
