@@ -143,8 +143,14 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
-                isOptimisticReport: false,
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
         {
