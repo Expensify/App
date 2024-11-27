@@ -5,7 +5,6 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
