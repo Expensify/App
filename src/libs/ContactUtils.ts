@@ -5,73 +5,22 @@ import * as OptionsListUtils from './OptionsListUtils';
 import {getAvatarForContact} from './RandomAvatarUtils';
 
 function sortEmailObjects(emails?: StringHolder[]): string[] {
-    const length = emails?.length ?? 0;
-    if (!emails || length === 0) {
-        return [''];
-    }
-    // Single email case - return value directly
-    if (emails && length === 1) {
-        return [emails.at(0)?.value ?? ''];
+    if (!emails?.length) {
+        return [];
     }
 
-    // Two emails case - most common
-    if (length === 2) {
-        const [firstEmail, secondEmail] = emails ?? [];
+    const expensifyDomain = CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN.toLowerCase();
 
-        // Since we know length is 2, we can safely assert these exist
-        if (!firstEmail || !secondEmail) {
-            return emails.map((e) => e.value);
-        }
+    return emails
+        .filter((email) => email?.value)
+        .map((email) => email.value)
+        .sort((a, b) => {
+            const isExpensifyA = a.toLowerCase().includes(expensifyDomain);
+            const isExpensifyB = b.toLowerCase().includes(expensifyDomain);
 
-        const isFirstExpensify = firstEmail.value.toLowerCase().includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN);
-        const isSecondExpensify = secondEmail.value.toLowerCase().includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN);
-
-        if (!isFirstExpensify && isSecondExpensify) {
-            return [secondEmail.value, firstEmail.value];
-        }
-        return [firstEmail.value, secondEmail.value];
-    }
-
-    // For larger arrays - preallocate arrays with capacity
-    const result: Array<string | undefined> = new Array<string>(length);
-    let expensifyIndex = 0;
-    let otherIndex = length - 1;
-
-    // Single pass to sort directly into result array
-    for (let i = 0; i < length; i++) {
-        const email = emails.at(i);
-        if (!email) {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-
-        if (email.value.toLowerCase().includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
-            result[expensifyIndex] = email.value;
-            expensifyIndex += 1;
-        } else {
-            result[otherIndex] = email.value;
-            otherIndex -= 1;
-        }
-    }
-
-    // If we have both types of emails, we need to fix the order of non-expensify emails
-    if (expensifyIndex > 0 && expensifyIndex < length) {
-        for (let i = expensifyIndex, j = length - 1; i < j; i++, j--) {
-            const temp = result.at(i);
-            const tempJ = result.at(j);
-
-            if (temp === undefined || tempJ === undefined) {
-                // eslint-disable-next-line no-continue
-                continue;
-            }
-
-            result[i] = tempJ;
-            result[j] = temp;
-        }
-    }
-
-    // Filter out any undefined values and assert the type
-    return result.filter((email): email is string => email !== undefined);
+            // Prioritize Expensify emails, then sort alphabetically
+            return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : a.localeCompare(b);
+        });
 }
 
 const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUtils.SearchOption<PersonalDetails>> => {
