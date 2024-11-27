@@ -244,6 +244,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     };
 
     const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <>
             <SearchPageHeaderInput queryJSON={queryJSON}>
