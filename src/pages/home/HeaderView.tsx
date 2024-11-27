@@ -215,7 +215,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                             fullTitle={title}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
-                                            numberOfLines={2}
+                                            numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
                                             renderAdditionalText={renderAdditionalText}
