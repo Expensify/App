@@ -47,7 +47,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || cardFeeds.isLoading);
+    const isLoading = !isOffline && (!cardFeeds || (cardFeeds.isLoading && !cardsList));
 
     useFocusEffect(fetchCompanyCards);
 
