@@ -465,6 +465,7 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
+        address: 'Dirección',
     },
     connectionComplete: {
         title: 'Conexión completa',

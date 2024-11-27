@@ -474,6 +474,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        address: 'Address',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2441,7 +2442,7 @@ const translations = {
         },
         car: 'Car',
         carDetails: {
-            rentalCar: 'Rental car',
+            rentalCar: 'Car rental',
             pickUp: 'Pick-up',
             dropOff: 'Drop-off',
             driver: 'Driver',
