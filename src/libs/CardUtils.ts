@@ -9,6 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -212,14 +213,6 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
-function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string, cardName = ''): string {
-    if (!lastFourPAN) {
-        return '';
-    }
-
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
-}
-
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
@@ -286,7 +279,14 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
     };
 
-    return feedNamesMapping[feedType];
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+
+    if (!feedKey) {
+        return '';
+    }
+
+    return feedNamesMapping[feedKey];
 }
 
 const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
@@ -352,6 +352,33 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function getFilteredCardList(list?: WorkspaceCardsList) {
+    const {cardList, ...cards} = list ?? {};
+    // We need to filter out cards which already has been assigned
+    return Object.fromEntries(Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))));
+}
+
+function hasOnlyOneCardToAssign(list: FilteredCardList) {
+    return Object.keys(list).length === 1;
+}
+
+function getDefaultCardName(cardholder?: string) {
+    if (!cardholder) {
+        return '';
+    }
+    return `${cardholder}'s card`;
+}
+
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+    const prevFeeds = Object.keys(prevFeedsData);
+    const currentFeeds = Object.keys(currentFeedsData);
+
+    return {
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
+    };
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -368,7 +395,6 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
-    getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
     getCompanyFeeds,
@@ -378,4 +404,8 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getFilteredCardList,
+    hasOnlyOneCardToAssign,
+    checkIfNewFeedConnected,
+    getDefaultCardName,
 };
