@@ -6150,6 +6150,14 @@ const CONST = {
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
             },
+            categories: {
+                id: 'categories' as const,
+                alias: 'categories',
+                name: 'Categories',
+                title: 'workspace.upgrade.categories.title' as const,
+                description: 'workspace.upgrade.categories.description' as const,
+                icon: 'FolderOpen',
+            },
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
                 alias: 'netsuite',

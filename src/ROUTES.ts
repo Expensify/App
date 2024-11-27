@@ -471,6 +471,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/attendees/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_UPGRADE: {
+        route: ':action/:iouType/upgrade/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
+    },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
