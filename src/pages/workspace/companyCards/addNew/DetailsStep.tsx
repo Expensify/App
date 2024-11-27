@@ -168,7 +168,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FormProvider

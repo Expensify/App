@@ -205,7 +205,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 isOptimisticReport: reportOnyx.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
-                avatarFileName: reportOnyx.avatarFileName,
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
@@ -448,7 +447,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (!shouldFetchReport(report) && (isInitialPageReady || isLinkedMessagePageReady)) {
+        if (!shouldFetchReport(report)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -459,7 +458,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute, isLoadingApp, isInitialPageReady, isLinkedMessagePageReady]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -516,7 +515,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         // This function is triggered when a user clicks on a link to navigate to a report.
         // For each link click, we retrieve the report data again, even though it may already be cached.
         // There should be only one openReport execution per page start or navigating
-        fetchReportIfNeeded();
+        fetchReport();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, isLoadingReportOnyx, reportActionIDFromRoute]);
 
