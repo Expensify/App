@@ -53,10 +53,10 @@ function WorkspaceConfirmationPage() {
     const currentUrl = getCurrentUrl();
     const policyID = useMemo(() => Policy.generatePolicyID(), []);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const url = new URL(currentUrl);
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
+    const policyOwnerEmail = currentUrl ? new URL(currentUrl).searchParams.get('ownerEmail') ?? '' : '';
+
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const defaultWorkspaceName = Policy.generateDefaultWorkspaceName(policyOwnerEmail);
