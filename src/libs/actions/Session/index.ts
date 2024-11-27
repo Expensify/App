@@ -489,6 +489,15 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
 function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
     const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
     const {initialOnyxValues} = parsedHybridAppSettings;
@@ -511,7 +520,9 @@ function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string
             return Promise.resolve();
         }
 
-        return App.openApp();
+        return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
+            return App.reconnectApp(lastUpdateId);
+        });
     };
 
     return new Promise<Route>((resolve) => {
