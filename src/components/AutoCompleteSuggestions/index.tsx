@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 // The coordinates are based on the App's height, not the device height.
-// So we need to get the height from useWindowDimensions. More details: https://github.com/Expensify/App/issues/53180
+// So we need to get the height from useWindowDimensions to calculate the position correctly. More details: https://github.com/Expensify/App/issues/53180
 // eslint-disable-next-line no-restricted-imports
 import {useWindowDimensions} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
