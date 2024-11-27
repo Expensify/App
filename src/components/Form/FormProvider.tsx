@@ -94,6 +94,7 @@ function FormProvider(
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const isSubmittingRef = useRef(false);
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -187,7 +188,7 @@ function FormProvider(
 
     const submit = useCallback(() => {
         // Return early if the form is already submitting to avoid duplicate submission
-        if (formState?.isLoading) {
+        if (formState?.isLoading || isSubmittingRef.current) {
             return;
         }
 
@@ -207,7 +208,13 @@ function FormProvider(
             return;
         }
 
-        KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+        isSubmittingRef.current = true;
+        KeyboardUtils.dismiss().then(() => {
+            onSubmit(trimmedStringValues);
+            () => {
+                isSubmittingRef.current = false;
+            };
+        });
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
     // Keep track of the focus state of the current screen.
