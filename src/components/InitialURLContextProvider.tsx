@@ -32,7 +32,7 @@ type InitialURLContextProviderProps = {
 };
 
 function InitialURLContextProvider({children, url, hybridAppSettings}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>(url);
+    const [initialURL, setInitialURL] = useState<Route | ValueOf<typeof CONST.HYBRID_APP> | undefined>(url);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const {splashScreenState, setSplashScreenState} = useSplashScreenStateContext();
 
@@ -66,8 +66,8 @@ function InitialURLContextProvider({children, url, hybridAppSettings}: InitialUR
 
     const initialUrlContext = useMemo(
         () => ({
-            initialURL,
-            setInitialURL,
+            initialURL: initialURL === CONST.HYBRID_APP.REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT ? undefined : initialURL,
+            setInitialURL: setInitialURL as React.Dispatch<React.SetStateAction<Route | undefined>>,
         }),
         [initialURL],
     );

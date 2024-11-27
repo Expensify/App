@@ -25,7 +25,7 @@ import {shouldUseOldApp} from '@libs/HybridApp';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {setIsSigningIn, setNewDotSignInState, setOldDotSignInError, setOldDotSignInState, setShouldResetSigningInLogic} from '@userActions/HybridApp';
+import * as HybridAppActions from '@userActions/HybridApp';
 import * as SessionActions from '@userActions/Session';
 import {signOut} from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -80,8 +80,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-
-    console.log('[HybridApp] hybridApp', hybridApp);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {
@@ -162,9 +160,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
-        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
-        setOldDotSignInError(null);
+        HybridAppActions.setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+        HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+        HybridAppActions.setOldDotSignInError(null);
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
@@ -192,7 +190,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             Onyx.set(ONYXKEYS.SESSION, null);
         }
         SessionActions.clearSignInData();
-        setShouldResetSigningInLogic(true);
+        HybridAppActions.resetHybridAppSignInState();
     }, [clearLocalSignInData, session?.authToken]);
 
     useImperativeHandle(forwardedRef, () => ({
@@ -250,16 +248,15 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const validateAndSubmitForm = useCallback(() => {
         if (session?.authToken) {
-            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
-            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            HybridAppActions.setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
+            HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.WAITING_FOR_SIGN_OUT);
             signOut();
             Onyx.merge(ONYXKEYS.SESSION, {
                 authToken: null,
             }).then(() => {
-                setIsSigningIn(false);
-                setOldDotSignInError(null);
-                setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
-                setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+                HybridAppActions.setOldDotSignInError(null);
+                HybridAppActions.setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
+                HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
             });
         }
 
@@ -313,7 +310,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
-        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+        HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             SessionActions.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
@@ -426,7 +423,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     large
                     style={[styles.mv3]}
                     text={translate('common.signIn')}
-                    isLoading={shouldUseOldApp(tryNewDot) ? isValidateCodeFormSubmitting || hybridApp?.isSigningIn : isValidateCodeFormSubmitting}
+                    isLoading={
+                        shouldUseOldApp(tryNewDot) ? isValidateCodeFormSubmitting || hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED : isValidateCodeFormSubmitting
+                    }
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />

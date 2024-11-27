@@ -43,15 +43,7 @@ import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {
-    parseHybridAppSettings,
-    setLoggedOutFromOldDot,
-    setNewDotSignInState,
-    setOldDotSignInState,
-    setReadyToShowAuthScreens,
-    setReadyToSwitchToClassicExperience,
-    setUseNewDotSignInPage,
-} from '@userActions/HybridApp';
+import * as HybridAppActions from '@userActions/HybridApp';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -490,31 +482,21 @@ function signUpUser() {
 }
 
 function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
-    const parsedHybridAppSettings = parseHybridAppSettings(hybridAppSettings);
+    const parsedHybridAppSettings = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
     const {initialOnyxValues} = parsedHybridAppSettings;
     const {hybridApp, ...newDotOnyxValues} = initialOnyxValues;
 
     const clearOnyxBeforeSignIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
-            setReadyToShowAuthScreens(true);
-            setReadyToSwitchToClassicExperience(true);
             return Promise.resolve();
         }
 
         return Onyx.clear();
     };
 
-    const initAppAfterTransition = () => {
-        if (hybridApp.useNewDotSignInPage) {
-            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
-            setOldDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED);
-        }
-        return Promise.resolve();
-    };
-
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
-            .then(() => Onyx.merge(ONYXKEYS.HYBRID_APP, hybridApp))
+            .then(() => HybridAppActions.prepareHybridAppAfterTransitionToNewDot(hybridApp))
             .then(() => Onyx.multiSet(newDotOnyxValues))
             .then(() => {
                 if (!hybridApp.shouldRemoveDelegatedAccess) {
@@ -523,11 +505,9 @@ function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string
                 return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
             })
             .then(() => {
-                // This data is mocked and should be returned by BeginSignUp/SignInUser API commands
-                setUseNewDotSignInPage(!!hybridApp.useNewDotSignInPage);
-                setLoggedOutFromOldDot(!!hybridApp.loggedOutFromOldDot);
+                HybridAppActions.setUseNewDotSignInPage(!!hybridApp.useNewDotSignInPage);
+                HybridAppActions.setLoggedOutFromOldDot(!!hybridApp.loggedOutFromOldDot);
             })
-            .then(initAppAfterTransition)
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
