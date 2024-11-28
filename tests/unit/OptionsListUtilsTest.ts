@@ -672,7 +672,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man'.replace(/ /g, '\u00A0'));
             expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
-            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(3)?.text).toBe(`${'Mister Fantastic'.replace(/ /g, '\u00A0')}, ${'Invisible Woman'.replace(/ /g, '\u00A0')}`);
         });
 
         it('should filter users by email', () => {
@@ -744,7 +744,7 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe(`${'Mister Fantastic'.replace(/ /g, '\u00A0')}, ${'Invisible Woman'.replace(/ /g, '\u00A0')}`);
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
@@ -979,7 +979,7 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe(`${'Mister Fantastic'.replace(/ /g, '\u00A0')}, ${'Invisible Woman'.replace(/ /g, '\u00A0')}`);
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
