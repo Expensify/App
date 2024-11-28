@@ -108,7 +108,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         [autoHideArrows, page, updatePage],
     );
 
-    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer, styles.mb5];
+    const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
 
     if (page == null) {
         return (
