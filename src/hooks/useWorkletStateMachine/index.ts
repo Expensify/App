@@ -98,7 +98,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
                 throw new Error('state machine action is required');
             }
 
-            const state = currentState.value;
+            const state = currentState.get();
 
             log(`Current STATE: ${state.current.state}`);
             log(`Next ACTION: ${action.type}`, action.payload);
@@ -132,13 +132,13 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
 
             log(`Next STATE: ${nextState}`, nextPayload);
 
-            currentState.value = {
+            currentState.set({
                 previous: state.current,
                 current: {
                     state: nextState,
                     payload: nextPayload,
                 },
-            };
+            });
         },
         [currentState, log, stateMachine],
     );
@@ -148,7 +148,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
 
         log('RESET STATE MACHINE');
         // eslint-disable-next-line react-compiler/react-compiler
-        currentState.value = initialState;
+        currentState.set(initialState);
     }, [currentState, initialState, log]);
 
     const reset = useCallback(() => {

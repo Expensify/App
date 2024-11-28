@@ -35,24 +35,23 @@ const useAnimatedKeyboard = () => {
 
                 // Save the last keyboard height
                 if (e.height !== 0) {
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    heightWhenOpened.value = e.height;
-                    height.value = 0;
+                    heightWhenOpened.set(e.height);
+                    height.set(0);
                 }
-                height.value = heightWhenOpened.value;
-                lastHeight.value = e.height;
-                state.value = e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING;
+                height.set(heightWhenOpened.get());
+                lastHeight.set(e.height);
+                state.set(e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING);
             },
             onMove: (e) => {
                 'worklet';
 
-                height.value = e.height;
+                height.set(e.height);
             },
             onEnd: (e) => {
                 'worklet';
 
-                state.value = e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED;
-                height.value = e.height;
+                state.set(e.height > 0 ? KeyboardState.OPEN : KeyboardState.CLOSED);
+                height.set(e.height);
             },
         },
         [],
@@ -86,13 +85,13 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     }, [resetStateMachine]);
 
     useAnimatedReaction(
-        () => keyboard.state.value,
+        () => keyboard.state.get(),
         (lastState) => {
-            if (lastState === syncLocalWorkletState.value) {
+            if (lastState === syncLocalWorkletState.get()) {
                 return;
             }
             // eslint-disable-next-line react-compiler/react-compiler
-            syncLocalWorkletState.value = lastState;
+            syncLocalWorkletState.set(lastState);
 
             if (lastState === KeyboardState.OPEN) {
                 transition({type: Actions.OPEN_KEYBOARD});
@@ -104,19 +103,19 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     );
 
     const translateY = useDerivedValue(() => {
-        const {current, previous} = currentActionSheetState.value;
+        const {current, previous} = currentActionSheetState.get();
 
         // We don't need to run any additional logic. it will always return 0 for idle state
         if (current.state === States.IDLE) {
             return withSpring(0, SPRING_CONFIG);
         }
 
-        const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
+        const keyboardHeight = keyboard.height.get() === 0 ? 0 : keyboard.height.get() - safeArea.bottom;
 
         // Sometimes we need to know the last keyboard height
-        const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom;
+        const lastKeyboardHeight = keyboard.heightWhenOpened.get() - safeArea.bottom;
         const {popoverHeight = 0, fy, height} = current.payload ?? {};
-        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
+        const invertedKeyboardHeight = keyboard.state.get() === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
         const elementOffset = fy !== undefined && height !== undefined && popoverHeight !== undefined ? fy + safeArea.top + height - (windowHeight - popoverHeight) : 0;
 
         // when the state is not idle we know for sure we have the previous state
@@ -126,9 +125,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 ? previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
                 : 0;
 
-        const isOpeningKeyboard = syncLocalWorkletState.value === 1;
-        const isClosingKeyboard = syncLocalWorkletState.value === 3;
-        const isClosedKeyboard = syncLocalWorkletState.value === 4;
+        const isOpeningKeyboard = syncLocalWorkletState.get() === 1;
+        const isClosingKeyboard = syncLocalWorkletState.get() === 3;
+        const isClosedKeyboard = syncLocalWorkletState.get() === 4;
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
@@ -138,7 +137,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
                 if (previous.state === States.KEYBOARD_CLOSED_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
-                    return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0);
+                    return Math.max(keyboard.heightWhenOpened.get() - keyboard.height.get() - safeArea.bottom, 0) + Math.max(elementOffset, 0);
                 }
                 return withSpring(0, SPRING_CONFIG);
             }
@@ -164,13 +163,13 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {
-                if (keyboard.state.value === KeyboardState.OPEN) {
+                if (keyboard.state.get() === KeyboardState.OPEN) {
                     return withSpring(0, SPRING_CONFIG);
                 }
 
                 const nextOffset = elementOffset + lastKeyboardHeight;
 
-                if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
+                if (keyboard.state.get() === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
                     return withSpring(nextOffset < 0 ? 0 : nextOffset, SPRING_CONFIG);
                 }
 
@@ -188,12 +187,12 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     return 0;
                 }
 
-                if (keyboard.state.value === KeyboardState.CLOSED) {
+                if (keyboard.state.get() === KeyboardState.CLOSED) {
                     return elementOffset + lastKeyboardHeight;
                 }
 
-                if (keyboard.height.value > 0) {
-                    return keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset;
+                if (keyboard.height.get() > 0) {
+                    return keyboard.heightWhenOpened.get() - keyboard.height.get() + elementOffset;
                 }
 
                 return withTiming(elementOffset + lastKeyboardHeight, {
@@ -207,7 +206,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => ({
-        paddingTop: translateY.value,
+        paddingTop: translateY.get(),
     }));
 
     return (
