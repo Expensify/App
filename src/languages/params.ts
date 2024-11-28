@@ -563,6 +563,10 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -766,4 +770,5 @@ export type {
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
+    ChatWithAccountManagerParams,
 };
