@@ -680,7 +680,13 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-function updateGroupChatName(reportID: string, reportName: string) {
+function updateGroupChatName(report: OnyxEntry<Report>, reportName: string) {
+    if (!report) {
+        return;
+    }
+
+    const reportID = report?.reportID;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -713,7 +719,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
+                reportName: report?.reportName ?? null,
                 pendingFields: {
                     reportName: null,
                 },
@@ -724,7 +730,9 @@ function updateGroupChatName(reportID: string, reportName: string) {
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+function updateGroupChatAvatar(report: Report, file?: File | CustomRNImageManipulatorResult) {
+    const reportID = report.reportID;
+
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -742,13 +750,12 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         },
     ];
 
-    const fetchedReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarUrl: fetchedReport?.avatarUrl ?? null,
+                avatarUrl: report.avatarUrl ?? null,
                 pendingFields: {
                     avatar: null,
                 },
@@ -2882,12 +2889,13 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string) {
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function leaveGroupChat(report: OnyxEntry<Report>) {
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
         return;
     }
+
+    const reportID = report.reportID;
 
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
     // The remaining parts of the report object will be removed after the API call is successful.
@@ -2937,12 +2945,12 @@ function leaveGroupChat(reportID: string) {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
+function leaveRoom(report: OnyxEntry<Report>, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     if (!report) {
         return;
     }
+
+    const reportID = report.reportID;
     const isChatThread = ReportUtils.isChatThread(report);
 
     // Pusher's leavingStatus should be sent earlier.
@@ -3041,12 +3049,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
-        return;
-    }
-
+function inviteToRoom(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    const reportID = report.reportID;
     const defaultNotificationPreference = ReportUtils.getDefaultNotificationPreferenceForReport(report);
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
@@ -3146,9 +3150,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+function clearAddRoomMemberError(report: OnyxEntry<Report>, invitedAccountID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {
         pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
         participants: {
             [invitedAccountID]: null,
@@ -3201,19 +3204,19 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 }
 
 /** Invites people to a group chat */
-function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    inviteToRoom(reportID, inviteeEmailsToAccountIDs);
+function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    inviteToRoom(report, inviteeEmailsToAccountIDs);
 }
 
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function removeFromRoom(report: OnyxEntry<Report>, targetAccountIDs: number[]) {
     if (!report) {
         return;
     }
 
+    const reportID = report.reportID;
     const removeParticipantsData: Record<number, null> = {};
     targetAccountIDs.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
@@ -3271,8 +3274,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    removeFromRoom(reportID, accountIDList);
+function removeFromGroupChat(report: OnyxEntry<Report>, accountIDList: number[]) {
+    removeFromRoom(report, accountIDList);
 }
 
 function setLastOpenedPublicRoom(reportID: string) {
@@ -4112,11 +4115,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 function resolveActionableReportMentionWhisper(
-    reportId: string,
+    report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
 ) {
-    if (!reportAction) {
+    if (!reportAction || !report) {
         return;
     }
 
@@ -4128,7 +4131,7 @@ function resolveActionableReportMentionWhisper(
         },
     };
 
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
+    const reportId = report.reportID;
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {

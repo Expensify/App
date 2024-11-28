@@ -67,7 +67,7 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (isUpdatingExistingReport) {
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                    Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                    Report.updateGroupChatName(report, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
                 Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
                 return;
@@ -77,7 +77,7 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
             }
             Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
         },
-        [isUpdatingExistingReport, reportID, currentChatName],
+        [isUpdatingExistingReport, report, reportID, currentChatName],
     );
 
     return (

@@ -179,9 +179,9 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             }
             invitedEmailsToAccountIDs[login] = accountID;
         });
-        Report.inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
+        Report.inviteToGroupChat(report, invitedEmailsToAccountIDs);
         Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate]);
+    }, [selectedOptions, report, backRoute, validate]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();

@@ -111,7 +111,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const removeUsers = () => {
         if (report) {
-            Report.removeFromRoom(report.reportID, selectedMembers);
+            Report.removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
         setSelectedMembers([]);
@@ -256,7 +256,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+            Report.clearAddRoomMemberError(report, String(item.accountID ?? '-1'));
         },
         [report.reportID],
     );

@@ -53,7 +53,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const shouldDisableRemoveUser = (ReportUtils.isPolicyExpenseChat(report) && PolicyUtils.isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
-        Report.removeFromRoom(report?.reportID, [accountID]);
+        Report.removeFromRoom(report, [accountID]);
         Navigation.goBack(backTo);
     }, [backTo, report, accountID]);
 

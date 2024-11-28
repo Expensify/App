@@ -198,12 +198,12 @@ function RoomInvitePage({
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        if (reportID) {
-            Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
+        if (report) {
+            Report.inviteToRoom(report, invitedEmailsToAccountIDs);
         }
         UserSearchPhraseActions.clearUserSearchPhrase();
         Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate]);
+    }, [selectedOptions, backRoute, report, validate]);
 
     const goBack = useCallback(() => {
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {

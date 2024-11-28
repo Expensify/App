@@ -198,7 +198,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const removeUsers = () => {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
-        Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
+        Report.removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
