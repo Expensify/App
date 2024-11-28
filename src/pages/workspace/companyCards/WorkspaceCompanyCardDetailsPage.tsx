@@ -112,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                             <MenuItemWithTopDescription
                                 description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                                title={CardUtils.maskCardNumber(card?.cardName ?? '')}
+                                title={CardUtils.maskCardNumber(card?.cardName ?? '', bank)}
                                 interactive={false}
                                 titleStyle={styles.walletCardNumber}
                             />
@@ -124,7 +124,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.moreFeatures.companyCards.cardName')}
-                                    title={customCardNames?.[cardID] ?? ''}
+                                    title={customCardNames?.[cardID] ?? CardUtils.getDefaultCardName(cardholder?.firstName)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}

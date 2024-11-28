@@ -60,18 +60,19 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const buttonRef = ref;
 
     useEffect(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        sharedValue.value = withTiming(isActive ? 1 : 0, {
-            duration: 340,
-            easing: Easing.inOut(Easing.ease),
-        });
+        sharedValue.set(
+            withTiming(isActive ? 1 : 0, {
+                duration: 340,
+                easing: Easing.inOut(Easing.ease),
+            }),
+        );
     }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(sharedValue.value, [0, 1], [success, buttonDefaultBG]);
+        const backgroundColor = interpolateColor(sharedValue.get(), [0, 1], [success, buttonDefaultBG]);
 
         return {
-            transform: [{rotate: `${sharedValue.value * 135}deg`}],
+            transform: [{rotate: `${sharedValue.get() * 135}deg`}],
             backgroundColor,
             borderRadius,
         };
@@ -79,7 +80,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
 
     const animatedProps = useAnimatedProps(
         () => {
-            const fill = interpolateColor(sharedValue.value, [0, 1], [textLight, textDark]);
+            const fill = interpolateColor(sharedValue.get(), [0, 1], [textLight, textDark]);
 
             return {
                 fill,

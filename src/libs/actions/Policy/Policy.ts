@@ -130,6 +130,7 @@ type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
     reportPreviewReportActionID?: string;
+    adminsChatReportID: string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -1662,6 +1663,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
         },
@@ -1734,6 +1736,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     outputCurrency: null,
                     address: null,
                     description: null,
+                    type: null,
                 },
             },
         },
@@ -2310,6 +2313,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -2329,6 +2333,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -2563,7 +2568,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
 
-    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID};
+    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID, adminsChatReportID};
 }
 
 function enablePolicyConnections(policyID: string, enabled: boolean) {
@@ -3321,7 +3326,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
-function upgradeToCorporate(policyID: string, featureName: string) {
+function upgradeToCorporate(policyID: string, featureName?: string) {
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3373,7 +3378,7 @@ function upgradeToCorporate(policyID: string, featureName: string) {
         },
     ];
 
-    const parameters: UpgradeToCorporateParams = {policyID, featureName};
+    const parameters: UpgradeToCorporateParams = {policyID, ...(featureName ? {featureName} : {})};
 
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
