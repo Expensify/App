@@ -49,7 +49,7 @@ If Scheduled Submit is disabled on the group workspace level (or set to a manual
 
 # How to connect company cards to an accounting integration
 
-If you're using a connected accounting system such as NetSuite, Xero, Intacct, Quickbooks Desktop, or QuickBooks Online, you can also connect the card to export to a specific credit card GL account. First, connect the card itself, and once completed, follow the steps below:
+If you're using a connected accounting system such as NetSuite, Xero, Intacct, QuickBooks Desktop, or QuickBooks Online, you can also connect the card to export to a specific credit card GL account. First, connect the card itself, and once completed, follow the steps below:
 Go to Settings > Domains > Domain name > Company Cards
 Click Edit Exports on the right-hand side of the card table and select the GL account you want to export expenses to 
 You're all done. After the account is set, exported expenses will be mapped to the specific account selected when exported by a Domain Admin.
