@@ -207,6 +207,12 @@ type Reservation = {
     /** In flight reservations, this represents the details of the airline company */
     company?: Company;
 
+    /** In car and hotel reservations, this represents the cancellation policy */
+    cancellationPolicy?: string;
+
+    /** In car and hotel reservations, this represents the cancellation deadline */
+    deadline?: string;
+
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
 

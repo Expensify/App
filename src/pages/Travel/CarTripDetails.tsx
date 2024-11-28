@@ -33,6 +33,9 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
     const reservationIcon = TripReservationUtils.getTripReservationIcon(carReservation.type);
     const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.start.date));
     const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.end.date));
+    const cancellationText = carReservation.deadline
+        ? `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.deadline)).date}`
+        : carReservation.cancellationPolicy;
 
     return (
         <>
@@ -74,7 +77,7 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
             />
 
             {!!carReservation.carInfo?.name && (
-                <View style={styles.w50}>
+                <View>
                     <MenuItemWithTopDescription
                         description={translate('travel.carDetails.carType')}
                         title={carReservation.carInfo.name}
@@ -82,8 +85,17 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
                     />
                 </View>
             )}
+            {!!cancellationText && (
+                <View>
+                    <MenuItemWithTopDescription
+                        description={translate('travel.carDetails.cancellation')}
+                        title={cancellationText}
+                        interactive={false}
+                    />
+                </View>
+            )}
             {!!carReservation.reservationID && (
-                <View style={styles.w50}>
+                <View>
                     <MenuItemWithTopDescription
                         description={translate('travel.carDetails.confirmation')}
                         title={carReservation.reservationID}

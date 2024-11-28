@@ -33,6 +33,9 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
     const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.start.date));
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.end.date));
+    const cancellationText = hotelReservation.deadline
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.deadline)).date}`
+        : hotelReservation.cancellationPolicy;
 
     return (
         <>
@@ -73,8 +76,17 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
                 title={checkOutDate.hour}
                 interactive={false}
             />
+            {!!cancellationText && (
+                <View>
+                    <MenuItemWithTopDescription
+                        description={translate('travel.carDetails.cancellation')}
+                        title={cancellationText}
+                        interactive={false}
+                    />
+                </View>
+            )}
             {!!hotelReservation.confirmations?.at(0)?.value && (
-                <View style={styles.w50}>
+                <View>
                     <MenuItemWithTopDescription
                         description={translate('travel.hotelDetails.confirmation')}
                         title={hotelReservation.confirmations?.at(0)?.value}
