@@ -52,7 +52,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const handleSubmit = () => {
         if (!selectedFeed) {

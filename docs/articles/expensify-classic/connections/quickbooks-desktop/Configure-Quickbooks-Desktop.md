@@ -67,7 +67,7 @@ To manually sync your connection:
 For manual syncing, we recommend completing this process at least once a week and/or after making changes in QuickBooks Desktop that could impact how reports export from Expensify. Changes may include adjustments to your chart of accounts, vendors, employees, customers/jobs, or items. Remember: Both the Web Connector and QuickBooks Desktop need to be running for syncing or exporting to work.
 {% include end-info.html %}
 
-## **Can I sync Expensify and QuickBooks Desktop (QBD) and use the platforms at the same time?**
+## **Can I sync Expensify and QuickBooks Desktop and use the platforms at the same time?**
 
 When syncing Expensify to QuickBooks Desktop, we recommend waiting until the sync finishes to access either Expensify and/or QuickBooks Desktop, as performance may vary during this process. You cannot open an instance of QuickBooks Desktop while a program is syncing - this may cause QuickBooks Desktop to behave unexpectedly.
 
@@ -75,7 +75,7 @@ When syncing Expensify to QuickBooks Desktop, we recommend waiting until the syn
 
 Here is the list of accounts from QuickBooks Desktop and how they are pulled into Expensify:
 
-| QBD account type  | How it imports to Expensify |
+| QuickBooks Desktop account type  | How it imports to Expensify |
 | ------------- | ------------- |
 | Accounts payable  | Vendor bill or journal entry export options  |
 | Accounts receivable  | Do not import  |
