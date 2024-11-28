@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -36,16 +36,16 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID, avatarURL]);
 
+    const onModalClose = () => {
+        Navigation.goBack();
+    };
+
     return (
         <AttachmentModal
             headerTitle={displayName}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-            onModalClose={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack();
-                });
-            }}
+            onModalClose={() => attachmentModalHandler.handleModalClose(onModalClose)}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
             shouldShowNotFoundPage={!avatarURL}

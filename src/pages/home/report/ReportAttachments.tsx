@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -43,6 +43,12 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         [reportID, type, accountID],
     );
 
+    const onModalClose = () => {
+        Navigation.dismissModal();
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    };
+
     return (
         <AttachmentModal
             accountID={Number(accountID)}
@@ -51,13 +57,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             defaultOpen
             report={report}
             source={source}
-            onModalClose={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    Navigation.dismissModal();
-                    // This enables Composer refocus when the attachments modal is closed by the browser navigation
-                    ComposerFocusManager.setReadyToFocus();
-                });
-            }}
+            onModalClose={() => attachmentModalHandler.handleModalClose(onModalClose)}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
             shouldShowNotFoundPage={!isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID}
             isAuthTokenRequired={!!isAuthTokenRequired}

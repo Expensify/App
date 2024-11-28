@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -21,17 +21,16 @@ type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & StackScreenProps<AuthScre
 
 function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
     const avatarURL = policy?.avatarURL ?? '' ? policy?.avatarURL ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const onModalClose = () => {
+        Navigation.goBack();
+    };
 
     return (
         <AttachmentModal
             headerTitle={policy?.name ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
-            onModalClose={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    Navigation.goBack();
-                });
-            }}
+            onModalClose={() => attachmentModalHandler.handleModalClose(onModalClose)}
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
