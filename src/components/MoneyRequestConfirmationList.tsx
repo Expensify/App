@@ -941,7 +941,6 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
-                includeSafeAreaPaddingBottom={false}
             />
         </MouseProvider>
     );

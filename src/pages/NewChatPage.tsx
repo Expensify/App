@@ -287,7 +287,6 @@ function NewChatPage() {
                         text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
-                        style={styles.mb5}
                     />
                 )}
             </>
@@ -332,7 +331,6 @@ function NewChatPage() {
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
-                    includeSafeAreaPaddingBottom={false}
                 />
                 {isSmallScreenWidth && (
                     <>

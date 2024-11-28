@@ -21,7 +21,9 @@ function FixedFooter({style, children}: FixedFooterProps) {
         return null;
     }
 
-    return <View style={[styles.ph5, {paddingBottom: insets.bottom}, styles.flexShrink0, style]}>{children}</View>;
+    const shouldAddBottomPadding = !insets.bottom;
+
+    return <View style={[styles.ph5, shouldAddBottomPadding && styles.pb5, styles.flexShrink0, style]}>{children}</View>;
 }
 
 FixedFooter.displayName = 'FixedFooter';
