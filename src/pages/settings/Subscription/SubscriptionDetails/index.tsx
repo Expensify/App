@@ -61,6 +61,10 @@ function SubscriptionDetails() {
     };
 
     const onSubscriptionSizePress = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
     };
 

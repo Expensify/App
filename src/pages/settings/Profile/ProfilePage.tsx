@@ -94,21 +94,33 @@ function ProfilePage() {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
             action: () => {
-                isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
             },
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             action: () => {
-                isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
             },
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             action: () => {
-                isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
             },
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
@@ -116,7 +128,11 @@ function ProfilePage() {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             action: () => {
-                isActingAsDelegate ? setIsNoDelegateAccessMenuVisible(true) : Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
             },
         },
     ];
@@ -203,7 +219,7 @@ function ProfilePage() {
                             {isLoadingApp ? (
                                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                             ) : (
-                                <>
+                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
                                     {privateOptions.map((detail, index) => (
                                         <MenuItemWithTopDescription
                                             // eslint-disable-next-line react/no-array-index-key
@@ -216,7 +232,7 @@ function ProfilePage() {
                                             brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
-                                </>
+                                </MenuItemGroup>
                             )}
                         </Section>
                     </View>
