@@ -299,7 +299,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
@@ -329,6 +328,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
+                    includeSafeAreaPaddingBottom
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
