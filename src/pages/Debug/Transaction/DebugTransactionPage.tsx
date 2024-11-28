@@ -65,6 +65,7 @@ function DebugTransactionPage({
                                     }}
                                     onDelete={() => {
                                         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                                        Navigation.goBack();
                                     }}
                                     validate={DebugUtils.validateTransactionDraftProperty}
                                 >

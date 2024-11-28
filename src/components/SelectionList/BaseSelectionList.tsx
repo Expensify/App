@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
+        shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
         sectionListStyle,
@@ -832,7 +833,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     {showConfirmButton && (
                         <FixedFooter style={[styles.mtAuto]}>
                             <Button
-                                success
+                                success={!shouldUseDefaultTheme}
                                 large
                                 style={[styles.w100]}
                                 text={confirmButtonText || translate('common.confirm')}

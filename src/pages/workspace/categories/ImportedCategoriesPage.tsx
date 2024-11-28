@@ -69,14 +69,21 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+
+            const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+            const categoriesNames = categoriesNamesColumn !== -1 ? spreadsheet?.data[categoriesNamesColumn] : [];
+            const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
+
             if (duplicateColumn) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+            } else if (containsEmptyName) {
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    }, [spreadsheet?.columns, spreadsheet?.data, requiredColumns, translate, columnRoles, containsHeader]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);

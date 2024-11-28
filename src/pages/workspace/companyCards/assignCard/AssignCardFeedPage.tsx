@@ -32,7 +32,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-            return <AssigneeStep policy={policy} />;
+            return (
+                <AssigneeStep
+                    policy={policy}
+                    feed={feed}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.CARD:
             return (
                 <CardSelectionStep
@@ -52,7 +57,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         default:
-            return <AssigneeStep policy={policy} />;
+            return (
+                <AssigneeStep
+                    policy={policy}
+                    feed={feed}
+                />
+            );
     }
 }
 

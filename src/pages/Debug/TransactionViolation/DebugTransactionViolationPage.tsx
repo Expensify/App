@@ -46,6 +46,7 @@ function DebugTransactionViolationPage({
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        Navigation.goBack();
     }, [index, transactionID, transactionViolations]);
 
     if (!transactionViolation) {

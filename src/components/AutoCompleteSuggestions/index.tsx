@@ -1,9 +1,12 @@
 import React, {useEffect} from 'react';
+// The coordinates are based on the App's height, not the device height.
+// So we need to get the height from useWindowDimensions to calculate the position correctly. More details: https://github.com/Expensify/App/issues/53180
+// eslint-disable-next-line no-restricted-imports
+import {useWindowDimensions} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
@@ -54,7 +57,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {height: windowHeight, width: windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState(initialContainerState);
@@ -125,6 +128,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
                 bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
+
             setSuggestionHeight(measuredHeight);
             setContainerState({
                 left: leftValue.current,

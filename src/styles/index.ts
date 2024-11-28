@@ -525,10 +525,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        colorReversed: {
-            color: theme.textReversed,
-        },
-
         colorMutedReversed: {
             color: theme.textMutedReversed,
         },
@@ -539,10 +535,6 @@ const styles = (theme: ThemeColors) =>
 
         bgTransparent: {
             backgroundColor: 'transparent',
-        },
-
-        bgDark: {
-            backgroundColor: theme.inverse,
         },
 
         opacity0: {
@@ -2594,6 +2586,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        searchResultsHeaderBar: {
+            display: 'flex',
+            height: variables.contentHeaderDesktopHeight,
+            zIndex: variables.popoverzIndex,
+            position: 'relative',
+            paddingHorizontal: 20,
         },
 
         headerBarDesktopHeight: {
