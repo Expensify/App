@@ -3,6 +3,7 @@ import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -37,7 +38,7 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
 
     return (
         <AttachmentModal
-            headerTitle={displayName}
+            headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {

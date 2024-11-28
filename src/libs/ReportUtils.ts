@@ -2150,11 +2150,11 @@ function getDisplayNameForParticipant(
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenTranslation) {
-        return longName;
+        return LocalePhoneNumber.formatPhoneNumber(longName);
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-    return shouldUseShortForm ? shortName : longName;
+    return LocalePhoneNumber.formatPhoneNumber(shouldUseShortForm ? shortName : longName);
 }
 
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldForceExcludeCurrentUser = false): number[] {
@@ -2338,7 +2338,7 @@ function getIcons(
         const actorIcon = {
             id: actorAccountID,
             source: personalDetails?.[actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
-            name: actorDisplayName,
+            name: LocalePhoneNumber.formatPhoneNumber(actorDisplayName),
             type: CONST.ICON_TYPE_AVATAR,
             fallbackIcon: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.fallbackIcon,
         };
@@ -3797,7 +3797,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]);
+        return LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]));
     }
 
     return getPolicyName(report, false, invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
@@ -3889,7 +3889,7 @@ function getInvoicesChatName(report: OnyxEntry<Report>, receiverPolicy: OnyxEntr
     }
 
     if (isIndividual) {
-        return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
+        return LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]));
     }
 
     return getPolicyName(report, false, invoiceReceiverPolicy);

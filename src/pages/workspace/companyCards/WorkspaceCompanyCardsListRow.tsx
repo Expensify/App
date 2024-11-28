@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -21,7 +22,7 @@ type WorkspaceCompanyCardsListRowProps = {
 
 function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
-    const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
+    const cardholderName = useMemo(() => LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder)), [cardholder]);
 
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>

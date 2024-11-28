@@ -34,9 +34,9 @@ type WorkspacesListRowProps = {
 function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
-    const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
+    const cardholderName = useMemo(() => formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder)), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
         <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>

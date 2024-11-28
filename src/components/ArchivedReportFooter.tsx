@@ -28,12 +28,12 @@ type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
 
 function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const originalMessage = ReportActionsUtils.isClosedAction(reportClosedAction) ? ReportActionsUtils.getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? -1];
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
+    let displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails));
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
@@ -59,8 +59,8 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const text = shouldRenderHTML
         ? translate(`reportArchiveReasons.${archiveReason}`, {
-              displayName: `<strong>${displayName}</strong>`,
-              oldDisplayName: `<strong>${oldDisplayName}</strong>`,
+              displayName: `<strong>${formatPhoneNumber(displayName)}</strong>`,
+              oldDisplayName: `<strong>${formatPhoneNumber(oldDisplayName??'')}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
               shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })

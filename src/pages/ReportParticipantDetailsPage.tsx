@@ -42,7 +42,7 @@ type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
 
 function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -54,7 +54,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {

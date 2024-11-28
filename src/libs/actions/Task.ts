@@ -907,7 +907,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxT
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: PersonalDetailsUtils.getDisplayNameOrDefault(details),
+        displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
         subtitle: details.login ?? '',
     };
 }
