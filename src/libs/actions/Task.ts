@@ -425,7 +425,6 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
-    // Editing a task shouldn't scroll the report to the bottom, so we don't need to call Report.notifyNewAction.
 }
 
 /**
@@ -509,7 +508,6 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
-    // Editing a task shouldn't scroll the report to the bottom, so we don't need to call Report.notifyNewAction.
 }
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
@@ -586,7 +584,6 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
-    // Editing a task shouldn't scroll the report to the bottom, so we don't need to call Report.notifyNewAction.
 }
 
 function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
@@ -725,7 +722,6 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK_ASSIGNEE, parameters, {optimisticData, successData, failureData});
-    // Editing a task shouldn't scroll the report to the bottom, so we don't need to call Report.notifyNewAction.
 }
 
 /**
