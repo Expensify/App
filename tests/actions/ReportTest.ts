@@ -59,6 +59,8 @@ describe('actions/Report', () => {
             setImmediate(jest.runOnlyPendingTimers);
         }
 
+        SequentialQueue.resetQueue();
+
         return promise;
     });
 
