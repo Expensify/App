@@ -212,6 +212,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -1337,6 +1338,10 @@ const CONST = {
     STATUS_BAR_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
+    },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
@@ -2570,8 +2575,8 @@ const CONST = {
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                quickbooksOnline: 'Quickbooks Online',
-                quickbooksDesktop: 'Quickbooks Desktop',
+                quickbooksOnline: 'QuickBooks Online',
+                quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
@@ -2850,6 +2855,7 @@ const CONST = {
             ALLOW: 'personal',
         },
         CARD_LIST_THRESHOLD: 8,
+        DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -3809,8 +3815,8 @@ const CONST = {
         },
         GA: {},
         GB: {
-            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*[0-9][A-Z-CIKMOV]{2}$/,
-            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH',
+            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*([0-9][ABD-HJLNP-UW-Z]{2})?$/,
+            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH, W1U',
         },
         GD: {},
         GE: {
@@ -4968,9 +4974,8 @@ const CONST = {
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Add or import your own categories.\n' +
-                        "6. Disable any default categories you don't need.\n" +
-                        '7. Require a category for every expense in *Settings*.\n' +
+                        "5. Disable any categories you don't need.\n" +
+                        '6. Add your own categories in the top right.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
@@ -5943,6 +5948,7 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+    MIN_TAX_RATE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6143,6 +6149,14 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+            },
+            categories: {
+                id: 'categories' as const,
+                alias: 'categories',
+                name: 'Categories',
+                title: 'workspace.upgrade.categories.title' as const,
+                description: 'workspace.upgrade.categories.description' as const,
+                icon: 'FolderOpen',
             },
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
@@ -6348,6 +6362,10 @@ const CONST = {
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
         },
+    },
+
+    HYBRID_APP: {
+        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
 } as const;
 

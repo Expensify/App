@@ -254,8 +254,8 @@ Lost in the app?  Let this map guide you!
                 * Delete
         * Accounting
             * Connections list
-                * Quickbooks Online Connect
-                * Quickbooks Desktop Connect
+                * QuickBooks Online Connect
+                * QuickBooks Desktop Connect
                 * Xero
                 * NetSuite
                 * Sage Intacct
