@@ -115,7 +115,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 large
             />
         ),
-        [translate, handleConfirmSelection],
+        [translate, handleConfirmSelection, styles.mt4],
     );
     return (
         <SelectionList
