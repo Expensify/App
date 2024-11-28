@@ -20,7 +20,7 @@ function validateRateValue(
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
-    const ratesList = Object.values(customUnitRates);
+    const ratesList = Object.values(customUnitRates).filter((rate) => currentRateValue !== rate.rate);
     // The following logic replicates the backend's handling of rates:
     // - Multiply the rate by 100 (CUSTOM_UNIT_RATE_BASE_OFFSET) to scale it, ensuring precision.
     // - This ensures rates are converted as follows:
@@ -36,7 +36,7 @@ function validateRateValue(
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = Localize.translateLocal('common.error.invalidRateError');
-    } else if (ratesList.some((r) => r.rate === convertedRate && !(currentRateValue && currentRateValue === r.rate))) {
+    } else if (ratesList.some((r) => r.rate === convertedRate)) {
         errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: Number(values.rate)});
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
         errors.rate = Localize.translateLocal('common.error.lowRateError');
