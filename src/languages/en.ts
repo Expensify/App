@@ -793,6 +793,8 @@ const translations = {
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
+        deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
+        deniedCameraAccessInstructions: 'these instructions',
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
