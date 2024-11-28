@@ -1308,6 +1308,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/per-diem',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
     },
+    WORKSPACE_PER_DIEM_IMPORT: {
+        route: 'settings/workspaces/:policyID/per-diem/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/import` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORTED: {
+        route: 'settings/workspaces/:policyID/per-diem/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/imported` as const,
+    },
     WORKSPACE_PER_DIEM_SETTINGS: {
         route: 'settings/workspaces/:policyID/per-diem/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/settings` as const,

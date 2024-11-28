@@ -531,6 +531,10 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
@@ -767,6 +771,7 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
