@@ -26,6 +26,8 @@ import type {
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
+    SageIntacctDataElement,
+    SageIntacctDataElementWithValue,
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -74,19 +76,26 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null): Policy[] {
         (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
 }
+/**
+ * Checks if the current user is an admin of the policy.
+ */
+const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
-function hasEmployeeListError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
+function shouldShowEmployeeListError(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
 }
 
 /**
  *  Check if the policy has any tax rate errors.
  */
-function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.values(taxRate?.errorFields ?? {}).some(Boolean));
+function shouldShowTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return (
+        isPolicyAdmin(policy) &&
+        Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.values(taxRate?.errorFields ?? {}).some(Boolean))
+    );
 }
 
 /**
@@ -99,29 +108,29 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Checks if the policy had a sync error.
  */
-function hasSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
-    return (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
+function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
+    return isPolicyAdmin(policy) && (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
 
 /**
  * Check if the policy has any error fields.
  */
-function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
+function shouldShowPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && Object.values(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  */
-function hasPolicyError(policy: OnyxEntry<Policy>): boolean {
-    return Object.keys(policy?.errors ?? {}).length > 0 ? true : hasPolicyErrorFields(policy);
+function shouldShowPolicyError(policy: OnyxEntry<Policy>): boolean {
+    return Object.keys(policy?.errors ?? {}).length > 0 ? isPolicyAdmin(policy) : shouldShowPolicyErrorFields(policy);
 }
 
 /**
  * Checks if we have any errors stored within the policy custom units.
  */
-function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
-    return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
+function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
 function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
@@ -129,7 +138,8 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     if (Number.isNaN(numValue)) {
         return NaN;
     }
-    return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
+    // Rounding to 4 decimal places
+    return parseFloat(numValue.toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES));
 }
 
 /**
@@ -161,11 +171,10 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     }
 
     if (withDecimals) {
-        const decimalPart = numValue.toString().split('.').at(1);
-        if (decimalPart) {
-            const fixedDecimalPoints = decimalPart.length > 2 && !decimalPart.endsWith('0') ? 3 : 2;
-            return Number(numValue).toFixed(fixedDecimalPoints).toString().replace('.', toLocaleDigit('.'));
-        }
+        const decimalPart = numValue.toString().split('.').at(1) ?? '';
+        // Set the fraction digits to be between 2 and 4 (OD Behavior)
+        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST.MIN_TAX_RATE_DECIMAL_PLACES), CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+        return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
     }
 
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
@@ -179,7 +188,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy) || hasSyncError(policy, isConnectionInProgress)) {
+    if (shouldShowEmployeeListError(policy) || shouldShowCustomUnitsError(policy) || shouldShowPolicyErrorFields(policy) || shouldShowSyncError(policy, isConnectionInProgress)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -215,11 +224,6 @@ function isExpensifyTeam(email: string | undefined): boolean {
  * Checks if the user with login is an admin of the policy.
  */
 const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => !!(policy && policy.employeeList && login && policy.employeeList[login]?.role === CONST.POLICY.ROLE.ADMIN);
-
-/**
- * Checks if the current user is an admin of the policy.
- */
-const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the current user is of the role "user" on the policy.
@@ -711,6 +715,11 @@ function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefin
     return selectedVendor ?? vendors?.[0] ?? undefined;
 }
 
+function findSelectedSageVendorWithDefaultSelect(vendors: SageIntacctDataElementWithValue[] | SageIntacctDataElement[] | undefined, selectedVendorID: string | undefined) {
+    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorID);
+    return selectedVendor ?? vendors?.[0] ?? undefined;
+}
+
 function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
     const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
     return selectedBankAccount ?? accounts?.[0] ?? undefined;
@@ -1105,6 +1114,17 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Localize.translateLocal('workspace.type.control');
+        case CONST.POLICY.TYPE.TEAM:
+            return Localize.translateLocal('workspace.type.collect');
+        default:
+            return Localize.translateLocal('workspace.type.free');
+    }
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
@@ -1144,15 +1164,15 @@ export {
     getRateDisplayValue,
     goBackFromInvalidPolicy,
     hasAccountingConnections,
-    hasSyncError,
+    shouldShowSyncError,
     hasPolicyFeedsError,
-    hasCustomUnitsError,
-    hasEmployeeListError,
+    shouldShowCustomUnitsError,
+    shouldShowEmployeeListError,
     hasIntegrationAutoSync,
     hasPolicyCategoriesError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasTaxRateError,
+    shouldShowPolicyError,
+    shouldShowPolicyErrorFields,
+    shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
     isDeletedPolicyEmployee,
@@ -1185,6 +1205,7 @@ export {
     findSelectedBankAccountWithDefaultSelect,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
+    findSelectedSageVendorWithDefaultSelect,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
@@ -1236,6 +1257,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };
