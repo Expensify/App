@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
 /**
@@ -21,15 +20,15 @@ import useStyleUtils from './useStyleUtils';
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets() {
+function useStyledSafeAreaInsets(safeAreaInsetsPercentage?: number) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
 
-    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets, safeAreaInsetsPercentage);
     return {
         paddingTop,
         paddingBottom,
-        insets: insets ?? undefined,
+        insets,
         safeAreaPaddingBottomStyle: {paddingBottom},
     };
 }

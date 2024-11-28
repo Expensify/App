@@ -113,7 +113,7 @@ function IOURequestStepMerchant({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
