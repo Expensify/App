@@ -459,6 +459,10 @@ function getOptionData({
             result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
+            result.alternateText = ReportUtils.getWorkspaceCurrencyUpdateMessage(lastAction);
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
+            result.alternateText = ReportUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {

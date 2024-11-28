@@ -276,6 +276,18 @@ type OriginalMessageChangeLog = {
     /** Old role of user */
     oldValue?: string;
 
+    /** Old currency of the workspace */
+    oldCurrency?: string;
+
+    /** New currency of the workspace */
+    newCurrency?: string;
+
+    /** Old frequency of the workspace */
+    oldFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** New frequency of the workspace */
+    newFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
     /** Name of connection */
     connectionName?: AllConnectionName;
 };

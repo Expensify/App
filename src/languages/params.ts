@@ -286,6 +286,10 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
+type UpdatedWorkspaceCurrencyParams = {oldCurrency: string; newCurrency: string};
+
+type UpdatedWorkspaceFrequencyParams = {oldFrequency: string; newFrequency: string};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
@@ -771,4 +775,6 @@ export type {
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
     ChatWithAccountManagerParams,
+    UpdatedWorkspaceCurrencyParams,
+    UpdatedWorkspaceFrequencyParams,
 };

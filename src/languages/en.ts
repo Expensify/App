@@ -166,6 +166,8 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatedWorkspaceCurrencyParams,
+    UpdatedWorkspaceFrequencyParams,
     UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -1487,6 +1489,7 @@ const translations = {
         },
         frequencyDescription: 'Choose how often you’d like expenses to submit automatically, or make it manual',
         frequencies: {
+            instant: 'Instant',
             weekly: 'Weekly',
             monthly: 'Monthly',
             twiceAMonth: 'Twice a month',
@@ -4464,6 +4467,9 @@ const translations = {
     },
     workspaceActions: {
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
+            `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {

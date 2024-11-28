@@ -414,6 +414,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(ReportUtils.getWorkspaceNameUpdatedMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
+                    Clipboard.setString(ReportUtils.getWorkspaceCurrencyUpdateMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+                    Clipboard.setString(ReportUtils.getWorkspaceFrequencyUpdateMessage(reportAction));
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
