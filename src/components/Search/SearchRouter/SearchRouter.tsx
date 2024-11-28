@@ -313,7 +313,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const isDataLoaded = useMemo(() => {
         return (!contextualReportID || contextualReportID !== undefined) && !isLoadingOnyxValue(recentSearchesMetadata) && recentReports.length > 0;
-    }, [contextualReportID, contextualReportID, recentSearchesMetadata, recentReports]);
+    }, [contextualReportID, recentSearchesMetadata, recentReports]);
 
     return (
         <View
