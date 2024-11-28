@@ -14,7 +14,6 @@ type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIM
 function validateRateValue(
     values: FormOnyxValues<RateValueForm>,
     customUnitRates: Record<string, Rate>,
-    currency: string,
     toLocaleDigit: (arg: string) => string,
     currentRateValue?: number,
 ): FormInputErrors<RateValueForm> {
