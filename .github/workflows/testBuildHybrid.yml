@@ -221,98 +221,6 @@ jobs:
           # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
 
-  # iOS:
-  #   name: Build and deploy iOS for testing
-  #   needs: [validateActor, getBranchRef]
-  #   if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-  #   env:
-  #     DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-  #   runs-on: macos-13-xlarge
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
-
-  #     - name: Configure MapBox SDK
-  #       run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-  #     - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-  #       run: |
-  #         cp .env.staging .env.adhoc
-  #         sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-  #         echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-  #     - name: Setup Node
-  #       id: setup-node
-  #       uses: ./.github/actions/composite/setupNode
-
-  #     - name: Setup XCode
-  #       run: sudo xcode-select -switch /Applications/Xcode_15.2.0.app
-
-  #     - name: Setup Ruby
-  #       uses: ruby/setup-ruby@v1.190.0
-  #       with:
-  #         bundler-cache: true
-
-  #     - name: Cache Pod dependencies
-  #       uses: actions/cache@v4
-  #       id: pods-cache
-  #       with:
-  #         path: ios/Pods
-  #         key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-
-  #     - name: Compare Podfile.lock and Manifest.lock
-  #       id: compare-podfile-and-manifest
-  #       run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-  #     - name: Install cocoapods
-  #       uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-  #       if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-  #       with:
-  #         timeout_minutes: 10
-  #         max_attempts: 5
-  #         command: scripts/pod-install.sh
-
-  #     - name: Decrypt AdHoc profile
-  #       run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg
-  #       env:
-  #         LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-  #     - name: Decrypt AdHoc Notification Service profile
-  #       run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc_Notification_Service.mobileprovision NewApp_AdHoc_Notification_Service.mobileprovision.gpg
-  #       env:
-  #         LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-  #     - name: Decrypt certificate
-  #       run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-  #       env:
-  #         LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-1
-
-  #     - name: Build AdHoc app
-  #       run: bundle exec fastlane ios build_adhoc
-
-  #     - name: Upload AdHoc build to S3
-  #       run: bundle exec fastlane ios upload_s3
-  #       env:
-  #         S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         S3_BUCKET: ad-hoc-expensify-cash
-  #         S3_REGION: us-east-1
-
-  #     - name: Upload Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ios
-  #         path: ./ios_paths.json
-
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
@@ -328,17 +236,6 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-
-      # - name: Read JSONs with iOS paths
-      #   id: get_ios_path
-      #   if: ${{ needs.iOS.result == 'success' }}
-      #   run: |
-      #     content_ios="$(cat ./ios/ios_paths.json)"
-      #     content_ios="${content_ios//'%'/'%25'}"
-      #     content_ios="${content_ios//$'\n'/'%0A'}"
-      #     content_ios="${content_ios//$'\r'/'%0D'}"
-      #     ios_path=$(echo "$content_ios" | jq -r '.html_path')
-      #     echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
 
       - name: Publish links to apps for download
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
