@@ -83,6 +83,9 @@ type FeatureTrainingModalProps = {
 
     /** Children to render */
     children?: React.ReactNode;
+
+    /** Styles for the content container */
+    contentContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureTrainingModal({
@@ -102,6 +105,7 @@ function FeatureTrainingModal({
     helpText = '',
     onHelp = () => {},
     children,
+    contentContainerStyles,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -167,16 +171,14 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 ) : (
-                    <View style={[styles.flex1, styles.alignItemsCenter]}>
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, animationStyle]}>
-                            <Lottie
-                                source={animation ?? LottieAnimations.Hands}
-                                style={styles.h100}
-                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay
-                                loop
-                            />
-                        </View>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !shouldRenderAnimation && {aspectRatio}, animationStyle]}>
+                        <Lottie
+                            source={animation ?? LottieAnimations.Hands}
+                            style={styles.h100}
+                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
+                            autoPlay
+                            loop
+                        />
                     </View>
                 )}
             </View>
@@ -240,7 +242,7 @@ function FeatureTrainingModal({
                         <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentContainerStyles]}>
                                     <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}

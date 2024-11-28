@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ const ExpensifyFeatures: FeatureListItem[] = [
 
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -43,13 +45,14 @@ function OnboardingWelcomeVideo() {
                 Welcome.dismissProductTrainingElement('nudgeMigrationWelcomeModal');
             }}
             shouldRenderAnimation
-            animationStyle={[styles.emptyWorkspaceIllustrationStyle, styles.cardSectionIllustration]}
+            animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationContainerStyle={[
                 StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor ?? theme.appBG),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusLarge),
                 styles.pv4,
-                styles.cardSectionIllustration,
+                shouldUseNarrowLayout && styles.cardSectionIllustration,
             ]}
+            contentContainerStyles={styles.mb4}
         >
             <View style={[styles.rowGap4, styles.pt4, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
