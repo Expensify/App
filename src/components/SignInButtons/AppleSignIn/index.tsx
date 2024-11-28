@@ -16,16 +16,16 @@ const getConfig = (config: NativeConfig, key: string, defaultValue: string) => (
 
 type AppleSignInDivProps = {
     isDesktopFlow: boolean;
-    onPress?: () => void;
+    onPointerDown?: () => void;
 };
 
 type SingletonAppleSignInButtonProps = AppleSignInDivProps & {
     isFocused: boolean;
-    onPress?: () => void;
 };
 
 type AppleSignInProps = WithNavigationFocusProps & {
     isDesktopFlow?: boolean;
+    onPointerDown?: () => void;
     // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
 };
@@ -62,7 +62,7 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
 /**
  * Apple Sign In button for Web.
  */
-function AppleSignInDiv({isDesktopFlow, onPress}: AppleSignInDivProps) {
+function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -90,7 +90,7 @@ function AppleSignInDiv({isDesktopFlow, onPress}: AppleSignInDivProps) {
             data-width={CONST.SIGN_IN_FORM_WIDTH}
             data-height="52"
             style={{cursor: 'pointer'}}
-            onPointerDown={onPress}
+            onPointerDown={onPointerDown}
         />
     ) : (
         <div
@@ -102,7 +102,7 @@ function AppleSignInDiv({isDesktopFlow, onPress}: AppleSignInDivProps) {
             data-border-radius="50"
             data-size="40"
             style={{cursor: 'pointer'}}
-            onPointerDown={onPress}
+            onPointerDown={onPointerDown}
         />
     );
 }
@@ -110,14 +110,14 @@ function AppleSignInDiv({isDesktopFlow, onPress}: AppleSignInDivProps) {
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isFocused, isDesktopFlow, onPress}: SingletonAppleSignInButtonProps) {
+function SingletonAppleSignInButton({isFocused, isDesktopFlow, onPointerDown}: SingletonAppleSignInButtonProps) {
     if (!isFocused) {
         return null;
     }
     return (
         <AppleSignInDiv
             isDesktopFlow={isDesktopFlow}
-            onPress={onPress}
+            onPointerDown={onPointerDown}
         />
     );
 }
@@ -125,7 +125,7 @@ function SingletonAppleSignInButton({isFocused, isDesktopFlow, onPress}: Singlet
 // withNavigationFocus is used to only render the button when it is visible.
 const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSignInButton);
 
-function AppleSignIn({isDesktopFlow = false, onPress}: AppleSignInProps) {
+function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
         if (window.appleAuthScriptLoaded) {
@@ -148,7 +148,7 @@ function AppleSignIn({isDesktopFlow = false, onPress}: AppleSignInProps) {
     return (
         <SingletonAppleSignInButtonWithFocus
             isDesktopFlow={isDesktopFlow}
-            onPress={onPress}
+            onPointerDown={onPointerDown}
         />
     );
 }
