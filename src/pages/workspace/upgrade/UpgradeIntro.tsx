@@ -15,11 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import GenericFeaturesView from './GenericFeaturesView';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
 };
@@ -28,6 +29,16 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+
+    if (!feature) {
+        return (
+            <GenericFeaturesView
+                onUpgrade={onUpgrade}
+                buttonDisabled={buttonDisabled}
+                loading={loading}
+            />
+        );
+    }
     const isIllustration = feature.icon in Illustrations;
     const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
