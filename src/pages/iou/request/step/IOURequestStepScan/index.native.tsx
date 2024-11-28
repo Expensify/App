@@ -499,32 +499,21 @@ function IOURequestStepScan({
 
         setDidCapturePhoto(true);
 
-        console.debug('[dev] Taking photo');
-
         const path = getReceiptsUploadFolderPath();
-
-        console.debug('[dev] path', path);
 
         ReactNativeBlobUtil.fs
             .isDir(path)
             .then((isDir) => {
-                console.debug('[dev] Checking if directory exists', isDir);
-
                 if (isDir) {
                     return;
                 }
 
-                ReactNativeBlobUtil.fs
-                    .mkdir(path)
-                    .then(() => {
-                        console.debug('[dev] Directory created successfully');
-                    })
-                    .catch((error) => {
-                        console.error('[dev] Error creating directory:', error);
-                    });
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the directory', error);
+                });
             })
-            .catch((error) => {
-                console.error('[dev] Error checking if directory exists:', error);
+            .catch((error: string) => {
+                Log.warn('Error checking if the directory exists', error);
             })
             .then(() => {
                 camera?.current
@@ -534,8 +523,6 @@ function IOURequestStepScan({
                         path,
                     })
                     .then((photo: PhotoFile) => {
-                        console.debug('[dev] photo', photo);
-
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
                         IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -565,14 +552,14 @@ function IOURequestStepScan({
                             () => {
                                 setDidCapturePhoto(false);
                                 showCameraAlert();
-                                Log.warn('[dev] Error reading photo');
+                                Log.warn('Error reading photo');
                             },
                         );
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
                         showCameraAlert();
-                        Log.warn('[dev] Error taking photo', error);
+                        Log.warn('Error taking photo', error);
                     });
             });
     }, [
