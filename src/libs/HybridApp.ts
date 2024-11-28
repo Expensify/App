@@ -14,16 +14,14 @@ let currentTryNewDot: OnyxEntry<TryNewDot>;
 Onyx.connect({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
-        console.debug('Last hybridApp value', {hybridApp});
-        handleSignInFlow(hybridApp, currentTryNewDot);
+        handleChangeInHybridAppSignInFlow(hybridApp, currentTryNewDot);
     },
 });
 
 Onyx.connect({
     key: ONYXKEYS.NVP_TRYNEWDOT,
     callback: (tryNewDot) => {
-        console.debug('Last tryNewDot value', {tryNewDot});
-        handleSignInFlow(currentHybridApp, tryNewDot);
+        handleChangeInHybridAppSignInFlow(currentHybridApp, tryNewDot);
     },
 });
 
@@ -50,7 +48,7 @@ function shouldUseOldApp(tryNewDot?: TryNewDot) {
     return tryNewDot?.classicRedirect.dismissed === true;
 }
 
-function handleSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>) {
+function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>) {
     if (!NativeModules.HybridAppModule) {
         return;
     }
@@ -112,7 +110,6 @@ const init: Init = () => {
         return;
     }
 
-    // Setup event listeners
     DeviceEventEmitter.addListener(CONST.EVENTS.HYBRID_APP.ON_SIGN_IN_FINISHED, onOldDotSignInFinished);
 };
 

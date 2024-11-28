@@ -39,7 +39,6 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as App from '@userActions/App';
 import {KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
@@ -503,10 +502,6 @@ function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string
                     return;
                 }
                 return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
-            })
-            .then(() => {
-                HybridAppActions.setUseNewDotSignInPage(!!hybridApp.useNewDotSignInPage);
-                HybridAppActions.setLoggedOutFromOldDot(!!hybridApp.loggedOutFromOldDot);
             })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});

@@ -1,8 +1,9 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {setUseNewDotSignInPage} from './HybridApp';
+import * as HybridAppActions from './HybridApp';
 import * as Policy from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
@@ -39,7 +40,10 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
 
         // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
         Onyx.merge(ONYXKEYS.SESSION, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(errorMessage)});
-        setUseNewDotSignInPage(true);
+
+        if (NativeModules.HybridAppModule) {
+            HybridAppActions.resetStateAfterSignOut();
+        }
     });
 }
 
