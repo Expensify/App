@@ -99,6 +99,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                         onPress={() => {
                             if (!subscriptionPlan) {
                                 openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+                                return;
                             }
                             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
                         }}
