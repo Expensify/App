@@ -13,12 +13,14 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
 
     return (
         <SafeAreaInsetsContext.Consumer>
-            {(insets) => {
-                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+            {(safeAreaInsets) => {
+                const insets = StyleUtils.getSafeAreaInsets(safeAreaInsets);
+                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+
                 return children({
                     paddingTop,
                     paddingBottom,
-                    insets: insets ?? undefined,
+                    insets,
                     safeAreaPaddingBottomStyle: {paddingBottom},
                 });
             }}
