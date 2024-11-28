@@ -4611,6 +4611,8 @@ const translations = {
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
+            approve: 'Aprobar',
+            pay: 'Pagar',
             delete: 'Eliminar',
             hold: 'Bloquear',
             unhold: 'Desbloquear',

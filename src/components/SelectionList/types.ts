@@ -331,7 +331,10 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
