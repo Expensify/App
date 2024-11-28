@@ -43,14 +43,15 @@ function OnboardingWelcomeVideo() {
                 Welcome.dismissProductTrainingElement('nudgeMigrationWelcomeModal');
             }}
             shouldRenderAnimation
-            animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
+            animationStyle={[styles.emptyWorkspaceIllustrationStyle, styles.cardSectionIllustration]}
             animationContainerStyle={[
                 StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor ?? theme.appBG),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusLarge),
                 styles.pv4,
+                styles.cardSectionIllustration,
             ]}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
+            <View style={[styles.rowGap4, styles.pt4, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}
@@ -67,7 +68,6 @@ function OnboardingWelcomeVideo() {
                             wrapperStyle={[styles.p0, styles.cursorAuto]}
                             containerStyle={[styles.m0, styles.wAuto]}
                             titleContainerStyle={styles.ml6}
-                            numberOfLinesTitle={0}
                         />
                     </View>
                 ))}

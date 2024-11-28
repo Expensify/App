@@ -150,6 +150,7 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
+                    animationContainerStyle,
                     !shouldRenderAnimation && {aspectRatio},
                 ]}
             >
@@ -166,7 +167,7 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 ) : (
-                    <View style={[styles.flex1, styles.alignItemsCenter, !shouldRenderAnimation && {aspectRatio}, animationContainerStyle]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter]}>
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, animationStyle]}>
                             <Lottie
                                 source={animation ?? LottieAnimations.Hands}

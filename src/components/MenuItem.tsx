@@ -735,9 +735,9 @@ function MenuItem(
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={styles.renderHTMLTitle}>
+                                                                    <Text style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
-                                                                    </View>
+                                                                    </Text>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
