@@ -3,7 +3,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import defaultEdgeSpacing from './defaultEdgeSpacing';
 
-function useEdgeSpacing(padding: Partial<EdgeInsets> = {}): EdgeInsets {
+function useEdgeSpacing(padding: Partial<EdgeInsets> = CONST.EMPTY_OBJECT): EdgeInsets {
     const {insets} = useStyledSafeAreaInsets();
 
     const spacing = useMemo<EdgeInsets>(() => ({...defaultEdgeSpacing, ...padding}), [padding]);
