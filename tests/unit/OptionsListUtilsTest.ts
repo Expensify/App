@@ -428,14 +428,14 @@ describe('OptionsListUtils', () => {
 
         // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
-        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
-        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
-        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk'.replace(/ /g, '\u00A0'));
         expect(results.personalDetails.at(8)?.text).toBe('Thor');
 
         // Then the result which has an existing report should also have the reportID attached
@@ -446,10 +446,10 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getFilteredOptions({personalDetails: OPTIONS.personalDetails});
 
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
 
         // When we don't include personal detail to the result
         results = OptionsListUtils.getFilteredOptions({
@@ -515,14 +515,14 @@ describe('OptionsListUtils', () => {
 
         // All personal details including those that have reports should be returned
         // We should expect personal details sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic');
-        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister');
-        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man');
-        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(4)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(5)?.text).toBe('Mr Sinister'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(6)?.text).toBe('Spider-Man'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(7)?.text).toBe('The Incredible Hulk'.replace(/ /g, '\u00A0'));
         expect(results.personalDetails.at(8)?.text).toBe('Thor');
 
         // And none of our personalDetails should include any of the users with recent reports
@@ -631,10 +631,10 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, [], '');
 
         // We should expect personal details to be sorted alphabetically
-        expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-        expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+        expect(results.personalDetails.at(0)?.text).toBe('Black Panther'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(1)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(2)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
+        expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
     });
 
     it('formatMemberForList()', () => {
@@ -669,10 +669,10 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(4);
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
-            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
-            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
         });
 
         it('should filter users by email', () => {
@@ -682,7 +682,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mr Sinister'.replace(/ /g, '\u00A0'));
         });
 
         it('should find archived chats', () => {
@@ -743,8 +743,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
@@ -867,7 +867,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
             expect(filteredOptions.recentReports.length).toBe(5);
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
 
             expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
@@ -960,9 +960,9 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
-            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther'.replace(/ /g, '\u00A0'));
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
@@ -978,8 +978,8 @@ describe('OptionsListUtils', () => {
             const filteredOptions = OptionsListUtils.filterOptions(options, 'fantastic');
 
             expect(filteredOptions.recentReports.length).toBe(2);
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0'));
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic'.replace(/ /g, '\u00A0') + ', ' + 'Invisible Woman'.replace(/ /g, '\u00A0'));
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -989,7 +989,7 @@ describe('OptionsListUtils', () => {
                     const filteredResults = OptionsListUtils.filterOptions(results, 'barry.allen@expensify.com', {sortByReportTypeInSearch: true});
 
                     expect(filteredResults.recentReports.length).toBe(1);
-                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
+                    expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash'.replace(/ /g, '\u00A0'));
                 });
         });
     });
