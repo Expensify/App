@@ -245,7 +245,12 @@ function CategorySettingsPage({
                                                 <Switch
                                                     isOn={policyCategory?.areCommentsRequired ?? false}
                                                     accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
-                                                    onToggle={() => Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired)}
+                                                    onToggle={() => {
+                                                        if (policyCategory.commentHint && areCommentsRequired) {
+                                                            Category.setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                        }
+                                                        Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                    }}
                                                 />
                                             </View>
                                         </View>
