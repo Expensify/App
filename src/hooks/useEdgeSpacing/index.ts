@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import CONST from '@src/CONST';
 import defaultEdgeSpacing from './defaultEdgeSpacing';
 
 function useEdgeSpacing(padding: Partial<EdgeInsets> = CONST.EMPTY_OBJECT): EdgeInsets {
