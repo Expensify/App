@@ -1214,9 +1214,9 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: AnimatableNumericValue, scale: AnimatableNumericValue) =>
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) =>
             ({
-                transform: [{translateY}, {scale}],
+                transform: [{translateY: translateY.value}, {scale: scale.value}],
             } satisfies TextStyle),
 
         baseTextInput: {
