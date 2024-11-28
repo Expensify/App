@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -25,6 +26,7 @@ type SearchMultipleSelectionPickerProps = {
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -106,6 +108,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         () => (
             <Button
                 success
+                style={[styles.mt4]}
                 text={translate('common.save')}
                 pressOnEnter
                 onPress={handleConfirmSelection}
