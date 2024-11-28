@@ -76,6 +76,7 @@ import type {
     ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -191,7 +192,6 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
-    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -774,6 +774,8 @@ const translations = {
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
+        importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
+            rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
         importSuccessfullTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
@@ -789,6 +791,8 @@ const translations = {
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
+        deniedCameraAccessInstructions: 'estas instrucciones',
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
@@ -2559,7 +2563,6 @@ const translations = {
                         return 'Miembro';
                 }
             },
-            planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
@@ -2584,6 +2587,7 @@ const translations = {
             errors: {
                 existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
             },
+            importPerDiemRates: 'Importar tasas de per diem',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
@@ -4247,23 +4251,6 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
-        planTypePage: {
-            planTypes: {
-                team: {
-                    label: 'Collect',
-                    description: 'Para equipos que buscan automatizar sus procesos.',
-                },
-                corporate: {
-                    label: 'Recolectar',
-                    description: 'Para organizaciones con requisitos avanzados.',
-                },
-            },
-            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
-            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
-            lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
-                `Tienes un compromiso anual de ${subscriptionUsersCount} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
-            subscriptions: 'Suscripciones',
-        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4344,19 +4331,6 @@ const translations = {
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
                 gotIt: 'Entendido, gracias.',
-            },
-            commonFeatures: {
-                title: 'Actualiza tu espacio de trabajo al plan Controlar',
-                note: 'Obtén acceso a todas nuestras funciones más avanzadas, incluyendo:',
-                benefits: {
-                    note: 'El plan Controlar comienza en $9 por miembro activo al mes.',
-                    learnMore: 'Obtén más información',
-                    pricing: 'sobre nuestros planes y precios.',
-                    benefit1: 'Conexiones contables avanzadas (NetSuite, Sage Intacct y más)',
-                    benefit2: 'Reglas de gastos',
-                    benefit3: 'Flujos de aprobación múltiples',
-                    benefit4: 'Controles de seguridad mejorados',
-                },
             },
         },
         restrictedAction: {

@@ -1,20 +1,20 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import usePolicy from '@hooks/usePolicy';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ImportMembersPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
+type ImportPerDiemPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORT>;
 
-function ImportMembersPage({policy}: ImportMembersPageProps) {
-    const policyID = policy?.id ?? '';
+function ImportPerDiemPage({route}: ImportPerDiemPageProps) {
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
 
     return (
         <AccessOrNotFoundWrapper
@@ -23,11 +23,11 @@ function ImportMembersPage({policy}: ImportMembersPageProps) {
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
-                backTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
-                goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
+                backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}
+                goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)}
             />
         </AccessOrNotFoundWrapper>
     );
 }
 
-export default withPolicyAndFullscreenLoading(ImportMembersPage);
+export default ImportPerDiemPage;

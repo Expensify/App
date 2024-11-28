@@ -711,10 +711,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile/address',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
-    WORKSPACE_PROFILE_PLAN: {
-        route: 'settings/workspaces/:policyID/profile/plan',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/plan` as const, backTo),
-    },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
@@ -978,9 +974,9 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
-        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
+        route: 'settings/workspaces/:policyID/upgrade/:featureName',
+        getRoute: (policyID: string, featureName: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID/downgrade/',
@@ -1307,6 +1303,14 @@ const ROUTES = {
     WORKSPACE_PER_DIEM: {
         route: 'settings/workspaces/:policyID/per-diem',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORT: {
+        route: 'settings/workspaces/:policyID/per-diem/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/import` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORTED: {
+        route: 'settings/workspaces/:policyID/per-diem/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/imported` as const,
     },
     WORKSPACE_PER_DIEM_SETTINGS: {
         route: 'settings/workspaces/:policyID/per-diem/settings',
