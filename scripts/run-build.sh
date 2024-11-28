@@ -6,7 +6,7 @@ export PROJECT_ROOT_PATH
 BUILD="$1"
 NEW_DOT_FLAG="false"
 IOS_MODE="DebugDevelopment"
-ANDROID_MODE="DevelopmentDebug"
+ANDROID_MODE="developmentDebug"
 SCHEME="New Expensify Dev"
 APP_ID="com.expensify.chat.dev"
 
@@ -52,7 +52,9 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
     export CUSTOM_APK_NAME="Expensify-debug.apk"
 else
     echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
+    echo $ANDROID_MODE
     PROJECT_ROOT_PATH="./"
+    unset CUSTOM_APK_NAME
 fi
 
 # Check if the argument is one of the desired values
@@ -67,7 +69,7 @@ case "$BUILD" in
         npx react-native run-ios --simulator "iPad Pro (11-inch) (4th generation)" --mode $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx react-native run-android --list-devices --mode $ANDROID_MODE --appId $APP_ID --active-arch-only
+        npx react-native run-android --mode $ANDROID_MODE --appId $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
