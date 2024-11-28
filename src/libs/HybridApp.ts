@@ -76,7 +76,7 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
         }
 
         Log.info('[HybridApp] Closing NewDot as sign-in to OldDot succeeded');
-        NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
     }
 
     if (
