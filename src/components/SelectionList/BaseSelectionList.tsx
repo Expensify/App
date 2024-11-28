@@ -88,6 +88,7 @@ function BaseSelectionList<TItem extends ListItem>(
         alternateTextNumberOfLines = 2,
         textInputRef,
         headerMessageStyle,
+        confirmButtonStyles,
         shouldHideListOnInitialRender = true,
         textInputIconLeft,
         sectionTitleStyles,
@@ -835,7 +836,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <Button
                                 success={!shouldUseDefaultTheme}
                                 large
-                                style={[styles.w100]}
+                                style={[styles.w100, confirmButtonStyles]}
                                 text={confirmButtonText || translate('common.confirm')}
                                 onPress={onConfirm}
                                 pressOnEnter

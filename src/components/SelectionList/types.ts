@@ -464,6 +464,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to the header message */
     headerMessageStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply to submit button */
+    confirmButtonStyles?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
