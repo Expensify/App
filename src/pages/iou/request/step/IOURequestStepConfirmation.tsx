@@ -608,7 +608,7 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
-            <View style={[styles.flex1, insets.bottom ? styles.mb5 : undefined]}>
+            <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={navigateBack}
