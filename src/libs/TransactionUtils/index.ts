@@ -1,3 +1,4 @@
+import {parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -467,6 +468,22 @@ function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseR
  */
 function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.taxCode ?? '';
+}
+
+/**
+ * Return the posted date from the transaction.
+ */
+function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
+    return transaction?.posted ?? '';
+}
+
+/**
+ * Return the formated posted date from the transaction.
+ */
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const postedDate = getPostedDate(transaction);
+    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
 }
 
 /**
@@ -1044,10 +1061,10 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(transactionID: string, reportID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+function compareDuplicateTransactionFields(reviewingTransactionID: string, reportID: string, selectedTransactionID?: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = removeSettledAndApprovedTransactions([transactionID, ...duplicates]).map((item) => getTransaction(item));
+    const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => getTransaction(item));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1098,6 +1115,14 @@ function compareDuplicateTransactionFields(transactionID: string, reportID: stri
         if (differentValues.length > 0) {
             change[fieldName] = differentValues;
         }
+    }
+
+    // The comment object needs to be stored only when selecting a specific transaction to keep.
+    // It contains details such as 'customUnit' and 'waypoints,' which remain unchanged during the review steps
+    // but are essential for displaying complete information on the confirmation page.
+    if (selectedTransactionID) {
+        const selectedTransaction = transactions.find((t) => t?.transactionID === selectedTransactionID);
+        keep.comment = selectedTransaction?.comment ?? {};
     }
 
     for (const fieldName in fieldsToCompare) {
@@ -1196,7 +1221,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         ...restReviewDuplicateTransaction,
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
-        comment: {comment: reviewDuplicateTransaction?.description},
+        comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
     };
 }
 
@@ -1301,6 +1326,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getFormattedPostedDate,
 };
 
 export type {TransactionChanges};

@@ -129,14 +129,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const recentReports: OptionData[] = useMemo(() => {
         if (debouncedInputValue === '') {
-            return searchOptions.recentReports.slice(0, 10);
+            return searchOptions.recentReports.slice(0, 20);
         }
 
         const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
-        return reportOptions.slice(0, 10);
+        return reportOptions.slice(0, 20);
     }, [debouncedInputValue, filteredOptions, searchOptions]);
 
     const reportForContextualSearch = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;

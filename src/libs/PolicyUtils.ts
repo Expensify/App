@@ -1114,6 +1114,17 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Localize.translateLocal('workspace.type.control');
+        case CONST.POLICY.TYPE.TEAM:
+            return Localize.translateLocal('workspace.type.collect');
+        default:
+            return Localize.translateLocal('workspace.type.free');
+    }
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
@@ -1246,6 +1257,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };
