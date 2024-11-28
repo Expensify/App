@@ -211,9 +211,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
         nonReimbursableTotal?: number;
 
-        /** Whether the report is hidden from options list */
-        isHidden?: boolean;
-
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 

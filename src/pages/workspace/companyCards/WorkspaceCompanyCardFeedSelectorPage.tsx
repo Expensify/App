@@ -79,7 +79,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
@@ -91,7 +91,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     initiallyFocusedOptionKey={selectedFeed}
                     listFooterContent={
                         <MenuItem
-                            title={translate('workspace.companyCards.addCompanyCards')}
+                            title={translate('workspace.companyCards.addCards')}
                             icon={Expensicons.Plus}
                             onPress={() => {
                                 CompanyCards.clearAddNewCardFlow();
