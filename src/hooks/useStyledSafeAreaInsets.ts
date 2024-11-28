@@ -1,3 +1,5 @@
+import {useContext} from 'react';
+import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
@@ -20,16 +22,27 @@ import useStyleUtils from './useStyleUtils';
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets(safeAreaInsetsPercentage?: number) {
+function useStyledSafeAreaInsets() {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
+    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
 
-    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets, safeAreaInsetsPercentage);
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
+    const isSafeAreaBottomPaddingApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
+
+    const adaptedInsets = {
+        ...insets,
+        top: isSafeAreaTopPaddingApplied ? 0 : insets?.top,
+        bottom: isSafeAreaBottomPaddingApplied ? 0 : insets?.bottom,
+    };
+    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
+
     return {
-        paddingTop,
-        paddingBottom,
-        insets,
-        safeAreaPaddingBottomStyle: {paddingBottom},
+        paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
+        paddingBottom: adaptedPaddingBottom,
+        insets: adaptedInsets,
+        safeAreaPaddingBottomStyle: {adaptedPaddingBottom},
     };
 }
 
