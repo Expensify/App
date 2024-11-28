@@ -555,12 +555,19 @@ type CurrencyCodeParams = {
     currencyCode: string;
 };
 
+type WorkspaceLockedPlanTypeParams = {
+    subscriptionUsersCount: number;
+    annualSubscriptionEndDate: string;
+};
 type CompanyNameParams = {
     companyName: string;
 };
 
 type CustomUnitRateParams = {
     rate: number;
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -764,6 +771,8 @@ export type {
     AssignCardParams,
     ImportedTypesParams,
     CurrencyCodeParams,
+    WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
     CustomUnitRateParams,
+    ChatWithAccountManagerParams,
 };

@@ -331,7 +331,10 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -475,6 +478,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
+
+    /** Whether to use the default theme for the confirm button */
+    shouldUseDefaultTheme?: boolean;
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
