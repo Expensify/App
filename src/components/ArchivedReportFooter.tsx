@@ -60,7 +60,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
     const text = shouldRenderHTML
         ? translate(`reportArchiveReasons.${archiveReason}`, {
               displayName: `<strong>${formatPhoneNumber(displayName)}</strong>`,
-              oldDisplayName: `<strong>${formatPhoneNumber(oldDisplayName??'')}</strong>`,
+              oldDisplayName: `<strong>${formatPhoneNumber(oldDisplayName ?? '')}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
               shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })
