@@ -23,9 +23,15 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Current policy id */
     policyID: string;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
+
+    /** Whether to disable assign card button */
+    isDisabledAssignCardButton?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -90,7 +96,12 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     );
 
     if (sortedCards.length === 0) {
-        return <WorkspaceCompanyCardsFeedAddedEmptyPage />;
+        return (
+            <WorkspaceCompanyCardsFeedAddedEmptyPage
+                handleAssignCard={handleAssignCard}
+                isDisabledAssignCardButton={isDisabledAssignCardButton}
+            />
+        );
     }
 
     return (

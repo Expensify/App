@@ -35,7 +35,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
-    const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
+    const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
     const onSliderLayout = useCallback((event: LayoutChangeEvent) => {
@@ -45,8 +45,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     const changeVolumeOnPan = useCallback(
         (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
-            // eslint-disable-next-line react-compiler/react-compiler
-            volume.value = NumberUtils.clamp(val, 0, 1);
+            volume.set(NumberUtils.clamp(val, 0, 1));
         },
         [sliderHeight, volume],
     );
@@ -63,15 +62,15 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
             runOnJS(setIsSliderBeingUsed)(false);
         });
 
-    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
+    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.get() * 100}%`}));
 
     const updateIcon = useCallback((vol: number) => {
         setVolumeIcon({icon: getVolumeIcon(vol)});
     }, []);
 
     useDerivedValue(() => {
-        runOnJS(updateVolume)(volume.value);
-        runOnJS(updateIcon)(volume.value);
+        runOnJS(updateVolume)(volume.get());
+        runOnJS(updateIcon)(volume.get());
     }, [volume]);
 
     return (
@@ -95,8 +94,8 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
                     )}
 
                     <IconButton
-                        tooltipText={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
-                        onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
+                        tooltipText={volume.get() === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
+                        onPress={() => updateVolume(volume.get() === 0 ? 1 : 0)}
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow
