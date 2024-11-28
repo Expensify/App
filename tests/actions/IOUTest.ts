@@ -1679,6 +1679,28 @@ describe('actions/IOU', () => {
                                 },
                             });
                         }),
+                )
+                .then(() => {
+                    mockFetch?.pause?.();
+                    if (chatReport && iouReport) {
+                        IOU.cancelPayment(iouReport, chatReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
+                                    expect(chatReportData?.iouReportID).toBe(iouReport?.reportID);
+                                    resolve();
+                                },
+                            });
+                        }),
                 );
         });
     });
