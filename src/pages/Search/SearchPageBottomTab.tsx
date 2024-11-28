@@ -37,7 +37,7 @@ function SearchPageBottomTab() {
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
-        top: topBarOffset.value,
+        top: topBarOffset.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -47,15 +47,14 @@ function SearchPageBottomTab() {
                 return;
             }
             const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.value;
-            const distanceScrolled = currentOffset - scrollOffset.value;
+            const isScrollingDown = currentOffset > scrollOffset.get();
+            const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
             }
-            scrollOffset.value = currentOffset;
+            scrollOffset.set(currentOffset);
         },
     });
 
@@ -113,7 +112,7 @@ function SearchPageBottomTab() {
                             <SearchStatusBar
                                 queryJSON={queryJSON}
                                 onStatusChange={() => {
-                                    topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                                    topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
                         </Animated.View>
