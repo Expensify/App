@@ -56,20 +56,20 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     shouldShowBackButton
                 />
                 <ScrollView>
-                    {reservationType === 'flight' && (
+                    {reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
                             reservationIndex={route.params.reservationIndex}
                         />
                     )}
-                    {reservationType === 'hotel' && (
+                    {reservationType === CONST.RESERVATION_TYPE.HOTEL && (
                         <HotelTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
                         />
                     )}
-                    {reservationType === 'car' && (
+                    {reservationType === CONST.RESERVATION_TYPE.CAR && (
                         <CarTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
