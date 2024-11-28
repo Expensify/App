@@ -149,7 +149,7 @@ describe('ReportUtils', () => {
                     reportID: '',
                     participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
                 }),
-            ).toBe('Ragnar, floki@vikings.net, Lagertha, ' + '(833) 240-3627'.replace(/ /g, '\u00A0'));
+            ).toBe(`Ragnar, floki@vikings.net, Lagertha, ${'(833) 240-3627'.replace(/ /g, '\u00A0')}`);
         });
 
         describe('Default Policy Room', () => {
@@ -263,10 +263,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok'.replace(/ /g, '\u00A0') + ' (archived)');
+                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'.replace(/ /g, '\u00A0')} (archived)`);
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok'.replace(/ /g, '\u00A0') + ' (archivado)'),
+                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'.replace(/ /g, '\u00A0')} (archivado)`),
                     );
                 });
             });
@@ -1114,7 +1114,7 @@ describe('ReportUtils', () => {
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627'.replace(/ /g, '\u00A0') + ', floki@vikings.net, Lagertha, Ragnar');
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual(`${'(833) 240-3627'.replace(/ /g, '\u00A0')}, floki@vikings.net, Lagertha, Ragnar`);
             });
         });
 
