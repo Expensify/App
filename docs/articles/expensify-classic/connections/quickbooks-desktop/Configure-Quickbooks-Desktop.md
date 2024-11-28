@@ -28,11 +28,11 @@ The following steps will determine how data will be exported from Expensify to Q
 
 # Step 2: Configure coding/import settings
 
-The following steps help you determine how data will be imported from QuickBooks Online to Expensify:
+The following steps help you determine how data will be imported from QuickBooks Desktop to Expensify:
 
 ![Expensify coding settings page for the QuickBooks Desktop integration](https://help.expensify.com/assets/images/quickbooks-desktop-coding-settings.png){:width="100%"}
 
-1. Click Import under the QuickBooks Online connection.
+1. Click Import under the QuickBooks Desktop connection.
 2. Review each of the following import settings:
 - **Chart of Accounts**: The Chart of Accounts is automatically imported from QuickBooks Desktop as categories. This cannot be amended.
 - **Classes**: Choose whether to import classes, which will be shown in Expensify as tags for expense-level coding.
