@@ -35,7 +35,6 @@ function SAMLSignInPage() {
         body.append('platform', getPlatform());
         fetchSAMLUrl(body).then((response) => {
             if (response && response.url) {
-                console.log("meep meep: " + JSON.stringify(response));
                 setSAMLUrl(response.url);
             }
         });
@@ -46,7 +45,6 @@ function SAMLSignInPage() {
      */
     const handleNavigationStateChange = useCallback(
         ({url}: WebViewNativeEvent) => {
-            Log.info('SAMLSignInPage - Handling SAML navigation change');
             // If we've gotten a callback then remove the option to navigate back to the sign-in page
             if (url.includes('loginCallback')) {
                 shouldShowNavigation(false);
@@ -63,7 +61,12 @@ function SAMLSignInPage() {
             if (searchParams.has('error')) {
                 Session.clearSignInData();
                 Session.setAccountError(searchParams.get('error') ?? '');
-                Navigation.navigate(ROUTES.HOME);
+
+                Navigation.isNavigationReady().then(() => {
+                    // We must call goBack() to remove the /transition route from history
+                    Navigation.goBack();
+                    Navigation.navigate(ROUTES.HOME);
+                });
             }
         },
         [credentials?.login, shouldShowNavigation, account?.isLoading],
