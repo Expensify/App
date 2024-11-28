@@ -34,9 +34,10 @@ function SAMLSignInPage() {
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
         fetchSAMLUrl(body).then((response) => {
-            if (response && response.url) {
-                setSAMLUrl(response.url);
+            if (!response || !response.url) {
+                return;
             }
+            setSAMLUrl(response.url);
         });
     }, [credentials?.login, SAMLUrl]);
 
