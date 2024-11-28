@@ -43,8 +43,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         const toggleSearch = () => {
             const isUserOnSearchPage = isSearchTopmostCentralPane();
 
-            console.log('toggle', {isUserOnSearchPage, ref: searchPageFocusInputRef.current});
-
             if (isUserOnSearchPage && searchPageFocusInputRef.current) {
                 searchPageFocusInputRef.current?.();
             } else if (searchRouterDisplayedRef.current) {

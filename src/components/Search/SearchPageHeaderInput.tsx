@@ -229,7 +229,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }
 
     const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
-    const showAutocompleteList = () => setIsAutocompleteListVisible(true);
+    const showAutocompleteList = () => {
+        listRef.current?.updateAndScrollToFocusedIndex(0);
+        setIsAutocompleteListVisible(true);
+    };
 
     const searchQueryItem = {
         text: textInputValue,
@@ -252,12 +255,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
               {boxShadow: variables.popoverMenuShadow},
           ]
         : [styles.pt4];
-    const inputWrapperStyle = isAutocompleteListVisible ? styles.ph2 : null;
+    const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;
 
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.searchResultsHeaderBar, styles.mh85vh, isAutocompleteListVisible && styles.ph3]}
+            style={[styles.searchResultsHeaderBar, isAutocompleteListVisible && styles.ph3]}
         >
             <View style={[styles.appBG, ...autocompleteInputStyle]}>
                 <SearchRouterInput
@@ -272,12 +275,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     onBlur={hideAutocompleteList}
                     wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
                     wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
-                    outerWrapperStyle={inputWrapperStyle}
+                    outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={children}
                     routerListRef={listRef}
                     ref={textInputRef}
                 />
-                <View style={[styles.pt2, !isAutocompleteListVisible && styles.dNone]}>
+                <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}

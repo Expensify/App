@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -111,7 +111,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions, initiallyFocusedOptionKey}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, additionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -122,25 +122,9 @@ function SearchRouterList(
     const policy = usePolicy(activeWorkspaceID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
-
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-
-    const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-    }, [recentSearches]);
-
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
-        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
-        return {
-            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
-            singleIcon: Expensicons.History,
-            searchQuery: query,
-            keyForList: timestamp,
-            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-        };
-    });
 
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
@@ -150,13 +134,14 @@ function SearchRouterList(
         return OptionsListUtils.getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
+    const [isInitialRender, setIsInitialRender] = useState(true);
+
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const cardAutocompleteList = Object.values(cardList);
-
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
             return [];
@@ -372,22 +357,20 @@ function SearchRouterList(
         cardAutocompleteList,
     ]);
 
-    useEffect(() => {
-        ReportUserActions.searchInServer(autocompleteQueryValue.trim());
-    }, [autocompleteQueryValue]);
+    const sortedRecentSearches = useMemo(() => {
+        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    }, [recentSearches]);
 
-    /* Sections generation */
-    const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
-
-    const [isInitialRender, setIsInitialRender] = useState(true);
-
-    if (searchQueryItem) {
-        sections.push({data: [searchQueryItem]});
-    }
-
-    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-        sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
-    }
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+        const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
+        return {
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
+            singleIcon: Expensicons.History,
+            searchQuery: query,
+            keyForList: timestamp,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+        };
+    });
 
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
@@ -404,6 +387,21 @@ function SearchRouterList(
         }
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, searchOptions]);
+
+    useEffect(() => {
+        ReportUserActions.searchInServer(autocompleteQueryValue.trim());
+    }, [autocompleteQueryValue]);
+
+    /* Sections generation */
+    const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
+
+    if (searchQueryItem) {
+        sections.push({data: [searchQueryItem]});
+    }
+
+    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
+    }
 
     const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
@@ -427,15 +425,18 @@ function SearchRouterList(
         sections.push(...additionalSections);
     }
 
-    const onArrowFocus = (focusedItem: OptionData | SearchQueryItem) => {
-        if (!isSearchQueryItem(focusedItem) || !focusedItem.searchQuery || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
-            return;
-        }
+    const onArrowFocus = useCallback(
+        (focusedItem: OptionData | SearchQueryItem) => {
+            if (!isSearchQueryItem(focusedItem) || !focusedItem.searchQuery || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+                return;
+            }
 
-        const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-        setTextQuery(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
-        updateAutocompleteSubstitutions(focusedItem);
-    };
+            const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(autocompleteQueryValue);
+            setTextQuery(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(focusedItem.searchQuery)} `);
+            updateAutocompleteSubstitutions(focusedItem);
+        },
+        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
+    );
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
@@ -455,7 +456,7 @@ function SearchRouterList(
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
             ref={ref}
-            initiallyFocusedOptionKey={shouldUseNarrowLayout ? undefined : styledRecentReports.at(0)?.keyForList}
+            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
         />
     );
