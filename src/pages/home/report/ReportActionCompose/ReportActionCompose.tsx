@@ -408,7 +408,7 @@ function ReportActionCompose({
         ],
     );
 
-    const debouncedValidate = lodashDebounce(
+    const validateMaxLength = useCallback(
         (value: string) => {
             const taskCommentMatch = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
             if (taskCommentMatch) {
@@ -420,9 +420,10 @@ function ReportActionCompose({
                 validateCommentMaxLength(value, {reportID});
             }
         },
-        CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME,
-        {leading: true},
+        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
     );
+
+    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
 
     const onValueChange = useCallback(
         (value: string) => {
