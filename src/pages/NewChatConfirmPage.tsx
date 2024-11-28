@@ -13,7 +13,6 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -50,7 +49,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const insets = useSafeAreaInsets();
     const personalData = useCurrentUserPersonalDetails();
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -179,7 +177,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     confirmButtonText={translate('newChatPage.startGroup')}
                     onConfirm={createGroup}
                     shouldHideListOnInitialRender={false}
-                    confirmButtonStyles={insets.bottom ? undefined : styles.mb5}
                 />
             </View>
         </ScreenWrapper>
