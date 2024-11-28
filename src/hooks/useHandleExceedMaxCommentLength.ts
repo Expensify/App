@@ -19,7 +19,7 @@ const useHandleExceedMaxCommentLength = () => {
         [hasExceededMaxCommentLength],
     );
 
-    return {hasExceededMaxCommentLength, validateCommentMaxLength};
+    return {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength};
 };
 
 export default useHandleExceedMaxCommentLength;

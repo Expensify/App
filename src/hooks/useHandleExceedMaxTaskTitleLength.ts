@@ -9,7 +9,7 @@ const useHandleExceedMaxTaskTitleLength = () => {
         setHasExceededMaxTitleLength(exceeded);
     }, []);
 
-    return {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength};
+    return {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength};
 };
 
 export default useHandleExceedMaxTaskTitleLength;

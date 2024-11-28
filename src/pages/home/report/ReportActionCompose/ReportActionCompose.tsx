@@ -128,7 +128,6 @@ function ReportActionCompose({
     const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const [isCreatingTaskComment, setIsCreatingTaskComment] = useState(false);
 
     /**
      * Updates the Highlight state of the composer
@@ -174,8 +173,8 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength} = useHandleExceedMaxTaskTitleLength();
+    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
+    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -312,14 +311,14 @@ function ReportActionCompose({
     }, [onComposerFocus]);
 
     useEffect(() => {
-        if (hasExceededMaxTaskTitleLength && isCreatingTaskComment) {
+        if (hasExceededMaxTaskTitleLength) {
             setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
         } else if (hasExceededMaxCommentLength) {
             setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
         } else {
             setExceededMaxLength(null);
         }
-    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength, isCreatingTaskComment]);
+    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
 
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
@@ -412,11 +411,12 @@ function ReportActionCompose({
     const debouncedValidate = lodashDebounce(
         (value: string) => {
             const taskCommentMatch = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
-            setIsCreatingTaskComment(!!taskCommentMatch);
             if (taskCommentMatch) {
                 const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
+                setHasExceededMaxCommentLength(false);
                 validateTaskTitleMaxLength(title);
             } else {
+                setHasExceededMaxTitleLength(false);
                 validateCommentMaxLength(value, {reportID});
             }
         },
