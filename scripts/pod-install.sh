@@ -11,8 +11,6 @@ set -e
 BLUE='\033[1;34m'
 NC='\033[0m'
 
-export PROJECT_ROOT_PATH
-
 # Go to project root
 START_DIR="$(pwd)"
 ROOT_DIR="$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")"
@@ -56,15 +54,14 @@ fi
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
     # Navigate to the OldDot repository, and run bundle install and pod install
-    PROJECT_ROOT_PATH="Mobile-Expensify/"
     cd Mobile-Expensify/ios
     bundle install
+    bundle exec pod repo remove trunk
     bundle exec pod install --repo-update
     exit 0
 fi
 
 echo -e "${BLUE}Executing npm run pod-install for standalone NewDot...${NC}"
-PROJECT_ROOT_PATH="./"
 
 CACHED_PODSPEC_DIR='ios/Pods/Local Podspecs'
 if [ -d "$CACHED_PODSPEC_DIR" ]; then
