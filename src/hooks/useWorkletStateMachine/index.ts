@@ -45,9 +45,9 @@ const client = Log.client;
  * into emojiPickerOpen state. Now we react only to EMOJI_PICKER_CLOSE action.
  * 7. Before rendering the emoji picker, the app hides the keyboard.
  * It sends KEYBOARD_CLOSE action. But we ignore it since our emojiPickerOpen state can only handle
- * EMOJI_PICKER_CLOSE action. so we write the logic for handling hiding the keyboard
+ * EMOJI_PICKER_CLOSE action. So we write the logic for handling hiding the keyboard,
  * but maintaining the offset based on the keyboard state shared value
- * 7. we close the picker and send EMOJI_PICKER_CLOSE action which transitions us back into keyboardOpen state.
+ * 7. We close the picker and send EMOJI_PICKER_CLOSE action which transitions us back into keyboardOpen state.
  *
  * State machine object example:
  * const stateMachine = {
