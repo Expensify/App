@@ -565,6 +565,7 @@ type CompanyNameParams = {
 
 type CustomUnitRateParams = {
     rate: number;
+};
 
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
