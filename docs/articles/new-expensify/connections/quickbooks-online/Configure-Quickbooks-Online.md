@@ -1,5 +1,5 @@
 ---
-title: Configure Quickbooks Online
+title: Configure QuickBooks Online
 description: Configure your QuickBooks Online connection with Expensify
 ---
 
