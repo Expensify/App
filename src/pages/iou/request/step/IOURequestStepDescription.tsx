@@ -158,7 +158,6 @@ function IOURequestStepDescription({
             shouldShowWrapper
             testID={IOURequestStepDescription.displayName}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            includeSafeAreaPaddingBottom={false}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
