@@ -20,13 +20,13 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceProfileCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProps) {
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
         Policy.updateGeneralSettings(policy?.id ?? '-1', policy?.name ?? '', item.currencyCode);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };

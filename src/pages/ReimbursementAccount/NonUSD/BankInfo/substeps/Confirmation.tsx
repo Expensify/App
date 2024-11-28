@@ -10,11 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
+function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -22,8 +23,8 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = useMemo(() => {
         const keys: Record<string, keyof ReimbursementAccountForm> = {};
-        corpayFields.forEach((field) => {
-            keys[field.id] = field.id;
+        corpayFields?.forEach((field) => {
+            keys[field.id] = field.id as keyof ReimbursementAccountForm;
         });
         return keys;
     }, [corpayFields]);
@@ -32,11 +33,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const items = useMemo(
         () => (
             <>
-                {corpayFields.map((field) => {
+                {corpayFields?.map((field) => {
                     return (
                         <MenuItemWithTopDescription
                             description={field.label}
-                            title={values[field.id] ? String(values[field.id]) : ''}
+                            title={values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : ''}
                             shouldShowRightIcon
                             onPress={() => {
                                 onMove(0);
@@ -58,6 +59,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         [corpayFields, onMove, reimbursementAccountDraft, translate, values],
     );
 
+    const handleNext = () => {
+        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, preferredMethod} as ReimbursementAccountForm);
+        onNext();
+    };
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -72,7 +78,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                         <Button
                             success
                             style={[styles.w100]}
-                            onPress={onNext}
+                            onPress={handleNext}
                             large
                             text={translate('common.confirm')}
                         />
