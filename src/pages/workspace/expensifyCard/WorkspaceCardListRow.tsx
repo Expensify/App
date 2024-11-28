@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -34,9 +35,9 @@ type WorkspacesListRowProps = {
 function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
 
-    const cardholderName = useMemo(() => formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder)), [cardholder]);
+    const cardholderName = useMemo(() => LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder)), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
         <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
