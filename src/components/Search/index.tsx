@@ -348,7 +348,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-        console.log('XYZ item:', item);
         if (SearchUIUtils.isReportActionListItemType(item)) {
             return;
         }
