@@ -105,7 +105,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = cardSettings?.paymentBankAccountID && policy?.areExpensifyCardsEnabled;
+    const shouldShowCardReconciliationOption = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [

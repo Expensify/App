@@ -43,7 +43,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {connection} = route.params;
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = cardSettings?.paymentBankAccountID && policy?.areExpensifyCardsEnabled;
+    const shouldShow = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
 
     const toggleContinuousReconciliation = (value: boolean) => {
         Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
