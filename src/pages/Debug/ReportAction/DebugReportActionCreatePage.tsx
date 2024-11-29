@@ -48,7 +48,7 @@ function DebugReportActionCreatePage({
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftReportAction, setDraftReportAction] = useState<string>(getInitialReportAction(reportID, session, personalDetailsList));
+    const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
     const [error, setError] = useState<string>();
 
     return (
