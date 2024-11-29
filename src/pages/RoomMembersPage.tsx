@@ -258,7 +258,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         (item: ListItem) => {
             Report.clearAddRoomMemberError(report, String(item.accountID ?? '-1'));
         },
-        [report.reportID],
+        [report],
     );
 
     const isPolicyEmployee = useMemo(() => {
