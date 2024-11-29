@@ -76,6 +76,8 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
      */
     const fling = useCallback(
         (val = INACTIVE_POSITION_Y) => {
+            'worklet';
+
             translateY.value = withSpring(val, {
                 overshootClamping: false,
             });
