@@ -276,7 +276,7 @@ function peg$parse(input, options) {
       const keywordFilter = buildFilter(
         "eq",
         "keyword",
-        keywords.map((filter) => filter.right).flat()
+        keywords.map((filter) => /^".*"$/g.test(filter.right) ? filter.right.slice(1, - 1) : filter.right).flat()
       );
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
