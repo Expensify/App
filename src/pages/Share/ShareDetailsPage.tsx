@@ -2,9 +2,11 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -69,6 +71,8 @@ function ShareDetailsPage({
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
 
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
+
+    const fileName = currentAttachment?.content.split('/').at(-1);
 
     const handleShare = () => {
         if (!currentAttachment) {
@@ -148,33 +152,25 @@ function ShareDetailsPage({
                         </ScrollView>
                     </View>
                     {!isTextShared && (
-                        // <ScrollView style={{flexGrow: 1}}>
                         <>
                             <View style={[styles.pt6, styles.pb2]}>
                                 <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
                             </View>
-                            {/* <View
-                                style={{
-                                    flex: 0.7,
-                                    aspectRatio: 1.7,
-                                    // maxWidth: '90%',
-                                    alignSelf: 'center',
-                                    overflow: 'hidden',
-                                    // justifyContent: 'center',
-                                    objectFit: 'fill',
-                                    flexDirection: 'column',
-                                    marginTop: 10,
-                                    backgroundColor: 'yellow',
-                                    margin: 50,
-                                }}
-                            > */}
-                            <AttachmentPreview
+                            <AttachmentModal
+                                headerTitle={fileName}
                                 source={currentAttachment?.content}
-                                aspectRatio={currentAttachment?.aspectRatio}
-                            />
-                            {/* </View> */}
+                                originalFileName={fileName}
+                                fallbackSource={Expensicons.FallbackAvatar}
+                            >
+                                {({show}) => (
+                                    <AttachmentPreview
+                                        source={currentAttachment?.content}
+                                        aspectRatio={currentAttachment?.aspectRatio}
+                                        onPress={show}
+                                    />
+                                )}
+                            </AttachmentModal>
                         </>
-                        // </ScrollView>
                     )}
                 </View>
 
