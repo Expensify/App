@@ -30,7 +30,6 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
         return null;
     }
 
-
     const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.start.date));
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.end.date));
