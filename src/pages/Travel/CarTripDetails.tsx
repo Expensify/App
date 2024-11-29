@@ -107,6 +107,6 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
     );
 }
 
-CarTripDetails.displayName = 'FlightTripDetails';
+CarTripDetails.displayName = 'CarTripDetails';
 
 export default CarTripDetails;
