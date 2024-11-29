@@ -331,7 +331,10 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -461,6 +464,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to the header message */
     headerMessageStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply to submit button */
+    confirmButtonStyles?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
@@ -478,6 +484,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default confirm button disabled */
     isConfirmButtonDisabled?: boolean;
+
+    /** Whether to use the default theme for the confirm button */
+    shouldUseDefaultTheme?: boolean;
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
@@ -615,6 +624,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
     shouldPreventActiveCellVirtualization?: boolean;
+
+    /** Whether to scroll to the focused index */
+    shouldScrollToFocusedIndex?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

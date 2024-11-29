@@ -251,8 +251,9 @@ function PaymentMethodList({
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
-                        iconStyles: [styles.assignedCardsIconContainer],
-                        iconSize: variables.iconSizeExtraLarge,
+                        iconStyles: [styles.cardIcon],
+                        iconWidth: variables.cardIconWidth,
+                        iconHeight: variables.cardIconHeight,
                     });
                     return;
                 }
@@ -291,9 +292,9 @@ function PaymentMethodList({
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     icon,
-                    iconStyles: [styles.assignedCardsIconContainer],
-                    iconWidth: variables.bankCardWidth,
-                    iconHeight: variables.bankCardHeight,
+                    iconStyles: [styles.cardIcon],
+                    iconWidth: variables.cardIconWidth,
+                    iconHeight: variables.cardIconHeight,
                 });
             });
             return assignedCardsGrouped;
@@ -366,7 +367,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
             return;
         }
         onPress();
