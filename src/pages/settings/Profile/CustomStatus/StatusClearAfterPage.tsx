@@ -87,7 +87,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
-    const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
+    const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
     const statusType = useMemo<StatusType[]>(
         () =>
             Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
