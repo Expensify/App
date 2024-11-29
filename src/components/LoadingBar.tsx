@@ -73,7 +73,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
 
     return (
         <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            {opacity.get() > 0 ? <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} /> : null}
+            <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} />
         </Animated.View>
     );
 }
