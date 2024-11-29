@@ -143,6 +143,8 @@ function SearchRouterList(
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: 0,
             includeSelfDM: true,
+            showChatPreviewLine: true,
+            shouldBoldTitleByDefault: false,
         });
 
         // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
