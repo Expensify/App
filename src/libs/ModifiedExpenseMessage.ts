@@ -2,14 +2,14 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportConnection from './ReportConnection';
+import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -23,6 +23,13 @@ Onyx.connect({
         }
         allPolicyTags = value;
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -137,10 +144,14 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         return '';
     }
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const policyID = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
+    const policyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     if (reportActionOriginalMessage?.movedToReportID) {
-        return 'Moved this expense'; // todo: copy needed
+        const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage.movedToReportID}`];
+        const {reportName, workspaceName} = ReportUtils.getParentNavigationSubtitle(destinationReport);
+        const destinationReportName = workspaceName || reportName || Localize.translateLocal('common.hidden');
+
+        return Localize.translateLocal('iou.movedFromSelfDM', {name: destinationReportName});
     }
 
     const removalFragments: string[] = [];
