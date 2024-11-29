@@ -131,7 +131,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    
+
                     const activeRoute = Navigation.getActiveRoute();
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
