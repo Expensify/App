@@ -30,11 +30,12 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
         return null;
     }
 
+
     const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.start.date));
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.end.date));
-    const cancellationText = hotelReservation.deadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.deadline)).date}`
+    const cancellationText = hotelReservation.cancellationDeadline
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.cancellationDeadline)).date}`
         : hotelReservation.cancellationPolicy;
 
     return (

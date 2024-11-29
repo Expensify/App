@@ -33,8 +33,8 @@ function CarTripDetails({transaction, personalDetails}: CarTripDetailsProps) {
     const reservationIcon = TripReservationUtils.getTripReservationIcon(carReservation.type);
     const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.start.date));
     const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.end.date));
-    const cancellationText = carReservation.deadline
-        ? `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.deadline)).date}`
+    const cancellationText = carReservation.cancellationDeadline
+        ? `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(carReservation.cancellationDeadline)).date}`
         : carReservation.cancellationPolicy;
 
     return (

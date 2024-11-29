@@ -832,10 +832,14 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
-function getFormattedDurationBetweenDates(start: Date, end: Date): string {
+function getFormattedDurationBetweenDates(start: Date, end: Date): string | undefined {
     const {days, hours, minutes} = intervalToDuration({start, end});
 
-    return `${days ? `${days}d ` : ''}${hours ? `${hours}h ` : ''}${minutes}m`;
+    if (days && days > 0) {
+        return;
+    }
+
+    return `${hours ? `${hours}h ` : ''}${minutes}m`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {

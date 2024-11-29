@@ -211,7 +211,7 @@ type Reservation = {
     cancellationPolicy?: string;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    deadline?: string;
+    cancellationDeadline?: string;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
