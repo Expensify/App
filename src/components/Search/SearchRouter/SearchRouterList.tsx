@@ -125,7 +125,7 @@ function SearchRouterList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        return OptionsListUtils.getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
@@ -140,13 +140,16 @@ function SearchRouterList(
             return [];
         }
 
-        const filteredOptions = OptionsListUtils.getFilteredOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: 0,
-            includeSelfDM: true,
-        });
+        const filteredOptions = OptionsListUtils.getOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                includeSelfDM: true,
+            },
+        );
 
         // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
         const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);

@@ -80,7 +80,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
