@@ -80,6 +80,7 @@ function CountrySelection({isEditing, onNext, formValues}: CustomSubStepProps) {
                 showConfirmButton
                 confirmButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
                 isConfirmButtonDisabled={isOffline}
+                shouldUpdateFocusedIndex
             />
         </>
     );

@@ -63,6 +63,7 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
                 shouldStopPropagation
                 shouldUseDynamicMaxToRenderPerBatch
                 showConfirmButton
+                shouldUpdateFocusedIndex
                 confirmButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             />
         </>
