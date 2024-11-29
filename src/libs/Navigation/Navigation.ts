@@ -24,7 +24,7 @@ import {
     getMinimalAction,
     getPolicyIDFromState,
     getStateFromPath,
-    getTopmostReportParam,
+    getTopmostReportParams,
     isReportOpenInRHP,
     isSplitNavigatorName,
     linkTo,
@@ -70,10 +70,10 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
 }
 
 // Extracts from the topmost report its id.
-const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParam(state, 'reportID');
+const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
 
 // Extracts from the topmost report its action id.
-const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParam(state, 'reportActionID');
+const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportActionID;
 
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);

@@ -10,7 +10,7 @@ export {default as getOnboardingAdaptedState} from './getOnboardingAdaptedState'
 export {default as getParamsFromRoute} from './getParamsFromRoute';
 export {default as getPolicyIDFromState} from './getPolicyIDFromState';
 export {default as getStateFromPath} from './getStateFromPath';
-export {default as getTopmostReportParam} from './getTopmostReportParam';
+export {default as getTopmostReportParams} from './getTopmostReportParams';
 export {default as getTopmostRouteName} from './getTopmostRouteName';
 export {default as isReportOpenInRHP} from './isReportOpenInRHP';
 export {default as isSearchTopmostFullScreenRoute} from './isSearchTopmostFullScreenRoute';
