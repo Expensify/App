@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -31,7 +32,8 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
             if (!textInput) {
                 return;
             }
-            textInput.focus();
+            // When the closing modal has a focused text input focus() needs a delay to properly work.
+            InteractionManager.runAfterInteractions(() => textInput.focus());
             if (forcedSelectionRange) {
                 setTextInputSelection(textInput, forcedSelectionRange);
             }
