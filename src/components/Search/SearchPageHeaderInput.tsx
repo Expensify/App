@@ -78,7 +78,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
 
     // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(queryText); // initial empty space to avoid quick flash of placeholder text
+    const [textInputValue, setTextInputValue] = useState(queryText);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(queryText);
 
@@ -142,6 +142,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 return;
             }
 
+            // TODO remove special handling of policyID after navigation is merged https://github.com/Expensify/App/pull/49539
             if (queryJSON.policyID) {
                 userQueryJSON.policyID = queryJSON.policyID;
             }
