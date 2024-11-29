@@ -24,7 +24,7 @@ function SAMLSignInPage() {
     const webViewRef = useRef<WebView>(null);
 
     useEffect(() => {
-        // If we've already gotten a url back to log into the user's IdP, then don't re-fetch it
+        // If we've already gotten a url back to log into the user's Identity Provider (IdP), then don't re-fetch it
         if (SAMLUrl) {
             return;
         }
