@@ -7,6 +7,7 @@ import type SafeAreaConsumerProps from './types';
 /**
  * This component is a light wrapper around the SafeAreaInsetsContext.Consumer. There are several places where we
  * may need not just the insets, but the computed styles so we save a few lines of code with this.
+ * @deprecated Please use `useStyledSafeAreaInsets` instead. This will be fully removed soon.
  */
 function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
     const StyleUtils = useStyleUtils();
