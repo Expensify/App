@@ -9,9 +9,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +27,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
@@ -93,6 +95,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -100,6 +104,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id ?? '-1')?.reportID ?? '-1';
+    const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
@@ -159,7 +166,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
         !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
-    const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
@@ -408,7 +414,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     style={styles.headerBarDesktopHeight}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                <ScrollView contentContainerStyle={[styles.flexColumn]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
@@ -440,6 +446,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
+                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                        <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
+                        <OfflineWithFeedback pendingAction={reportPendingAction}>
+                            <MenuItem
+                                title={getReportName(currentUserPolicyExpenseChat)}
+                                description={translate('workspace.common.workspace')}
+                                icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
+                                shouldShowSubscriptAvatar
+                            />
+                        </OfflineWithFeedback>
+                    </View>
                 </ScrollView>
                 <ConfirmModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}
