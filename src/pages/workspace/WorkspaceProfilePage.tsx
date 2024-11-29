@@ -20,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -53,7 +54,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const outputCurrency = policy?.outputCurrency ?? '';
+    const outputCurrency = policy?.outputCurrency ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.currency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
@@ -61,7 +62,9 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+    const hasCardFeedOrExpensifyCard =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =

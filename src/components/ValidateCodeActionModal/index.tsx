@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
@@ -39,7 +40,7 @@ function ValidateCodeActionModal({
 
     const hide = useCallback(() => {
         clearError();
-        onClose();
+        onClose?.();
     }, [onClose, clearError]);
 
     useEffect(() => {
@@ -58,6 +59,7 @@ function ValidateCodeActionModal({
             isVisible={isVisible}
             onClose={hide}
             onModalHide={onModalHide ?? hide}
+            onBackdropPress={() => Navigation.dismissModal()}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -77,6 +79,7 @@ function ValidateCodeActionModal({
                     <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionPrimary}</Text>
                     {!!descriptionSecondary && <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
+                        isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
                         validatePendingAction={validatePendingAction}
                         validateError={validateError}
@@ -87,7 +90,6 @@ function ValidateCodeActionModal({
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         menuItems={footer}
-                        isLoading={isLoading}
                     />
                 </View>
             </ScreenWrapper>

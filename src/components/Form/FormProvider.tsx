@@ -4,6 +4,7 @@ import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'rea
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -14,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
@@ -184,30 +186,34 @@ function FormProvider(
         [touchedInputs],
     );
 
-    const submit = useCallback(() => {
-        // Return early if the form is already submitting to avoid duplicate submission
-        if (formState?.isLoading) {
-            return;
-        }
+    const submit = useDebounceNonReactive(
+        useCallback(() => {
+            // Return early if the form is already submitting to avoid duplicate submission
+            if (formState?.isLoading) {
+                return;
+            }
 
-        // Prepare values before submitting
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+            // Prepare values before submitting
+            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
 
-        // Touches all form inputs, so we can validate the entire form
-        Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
+            // Touches all form inputs, so we can validate the entire form
+            Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
 
-        // Validate form and return early if any errors are found
-        if (!isEmptyObject(onValidate(trimmedStringValues))) {
-            return;
-        }
+            // Validate form and return early if any errors are found
+            if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                return;
+            }
 
-        // Do not submit form if network is offline and the form is not enabled when offline
-        if (network?.isOffline && !enabledWhenOffline) {
-            return;
-        }
+            // Do not submit form if network is offline and the form is not enabled when offline
+            if (network?.isOffline && !enabledWhenOffline) {
+                return;
+            }
 
-        onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
+            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
+        1000,
+        {leading: true, trailing: false},
+    );
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.

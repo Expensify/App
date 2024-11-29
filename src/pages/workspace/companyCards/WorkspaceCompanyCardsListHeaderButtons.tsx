@@ -26,9 +26,15 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 
     /** Currently selected feed */
     selectedFeed: CompanyCardFeed;
+
+    /** Whether to show assign card button */
+    shouldShowAssignCardButton?: boolean;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -56,8 +62,9 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 >
                     <Icon
                         src={CardUtils.getCardFeedIcon(selectedFeed)}
-                        width={variables.iconSizeExtraLarge}
-                        height={variables.iconSizeExtraLarge}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
                     />
                     <View>
                         <View style={[styles.flexRow, styles.gap1]}>
@@ -76,14 +83,16 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: Worksp
                 </PressableWithFeedback>
 
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Button
-                        success
-                        isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed))}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.companyCards.assignCard')}
-                        style={shouldChangeLayout && styles.flex1}
-                    />
+                    {!!shouldShowAssignCardButton && (
+                        <Button
+                            success
+                            isDisabled={!currentFeedData || !!currentFeedData?.pending || !!currentFeedData?.errors}
+                            onPress={handleAssignCard}
+                            icon={Expensicons.Plus}
+                            text={translate('workspace.companyCards.assignCard')}
+                            style={shouldChangeLayout && styles.flex1}
+                        />
+                    )}
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
                         icon={Expensicons.Gear}

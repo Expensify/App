@@ -185,7 +185,7 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (validateError) {
+            if (!isEmptyObject(validateError)) {
                 clearError();
                 User.clearValidateCodeActionError('actionVerified');
             }
