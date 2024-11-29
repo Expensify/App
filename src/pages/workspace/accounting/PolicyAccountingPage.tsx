@@ -62,6 +62,7 @@ type RouteParams = {
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? -1}`);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -104,8 +105,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption =
-        policy?.achAccount?.bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.areExpensifyCardsEnabled;
+    const shouldShowCardReconciliationOption = cardSettings?.paymentBankAccountID && policy?.areExpensifyCardsEnabled;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
