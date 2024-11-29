@@ -276,6 +276,7 @@ function ScreenWrapper(
                         style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
+                        keyboardVerticalOffset={-paddingBottom}
                     >
                         <PickerAvoidingView
                             style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
