@@ -10,6 +10,7 @@ import PushNotification from '@libs/Notification/PushNotification';
 import '@libs/Notification/PushNotification/subscribePushNotification';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
+import * as SessionUtil from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -178,6 +179,26 @@ describe('Session', () => {
 
         expect(PersistedRequests.getAll().length).toBe(1);
         expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
+
+    test('LogOut should replace same requests from the queue instead of adding new one', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        SessionUtil.signOut();
+        SessionUtil.signOut();
+        SessionUtil.signOut();
+        SessionUtil.signOut();
+        SessionUtil.signOut();
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
