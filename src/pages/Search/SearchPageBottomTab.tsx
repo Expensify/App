@@ -63,7 +63,7 @@ function SearchPageBottomTab() {
             if (windowHeight <= h) {
                 return;
             }
-            topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+            topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
         },
         [windowHeight, topBarOffset],
     );
