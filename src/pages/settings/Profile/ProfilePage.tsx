@@ -16,6 +16,7 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -109,6 +110,8 @@ function ProfilePage() {
         },
     ];
 
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -122,7 +125,10 @@ function ProfilePage() {
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
-            <ScrollView style={styles.pt3}>
+            <ScrollView
+                style={styles.pt3}
+                contentContainerStyle={safeAreaPaddingBottomStyle}
+            >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
