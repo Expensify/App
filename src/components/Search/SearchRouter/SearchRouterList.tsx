@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useMemo} from 'react';
+import React, {forwardRef, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -58,6 +58,9 @@ type SearchRouterListProps = {
 
     /** Callback to call when an item is focused via arrow buttons */
     onListItemFocus: (item: SearchQueryItem) => void;
+
+    /** Item `keyForList` to focus initially */
+    initiallyFocusedOptionKey?: string | null;
 };
 
 const defaultListOptions = {
@@ -106,7 +109,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 
 // Todo rename to SearchAutocompleteList once it's used in both Router and SearchPage
 function SearchRouterList(
-    {autocompleteQueryValue, searchQueryItem, additionalSections, shouldPreventDefault = true, onListItemFocus, onListItemPress}: SearchRouterListProps,
+    {autocompleteQueryValue, searchQueryItem, additionalSections, shouldPreventDefault = true, onListItemFocus, onListItemPress, initiallyFocusedOptionKey}: SearchRouterListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -122,7 +125,7 @@ function SearchRouterList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        return OptionsListUtils.getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
@@ -137,13 +140,16 @@ function SearchRouterList(
             return [];
         }
 
-        const filteredOptions = OptionsListUtils.getFilteredOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: 0,
-            includeSelfDM: true,
-        });
+        const filteredOptions = OptionsListUtils.getOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                includeSelfDM: true,
+            },
+        );
 
         // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
         const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);
@@ -345,6 +351,8 @@ function SearchRouterList(
 
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
+    const [isInitialRender, setIsInitialRender] = useState(true);
+
     if (searchQueryItem) {
         sections.push({data: [searchQueryItem]});
     }
@@ -385,13 +393,18 @@ function SearchRouterList(
             sectionListStyle={[shouldUseNarrowLayout ? styles.ph5 : styles.ph2, styles.pb2]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
-            onLayout={setPerformanceTimersEnd}
+            onLayout={() => {
+                setPerformanceTimersEnd();
+                setIsInitialRender(false);
+            }}
             showScrollIndicator={!shouldUseNarrowLayout}
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
             shouldPreventDefault={shouldPreventDefault}
             ref={ref}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            shouldScrollToFocusedIndex={!isInitialRender}
         />
     );
 }

@@ -6,6 +6,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -183,7 +184,14 @@ function signOut() {
         shouldRetry: false,
     };
 
-    API.write(WRITE_COMMANDS.LOG_OUT, params);
+    API.write(
+        WRITE_COMMANDS.LOG_OUT,
+        params,
+        {},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.LOG_OUT),
+        },
+    );
 }
 
 /**
