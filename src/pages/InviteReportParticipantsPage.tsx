@@ -66,7 +66,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return OptionsListUtils.getEmptyOptions();
         }
 
-        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, false, options.reports, true);
+        return OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(

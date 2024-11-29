@@ -132,7 +132,10 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     }, []);
 
     return (
-        <ScreenWrapper testID={NewChatConfirmPage.displayName}>
+        <ScreenWrapper
+            testID={NewChatConfirmPage.displayName}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithBackButton
                 title={translate('common.group')}
                 onBackButtonPress={navigateBack}
