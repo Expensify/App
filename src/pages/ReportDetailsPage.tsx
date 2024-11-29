@@ -519,7 +519,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE) {
+        if (policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
                 translationKey: 'workspace.common.goToWorkspace',
