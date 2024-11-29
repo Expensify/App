@@ -117,8 +117,8 @@ function BaseTextInput(
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
-            labelScale.value = withSpring(scale, {overshootClamping: false});
-            labelTranslateY.value = withSpring(translateY, {overshootClamping: false});
+            labelScale.set(withSpring(scale, {overshootClamping: false}));
+            labelTranslateY.set(withSpring(translateY, {overshootClamping: false}));
         },
         [labelScale, labelTranslateY],
     );

@@ -78,9 +78,11 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
         (val = INACTIVE_POSITION_Y) => {
             'worklet';
 
-            translateY.value = withSpring(val, {
-                overshootClamping: false,
-            });
+            translateY.set(
+                withSpring(val, {
+                    overshootClamping: false,
+                }),
+            );
         },
         [translateY],
     );
