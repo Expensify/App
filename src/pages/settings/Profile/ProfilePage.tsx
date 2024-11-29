@@ -37,6 +37,7 @@ function ProfilePage() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -109,8 +110,6 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_ADDRESS,
         },
     ];
-
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
 
     return (
         <ScreenWrapper
