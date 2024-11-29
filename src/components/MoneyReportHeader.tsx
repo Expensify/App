@@ -130,8 +130,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations ||
-        (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport)));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport)));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 

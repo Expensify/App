@@ -349,13 +349,14 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
 
 /**
  * Initialize expense info
- * @param reportID to attach the transaction to
+ * @param report to attach the transaction to
  * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
 function initMoneyRequest(
-    reportID: string,
+    report: OnyxEntry<OnyxTypes.Report>,
+    parentReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     isFromGlobalCreate: boolean,
     currentIouRequestType: IOURequestType | undefined,
@@ -363,6 +364,7 @@ function initMoneyRequest(
 ) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const reportID = report?.reportID;
     const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -391,7 +393,7 @@ function initMoneyRequest(
             waypoint1: {keyForList: 'stop_waypoint'},
         };
         if (!isFromGlobalCreate) {
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(report, parentReport);
             comment.customUnit = {customUnitRateID};
         }
     }

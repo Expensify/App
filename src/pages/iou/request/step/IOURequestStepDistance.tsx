@@ -65,6 +65,7 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const policy = usePolicy(report?.policyID);
@@ -358,7 +359,7 @@ function IOURequestStepDistance({
                     undefined,
                     undefined,
                     undefined,
-                    DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                    DistanceRequestUtils.getCustomUnitRateID(report, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`]),
                     currentUserPersonalDetails.login ?? '',
                     currentUserPersonalDetails.accountID,
                     transaction?.splitShares,
@@ -377,6 +378,7 @@ function IOURequestStepDistance({
         navigateToParticipantPage();
     }, [
         report,
+        allReports,
         iouType,
         transactionID,
         backTo,

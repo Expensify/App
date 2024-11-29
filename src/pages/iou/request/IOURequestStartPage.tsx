@@ -41,6 +41,7 @@ function IOURequestStartPage({
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const policy = usePolicy(report?.policyID);
     const [selectedTab = CONST.TAB_REQUEST.SCAN, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
@@ -70,8 +71,8 @@ function IOURequestStartPage({
         if (transaction?.reportID === reportID || isLoadingSelectedTab) {
             return;
         }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-    }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
+        IOU.initMoneyRequest(report, parentReport, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+    }, [transaction, report, parentReport, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -82,9 +83,9 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
+            IOU.initMoneyRequest(report, parentReport, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
-        [policy, reportID, isFromGlobalCreate, transaction],
+        [policy, report, parentReport, isFromGlobalCreate, transaction],
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);

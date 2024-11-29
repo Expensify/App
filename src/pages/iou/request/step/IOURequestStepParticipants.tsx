@@ -37,6 +37,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
@@ -86,9 +87,10 @@ function IOURequestStepParticipants({
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipantReportID = val.at(0)?.reportID ?? '';
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
-            const report = ReportUtils.getReport(firstParticipantReportID);
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoom(report);
+            const firstParticipantReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstParticipantReportID}`];
+            const firstParticipantParentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstParticipantReport?.parentReportID}`];
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReport, firstParticipantParentReport);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoom(firstParticipantReport);
             numberOfParticipants.current = val.length;
 
             IOU.setMoneyRequestParticipants(transactionID, val);
@@ -104,7 +106,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [iouType, reportID, transactionID],
+        [iouType, reportID, transactionID, allReports],
     );
 
     const goToNextStep = useCallback(() => {
@@ -150,9 +152,11 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        const selfDMParentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport?.parentReportID}`];
+        const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReport, selfDMParentReport);
         IOU.setCustomUnitRateID(transactionID, rateID);
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
     };
