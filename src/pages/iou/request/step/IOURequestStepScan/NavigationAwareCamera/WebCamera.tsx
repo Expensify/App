@@ -4,17 +4,22 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {Camera} from 'react-native-vision-camera';
 import Webcam from 'react-webcam';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {NavigationAwareCameraProps} from './types';
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function WebCamera({torchOn, onTorchAvailability, cameraTabIndex, ...props}: NavigationAwareCameraProps, ref: ForwardedRef<Webcam | Camera>) {
+function WebCamera({aspectRatio, ...props}: NavigationAwareCameraProps, ref: ForwardedRef<Webcam | Camera>) {
     const shouldShowCamera = useIsFocused();
 
     if (!shouldShowCamera) {
         return null;
     }
+
+    const styles = useThemeStyles();
+    const webcamContainerStyles = {...styles.justifyContentCenter, ...styles.w100, aspectRatio};
+
     return (
-        <View>
+        <View style={webcamContainerStyles}>
             <Webcam
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}

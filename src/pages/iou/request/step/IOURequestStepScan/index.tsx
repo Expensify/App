@@ -27,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -91,8 +92,11 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
+    const [cameraViewAspectRatio, setCameraViewAspectRatio] = useState<string | undefined>();
+    const [previousWindowHeight, setPreviousWindowHeight] = useState<number>(0);
+    const [previousWindowWidth, setPreviousWindowWidth] = useState<number>(0);
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
-    const tabIndex = 1;
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -117,7 +121,7 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!isEmptyObject(videoConstraints) || !Browser.isMobile()) {
+        if (!Browser.isMobile()) {
             return;
         }
 
@@ -134,6 +138,12 @@ function IOURequestStepScan({
                         const setting = track.getSettings();
                         if (setting.zoom === 1) {
                             deviceId = setting.deviceId;
+                            // Set a fixed aspect ratio for the camera view to prevent resizing during initialization, which can cause failures on some iOS versions.
+                            if (setting.height && setting.width) {
+                                setCameraViewAspectRatio(`${setting.height}/${setting.width}`);
+                                setPreviousWindowHeight(windowHeight);
+                                setPreviousWindowWidth(windowWidth);
+                            }
                             break;
                         }
                     }
@@ -166,10 +176,11 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-    }, [videoConstraints]);
+    }, [windowHeight, windowWidth]);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
+            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -191,6 +202,17 @@ function IOURequestStepScan({
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
+
+    /**
+     * Invalidate camera view aspect ratio on orientation change.
+     */
+    useEffect(() => {
+        if (!Browser.isMobile() || previousWindowHeight === windowHeight || previousWindowWidth === windowWidth) {
+            return;
+        }
+
+        setCameraViewAspectRatio(undefined);
+    }, [previousWindowHeight, previousWindowWidth, windowHeight, windowWidth]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -654,9 +676,9 @@ function IOURequestStepScan({
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
+                        aspectRatio={cameraViewAspectRatio}
                         videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
-                        cameraTabIndex={tabIndex}
                         audio={false}
                         disablePictureInPicture={false}
                         imageSmoothing={false}
