@@ -256,7 +256,4 @@ jobs:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.uploadAndroid.result }}
-          DESKTOP: failed 
-          IOS: failed
-          WEB: failed
           ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
