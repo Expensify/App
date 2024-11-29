@@ -3161,6 +3161,7 @@ type UpdateMoneyRequestDistanceParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -3172,6 +3173,7 @@ function updateMoneyRequestDistance({
     policy = {} as OnyxTypes.Policy,
     policyTagList = {},
     policyCategories = {},
+    transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints: sanitizeRecentWaypoints(waypoints),
@@ -3194,6 +3196,35 @@ function updateMoneyRequestDistance({
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
         value: recentServerValidatedWaypoints,
     });
+
+    if (transactionBackup) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        // We need to have all the keys of the original waypoint in the failure data for onyx merge to properly reset
+        //  waypoints keys that do not exist in the waypoint of the reverting failure data.
+        const allWaypointKeys = [...new Set([...Object.keys(transactionBackup.comment?.waypoints ?? {}), ...Object.keys(transaction?.comment?.waypoints ?? {})])];
+        const onyxWaypoints = allWaypointKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.comment?.waypoints?.[key] ? {...transactionBackup.comment?.waypoints?.[key]} : null;
+            return acc;
+        }, {});
+        const allModifiedWaypointsKeys = [...new Set([...Object.keys(waypoints ?? {}), ...Object.keys(transaction?.modifiedWaypoints ?? {})])];
+        const onyxModifiedWaypoints = allModifiedWaypointsKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.modifiedWaypoints?.[key] ? {...transactionBackup.modifiedWaypoints?.[key]} : null;
+            return acc;
+        }, {});
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    waypoints: onyxWaypoints,
+                    customUnit: {
+                        quantity: transactionBackup?.comment?.customUnit?.quantity,
+                    },
+                },
+                modifiedWaypoints: onyxModifiedWaypoints,
+            },
+        });
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
