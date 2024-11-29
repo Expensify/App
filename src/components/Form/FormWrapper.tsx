@@ -105,7 +105,8 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
+                // Note: the safeAreaPaddingBottomStyle is only applied if no parent has applied it yet:
+                style={[style, safeAreaPaddingBottomStyle, styles.pb5]}
             >
                 {children}
                 {isSubmitButtonVisible && (
