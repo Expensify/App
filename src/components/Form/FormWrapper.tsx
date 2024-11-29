@@ -6,8 +6,6 @@ import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
