@@ -92,7 +92,7 @@ class ShareViewController: UIViewController {
     }
 
     for attachment in attachments {
-      let isURL = attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String)
+      let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("com.adobe.pdf")
       os_log("ShareViewController.saveFileToAppGroup isURL: \(isURL)")
       group.enter()
       if isURL {
@@ -116,6 +116,7 @@ class ShareViewController: UIViewController {
               folder: sharedFileFolder, filename: filename, fileData: fileData)
             {
               os_log("URL saved successfully at path: %@", fileFinalPath.path)
+              filePaths.append(fileFinalPath.path)
             } else {
               os_log("Failed to save URL string", type: .error)
             }
@@ -144,7 +145,7 @@ class ShareViewController: UIViewController {
 
             os_log("ShareViewController %@", data as! CVarArg)
             if let dataString = data as? String {
-              if !(dataString.hasPrefix("/Users") || dataString.hasPrefix("http")) {
+              if !dataString.hasPrefix("file://") {
                 let filename = "text_to_read.txt"
                 let fileData = dataString.data(using: .utf8)! as NSData
                 if let fileFinalPath = self.saveFileToFolder(folder: sharedFileFolder, filename: filename, fileData: fileData) {
