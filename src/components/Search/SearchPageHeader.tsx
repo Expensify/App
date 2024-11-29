@@ -24,6 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
@@ -57,7 +58,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {status, hash} = queryJSON;
-
+    const [allSnapshots] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const handleDeleteExpenses = () => {
@@ -136,7 +137,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
                     const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-                    for (const item of items) {
+                    let updatedSelectedTransactions: SearchTransaction[] = [];
+                    let updatedSelectedReports: SearchReport[] = [];
+                    items.forEach((item, index) => {
                         const policyID = item.policyID;
                         const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
 
@@ -146,23 +149,30 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         }
 
                         const hasVBBA = PolicyUtils.hasVBBA(policyID);
-
                         if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
                             return;
                         }
-                    }
+
+                        // We need to compute the amount for the report or the transaction, by getting the snapshot data
+                        if (selectedReports.length === 0) {
+                            const itemSnapshotData = (allSnapshots?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDList![index]}`] ?? {}) as SearchTransaction;
+                            updatedSelectedTransactions.push(itemSnapshotData);
+                        } else {
+                            const itemSnapshotData = (allSnapshots?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`] ?? {}) as SearchReport;
+                            updatedSelectedReports.push(itemSnapshotData);
+                        }
+                    });
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
-                            : Object.values(selectedTransactions).map((transaction) => ({
+                            ? updatedSelectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            : updatedSelectedTransactions.map((transaction) => ({
                                   reportID: transaction.reportID,
-                                  amount: transaction.amount,
+                                  amount: Math.abs(transaction.amount),
                                   paymentType: lastPaymentMethods[transaction.policyID],
                               }))
                     ) as PaymentData[];
-
                     SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
                 },
             });
