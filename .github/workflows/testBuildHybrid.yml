@@ -85,6 +85,8 @@ jobs:
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
+    outputs:
+      APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -168,11 +170,21 @@ jobs:
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
-        run: bundle exec fastlane android build_adhoc_hybrid
+        id: build
         env:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          bundle exec fastlane android build_adhoc_hybrid
+
+          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
+          # shellcheck disable=SC1090
+          source "$GITHUB_ENV"
+
+          # apkPath is set within the Fastfile
+          echo "APK_FILE_NAME=$(basename "$apkPath")" >> "$GITHUB_OUTPUT"    
+
 
   uploadAndroid:
     name: Upload Android hybrid app to S3
@@ -244,6 +256,7 @@ jobs:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.uploadAndroid.result }}
-          IOS: 'success'
+          DESKTOP: failed 
+          IOS: failed
+          WEB: failed
           ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
-          IOS_LINK: 'https://staging.new.expensify.com'
