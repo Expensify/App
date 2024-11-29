@@ -4037,7 +4037,7 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+function resolveActionableMentionWhisper(report: OnyxEntry<Report>, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
     if (!message || !reportAction) {
         return;
@@ -4056,8 +4056,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
     };
 
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+    const reportId = report?.reportID;
+    const reportUpdateDataWithPreviousLastMessage = reportId ? ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions) : undefined;
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageTranslationKey: report?.lastMessageTranslationKey,

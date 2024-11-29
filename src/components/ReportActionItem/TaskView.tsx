@@ -67,7 +67,7 @@ function TaskView({report, ...props}: TaskViewProps) {
             <OfflineWithFeedback
                 shouldShowErrorMessages
                 errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
-                onClose={() => Task.clearTaskErrors(report.reportID)}
+                onClose={() => Task.clearTaskErrors(report)}
                 errorRowStyles={styles.ph5}
             >
                 <Hoverable>
