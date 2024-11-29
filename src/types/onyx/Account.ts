@@ -61,7 +61,7 @@ type DelegatedAccess = {
 };
 
 /** Model of SMS delivery failure status */
-type smsDeliveryFailureStatus = {
+type SMSDeliveryFailureStatus = {
     /** Whether the account is having trouble receiving SMS */
     hasSMSDeliveryFailure: boolean;
 
@@ -156,7 +156,7 @@ type Account = {
     delegatedAccess?: DelegatedAccess;
 
     /** Indicates SMS delivery failure status and associated information */
-    smsDeliveryFailureStatus?: smsDeliveryFailureStatus;
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
 };
 
 export default Account;
