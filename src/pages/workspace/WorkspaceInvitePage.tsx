@@ -278,7 +278,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 buttonText={translate('common.next')}
                 onSubmit={inviteUser}
                 message={policy?.alertMessage ?? ''}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.pb5]}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
             />
         ),
