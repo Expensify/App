@@ -61,7 +61,7 @@ function FormWrapper({
     isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useStyledSafeAreaInsets();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
@@ -106,7 +106,7 @@ function FormWrapper({
                 key={formID}
                 ref={formContentRef}
                 // Note: the safeAreaPaddingBottomStyle is only applied if no parent has applied it yet:
-                style={[style, safeAreaPaddingBottomStyle, styles.pb5]}
+                style={[style, {paddingBottom: paddingBottom + styles.pb5.paddingBottom}]}
             >
                 {children}
                 {isSubmitButtonVisible && (
