@@ -9,8 +9,8 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,24 +49,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            const errors = {};
-            const fields = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION];
-            for (const fieldName in fields) {
-                if (!fieldName) {
-                    // eslint-disable-next-line no-continue
-                    continue;
-                }
-                if (fields[fieldName].isRequired && values[fieldName] === '') {
-                    ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
-                }
-                fields[fieldName].validationRules.forEach((rule) => {
-                    const regExpCheck = new RegExp(rule.regEx);
-                    if (!regExpCheck.test(values[fieldName])) {
-                        ErrorUtils.addErrorMessage(errors, fieldName, rule.errorMessage);
-                    }
-                });
-            }
-            return errors;
+            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION], translate);
         },
         [fieldsMap, translate],
     );

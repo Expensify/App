@@ -1,8 +1,12 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {FormOnyxValues} from '@components/Form/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
@@ -123,4 +127,24 @@ function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Reco
     return CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation};
+function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>, fieldsMap: CorpayFieldsMap, translate: LocaleContextProps['translate']) {
+    const errors = {};
+    for (const fieldName in fieldsMap) {
+        if (!fieldName) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+        if (fieldsMap[fieldName].isRequired && values[fieldName] === '') {
+            ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
+        }
+        fieldsMap[fieldName].validationRules.forEach((rule) => {
+            const regExpCheck = new RegExp(rule.regEx);
+            if (!regExpCheck.test(values[fieldName])) {
+                ErrorUtils.addErrorMessage(errors, fieldName, rule.errorMessage);
+            }
+        });
+    }
+    return errors;
+}
+
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};
