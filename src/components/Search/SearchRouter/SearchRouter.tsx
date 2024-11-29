@@ -12,6 +12,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -75,15 +77,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
     // The actual input text that the user sees
@@ -104,7 +107,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         if (!areOptionsInitialized) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
-        return OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        return OptionsListUtils.getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
     const filteredOptions = useMemo(() => {
@@ -129,14 +132,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const recentReports: OptionData[] = useMemo(() => {
         if (debouncedInputValue === '') {
-            return searchOptions.recentReports.slice(0, 10);
+            return searchOptions.recentReports.slice(0, 20);
         }
 
         const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
-        return reportOptions.slice(0, 10);
+        return reportOptions.slice(0, 20);
     }, [debouncedInputValue, filteredOptions, searchOptions]);
 
     const reportForContextualSearch = contextualReportID ? searchOptions.recentReports?.find((option) => option.reportID === contextualReportID) : undefined;
@@ -237,7 +240,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (!queryJSON) {
                 return;
             }
-
+            queryJSON.policyID = activeWorkspaceID;
             onRouterClose();
 
             const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
@@ -247,7 +250,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
     );
 
     const onListItemPress = (item: OptionData | SearchQueryItem) => {
@@ -310,6 +313,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
+    const isDataLoaded = useMemo(() => {
+        return (!contextualReportID || contextualReportID !== undefined) && !isLoadingOnyxValue(recentSearchesMetadata) && recentReports.length > 0;
+    }, [contextualReportID, recentSearchesMetadata, recentReports]);
+
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -321,29 +328,34 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                     onBackButtonPress={() => onRouterClose()}
                 />
             )}
-            <SearchRouterInput
-                value={textInputValue}
-                isFullWidth={shouldUseNarrowLayout}
-                onSearchQueryChange={onSearchQueryChange}
-                onSubmit={() => {
-                    submitSearch(textInputValue);
-                }}
-                caretHidden={shouldHideInputCaret}
-                routerListRef={listRef}
-                shouldShowOfflineMessage
-                wrapperStyle={[styles.border, styles.alignItemsCenter]}
-                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                wrapperFocusedStyle={[styles.borderColorFocus]}
-                isSearchingForReports={isSearchingForReports}
-            />
-            <SearchRouterList
-                autocompleteQueryValue={autocompleteQueryValue}
-                searchQueryItem={searchQueryItem}
-                additionalSections={sections}
-                onListItemPress={onListItemPress}
-                onListItemFocus={onListItemFocus}
-                ref={listRef}
-            />
+            {(isDataLoaded || !!debouncedInputValue) && (
+                <>
+                    <SearchRouterInput
+                        value={textInputValue}
+                        isFullWidth={shouldUseNarrowLayout}
+                        onSearchQueryChange={onSearchQueryChange}
+                        onSubmit={() => {
+                            submitSearch(textInputValue);
+                        }}
+                        caretHidden={shouldHideInputCaret}
+                        routerListRef={listRef}
+                        shouldShowOfflineMessage
+                        wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                        wrapperFocusedStyle={[styles.borderColorFocus]}
+                        isSearchingForReports={isSearchingForReports}
+                    />
+                    <SearchRouterList
+                        autocompleteQueryValue={autocompleteQueryValue}
+                        searchQueryItem={searchQueryItem}
+                        additionalSections={sections}
+                        onListItemPress={onListItemPress}
+                        onListItemFocus={onListItemFocus}
+                        initiallyFocusedOptionKey={isLargeScreenWidth ? styledRecentReports.at(0)?.keyForList : undefined}
+                        ref={listRef}
+                    />
+                </>
+            )}
         </View>
     );
 }

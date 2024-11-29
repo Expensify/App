@@ -27,8 +27,8 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -522,7 +522,15 @@ function createPolicyCategory(policyID: string, categoryName: string) {
 }
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
-    const onyxData = updateImportSpreadsheetData(categories.length);
+    const uniqueCategories = categories.reduce<Record<string, PolicyCategory>>((acc, category) => {
+        if (!category.name) {
+            return acc;
+        }
+        acc[category.name] = category;
+        return acc;
+    }, {});
+    const categoriesLength = Object.keys(uniqueCategories).length;
+    const onyxData = updateImportSpreadsheetData(categoriesLength);
 
     const parameters = {
         policyID,
@@ -938,7 +946,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyID: string, enabled: boolean) {
+function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true) {
     const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
     if (!enabled) {
         onyxUpdatesToDisableCategories.push(
@@ -1009,7 +1017,7 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldNavigate) {
         navigateWhenEnableFeature(policyID);
     }
 }
@@ -1351,28 +1359,28 @@ function getPolicyCategoriesData(policyID: string) {
 }
 
 export {
-    getPolicyCategories,
-    openPolicyCategoriesPage,
-    buildOptimisticPolicyRecentlyUsedCategories,
-    setWorkspaceCategoryEnabled,
-    setPolicyCategoryDescriptionRequired,
-    setWorkspaceCategoryDescriptionHint,
-    setWorkspaceRequiresCategory,
-    setPolicyCategoryPayrollCode,
-    createPolicyCategory,
-    renamePolicyCategory,
-    setPolicyCategoryGLCode,
-    clearCategoryErrors,
-    enablePolicyCategories,
-    setPolicyCustomUnitDefaultCategory,
-    deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
-    setPolicyCategoryReceiptsRequired,
-    removePolicyCategoryReceiptsRequired,
-    setPolicyCategoryMaxAmount,
-    setPolicyCategoryApprover,
-    setPolicyCategoryTax,
-    importPolicyCategories,
+    buildOptimisticPolicyRecentlyUsedCategories,
+    clearCategoryErrors,
+    createPolicyCategory,
+    deleteWorkspaceCategories,
     downloadCategoriesCSV,
+    enablePolicyCategories,
+    getPolicyCategories,
     getPolicyCategoriesData,
+    importPolicyCategories,
+    openPolicyCategoriesPage,
+    removePolicyCategoryReceiptsRequired,
+    renamePolicyCategory,
+    setPolicyCategoryApprover,
+    setPolicyCategoryDescriptionRequired,
+    setPolicyCategoryGLCode,
+    setPolicyCategoryMaxAmount,
+    setPolicyCategoryPayrollCode,
+    setPolicyCategoryReceiptsRequired,
+    setPolicyCategoryTax,
+    setPolicyCustomUnitDefaultCategory,
+    setWorkspaceCategoryDescriptionHint,
+    setWorkspaceCategoryEnabled,
+    setWorkspaceRequiresCategory,
 };
