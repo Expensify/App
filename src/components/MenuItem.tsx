@@ -345,9 +345,6 @@ type MenuItemBaseProps = {
 
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
-
-    /** Should break word for room title */
-    shouldBreakWord?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -460,7 +457,6 @@ function MenuItem(
         shouldShowSelectedItemCheck = false,
         onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
-        shouldBreakWord = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -486,7 +482,6 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
-            shouldBreakWord ? styles.breakWord : {},
         ],
         titleStyle ?? {},
     );
