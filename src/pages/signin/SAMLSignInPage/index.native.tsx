@@ -15,6 +15,7 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useLocalize from '@hooks/useLocalize';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -22,15 +23,24 @@ function SAMLSignInPage() {
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const webViewRef = useRef<WebView>(null);
+    const {translate} = useLocalize();
 
     useEffect(() => {
+        // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
+        if (!credentials?.login) {
+            Session.clearSignInData();
+            Session.setAccountError(translate('common.error.email'));
+            Navigation.goBack(ROUTES.HOME);
+            return;
+        }
+
         // If we've already gotten a url back to log into the user's IdP, then don't re-fetch it
         if (SAMLUrl) {
             return;
         }
 
         const body = new FormData();
-        body.append('email', credentials?.login ?? '');
+        body.append('email', credentials.login);
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
         fetchSAMLUrl(body).then((response) => {
