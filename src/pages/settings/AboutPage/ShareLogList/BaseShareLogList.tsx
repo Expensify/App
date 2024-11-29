@@ -37,7 +37,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, '', betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, betas ?? []);
 
         const header = OptionsListUtils.getHeaderMessage(
             (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,

@@ -67,6 +67,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
+        shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
         sectionListStyle,
@@ -87,6 +88,7 @@ function BaseSelectionList<TItem extends ListItem>(
         alternateTextNumberOfLines = 2,
         textInputRef,
         headerMessageStyle,
+        confirmButtonStyles,
         shouldHideListOnInitialRender = true,
         textInputIconLeft,
         sectionTitleStyles,
@@ -114,6 +116,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
+        shouldScrollToFocusedIndex = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -321,7 +324,9 @@ function BaseSelectionList<TItem extends ListItem>(
             if (focusedItem) {
                 onArrowFocus(focusedItem);
             }
-            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
+            if (shouldScrollToFocusedIndex) {
+                (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
+            }
         },
         isFocused,
     });
@@ -590,10 +595,12 @@ function BaseSelectionList<TItem extends ListItem>(
             if (!isInitialSectionListRender) {
                 return;
             }
-            scrollToIndex(focusedIndex, false);
+            if (shouldScrollToFocusedIndex) {
+                scrollToIndex(focusedIndex, false);
+            }
             setIsInitialSectionListRender(false);
         },
-        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch, shouldScrollToFocusedIndex],
     );
 
     const onSectionListLayout = useCallback(
@@ -832,9 +839,9 @@ function BaseSelectionList<TItem extends ListItem>(
                     {showConfirmButton && (
                         <FixedFooter style={[styles.mtAuto]}>
                             <Button
-                                success
+                                success={!shouldUseDefaultTheme}
                                 large
-                                style={[styles.w100]}
+                                style={[styles.w100, confirmButtonStyles]}
                                 text={confirmButtonText || translate('common.confirm')}
                                 onPress={onConfirm}
                                 pressOnEnter
