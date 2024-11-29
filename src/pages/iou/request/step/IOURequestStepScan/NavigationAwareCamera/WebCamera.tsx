@@ -10,12 +10,12 @@ import type {NavigationAwareCameraProps} from './types';
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
 function WebCamera({aspectRatio, ...props}: NavigationAwareCameraProps, ref: ForwardedRef<Webcam | Camera>) {
     const shouldShowCamera = useIsFocused();
+    const styles = useThemeStyles();
 
     if (!shouldShowCamera) {
         return null;
     }
 
-    const styles = useThemeStyles();
     const webcamContainerStyles = {...styles.justifyContentCenter, ...styles.w100, aspectRatio};
 
     return (
