@@ -137,28 +137,15 @@ function SearchRouterList(
             return [];
         }
 
-<<<<<<< HEAD
         const filteredOptions = OptionsListUtils.getFilteredOptions({
             reports: options.reports,
             personalDetails: options.personalDetails,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: 0,
             includeSelfDM: true,
+            showChatPreviewLine: true,
+            shouldBoldTitleByDefault: false,
         });
-=======
-        const filteredOptions = OptionsListUtils.getOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
-                includeSelfDM: true,
-                showChatPreviewLine: true,
-                shouldBoldTitleByDefault: false,
-            },
-        );
->>>>>>> eddc533 (Merge pull request #53293 from Expensify/aldo_add-showChatPreviewLine)
 
         // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
         const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);
