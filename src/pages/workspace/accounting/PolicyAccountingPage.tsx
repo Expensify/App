@@ -560,7 +560,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                 <Icon
                                     src={Expensicons.QuestionMark}
                                     width={20}
@@ -569,7 +569,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     additionalStyles={styles.mr3}
                                 />
                                 <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
-                                    <Text>{translate('workspace.accounting.needAnotherAccounting')}</Text>
+                                    <Text style={styles.textSupporting}>{translate('workspace.accounting.needAnotherAccounting')}</Text>
                                     <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID ?? ''))}>{chatTextLink}</TextLink>
                                 </View>
                             </View>
