@@ -149,6 +149,7 @@ function SearchRouterList(
                 excludeLogins: CONST.EXPENSIFY_EMAILS,
                 includeSelfDM: true,
                 showChatPreviewLine: true,
+                shouldBoldTitleByDefault: false,
             },
         );
 
