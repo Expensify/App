@@ -108,7 +108,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: Math.abs(item.modifiedAmount || item.amount),
         },
     };
 }
@@ -348,6 +348,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     }
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        console.log('XYZ item:', item);
         if (SearchUIUtils.isReportActionListItemType(item)) {
             return;
         }
