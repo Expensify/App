@@ -73,6 +73,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(pendingContactAction?.contactMethod ?? ''));
+        User.clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod]);
 
     const validate = React.useCallback(
