@@ -62,8 +62,9 @@ function Composer(
             return;
         }
 
-        // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
+        // We need the delay for setSelection to properly work for IOS.
         const timeoutID = setTimeout(() => {
+            // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
             textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
             textInput.current?.setSelection(selection.start, selection.start);
         }, 0);
