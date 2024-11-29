@@ -119,7 +119,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={NewContactMethodPage.displayName}
         >
