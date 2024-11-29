@@ -105,7 +105,7 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                // Note: the safeAreaPaddingBottomStyle is only applied if no parent has applied it yet:
+                // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
                 style={[style, {paddingBottom: paddingBottom + styles.pb5.paddingBottom}]}
             >
                 {children}
