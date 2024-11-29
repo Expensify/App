@@ -1668,6 +1668,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
+            paddingTop: 12,
             paddingBottom: 4,
         },
 
