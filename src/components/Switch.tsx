@@ -44,17 +44,17 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 disabledAction?.();
                 return;
             }
-            offsetX.value = withTiming(isOn ? OFFSET_X.OFF : OFFSET_X.ON, {duration: 300});
+            offsetX.set(withTiming(isOn ? OFFSET_X.OFF : OFFSET_X.ON, {duration: 300}));
             onToggle(!isOn);
         });
     };
 
     const animatedThumbStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: offsetX.value}],
+        transform: [{translateX: offsetX.get()}],
     }));
 
     const animatedSwitchTrackStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(offsetX.value, [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
+        backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
     }));
 
     return (

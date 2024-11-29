@@ -82,19 +82,21 @@ function GenericTooltip({
 
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
-            animation.value = 1;
+            animation.set(1);
         } else {
-            isTooltipSenseInitiator.value = true;
-            animation.value = withDelay(
-                500,
-                withTiming(
-                    1,
-                    {
-                        duration: 140,
-                    },
-                    (finished) => {
-                        isAnimationCanceled.value = !finished;
-                    },
+            isTooltipSenseInitiator.set(true);
+            animation.set(
+                withDelay(
+                    500,
+                    withTiming(
+                        1,
+                        {
+                            duration: 140,
+                        },
+                        (finished) => {
+                            isAnimationCanceled.set(!finished);
+                        },
+                    ),
                 ),
             );
         }
@@ -105,8 +107,8 @@ function GenericTooltip({
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
-        if (isVisible && isAnimationCanceled.value && text && prevText !== text) {
-            isAnimationCanceled.value = false;
+        if (isVisible && isAnimationCanceled.get() && text && prevText !== text) {
+            isAnimationCanceled.set(false);
             showTooltip();
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
@@ -130,13 +132,13 @@ function GenericTooltip({
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
 
-        if (TooltipSense.isActive() && !isTooltipSenseInitiator.value) {
+        if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
             // eslint-disable-next-line react-compiler/react-compiler
-            animation.value = 0;
+            animation.set(0);
         } else {
             // Hide the first tooltip which initiated the TooltipSense with animation
-            isTooltipSenseInitiator.value = false;
-            animation.value = 0;
+            isTooltipSenseInitiator.set(false);
+            animation.set(0);
         }
         TooltipSense.deactivate();
         setIsVisible(false);

@@ -270,7 +270,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         const isTooltipSizeReady = tooltipWidth !== undefined && props.tooltipWrapperHeight !== undefined;
         let scale = 1;
         if (isTooltipSizeReady) {
-            scale = props.currentSize.value;
+            scale = props.currentSize.get();
         }
         return {
             transform: [{scale}],
