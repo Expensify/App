@@ -10,6 +10,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -60,6 +61,7 @@ function FormWrapper({
     isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
@@ -99,7 +101,7 @@ function FormWrapper({
     }, [errors, formState?.errorFields, inputRefs]);
 
     const scrollViewContent = useCallback(
-        (safeAreaPaddingBottomStyle: SafeAreaChildrenProps['safeAreaPaddingBottomStyle']) => (
+        () => (
             <FormElement
                 key={formID}
                 ref={formContentRef}
@@ -128,6 +130,7 @@ function FormWrapper({
         [
             formID,
             style,
+            safeAreaPaddingBottomStyle,
             styles.pb5,
             styles.mh0,
             styles.mt5,
@@ -153,33 +156,27 @@ function FormWrapper({
     );
 
     if (!shouldUseScrollView) {
-        return scrollViewContent({});
+        return scrollViewContent();
     }
 
-    return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) =>
-                scrollContextEnabled ? (
-                    <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollViewWithContext>
-                ) : (
-                    <ScrollView
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollView>
-                )
-            }
-        </SafeAreaConsumer>
+    return scrollContextEnabled ? (
+        <ScrollViewWithContext
+            style={[styles.w100, styles.flex1]}
+            contentContainerStyle={styles.flexGrow1}
+            keyboardShouldPersistTaps="handled"
+            ref={formRef}
+        >
+            {scrollViewContent()}
+        </ScrollViewWithContext>
+    ) : (
+        <ScrollView
+            style={[styles.w100, styles.flex1]}
+            contentContainerStyle={styles.flexGrow1}
+            keyboardShouldPersistTaps="handled"
+            ref={formRef}
+        >
+            {scrollViewContent()}
+        </ScrollView>
     );
 }
 
