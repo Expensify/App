@@ -7295,8 +7295,7 @@ function getWorkspaceChats(policyID: string, accountIDs: number[], allReports: O
  *
  * @param policyID - the workspace ID to get all associated reports
  */
-function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
-    const allReports = ReportConnection.getAllReports();
+function getAllWorkspaceReports(policyID: string, allReports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => (report?.policyID ?? '-1') === policyID);
 }
 

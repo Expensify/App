@@ -71,7 +71,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportActionsConnection from '@libs/ReportActionsConnection';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
@@ -279,7 +278,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string) {
+function deleteWorkspace(policyID: string, policyName: string, allReports: OnyxCollection<Report>) {
     if (!allPolicies) {
         return;
     }
@@ -308,7 +307,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(ReportConnection.getAllReports() ?? {}).filter(
+    const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report) => ReportUtils.isPolicyRelatedReport(report, policyID) && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
     const finallyData: OnyxUpdate[] = [];
@@ -704,9 +703,9 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
 }
 
-function leaveWorkspace(policyID: string) {
+function leaveWorkspace(policyID: string, allReports: OnyxCollection<Report>) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID, allReports);
 
     const optimisticData: OnyxUpdate[] = [
         {

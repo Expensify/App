@@ -136,7 +136,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
+        Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete, reports);
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
@@ -181,7 +181,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1', reports)),
                 });
             }
 

@@ -50,6 +50,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {canUseSpotnanaTravel} = usePermissions();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
@@ -135,7 +136,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
 
-        Policy.deleteWorkspace(policy?.id, policyName);
+        Policy.deleteWorkspace(policy?.id, policyName, reports);
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
@@ -143,7 +144,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             setActiveWorkspaceID(undefined);
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+    }, [policy?.id, policyName, reports, activeWorkspaceID, setActiveWorkspaceID]);
 
     return (
         <WorkspacePageWithSections
