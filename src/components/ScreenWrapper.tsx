@@ -262,14 +262,14 @@ function ScreenWrapper(
             <View
                 ref={ref}
                 style={[styles.flex1, {minHeight}]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                 {...panResponder.panHandlers}
                 testID={testID}
             >
                 <View
                     fsClass="fs-unmask"
                     style={[styles.flex1, paddingStyle, style]}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                     {...keyboardDismissPanResponder.panHandlers}
                 >
                     <KeyboardAvoidingView
