@@ -525,10 +525,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        colorReversed: {
-            color: theme.textReversed,
-        },
-
         colorMutedReversed: {
             color: theme.textMutedReversed,
         },
@@ -539,10 +535,6 @@ const styles = (theme: ThemeColors) =>
 
         bgTransparent: {
             backgroundColor: 'transparent',
-        },
-
-        bgDark: {
-            backgroundColor: theme.inverse,
         },
 
         opacity0: {
@@ -2596,6 +2588,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        searchResultsHeaderBar: {
+            display: 'flex',
+            height: variables.contentHeaderDesktopHeight,
+            zIndex: variables.popoverzIndex,
+            position: 'relative',
+            paddingHorizontal: 20,
+        },
+
         headerBarDesktopHeight: {
             height: variables.contentHeaderDesktopHeight,
         },
@@ -4545,17 +4545,9 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
         },
 
-        assignedCardsIconContainer: {
-            height: variables.bankCardHeight,
-            width: variables.bankCardWidth,
-            borderRadius: 4,
-            overflow: 'hidden',
-            alignSelf: 'center',
-        },
-
         bankIconContainer: {
-            height: variables.bankCardWidth,
-            width: variables.bankCardWidth,
+            height: variables.cardIconWidth,
+            width: variables.cardIconWidth,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
@@ -5219,7 +5211,6 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
-            height: variables.cardIconHeight,
             alignSelf: 'center',
         },
 

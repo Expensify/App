@@ -11,16 +11,19 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
+import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -204,6 +207,8 @@ const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
+        // Since we don't cancel the tooltip in setModalVisibility, we need to do it here so it will be cancelled when a modal screen is shown.
+        TooltipManager.cancelPendingAndActiveTooltips();
         Modal.setModalVisibility(true);
     },
     blur: () => {
@@ -225,6 +230,7 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth for the root stack navigator
@@ -253,6 +259,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
         return initialReport?.reportID ?? '';
     });
+
+    useEffect(() => {
+        NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
+
+        return () => {
+            NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
+        };
+    }, [theme]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
