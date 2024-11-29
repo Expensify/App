@@ -1992,12 +1992,12 @@ const translations = {
         },
     },
     addPersonalBankAccount: {
-        countrySelectionStepHeader: "Where's your bank account located?",
-        accountDetailsStepHeader: 'What are your account details?',
-        accountTypeStepHeader: 'What type of account is this?',
-        bankInformationStepHeader: 'What are your bank details?',
-        accountHolderInformationStepHeader: 'What are the account holder details?',
-        howDoWeProtectYourData: 'How do we protect your data?',
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
