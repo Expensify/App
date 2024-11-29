@@ -40,14 +40,17 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
-            reports: optionsList.reports,
-            personalDetails: optionsList.personalDetails,
-            betas,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-
-            maxRecentReportsToShow: 0,
-        });
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getOptions(
+            {
+                reports: optionsList.reports,
+                personalDetails: optionsList.personalDetails,
+            },
+            {
+                betas,
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                maxRecentReportsToShow: 0,
+            },
+        );
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
 

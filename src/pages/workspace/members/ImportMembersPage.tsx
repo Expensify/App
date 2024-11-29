@@ -1,6 +1,6 @@
 import React from 'react';
-import ImportSpreedsheet from '@components/ImportSpreadsheet';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -22,7 +22,7 @@ function ImportMembersPage({policy}: ImportMembersPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreedsheet
+            <ImportSpreadsheet
                 backTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
                 goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
             />

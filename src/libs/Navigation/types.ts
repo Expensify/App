@@ -246,7 +246,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID: string;
-        featureName?: string;
+        featureName: string;
         backTo?: Routes;
         categoryId?: string;
     };
@@ -897,6 +897,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_IMPORTED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {

@@ -9,18 +9,20 @@ import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import GenericFeaturesView from './GenericFeaturesView';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
 };
@@ -29,16 +31,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const subscriptionPlan = useSubscriptionPlan();
 
-    if (!feature) {
-        return (
-            <GenericFeaturesView
-                onUpgrade={onUpgrade}
-                buttonDisabled={buttonDisabled}
-                loading={loading}
-            />
-        );
-    }
     const isIllustration = feature.icon in Illustrations;
     const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
@@ -91,7 +86,13 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     {translate('workspace.upgrade.note.upgradeWorkspace')}{' '}
                     <TextLink
                         style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                        onPress={() => {
+                            if (!subscriptionPlan) {
+                                openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                        }}
                     >
                         {translate('workspace.upgrade.note.learnMore')}
                     </TextLink>{' '}
