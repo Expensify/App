@@ -5428,6 +5428,9 @@ const translations = {
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
         },
     },
+    productTrainingTooltip: {
+        conciergeLHNGBR: 'Get started <strong>here!</strong>',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;

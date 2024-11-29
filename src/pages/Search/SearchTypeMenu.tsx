@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -62,7 +63,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
+    const {shouldShowProductTrainingElement, renderProductTourElement, hideElement} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -151,7 +152,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         if (!isNarrow) {
             return {
                 ...baseMenuItem,
-                shouldRenderTooltip: index === 0 && shouldShowSavedSearchRenameTooltip === true,
+                shouldRenderTooltip: index === 0 && shouldShowProductTrainingElement,
                 tooltipAnchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -159,19 +160,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: -32,
                 tooltipShiftVertical: 15,
                 tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                onHideTooltip: SearchActions.dismissSavedSearchRenameTooltip,
-                renderTooltipContent: () => {
-                    return (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Expensicons.Lightbulb
-                                width={16}
-                                height={16}
-                                fill={styles.colorGreenSuccess.color}
-                            />
-                            <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
-                        </View>
-                    );
-                },
+                onHideTooltip: hideElement,
+                renderTooltipContent: renderProductTourElement,
             };
         }
 
