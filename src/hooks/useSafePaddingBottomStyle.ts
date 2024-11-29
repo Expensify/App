@@ -3,9 +3,13 @@ import {KeyboardEvents} from 'react-native-keyboard-controller';
 import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 
-// This hook is useful for adding extra bottom padding to a component based on the device's safe area
-// If the device's safe area padding bottom is 0, the hook returns 0. Otherwise, it provides a padding bottom of 20.
-// Use this to ensure content visibility and layout consistency across different devices.
+/**
+ * This hook is useful for adding extra bottom padding to a component based on the device's safe area
+ * If the device's safe area padding bottom is 0, the hook returns 0. Otherwise, it provides a padding bottom of 20.
+ * Use this to ensure content visibility and layout consistency across different devices.
+ *
+ * @deprecated Please use `useStyledSafeAreaInsets` instead. This will be fully removed soon.
+ * */
 const useSafePaddingBottomStyle = () => {
     const styles = useThemeStyles();
     const [willKeyboardShow, setWillKeyboardShow] = useState<boolean>(false);

@@ -87,7 +87,6 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -97,7 +96,7 @@ function FormAlertWithSubmitButton({
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.justifyContentEnd, safePaddingBottomStyle, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}
