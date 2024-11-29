@@ -278,7 +278,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 buttonText={translate('common.next')}
                 onSubmit={inviteUser}
                 message={policy?.alertMessage ?? ''}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.pb5]}
                 enabledWhenOffline
             />
         ),
@@ -299,6 +299,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
+                includeSafeAreaPaddingBottom
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
@@ -328,7 +329,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    includeSafeAreaPaddingBottom
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

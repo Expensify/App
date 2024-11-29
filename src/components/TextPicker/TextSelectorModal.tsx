@@ -82,7 +82,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         >
             <ScreenWrapper
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
                 style={paddingStyle}

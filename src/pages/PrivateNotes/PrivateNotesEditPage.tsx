@@ -106,7 +106,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={PrivateNotesEditPage.displayName}
         >
             <HeaderWithBackButton
