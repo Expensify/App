@@ -25,6 +25,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
+    isOnHold: boolean;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -35,6 +36,7 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
+    isOnHold,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -51,6 +53,8 @@ function ActionCell({
     const text = translate(actionTranslationsMap[action]);
 
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
+    const isApproveOrPaidAction = action === CONST.SEARCH.ACTION_TYPES.APPROVE || action === CONST.SEARCH.ACTION_TYPES.PAID;
+    const shouldUseSuccessStyle = isApproveOrPaidAction ? !isOnHold : true;
 
     if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         return (
@@ -69,7 +73,7 @@ function ActionCell({
                     ]}
                     textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     iconStyles={styles.mr0}
-                    success
+                    success={shouldUseSuccessStyle}
                 />
             </View>
         );
@@ -99,7 +103,7 @@ function ActionCell({
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
             isLoading={isLoading}
-            success
+            success={shouldUseSuccessStyle}
             isDisabled={isOffline}
         />
     );
