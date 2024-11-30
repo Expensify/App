@@ -3214,8 +3214,8 @@ function updateMoneyRequestCategory(
     };
 
     if (categoryTaxCode && categoryTaxAmount !== undefined) {
-        transactionChanges['taxCode'] = categoryTaxCode;
-        transactionChanges['taxAmount'] = categoryTaxAmount;
+        transactionChanges.taxCode = categoryTaxCode;
+        transactionChanges.taxAmount = categoryTaxAmount;
     }
 
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
