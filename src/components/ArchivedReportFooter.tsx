@@ -33,7 +33,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
     const originalMessage = ReportActionsUtils.isClosedAction(reportClosedAction) ? ReportActionsUtils.getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? -1];
-    let displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails));
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
