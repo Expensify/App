@@ -128,7 +128,7 @@ function IOURequestStepScan({
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
                 // Only Safari 17+ supports zoom constraint
-                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                if (Browser.isMobileWebKit() && stream.getTracks().length > 0) {
                     let deviceId;
                     for (const track of stream.getTracks()) {
                         const setting = track.getSettings();
