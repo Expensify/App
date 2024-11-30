@@ -319,7 +319,7 @@ function PopoverMenu({
             return;
         }
         setFocusedIndex(currentMenuItemsFocusedIndex);
-    }, [isVisible, currentMenuItemsFocusedIndex]);
+    }, [isVisible, currentMenuItemsFocusedIndex, setFocusedIndex]);
 
     return (
         <PopoverWithMeasuredContent
