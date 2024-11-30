@@ -12,7 +12,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -486,6 +485,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.popoverMenuItem.paddingVertical,
         styles.quickActionTooltipWrapper,
         renderProductTourElement,
+        hideElement,
         quickAction?.action,
         policyChatForActivePolicy,
         quickActionTitle,
