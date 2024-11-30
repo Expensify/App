@@ -10,7 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import {useProductTrainingContext} from '@components/ProductTrainingContext/ProductTrainingContext';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -63,30 +63,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             };
         }, []),
     );
-
-    // const renderGBRTooltip = useCallback(
-    //     () => (
-    //         <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
-    //             <Icon
-    //                 src={Expensicons.Lightbulb}
-    //                 fill={theme.tooltipHighlightText}
-    //                 medium
-    //             />
-    //             <Text style={styles.quickActionTooltipSubtitle}>{translate('sidebarScreen.tooltip')}</Text>
-    //         </View>
-    //     ),
-    //     [
-    //         styles.alignItemsCenter,
-    //         styles.flexRow,
-    //         styles.justifyContentCenter,
-    //         styles.flexWrap,
-    //         styles.textAlignCenter,
-    //         styles.gap1,
-    //         styles.quickActionTooltipSubtitle,
-    //         theme.tooltipHighlightText,
-    //         translate,
-    //     ],
-    // );
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -178,7 +154,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
+                shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
+                onHideTooltip={hideElement}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
             >

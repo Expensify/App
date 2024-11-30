@@ -8,7 +8,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext/ProductTrainingContext';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -119,54 +119,69 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         [showDeleteModal],
     );
 
-    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
-        let title = item.name;
-        if (title === item.query) {
-            const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates);
-        }
+    const createSavedSearchMenuItem = useCallback(
+        (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
+            let title = item.name;
+            if (title === item.query) {
+                const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+                title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates);
+            }
 
-        const baseMenuItem: SavedSearchMenuItem = {
-            key,
-            title,
-            hash: key,
-            query: item.query,
-            shouldShowRightComponent: true,
-            focused: Number(key) === hash,
-            onPress: () => {
-                SearchActions.clearAllFilters();
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
-            },
-            rightComponent: (
-                <SavedSearchItemThreeDotMenu
-                    menuItems={getOverflowMenu(title, Number(key), item.query)}
-                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                />
-            ),
-            styles: [styles.alignItemsCenter],
-            pendingAction: item.pendingAction,
-            disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            shouldIconUseAutoWidthStyle: true,
-        };
-
-        if (!isNarrow) {
-            return {
-                ...baseMenuItem,
-                shouldRenderTooltip: index === 0 && shouldShowProductTrainingElement,
-                tooltipAnchorAlignment: {
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            const baseMenuItem: SavedSearchMenuItem = {
+                key,
+                title,
+                hash: key,
+                query: item.query,
+                shouldShowRightComponent: true,
+                focused: Number(key) === hash,
+                onPress: () => {
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
-                tooltipShiftHorizontal: -32,
-                tooltipShiftVertical: 15,
-                tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                onHideTooltip: hideElement,
-                renderTooltipContent: renderProductTourElement,
+                rightComponent: (
+                    <SavedSearchItemThreeDotMenu
+                        menuItems={getOverflowMenu(title, Number(key), item.query)}
+                        isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                    />
+                ),
+                styles: [styles.alignItemsCenter],
+                pendingAction: item.pendingAction,
+                disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                shouldIconUseAutoWidthStyle: true,
             };
-        }
 
-        return baseMenuItem;
-    };
+            if (!isNarrow) {
+                return {
+                    ...baseMenuItem,
+                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingElement,
+                    tooltipAnchorAlignment: {
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    },
+                    tooltipShiftHorizontal: -32,
+                    tooltipShiftVertical: 15,
+                    tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
+                    onHideTooltip: hideElement,
+                    renderTooltipContent: renderProductTourElement,
+                };
+            }
+            return baseMenuItem;
+        },
+        [
+            hash,
+            getOverflowMenu,
+            styles.alignItemsCenter,
+            styles.bgPaleGreen,
+            styles.mh4,
+            styles.pv2,
+            personalDetails,
+            reports,
+            taxRates,
+            shouldShowProductTrainingElement,
+            hideElement,
+            renderProductTourElement,
+        ],
+    );
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
@@ -191,12 +206,12 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const savedSearchesMenuItems = () => {
+    const savedSearchesMenuItems = useCallback(() => {
         if (!savedSearches) {
             return [];
         }
         return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout, index));
-    };
+    }, [createSavedSearchMenuItem, savedSearches, shouldUseNarrowLayout]);
 
     const renderSavedSearchesSection = useCallback(
         (menuItems: MenuItemWithLink[]) => (

@@ -63,7 +63,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         },
     },
     [WORKSAPCE_CHAT_CREATE]: {
-        content: '',
+        content: 'reportActionCompose.tooltip.subtitle',
         onHideElement: () => dismissProductTrainingElement(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,
         priority: 1100,
