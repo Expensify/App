@@ -463,6 +463,10 @@ const translations = {
         links: 'Enlaces',
         days: 'días',
     },
+    supportalNoAccess: {
+        title: 'No tan rápido',
+        description: 'No estás autorizado para realizar esta acción mientras el soporte está conectado.',
+    },
     connectionComplete: {
         title: 'Conexión completa',
         supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',

@@ -473,6 +473,10 @@ const translations = {
         days: 'days',
         rename: 'Rename',
     },
+    supportalNoAccess: {
+        title: 'Not so fast',
+        description: 'You are not authorized to take this action when support logged in.',
+    },
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',

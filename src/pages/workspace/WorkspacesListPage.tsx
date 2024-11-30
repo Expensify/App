@@ -17,6 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SuppportalActionNotAllowedModal from '@components/SupportalActionNotAllowedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -126,6 +127,12 @@ function WorkspacesListPage() {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
 
+    const isSupportalAction = Session.isSupportAuthToken();
+
+    const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
+    const hideSupportalModal = () => {
+        setIsSupportalActionRestrictedModalOpen(false);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -158,6 +165,10 @@ function WorkspacesListPage() {
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
+                        if (isSupportalAction) {
+                            setIsSupportalActionRestrictedModalOpen(true);
+                            return;
+                        }
                         setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
@@ -439,6 +450,10 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 danger
             />
+            <SuppportalActionNotAllowedModal
+                isSupportalActionRestrictedModalOpen={isSupportalActionRestrictedModalOpen}
+                hideSupportalModal={hideSupportalModal}
+            />            
         </ScreenWrapper>
     );
 }
