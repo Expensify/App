@@ -17,7 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SuppportalActionNotAllowedModal from '@components/SupportalActionNotAllowedModal';
+import SupportalActionModal from '@components/SupportalActionModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -450,10 +450,10 @@ function WorkspacesListPage() {
                 cancelText={translate('common.cancel')}
                 danger
             />
-            <SuppportalActionNotAllowedModal
+            <SupportalActionModal
                 isSupportalActionRestrictedModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
-            />            
+            />
         </ScreenWrapper>
     );
 }

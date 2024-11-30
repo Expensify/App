@@ -2,12 +2,12 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import ConfirmModal from './ConfirmModal';
 
-type SuppportalActionNotAllowedModalProps = {
+type SupportalActionModalProps = {
     isSupportalActionRestrictedModalOpen: boolean;
     hideSupportalModal: () => void;
 };
 
-function SuppportalActionNotAllowedModal({isSupportalActionRestrictedModalOpen, hideSupportalModal}: SuppportalActionNotAllowedModalProps) {
+function SupportalActionModal({isSupportalActionRestrictedModalOpen, hideSupportalModal}: SupportalActionModalProps) {
     const {translate} = useLocalize();
     return (
         <ConfirmModal
@@ -21,6 +21,6 @@ function SuppportalActionNotAllowedModal({isSupportalActionRestrictedModalOpen, 
     );
 }
 
-SuppportalActionNotAllowedModal.displayName = 'SuppportalActionNotAllowedModal';
+SupportalActionModal.displayName = 'SupportalActionModal';
 
-export default SuppportalActionNotAllowedModal;
+export default SupportalActionModal;
