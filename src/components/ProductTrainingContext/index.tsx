@@ -139,7 +139,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return content ? `<comment>${content}</comment>` : '';
             };
             return (
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
                     <Icon
                         src={Expensicons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -157,7 +157,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             styles.flexWrap,
             styles.gap1,
             styles.justifyContentCenter,
-            styles.p2,
             styles.renderHTMLTitle,
             styles.textAlignCenter,
             theme.tooltipHighlightText,

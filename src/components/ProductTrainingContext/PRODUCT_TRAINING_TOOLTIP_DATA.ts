@@ -33,8 +33,8 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         onHideElement: () => dismissProductTrainingElement(RENAME_SAVED_SEARCH),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
-        shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) => {
-            if (isDismissed) {
+        shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration, shouldUseNarrowLayout}: ShouldShowConditionProps) => {
+            if (isDismissed || shouldUseNarrowLayout) {
                 return false;
             }
 
@@ -46,7 +46,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         },
     },
     [QUICK_ACTION_BUTTON]: {
-        content: '',
+        content: 'quickAction.tooltip.subtitle',
         onHideElement: () => dismissProductTrainingElement(QUICK_ACTION_BUTTON),
         name: QUICK_ACTION_BUTTON,
         priority: 1200,
