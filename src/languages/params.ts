@@ -559,6 +559,11 @@ type CurrencyCodeParams = {
     currencyCode: string;
 };
 
+type WorkspaceLockedPlanTypeParams = {
+    subscriptionUsersCount: number;
+    annualSubscriptionEndDate: string;
+};
+
 type CompanyNameParams = {
     companyName: string;
 };
@@ -769,6 +774,7 @@ export type {
     ImportedTypesParams,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
+    WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
     ChatWithAccountManagerParams,
 };
