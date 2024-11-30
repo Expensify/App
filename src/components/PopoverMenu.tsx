@@ -300,7 +300,7 @@ function PopoverMenu({
     );
 
     const onModalHide = () => {
-        setFocusedIndex(-1);
+        setFocusedIndex(currentMenuItemsFocusedIndex);
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
