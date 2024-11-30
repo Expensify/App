@@ -108,7 +108,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: Math.abs(item.modifiedAmount || item.amount),
         },
     };
 }
