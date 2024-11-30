@@ -1,5 +1,4 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -21,6 +20,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -108,7 +108,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: item.modifiedAmount ?? item.amount,
+            amount: Math.abs(item.modifiedAmount || item.amount),
         },
     };
 }
@@ -120,7 +120,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
+    const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const isFocused = useIsFocused();
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =

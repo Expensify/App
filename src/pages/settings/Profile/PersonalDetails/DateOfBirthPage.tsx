@@ -43,7 +43,7 @@ function DateOfBirthPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={DateOfBirthPage.displayName}
         >
             <HeaderWithBackButton
