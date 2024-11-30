@@ -73,7 +73,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     if (isUserValidated || !isValidateCodeActionModalVisible) {
         return (
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={VerifyAccountPage.displayName}
             >
                 <HeaderWithBackButton

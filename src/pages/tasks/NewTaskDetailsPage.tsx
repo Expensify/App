@@ -91,7 +91,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={NewTaskDetailsPage.displayName}
         >

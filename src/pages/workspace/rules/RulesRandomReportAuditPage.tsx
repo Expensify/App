@@ -41,7 +41,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
             shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesRandomReportAuditPage.displayName}
             >

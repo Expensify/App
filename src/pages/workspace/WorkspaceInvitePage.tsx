@@ -301,7 +301,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton

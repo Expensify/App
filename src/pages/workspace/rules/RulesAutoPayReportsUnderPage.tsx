@@ -52,7 +52,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
             shouldBeBlocked={!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesAutoPayReportsUnderPage.displayName}
             >
