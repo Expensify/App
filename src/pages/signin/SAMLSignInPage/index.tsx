@@ -16,9 +16,7 @@ function SAMLSignInPage() {
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
         if (!credentials?.login) {
-            Session.clearSignInData();
-            Session.setAccountError(translate('common.error.email'));
-            Navigation.goBack(ROUTES.HOME);
+            handleError(translate('common.error.email'), true);
             return;
         }
 
@@ -28,11 +26,25 @@ function SAMLSignInPage() {
 
         fetchSAMLUrl(body).then((response) => {
             if (!response || !response.url) {
+                handleError(translate('common.error.login'));
                 return;
             }
             window.location.replace(response.url);
+        })
+        .catch((response) => {
+            handleError(response.message ?? translate('common.error.login'));
+            return;
         });
     }, [credentials?.login]);
+
+    function handleError(errorMessage: string, cleanSignInData: boolean = false) {
+        if (cleanSignInData) {
+            Session.clearSignInData();
+        }
+
+        Session.setAccountError(errorMessage);
+        Navigation.goBack(ROUTES.HOME);
+    }
 
     return <SAMLLoadingIndicator />;
 }
