@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
@@ -313,6 +313,13 @@ function PopoverMenu({
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
+
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setFocusedIndex(currentMenuItemsFocusedIndex);
+    }, [isVisible, currentMenuItemsFocusedIndex]);
 
     return (
         <PopoverWithMeasuredContent
