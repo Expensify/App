@@ -2,10 +2,11 @@ import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -13,12 +14,14 @@ import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal
 import TestToolsModal from '@components/TestToolsModal';
 import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {disconnect} from '@libs/actions/Delegate';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -240,6 +243,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {toggleSearchRouter} = useSearchRouterContext();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(onboardingIsMediumOrLargerScreenWidth), [screenOptions, onboardingIsMediumOrLargerScreenWidth]);
     const onboardingScreenOptions = useMemo(
@@ -248,7 +252,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     );
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {delegatorEmail} = useDelegateUserDetails();
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
@@ -411,6 +417,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+        const delegates = account?.delegatedAccess?.delegates ?? [];
+        const isAccessRemoved = delegates.findIndex((delegate) => delegate.email === account?.delegatedAccess?.delegate) === -1;
+        if (!isActingAsDelegate || !isAccessRemoved) {
+            return;
+        }
+        disconnect();
+        setIsNoDelegateAccessMenuVisible(true);
+    }, [account]);
 
     const CentralPaneScreenOptions = {
         headerShown: false,
@@ -592,6 +609,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 </RootStack.Navigator>
                 <TestToolsModal />
                 <SearchRouterModal />
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                    onClose={() => {
+                        setIsNoDelegateAccessMenuVisible(false);
+                        Session.signOutAndRedirectToSignIn(true);
+                    }}
+                    delegatorEmail={delegatorEmail ?? ''}
+                />
             </View>
             {didPusherInit && <ActiveGuidesEventListener />}
         </ComposeProviders>
