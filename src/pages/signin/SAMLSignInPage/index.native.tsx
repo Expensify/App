@@ -41,17 +41,18 @@ function SAMLSignInPage() {
         body.append('email', credentials.login);
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
-        fetchSAMLUrl(body).then((response) => {
-            if (!response || !response.url) {
-                handleError(translate('common.error.login'));
+        fetchSAMLUrl(body)
+            .then((response) => {
+                if (!response || !response.url) {
+                    handleError(translate('common.error.login'));
+                    return;
+                }
+                setSAMLUrl(response.url);
+            })
+            .catch((response) => {
+                handleError(response.message ?? translate('common.error.login'));
                 return;
-            }
-            setSAMLUrl(response.url);
-        })
-        .catch((response) => {
-            handleError(response.message ?? translate('common.error.login'));
-            return;
-        });
+            });
     }, [credentials?.login, SAMLUrl]);
 
     /**
