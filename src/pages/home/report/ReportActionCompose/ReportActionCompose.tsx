@@ -11,14 +11,12 @@ import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import Text from '@components/Text';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
@@ -26,7 +24,6 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -114,7 +111,6 @@ function ReportActionCompose({
     onComposerFocus,
     onComposerBlur,
 }: ReportActionComposeProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -126,6 +122,10 @@ function ReportActionCompose({
     const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+
+    const {renderProductTourElement, hideElement, shouldShowProductTrainingElement} = useProductTrainingContext(
+        shouldShowEducationalTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE : undefined,
+    );
 
     /**
      * Updates the Highlight state of the composer
@@ -366,34 +366,6 @@ function ReportActionCompose({
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     }, [styles]);
 
-    const renderWorkspaceChatTooltip = useCallback(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
-                <Icon
-                    src={Expensicons.Lightbulb}
-                    fill={theme.tooltipHighlightText}
-                    medium
-                />
-                <Text>
-                    <Text style={styles.quickActionTooltipTitle}>{translate('reportActionCompose.tooltip.title')}</Text>
-                    <Text style={styles.quickActionTooltipSubtitle}>{translate('reportActionCompose.tooltip.subtitle')}</Text>
-                </Text>
-            </View>
-        ),
-        [
-            styles.alignItemsCenter,
-            styles.flexRow,
-            styles.justifyContentCenter,
-            styles.flexWrap,
-            styles.textAlignCenter,
-            styles.gap1,
-            styles.quickActionTooltipTitle,
-            styles.quickActionTooltipSubtitle,
-            theme.tooltipHighlightText,
-            translate,
-        ],
-    );
-
     const onValueChange = useCallback(
         (value: string) => {
             if (value.length === 0 && isComposerFullSize) {
@@ -417,10 +389,10 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender={!shouldHideEducationalTooltip && shouldShowEducationalTooltip}
-                        renderTooltipContent={renderWorkspaceChatTooltip}
+                        shouldRender={!shouldHideEducationalTooltip && shouldShowProductTrainingElement}
+                        renderTooltipContent={renderProductTourElement}
                         shouldUseOverlay
-                        onHideTooltip={User.dismissWorkspaceTooltip}
+                        onHideTooltip={hideElement}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
