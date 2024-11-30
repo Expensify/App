@@ -3203,6 +3203,8 @@ function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
     category: string,
+    categoryTaxCode: string | undefined,
+    categoryTaxAmount: number | undefined,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -3210,6 +3212,12 @@ function updateMoneyRequestCategory(
     const transactionChanges: TransactionChanges = {
         category,
     };
+
+    if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        transactionChanges['taxCode'] = categoryTaxCode;
+        transactionChanges['taxAmount'] = categoryTaxAmount;
+    }
+
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }

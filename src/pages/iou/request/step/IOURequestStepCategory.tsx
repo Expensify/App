@@ -14,6 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CategoryUtils from '@libs/CategoryUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -68,7 +70,8 @@ function IOURequestStepCategory({
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
+    const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const transactionCategory = ReportUtils.getTransactionDetails(currentTransaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
@@ -109,23 +112,53 @@ function IOURequestStepCategory({
         const categorySearchText = category.searchText ?? '';
         const isSelectedCategory = categorySearchText === transactionCategory;
         const updatedCategory = isSelectedCategory ? '' : categorySearchText;
+        const categoryTaxCode = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], updatedCategory, policy?.taxRates?.defaultExternalID);
+        let categoryTaxPercentage;
+        let categoryTaxAmount;
+
+        if (categoryTaxCode) {
+            categoryTaxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, categoryTaxCode);
+
+            if (categoryTaxPercentage) {
+                const isFromExpenseReport = ReportUtils.isExpenseReport(report) || ReportUtils.isPolicyExpenseChat(report);
+                categoryTaxAmount = CurrencyUtils.convertToBackendAmount(
+                    TransactionUtils.calculateTaxAmount(
+                        categoryTaxPercentage,
+                        TransactionUtils.getAmount(currentTransaction, isFromExpenseReport),
+                        TransactionUtils.getCurrency(transaction),
+                    ),
+                );
+            }
+        }
+
+        console.log(categoryTaxPercentage, categoryTaxAmount);
 
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplitBill) {
-                IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
+                const transactionChanges: TransactionUtils.TransactionChanges = {category: updatedCategory};
+                if (categoryTaxCode && categoryTaxAmount !== undefined) {
+                    transactionChanges.taxCode = categoryTaxCode;
+                    transactionChanges.taxAmount = categoryTaxAmount;
+                }
+                IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
                 navigateBack();
                 return;
             }
 
             if (isEditing && report) {
-                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
+                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, categoryTaxCode, categoryTaxAmount, policy, policyTags, policyCategories);
                 navigateBack();
                 return;
             }
         }
 
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
+
+        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+            IOU.setMoneyRequestTaxRate(transactionID, categoryTaxCode);
+            IOU.setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+        }
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
