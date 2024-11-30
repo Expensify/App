@@ -21,7 +21,6 @@ const useSafePaddingBottomStyle = () => {
             keyboardWillHideListener.remove();
         };
     }, []);
-
     const {paddingBottom} = useStyledSafeAreaInsets();
 
     const extraPaddingBottomStyle = useMemo(() => {

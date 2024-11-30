@@ -1,5 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,6 +8,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
 import Popover from './Popover';
 import type PopoverProps from './Popover/types';
 
@@ -61,6 +62,7 @@ function PopoverWithMeasuredContent({
     shouldEnableNewFocusManagement,
     ...props
 }: PopoverWithMeasuredContentProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [popoverWidth, setPopoverWidth] = useState(popoverDimensions.width);
@@ -89,9 +91,22 @@ function PopoverWithMeasuredContent({
      * Measure the size of the popover's content.
      */
     const measurePopover = ({nativeEvent}: LayoutChangeEvent) => {
-        setPopoverWidth(nativeEvent.layout.width);
-        setPopoverHeight(nativeEvent.layout.height);
+        const {width, height} = nativeEvent.layout;
+        setPopoverWidth(width);
+        setPopoverHeight(height);
         setIsContentMeasured(true);
+
+        // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
+        // if we update it, then animation in `ActionSheetAwareScrollView` may be re-running
+        // and we'll see unsynchronized and junky animation
+        if (actionSheetAwareScrollViewContext.currentActionSheetState.get().current.payload?.popoverHeight !== Math.floor(height) && height !== 0) {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
+                payload: {
+                    popoverHeight: Math.floor(height),
+                },
+            });
+        }
     };
 
     const adjustedAnchorPosition = useMemo(() => {
