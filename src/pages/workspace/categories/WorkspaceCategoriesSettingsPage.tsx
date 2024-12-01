@@ -10,6 +10,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -21,17 +23,10 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
-type WorkspaceCategoriesSettingsRouteProps = {
-    route: {
-        params: {
-            backTo: string;
-        };
-    };
-};
-
-type WorkspaceCategoriesSettingsPageProps = WorkspaceCategoriesSettingsRouteProps & WithPolicyConnectionsProps;
+type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
 
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
