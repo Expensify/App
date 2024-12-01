@@ -56,7 +56,6 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 isDisabled={options.length === 0}
                 shouldShowRightIcon={options.length !== 0}
             />
-
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

@@ -6,10 +6,9 @@ import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -60,6 +59,7 @@ function FormWrapper({
     isSubmitDisabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
@@ -99,11 +99,12 @@ function FormWrapper({
     }, [errors, formState?.errorFields, inputRefs]);
 
     const scrollViewContent = useCallback(
-        (safeAreaPaddingBottomStyle: SafeAreaChildrenProps['safeAreaPaddingBottomStyle']) => (
+        () => (
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
+                // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
+                style={[style, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
             >
                 {children}
                 {isSubmitButtonVisible && (
@@ -128,7 +129,8 @@ function FormWrapper({
         [
             formID,
             style,
-            styles.pb5,
+            safeAreaInsetPaddingBottom,
+            styles.pb5.paddingBottom,
             styles.mh0,
             styles.mt5,
             styles.flex1,
@@ -153,33 +155,27 @@ function FormWrapper({
     );
 
     if (!shouldUseScrollView) {
-        return scrollViewContent({});
+        return scrollViewContent();
     }
 
-    return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) =>
-                scrollContextEnabled ? (
-                    <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollViewWithContext>
-                ) : (
-                    <ScrollView
-                        style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollView>
-                )
-            }
-        </SafeAreaConsumer>
+    return scrollContextEnabled ? (
+        <ScrollViewWithContext
+            style={[styles.w100, styles.flex1]}
+            contentContainerStyle={styles.flexGrow1}
+            keyboardShouldPersistTaps="handled"
+            ref={formRef}
+        >
+            {scrollViewContent()}
+        </ScrollViewWithContext>
+    ) : (
+        <ScrollView
+            style={[styles.w100, styles.flex1]}
+            contentContainerStyle={styles.flexGrow1}
+            keyboardShouldPersistTaps="handled"
+            ref={formRef}
+        >
+            {scrollViewContent()}
+        </ScrollView>
     );
 }
 
