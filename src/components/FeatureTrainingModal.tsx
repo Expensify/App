@@ -10,7 +10,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import Lottie from './Lottie';

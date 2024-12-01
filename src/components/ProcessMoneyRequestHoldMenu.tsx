@@ -36,7 +36,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
                 <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold')}</TextPill>
             </View>
         ),
-        [styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.textHeadline, styles.mr2, styles.holdRequestInline],
+        [styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
     );
 
     return (
@@ -47,9 +47,10 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             confirmText={translate('common.buttonConfirm')}
             onClose={onClose}
             onConfirm={onConfirm}
-            children={<HoldMenuSectionList />}
             videoAspectRatio={LottieAnimations.PreferencesDJ.w / LottieAnimations.PreferencesDJ.h}
-        />
+        >
+            <HoldMenuSectionList />
+        </FeatureTrainingModal>
     );
 }
 
