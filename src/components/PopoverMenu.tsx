@@ -321,7 +321,7 @@ function PopoverMenu({
 
         // Update the focused item to match the selected item, but only when the popover is not visible.
         // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
-        // by external updates to the selected item, preventing user experience disruption.
+        // by external updates.
         setFocusedIndex(currentMenuItemsFocusedIndex);
     }, [isVisible, currentMenuItemsFocusedIndex, setFocusedIndex]);
 
