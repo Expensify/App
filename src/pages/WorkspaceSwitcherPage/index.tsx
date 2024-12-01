@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';

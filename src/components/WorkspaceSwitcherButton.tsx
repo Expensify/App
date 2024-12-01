@@ -52,7 +52,7 @@ function WorkspaceSwitcherButton({policy, onSwitchWorkspace}: WorkspaceSwitcherB
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
-                testID={translate('workspace.switcher.headerTitle')}
+                testID="WorkspaceSwitcherButton"
                 onPress={() => {
                     onSwitchWorkspace?.();
                     pressableRef?.current?.blur();
