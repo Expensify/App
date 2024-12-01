@@ -78,7 +78,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton

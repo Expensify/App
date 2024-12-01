@@ -49,7 +49,7 @@ function CardNameStep() {
     return (
         <ScreenWrapper
             testID={CardNameStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

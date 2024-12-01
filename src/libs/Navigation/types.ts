@@ -17,7 +17,7 @@ import type {SaveSearchParams} from '@libs/API/parameters';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -246,7 +246,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID: string;
-        featureName?: string;
+        featureName: string;
         backTo?: Routes;
         categoryId?: string;
     };
@@ -899,6 +899,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_IMPORTED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
         policyID: string;
     };
@@ -1170,6 +1176,19 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backTo?: Routes;
         currency?: string;
+    };
+    [SCREENS.MONEY_REQUEST.HOLD]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+
+        /** Hash that includes info about what is searched for */
+        searchHash?: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
@@ -1604,6 +1623,19 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+    };
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+
+        /** Hash that includes info about what is searched for */
+        searchHash?: number;
     };
 };
 

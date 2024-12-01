@@ -1,6 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -167,14 +167,19 @@ function IOURequestStepCategory({
                                 large
                                 success
                                 style={[styles.w100]}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                            policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                        ),
-                                    )
-                                }
+                                onPress={() => {
+                                    if (!policy?.areCategoriesEnabled) {
+                                        Category.enablePolicyCategories(policy?.id ?? '-1', true, false);
+                                    }
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policy?.id ?? '-1',
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                            ),
+                                        );
+                                    });
+                                }}
                                 text={translate('workspace.categories.editCategories')}
                                 pressOnEnter
                             />
