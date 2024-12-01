@@ -26,7 +26,6 @@ const mockedNavigate = jest.fn();
 
 // Mock Fullstory library dependency
 jest.mock('@libs/Fullstory', () => ({
-    __esModule: true,
     default: {
         consentAndIdentify: jest.fn(),
     },
