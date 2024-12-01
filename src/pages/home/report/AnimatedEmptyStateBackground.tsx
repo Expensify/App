@@ -35,13 +35,12 @@ function AnimatedEmptyStateBackground() {
          * We use x and y gyroscope velocity and add it to position offset to move background based on device movements.
          * Position the phone was in while entering the screen is the initial position for background image.
          */
-        const {x, y} = animatedSensor.sensor.value;
+        const {x, y} = animatedSensor.sensor.get();
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        // eslint-disable-next-line react-compiler/react-compiler
-        xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        xOffset.set((value) => clamp(value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X));
+        yOffset.set((value) => clamp(value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y));
         return {
-            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
+            transform: [{translateX: withSpring(xOffset.get())}, {translateY: withSpring(yOffset.get(), {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 

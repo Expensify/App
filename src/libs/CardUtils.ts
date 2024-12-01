@@ -10,7 +10,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -279,7 +279,14 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
     };
 
-    return feedNamesMapping[feedType];
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+
+    if (!feedKey) {
+        return '';
+    }
+
+    return feedNamesMapping[feedKey];
 }
 
 const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
@@ -345,10 +352,17 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
-function getFilteredCardList(list?: WorkspaceCardsList) {
-    const {cardList, ...cards} = list ?? {};
-    // We need to filter out cards which already has been assigned
-    return Object.fromEntries(Object.entries(cardList ?? {}).filter(([cardNumber]) => !Object.values(cards).find((card) => card.lastFourPAN && cardNumber.endsWith(card.lastFourPAN))));
+/** Returns list of cards which can be assigned */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+    const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    const assignedCards = Object.values(cards).map((card) => card.cardName);
+
+    if (directFeed) {
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+    }
+
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -360,6 +374,16 @@ function getDefaultCardName(cardholder?: string) {
         return '';
     }
     return `${cardholder}'s card`;
+}
+
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+    const prevFeeds = Object.keys(prevFeedsData);
+    const currentFeeds = Object.keys(currentFeedsData);
+
+    return {
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
+    };
 }
 
 export {
@@ -389,5 +413,6 @@ export {
     removeExpensifyCardFromCompanyCards,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
+    checkIfNewFeedConnected,
     getDefaultCardName,
 };

@@ -2,7 +2,11 @@ import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
+import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {translateLocal} from '@libs/Localize';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NumberUtils from '@libs/NumberUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -10,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
+import type {Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -120,6 +125,64 @@ function openPolicyPerDiemPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE, params);
 }
 
+function updateImportSpreadsheetData(ratesLength: number) {
+    const onyxData: OnyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {
+                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
+                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfullDescription', {rates: ratesLength}),
+                    },
+                },
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                value: {
+                    shouldFinalModalBeOpened: true,
+                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                },
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
+function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[], rowsLength: number) {
+    const onyxData = updateImportSpreadsheetData(rowsLength);
+
+    const parameters = {
+        policyID,
+        customUnitID,
+        customUnitRates: JSON.stringify(rates),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
+}
+
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
+        policyID,
+    });
+
+    const fileName = 'PerDiem.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
@@ -130,4 +193,4 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-export {enablePerDiem, openPolicyPerDiemPage, clearPolicyPerDiemRatesErrorFields};
+export {generateCustomUnitID, enablePerDiem, openPolicyPerDiemPage, importPerDiemRates, downloadPerDiemCSV, clearPolicyPerDiemRatesErrorFields};

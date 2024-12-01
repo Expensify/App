@@ -253,18 +253,18 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
                 .onUpdate(({translationX}) => {
-                    if (!isScrollEnabled.value) {
+                    if (!isScrollEnabled.get()) {
                         return;
                     }
 
                     if (translationX !== 0) {
-                        isPagerScrolling.value = true;
+                        isPagerScrolling.set(true);
                     }
 
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
-                    if (!isScrollEnabled.value) {
+                    if (!isScrollEnabled.get()) {
                         return;
                     }
 
@@ -281,7 +281,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
-                    isPagerScrolling.value = false;
+                    isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
                 // eslint-disable-next-line react-compiler/react-compiler
