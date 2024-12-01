@@ -513,7 +513,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
-                    isVisible={shouldShowHoldMenu}
                 />
             )}
         </View>

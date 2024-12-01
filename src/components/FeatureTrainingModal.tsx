@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import Lottie from './Lottie';
@@ -40,12 +41,12 @@ type FeatureTrainingModalProps = {
     animation?: DotLottieAnimation;
 
     /** URL for the video */
-    videoURL: string;
+    videoURL?: string;
 
     videoAspectRatio?: number;
 
     /** Title for the modal */
-    title?: string;
+    title?: string | React.ReactNode;
 
     /** Describe what is showing */
     description?: string;
@@ -70,6 +71,9 @@ type FeatureTrainingModalProps = {
 
     /** Link to navigate to when user wants to learn more */
     onHelp?: () => void;
+
+    /** Children to show below title and description and above buttons */
+    children?: React.ReactNode;
 };
 
 function FeatureTrainingModal({
@@ -85,6 +89,7 @@ function FeatureTrainingModal({
     onClose = () => {},
     helpText = '',
     onHelp = () => {},
+    children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -136,7 +141,7 @@ function FeatureTrainingModal({
                     {aspectRatio},
                 ]}
             >
-                {videoStatus === 'video' ? (
+                {videoStatus === 'video' && videoURL ? (
                     <GestureHandlerRootView>
                         <VideoPlayer
                             url={videoURL}
@@ -206,11 +211,12 @@ function FeatureTrainingModal({
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
                                 <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                    <Text style={[styles.textHeadlineH1]}>{title}</Text>
+                                    {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                 </View>
                             )}
+                            {children}
                             {shouldShowDismissModalOption && (
                                 <CheckboxWithLabel
                                     label={translate('featureTraining.doNotShowAgain')}

@@ -219,7 +219,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
-                    isVisible={shouldShowHoldMenu}
                 />
             )}
         </>
