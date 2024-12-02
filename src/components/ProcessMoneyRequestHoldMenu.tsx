@@ -3,9 +3,10 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
-import LottieAnimations from './LottieAnimations';
+import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextPill from './TextPill';
 
@@ -33,7 +34,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
         () => (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold')}</TextPill>
+                <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold').toLowerCase()}</TextPill>
             </View>
         ),
         [styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
@@ -41,13 +42,14 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
 
     return (
         <FeatureTrainingModal
-            animation={LottieAnimations.PreferencesDJ}
             title={title}
             description={translate('iou.whatIsHoldExplain')}
             confirmText={translate('common.buttonConfirm')}
+            image={Illustrations.HoldExpense}
+            contentFitImage="cover"
+            width={variables.holdEducationModalWidth}
             onClose={onClose}
             onConfirm={onConfirm}
-            videoAspectRatio={LottieAnimations.PreferencesDJ.w / LottieAnimations.PreferencesDJ.h}
         >
             <HoldMenuSectionList />
         </FeatureTrainingModal>

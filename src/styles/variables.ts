@@ -211,6 +211,7 @@ export default {
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
+    holdEducationModalWidth: 400,
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
@@ -241,7 +242,7 @@ export default {
     cardBorderRadius: 4,
 
     cardNameWidth: 156,
-    holdMenuIconSize: 64,
+    holdMenuIconSize: 50,
     updateAnimationW: 390,
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,

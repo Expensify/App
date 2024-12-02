@@ -16,9 +16,6 @@ type HoldMenuSection = {
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;
-
-    /** Translation key for the description */
-    descriptionTranslationKey: TranslationPaths;
 };
 
 function HoldMenuSectionList() {
@@ -27,19 +24,12 @@ function HoldMenuSectionList() {
 
     const holdMenuSections: HoldMenuSection[] = [
         {
-            icon: Illustrations.Hourglass,
-            titleTranslationKey: 'iou.whatIsHoldTitle',
-            descriptionTranslationKey: 'iou.whatIsHoldExplain',
+            icon: Illustrations.Stopwatch,
+            titleTranslationKey: 'iou.holdIsLeftBehind',
         },
         {
-            icon: Illustrations.CommentBubbles,
-            titleTranslationKey: 'iou.holdIsTemporaryTitle',
-            descriptionTranslationKey: 'iou.holdIsTemporaryExplain',
-        },
-        {
-            icon: Illustrations.TrashCan,
-            titleTranslationKey: 'iou.deleteHoldTitle',
-            descriptionTranslationKey: 'iou.deleteHoldExplain',
+            icon: Illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.unholdWhenReady',
         },
     ];
 
@@ -55,11 +45,10 @@ function HoldMenuSectionList() {
                         width={variables.holdMenuIconSize}
                         height={variables.holdMenuIconSize}
                         src={section.icon}
-                        additionalStyles={[styles.mr3]}
+                        additionalStyles={[styles.mr4]}
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
-                        <Text style={[styles.textNormal]}>{translate(section.descriptionTranslationKey)}</Text>
                     </View>
                 </View>
             ))}
