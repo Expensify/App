@@ -232,6 +232,9 @@ type Reservation = {
 
         /** Passenger seat number */
         number: string;
+
+        /** Rail route name */
+        name?: string;
     };
 
     /** In car reservations, this represents the car dealership name */
@@ -248,6 +251,12 @@ type Reservation = {
         /** Arrival terminal number */
         terminal: string;
     };
+
+    /** Coach number for rail */
+    coachNumber?: string;
+
+    /** Seat number for rail */
+    seatNumber?: string;
 };
 
 /** Model of trip reservation time details */
