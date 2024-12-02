@@ -28,6 +28,21 @@ To handle these, you can create a single tax that combines both taxes into a sin
 
 From the Reports page, you can select Reports and then click **Export To > Tax Report** to generate a CSV containing all the expense information, including the split-out taxes.
 
+## Why is the tax amount different than I expect?
+
+In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown.
+
+To determine the inclusive tax from a total price that already includes tax, you can use the following formula:
+
+### **Tax amount = (Total price x Tax rate) ÷ (1 + Tax Rate)**
+
+For example, if an item costs $100  and the tax rate is 20%:
+Tax amount = (**$100** x .20) ÷ (1 + .**20**) = **$16.67**
+This means the tax amount $16.67 is included in the total.
+
+If you are simply trying to calculate the price before tax, you can use the formula: 
+
+### **Price before tax = (Total price) ÷ (1 + Tax rate)**
 
 # Deep Dive
 
