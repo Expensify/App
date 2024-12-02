@@ -251,31 +251,6 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
         });
 
-        it('should display the unread report in the focuse mode with the bold text', async () => {
-            // When the SidebarLinks are rendered.
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const report: Report = {
-                ...createReport(undefined, undefined, undefined, undefined, undefined, true),
-                lastMessageText: 'fake last message',
-            };
-
-            await initializeState({
-                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
-            // And the user is in focus mode
-            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
-
-            // The report should appear in the sidebar because it's unread
-            expect(getOptionRows()).toHaveLength(1);
-
-            // And the text is bold
-            const displayNameText = getDisplayNames()?.at(0);
-            expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-        });
-
         it('should disaply the archived report in the default mode', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
@@ -302,6 +277,45 @@ describe('SidebarLinksData', () => {
 
             // The report should appear in the sidebar because it's archived
             expect(getOptionRows()).toHaveLength(1);
+        });
+
+        it('should display the selfDM report by default', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report = createReport(true, undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.SELF_DM, undefined);
+
+            // And the selfDM is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // The selfDM report should appear in the sidebar by default
+            expect(getOptionRows()).toHaveLength(1);
+        });
+
+        it('should display the unread report in the focuse mode with the bold text', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(undefined, undefined, undefined, undefined, undefined, true),
+                lastMessageText: 'fake last message',
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in focus mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+
+            // The report should appear in the sidebar because it's unread
+            expect(getOptionRows()).toHaveLength(1);
+
+            // And the text is bold
+            const displayNameText = getDisplayNames()?.at(0);
+            expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
         });
     });
 
