@@ -50,10 +50,9 @@ function SAMLSignInPage() {
                 setSAMLUrl(response.url);
             })
             .catch((response) => {
-                handleError(response.message ?? translate('common.error.login'));
-                return;
+                handleError(response?.message ?? translate('common.error.login'));
             });
-    }, [credentials?.login, SAMLUrl]);
+    }, [credentials?.login, SAMLUrl, translate]);
 
     /**
      * Handles in-app navigation once we get a response back from Expensify
@@ -87,7 +86,7 @@ function SAMLSignInPage() {
         [credentials?.login, shouldShowNavigation, account?.isLoading],
     );
 
-    function handleError(errorMessage: string, cleanSignInData: boolean = false) {
+    function handleError(errorMessage: string, cleanSignInData = false) {
         if (cleanSignInData) {
             Session.clearSignInData();
         }
