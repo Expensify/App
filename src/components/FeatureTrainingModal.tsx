@@ -227,7 +227,6 @@ function FeatureTrainingModal({
                     onClose={closeModal}
                     innerContainerStyle={{
                         boxShadow: 'none',
-                        borderRadius: 16,
                         paddingBottom: 20,
                         paddingTop: !!image || onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
                         ...(onboardingIsMediumOrLargerScreenWidth
