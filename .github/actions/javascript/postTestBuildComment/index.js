@@ -11512,23 +11512,19 @@ function getTestBuildMessage() {
     const result = inputs.reduce((acc, platform) => {
         const input = core.getInput(platform, { required: false });
         if (!input) {
-            return {
-                ...acc,
-                [platform]: { link: 'N/A', qrCode: 'N/A' },
-            };
+            acc[platform] = { link: 'N/A', qrCode: 'N/A' };
+            return acc;
         }
         const isSuccess = input === 'success';
         const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
         const qrCode = isSuccess
             ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
             : `The QR code can't be generated, because the ${names[platform]} build failed`;
-        return {
-            ...acc,
-            [platform]: {
-                link,
-                qrCode,
-            },
+        acc[platform] = {
+            link,
+            qrCode,
         };
+        return acc;
     }, {});
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |

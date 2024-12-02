@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -17,10 +17,8 @@ function getTestBuildMessage(): string {
         const input = core.getInput(platform, {required: false});
 
         if (!input) {
-            return {
-                ...acc,
-                [platform]: {link: 'N/A', qrCode: 'N/A'},
-            };
+            acc[platform] = {link: 'N/A', qrCode: 'N/A'};
+            return acc;
         }
 
         const isSuccess = input === 'success';
@@ -30,13 +28,11 @@ function getTestBuildMessage(): string {
             ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
             : `The QR code can't be generated, because the ${names[platform]} build failed`;
 
-        return {
-            ...acc,
-            [platform]: {
-                link,
-                qrCode,
-            },
+        acc[platform] = {
+            link,
+            qrCode,
         };
+        return acc;
     }, {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>);
 
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
