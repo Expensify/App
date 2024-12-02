@@ -218,15 +218,8 @@ describe('SidebarLinksData', () => {
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
 
-            await Onyx.multiSet({
-                [ONYXKEYS.COLLECTION.REPORT]: {
-                    [expenseReport.reportID]: expenseReport,
-                },
-                [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                    [transaction.transactionID]: transaction,
-                },
-            });
-
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
             // And the draft icon should be shown, indicating there is unsent content.
