@@ -58,6 +58,8 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
             return Expensicons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return Expensicons.CarWithKey;
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return Expensicons.Train;
         default:
             return Expensicons.Luggage;
     }

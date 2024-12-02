@@ -80,11 +80,14 @@ function ReservationView({reservation, transactionID, reportID, reservationIndex
             const vendor = reservation.vendor ? `${reservation.vendor} • ` : '';
             return `${vendor}${reservation.start.location}`;
         }
+        if (reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
+            return reservation.route?.name;
+        }
         return reservation.start.address ?? reservation.start.location;
     }, [reservation]);
 
     const titleComponent = () => {
-        if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
+        if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return (
                 <View style={styles.gap1}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>

@@ -62,26 +62,32 @@ function ReservationView({reservation}: ReservationViewProps) {
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName;
 
-    const titleComponent =
-        reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
+    let titleComponent = (
+        <Text
+            numberOfLines={1}
+            style={styles.labelStrong}
+        >
+            {title}
+        </Text>
+    );
+
+    if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
+        const startName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.start.shortName : reservation.start.longName;
+        const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
+
+        titleComponent = (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
+                <Text style={styles.labelStrong}>{startName}</Text>
                 <Icon
                     src={Expensicons.ArrowRightLong}
                     width={variables.iconSizeSmall}
                     height={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
-                <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
+                <Text style={styles.labelStrong}>{endName}</Text>
             </View>
-        ) : (
-            <Text
-                numberOfLines={1}
-                style={styles.labelStrong}
-            >
-                {title}
-            </Text>
         );
+    }
 
     return (
         <MenuItemWithTopDescription
