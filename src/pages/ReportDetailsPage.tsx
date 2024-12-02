@@ -291,6 +291,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowNotificationPref = !isMoneyRequestReport && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+    const shouldShowGoToWorkspace = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
@@ -491,7 +492,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE) {
+        if (shouldShowGoToWorkspace) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
                 translationKey: 'workspace.common.goToWorkspace',
@@ -542,14 +543,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
-        shouldShowLeaveButton,
         activeChatMembers.length,
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         isOffline,
         transactionIDList,
-        leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
@@ -562,6 +561,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         moneyRequestReport?.reportID,
         isDeletedParentAction,
         isSmallScreenWidth,
+        shouldShowGoToWorkspace,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
