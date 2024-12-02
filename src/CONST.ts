@@ -5928,6 +5928,7 @@ const CONST = {
         CAR: 'car',
         HOTEL: 'hotel',
         FLIGHT: 'flight',
+        TRAIN: 'train',
     },
 
     DOT_SEPARATOR: '•',
