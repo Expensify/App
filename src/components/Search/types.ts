@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
-import type {SearchDataTypes, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -14,15 +14,35 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
+    /** Whether the transaction is currently held */
+    isHeld: boolean;
+
     /** If the transaction can be removed from hold */
     canUnhold: boolean;
 
     /** The action that can be performed for the transaction */
-    action: string;
+    action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+    /** The reportID of the transaction */
+    reportID: string;
+
+    /** The policyID tied to the report the transaction is reported on */
+    policyID: string;
+
+    /** The transaction amount */
+    amount: number;
 };
 
-/** Model of selected results */
+/** Model of selected transactons */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
+
+/** Model of selected reports */
+type SelectedReports = {
+    reportID: string;
+    policyID: string;
+    action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    total: number;
+};
 
 /** Model of payment data used by Search bulk actions */
 type PaymentData = {
@@ -42,7 +62,7 @@ type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
-    selectedReports: Array<SearchReport['reportID']>;
+    selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
     clearSelectedTransactions: (hash?: number) => void;

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
@@ -26,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {SearchQueryJSON} from './types';
+import type {PaymentData, SearchQueryJSON} from './types';
 
 type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
@@ -50,6 +51,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -79,6 +81,92 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
+        const shouldShowApproveOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+
+        if (shouldShowApproveOption) {
+            options.push({
+                icon: Expensicons.ThumbsUp,
+                text: translate('search.bulkActions.approve'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const reportIDList = !selectedReports.length
+                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
+                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                },
+            });
+        }
+
+        const shouldShowPayOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            (selectedReports.length
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                : selectedTransactionsKeys.every(
+                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                  ));
+
+        if (shouldShowPayOption) {
+            options.push({
+                icon: Expensicons.MoneyBag,
+                text: translate('search.bulkActions.pay'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const activeRoute = Navigation.getActiveRoute();
+                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+                    for (const item of items) {
+                        const policyID = item.policyID;
+                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+
+                        if (!lastPolicyPaymentMethod) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+
+                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
+
+                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+                    }
+
+                    const paymentData = (
+                        selectedReports.length
+                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            : Object.values(selectedTransactions).map((transaction) => ({
+                                  reportID: transaction.reportID,
+                                  amount: transaction.amount,
+                                  paymentType: lastPaymentMethods[transaction.policyID],
+                              }))
+                    ) as PaymentData[];
+
+                    SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                },
+            });
+        }
 
         options.push({
             icon: Expensicons.Download,
@@ -91,7 +179,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     return;
                 }
 
-                const reportIDList = selectedReports.filter((report): report is string => !!report) ?? [];
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                 SearchActions.exportSearchItemsToCSV(
                     {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
                     () => {
@@ -190,6 +278,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
+        lastPaymentMethods,
     ]);
 
     if (shouldUseNarrowLayout) {
