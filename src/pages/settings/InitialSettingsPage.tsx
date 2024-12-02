@@ -86,6 +86,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
 
     const network = useNetwork();
     const theme = useTheme();
@@ -105,6 +106,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
+    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
@@ -246,7 +248,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
-                                  resetExitSurveyForm(() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON));
+                                  resetExitSurveyForm(() => {
+                                      if (shouldOpenBookACall) {
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                          return;
+                                      }
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                                  });
                               },
                           }),
                 },
@@ -274,7 +282,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL]);
+    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall]);
 
     /**
      * Retuns JSX.Element with menu items

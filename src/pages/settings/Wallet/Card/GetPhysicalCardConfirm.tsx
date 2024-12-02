@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -8,6 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +33,7 @@ type GetPhysicalCardConfirmOnyxProps = {
     draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-type GetPhysicalCardConfirmProps = GetPhysicalCardConfirmOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;
+type GetPhysicalCardConfirmProps = GetPhysicalCardConfirmOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;
 
 function GetPhysicalCardConfirm({
     draftValues,

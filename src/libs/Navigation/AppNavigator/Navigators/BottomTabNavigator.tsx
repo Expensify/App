@@ -1,18 +1,16 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
-import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../../pages/settings/InitialSettingsPage').default;
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
-const screenOptions: StackNavigationOptions = {
+const screenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    animationEnabled: false,
 };
 
 function BottomTabNavigator() {
@@ -21,10 +19,6 @@ function BottomTabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={SidebarScreen}
-            />
-            <Tab.Screen
-                name={SCREENS.SEARCH.BOTTOM_TAB}
-                component={SearchPageBottomTab}
             />
             <Tab.Screen
                 name={SCREENS.SETTINGS.ROOT}

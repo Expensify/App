@@ -28,7 +28,6 @@ function DateOfBirth({isEditing, onNext, onMove, personalDetailsValues}: CustomS
             stepFields={STEP_FIELDS}
             dobInputID={INPUT_IDS.DATE_OF_BIRTH}
             dobDefaultValue={personalDetailsValues[INPUT_IDS.DATE_OF_BIRTH]}
-            shouldShowHelpLinks={false}
         />
     );
 }

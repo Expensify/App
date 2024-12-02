@@ -43,7 +43,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
-        top: topBarOffset.value,
+        top: topBarOffset.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -53,15 +53,14 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
                 return;
             }
             const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.value;
-            const distanceScrolled = currentOffset - scrollOffset.value;
+            const isScrollingDown = currentOffset > scrollOffset.get();
+            const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
             }
-            scrollOffset.value = currentOffset;
+            scrollOffset.set(currentOffset);
         },
     });
 
@@ -101,18 +100,25 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
                             shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
-                    <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
+                    {shouldUseNarrowLayout ? (
+                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
+                            <SearchTypeMenu
+                                queryJSON={queryJSON}
+                                searchName={searchName}
+                            />
+                            <SearchStatusBar
+                                queryJSON={queryJSON}
+                                onStatusChange={() => {
+                                    topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                }}
+                            />
+                        </Animated.View>
+                    ) : (
                         <SearchTypeMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
                         />
-                        <SearchStatusBar
-                            queryJSON={queryJSON}
-                            onStatusChange={() => {
-                                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
-                            }}
-                        />
-                    </Animated.View>
+                    )}
                 </>
             ) : (
                 <SearchSelectionModeHeader queryJSON={queryJSON} />

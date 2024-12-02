@@ -1,10 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
-import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
+import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -28,26 +29,28 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
 const Stack = createSplitStackNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
+    const screenOptions = useRootNavigatorOptions();
+    const route = useRoute();
+    const rootNavigatorOptions = useRootNavigatorOptions();
 
     return (
         <FocusTrapForScreens>
             <Stack.Navigator
                 sidebarScreen={SCREENS.SETTINGS.ROOT}
                 defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+                parentRoute={route}
+                screenOptions={rootNavigatorOptions.centralPaneNavigator}
             >
                 <Stack.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     getComponent={loadInitialSettingsPage}
+                    options={rootNavigatorOptions.homeScreen}
                 />
                 {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
-                    const options = {...screenOptions.centralPaneNavigator};
+                    const options = {...screenOptions.fullScreen};
 
                     if (screenName === SCREENS.SETTINGS.WORKSPACES) {
-                        options.animationEnabled = false;
+                        options.animation = 'none';
                     }
 
                     return (

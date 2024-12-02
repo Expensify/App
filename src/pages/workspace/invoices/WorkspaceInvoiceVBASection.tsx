@@ -37,6 +37,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const addPaymentMethodAnchorRef = useRef(null);
@@ -164,7 +165,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            BankAccounts.openPersonalBankAccountSetupView();
+            BankAccounts.openPersonalBankAccountSetupView(undefined, isUserValidated);
             return;
         }
 
