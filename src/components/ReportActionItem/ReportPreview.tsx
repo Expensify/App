@@ -142,7 +142,7 @@ function ReportPreview({
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
-    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0.25);
+    const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
         transform: [{scale: thumbsUpScale.get()}],
