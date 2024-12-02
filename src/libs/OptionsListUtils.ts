@@ -1584,47 +1584,6 @@ function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.Optio
     return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
 }
 
-function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
-    const searchTerms = searchValue ? searchValue.split(' ') : [];
-
-    const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
-
-    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
-
-    const {canInviteUser = true, excludeLogins = []} = config ?? {};
-    let userToInvite = null;
-    if (canInviteUser) {
-        const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
-            recentReportOptions: recentReports,
-            personalDetailsOptions: personalDetails,
-            currentUserOption,
-        });
-        if (canCreateOptimisticDetail) {
-            const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-
-            excludeLogins.forEach((login) => {
-                optionsToExclude.push({login});
-            });
-
-            userToInvite = getUserToInviteOption({
-                searchValue,
-                selectedOptions: config?.selectedOptions,
-                optionsToExclude,
-            });
-        }
-    }
-
-    return {
-        personalDetails,
-        recentReports,
-        userToInvite,
-        currentUserOption,
-    };
-}
-
 /**
  * Filters options based on the search input value
  */
@@ -1684,6 +1643,61 @@ function filterCurrentUserOption(currentUserOption: ReportUtils.OptionData | nul
         const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
         return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
     }, currentUserOption);
+}
+
+function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
+
+    const recentReports = filterReports(options.recentReports, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const userToInvite = filterUserToInvite(
+        {
+            recentReports,
+            personalDetails,
+            currentUserOption,
+            userToInvite: null,
+        },
+        searchValue,
+        config,
+    );
+
+    return {
+        personalDetails,
+        recentReports,
+        userToInvite,
+        currentUserOption,
+    };
+}
+
+function filterUserToInvite(options: Options, searchValue: string, config?: FilterOptionsConfig): ReportUtils.OptionData | null {
+    const {canInviteUser = true, excludeLogins = []} = config ?? {};
+    if (!canInviteUser) {
+        return null;
+    }
+
+    const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
+        recentReportOptions: options.recentReports,
+        personalDetailsOptions: options.personalDetails,
+        currentUserOption: options.currentUserOption,
+    });
+
+    if (!canCreateOptimisticDetail) {
+        return null;
+    }
+
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    excludeLogins.forEach((login) => {
+        optionsToExclude.push({login});
+    });
+
+    return getUserToInviteOption({
+        searchValue,
+        selectedOptions: config?.selectedOptions,
+        optionsToExclude,
+    });
 }
 
 type FilterAndOrderConfig = FilterOptionsConfig & OrderOptionsConfig;
