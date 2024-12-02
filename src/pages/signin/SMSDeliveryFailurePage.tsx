@@ -26,7 +26,7 @@ function SMSDeliveryFailurePage() {
         return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
     }, [credentials?.login]);
 
-    const SMSDeliveryFailureMessage = account?.SMSDeliveryFailureStatus?.message;
+    const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
 
     useEffect(() => {
         if (!isKeyboardShown) {
