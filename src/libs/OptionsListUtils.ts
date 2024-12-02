@@ -107,7 +107,6 @@ type GetOptionsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     action?: IOUAction;
-    shouldAcceptName?: boolean;
     recentAttendees?: Attendee[];
     shouldBoldTitleByDefault?: boolean;
 };
@@ -115,11 +114,9 @@ type GetOptionsConfig = {
 type GetUserToInviteConfig = {
     searchValue: string;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
-    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
-    showChatPreviewLine?: boolean;
     shouldAcceptName?: boolean;
-};
+} & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
     text: string;
@@ -146,14 +143,15 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<GetOptionsConfig, 'selectedOptions' | 'excludeLogins' | 'shouldAcceptName'> & {
-    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
-    sortByReportTypeInSearch?: boolean;
-    maxRecentReportsToShow?: number;
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
+    excludeLogins?: string[];
 };
 
 type OrderOptionsConfig = {
+    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
+    sortByReportTypeInSearch?: boolean;
+    maxRecentReportsToShow?: number;
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
@@ -1645,7 +1643,7 @@ function filterCurrentUserOption(currentUserOption: ReportUtils.OptionData | nul
     }, currentUserOption);
 }
 
-function filterUserToInvite(options: Options, searchValue: string, config?: FilterOptionsConfig): ReportUtils.OptionData | null {
+function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): ReportUtils.OptionData | null {
     const {canInviteUser = true, excludeLogins = []} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -1668,12 +1666,12 @@ function filterUserToInvite(options: Options, searchValue: string, config?: Filt
 
     return getUserToInviteOption({
         searchValue,
-        selectedOptions: config?.selectedOptions,
         optionsToExclude,
+        ...config,
     });
 }
 
-function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
+function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
@@ -1686,7 +1684,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             recentReports,
             personalDetails,
             currentUserOption,
-            userToInvite: null,
         },
         searchValue,
         config,
@@ -1700,7 +1697,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
-type FilterAndOrderConfig = FilterOptionsConfig & OrderOptionsConfig;
+type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
 function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
     const {maxRecentReportsToShow = 0, sortByReportTypeInSearch = false} = config;
 
