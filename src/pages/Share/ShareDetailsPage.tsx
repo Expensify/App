@@ -72,7 +72,7 @@ function ShareDetailsPage({
 
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
 
-    const fileName = currentAttachment?.content.split('/').at(-1);
+    const fileName = currentAttachment?.content.split('/').pop();
 
     const handleShare = () => {
         if (!currentAttachment) {
