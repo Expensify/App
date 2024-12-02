@@ -171,7 +171,6 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             {!!skipConfirmation && (
                 <FormHelpMessage

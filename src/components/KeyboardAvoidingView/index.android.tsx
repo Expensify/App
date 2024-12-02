@@ -9,8 +9,8 @@ const useKeyboardAnimation = () => {
     const {reanimated} = useKeyboardContext();
 
     // calculate it only once on mount, to avoid `SharedValue` reads during a render
-    const [initialHeight] = useState(() => -reanimated.height.value);
-    const [initialProgress] = useState(() => reanimated.progress.value);
+    const [initialHeight] = useState(() => -reanimated.height.get());
+    const [initialProgress] = useState(() => reanimated.progress.get());
 
     const heightWhenOpened = useSharedValue(initialHeight);
     const height = useSharedValue(initialHeight);
@@ -22,22 +22,20 @@ const useKeyboardAnimation = () => {
             onStart: (e) => {
                 'worklet';
 
-                progress.value = e.progress;
-                height.value = e.height;
+                progress.set(e.progress);
+                height.set(e.height);
 
                 if (e.height > 0) {
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    isClosed.value = false;
-                    heightWhenOpened.value = e.height;
+                    isClosed.set(false);
+                    heightWhenOpened.set(e.height);
                 }
             },
             onEnd: (e) => {
                 'worklet';
 
-                isClosed.value = e.height === 0;
-
-                height.value = e.height;
-                progress.value = e.progress;
+                isClosed.set(e.height === 0);
+                height.set(e.height);
+                progress.set(e.progress);
             },
         },
         [],
@@ -63,7 +61,7 @@ const defaultLayout: LayoutRectangle = {
 const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAvoidingViewProps>>(
     ({behavior, children, contentContainerStyle, enabled = true, keyboardVerticalOffset = 0, style, onLayout: onLayoutProps, ...props}, ref) => {
         const initialFrame = useSharedValue<LayoutRectangle | null>(null);
-        const frame = useDerivedValue(() => initialFrame.value ?? defaultLayout);
+        const frame = useDerivedValue(() => initialFrame.get() ?? defaultLayout);
 
         const keyboard = useKeyboardAnimation();
         const {height: screenHeight} = useSafeAreaFrame();
@@ -71,21 +69,21 @@ const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAv
         const relativeKeyboardHeight = useCallback(() => {
             'worklet';
 
-            const keyboardY = screenHeight - keyboard.heightWhenOpened.value - keyboardVerticalOffset;
+            const keyboardY = screenHeight - keyboard.heightWhenOpened.get() - keyboardVerticalOffset;
 
-            return Math.max(frame.value.y + frame.value.height - keyboardY, 0);
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, [screenHeight, keyboardVerticalOffset]);
+            return Math.max(frame.get().y + frame.get().height - keyboardY, 0);
+        }, [screenHeight, keyboard.heightWhenOpened, keyboardVerticalOffset, frame]);
 
-        const onLayoutWorklet = useCallback((layout: LayoutRectangle) => {
-            'worklet';
+        const onLayoutWorklet = useCallback(
+            (layout: LayoutRectangle) => {
+                'worklet';
 
-            if (keyboard.isClosed.value || initialFrame.value === null) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                initialFrame.value = layout;
-            }
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, []);
+                if (keyboard.isClosed.get() || initialFrame.get() === null) {
+                    initialFrame.set(layout);
+                }
+            },
+            [initialFrame, keyboard.isClosed],
+        );
         const onLayout = useCallback<NonNullable<ViewProps['onLayout']>>(
             (e) => {
                 runOnUI(onLayoutWorklet)(e.nativeEvent.layout);
@@ -95,14 +93,14 @@ const KeyboardAvoidingView = forwardRef<View, React.PropsWithChildren<KeyboardAv
         );
 
         const animatedStyle = useAnimatedStyle(() => {
-            const bottom = interpolate(keyboard.progress.value, [0, 1], [0, relativeKeyboardHeight()]);
+            const bottom = interpolate(keyboard.progress.get(), [0, 1], [0, relativeKeyboardHeight()]);
             const bottomHeight = enabled ? bottom : 0;
 
             switch (behavior) {
                 case 'height':
-                    if (!keyboard.isClosed.value) {
+                    if (!keyboard.isClosed.get()) {
                         return {
-                            height: frame.value.height - bottomHeight,
+                            height: frame.get().height - bottomHeight,
                             flex: 0,
                         };
                     }
