@@ -1033,6 +1033,7 @@ const translations = {
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This request is on',
+        holdEducationalText: 'hold',
         whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
         holdIsLeftBehind: 'Held expenses are left behind even if you approve an entire report.',
         unholdWhenReady: "Unhold expenses when you're ready to approve or pay.",

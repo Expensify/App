@@ -34,7 +34,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
         () => (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold').toLowerCase()}</TextPill>
+                <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
             </View>
         ),
         [styles.flexRow, styles.alignItemsCenter, styles.mb3, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
@@ -48,6 +48,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             image={Illustrations.HoldExpense}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
+            illustrationAspectRatio={39 / 22}
             onClose={onClose}
             onConfirm={onConfirm}
         >

@@ -20,7 +20,7 @@ function TrackTrainingPage() {
             helpText={translate('common.learnMore')}
             onHelp={onHelp}
             videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
-            videoAspectRatio={VIDEO_ASPECT_RATIO}
+            illustrationAspectRatio={VIDEO_ASPECT_RATIO}
         />
     );
 }

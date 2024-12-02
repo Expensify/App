@@ -41,6 +41,9 @@ type VideoLoadedEventType = {
 type VideoStatus = 'video' | 'animation';
 
 type BaseFeatureTrainingModalProps = {
+    /** The aspect ratio to preserve for the icon, video or animation */
+    illustrationAspectRatio?: number;
+
     /** Title for the modal */
     title?: string | React.ReactNode;
 
@@ -79,8 +82,6 @@ type FeatureTrainingModalVideoProps = {
     /** URL for the video */
     videoURL: string;
 
-    videoAspectRatio?: number;
-
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 };
@@ -99,7 +100,7 @@ type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<
 function FeatureTrainingModal({
     animation,
     videoURL,
-    videoAspectRatio: videoAspectRatioProp,
+    illustrationAspectRatio: illustrationAspectRatioProp,
     image,
     contentFitImage,
     width = variables.onboardingModalWidth,
@@ -122,7 +123,7 @@ function FeatureTrainingModal({
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
+    const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
@@ -145,14 +146,14 @@ function FeatureTrainingModal({
         }
 
         if ('naturalSize' in event) {
-            setVideoAspectRatio(event.naturalSize.width / event.naturalSize.height);
+            setIllustrationAspectRatio(event.naturalSize.width / event.naturalSize.height);
         } else {
-            setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
+            setIllustrationAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
 
     const renderIllustration = useCallback(() => {
-        const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
+        const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
             <View
@@ -162,7 +163,7 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    videoURL ? {aspectRatio} : null,
+                    {aspectRatio},
                 ]}
             >
                 {!!image && (
@@ -197,7 +198,7 @@ function FeatureTrainingModal({
                 )}
             </View>
         );
-    }, [animation, videoURL, image, contentFitImage, videoAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
+    }, [animation, videoURL, image, contentFitImage, illustrationAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 

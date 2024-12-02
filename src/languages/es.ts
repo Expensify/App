@@ -1031,6 +1031,7 @@ const translations = {
         hold: 'Bloquear',
         unhold: 'Desbloquear',
         holdEducationalTitle: 'Esta solicitud está',
+        holdEducationalText: 'retenida',
         whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
         holdIsLeftBehind: 'Si apruebas un informe, los gastos retenidos se quedan fuera de esa aprobación.',
         unholdWhenReady: 'Desbloquea los gastos cuando estés listo para aprobarlos o pagarlos.',
@@ -5529,7 +5530,7 @@ const translations = {
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
-        hold: 'Retenida',
+        hold: 'Bloqueado',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
