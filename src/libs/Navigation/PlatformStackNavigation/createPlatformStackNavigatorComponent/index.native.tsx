@@ -25,7 +25,17 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
 
-    function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
+    function PlatformNavigator({
+        id,
+        initialRouteName,
+        screenOptions,
+        screenListeners,
+        children,
+        sidebarScreen,
+        defaultCentralScreen,
+        parentRoute,
+        ...props
+    }: PlatformStackNavigatorProps<ParamListBase>) {
         const {
             navigation,
             state: originalState,
@@ -47,6 +57,9 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 defaultScreenOptions,
                 screenListeners,
                 initialRouteName,
+                sidebarScreen,
+                defaultCentralScreen,
+                parentRoute,
             } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, RouterOptions>,
             convertToNativeNavigationOptions,
         );
@@ -73,7 +86,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         );
 
         // Executes custom effects defined in "useCustomEffects" navigator option.
-        useCustomEffects(customCodePropsWithCustomState);
+        useCustomEffects(customCodePropsWithCustomState, parentRoute);
 
         const Content = useMemo(
             () => (

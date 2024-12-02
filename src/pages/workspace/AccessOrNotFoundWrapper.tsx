@@ -99,7 +99,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldForceFullScreen={shouldShowFullScreenFallback}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
-                    Navigation.dismissModal();
+                    Navigation.goUp(ROUTES.SETTINGS_WORKSPACES);
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);

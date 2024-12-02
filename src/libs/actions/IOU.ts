@@ -39,7 +39,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -3731,7 +3731,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -3789,7 +3789,7 @@ function sendInvoice(
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (isSearchTopmostCentralPane()) {
+    if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport(invoiceRoom);
@@ -3984,10 +3984,10 @@ function trackExpense(
         }
     }
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        if (isSearchTopmostCentralPane() && activeReportID) {
+        if (isSearchTopmostFullScreenRoute() && activeReportID) {
             Navigation.goBack();
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
         }
@@ -4561,7 +4561,7 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : existingSplitChatReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : existingSplitChatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -4629,7 +4629,7 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : splitData.chatReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -5199,7 +5199,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : chatReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -5378,7 +5378,7 @@ function createDistanceRequest(
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
     Report.notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -6852,7 +6852,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : params.chatReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -6865,7 +6865,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : params.chatReportID);
+    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 

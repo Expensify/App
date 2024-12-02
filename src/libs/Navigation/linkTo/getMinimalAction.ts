@@ -3,6 +3,11 @@ import type {Writable} from 'type-fest';
 import type {State} from '@navigation/types';
 import type {ActionPayload} from './types';
 
+type MinimalAction = {
+    action: Writable<NavigationAction>;
+    targetState: State | undefined;
+};
+
 /**
  * Motivation for this function is described in NAVIGATION.md
  *
@@ -10,7 +15,7 @@ import type {ActionPayload} from './types';
  * @param state The root state
  * @returns minimalAction minimal action is the action that we should dispatch
  */
-function getMinimalAction(action: NavigationAction, state: NavigationState): Writable<NavigationAction> {
+function getMinimalAction(action: NavigationAction, state: NavigationState): MinimalAction {
     let currentAction: NavigationAction = action;
     let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
@@ -36,7 +41,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
             target: currentTargetKey,
         };
     }
-    return currentAction;
+    return {action: currentAction, targetState: currentState};
 }
 
 export default getMinimalAction;

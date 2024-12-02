@@ -35,7 +35,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -56,7 +56,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
-    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert

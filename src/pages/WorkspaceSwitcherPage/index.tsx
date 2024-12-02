@@ -14,8 +14,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -34,7 +34,7 @@ function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -79,13 +79,12 @@ function WorkspaceSwitcherPage() {
         (policyID?: string) => {
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
-            setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
-            if (newPolicyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+            if (policyID !== activeWorkspaceID) {
+                Navigation.switchPolicyID(newPolicyID);
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID],
+        [activeWorkspaceID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

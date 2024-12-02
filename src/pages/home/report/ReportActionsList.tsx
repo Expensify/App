@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -707,7 +707,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        if (!isSearchTopmostCentralPane()) {
+        if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
         }

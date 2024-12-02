@@ -39,7 +39,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             if (row.value !== exportDate) {
                 QuickbooksOnline.updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [policyID, exportDate],
     );

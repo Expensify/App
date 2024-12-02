@@ -75,7 +75,8 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
-import Navigation from './Navigation/Navigation';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import {isFullScreenName} from './NavigationUtils';
 import * as NumberUtils from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
@@ -4210,8 +4211,10 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFrom
     if (!backRoute) {
         return;
     }
-    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
-    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+
+    const rootState = navigationRef.current?.getRootState();
+    const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
+    if (lastFullScreenRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
         Navigation.dismissModal();
         return;
     }

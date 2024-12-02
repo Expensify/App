@@ -69,7 +69,7 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                     Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
-                Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
