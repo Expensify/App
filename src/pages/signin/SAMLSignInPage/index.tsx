@@ -32,8 +32,8 @@ function SAMLSignInPage() {
                 }
                 window.location.replace(response.url);
             })
-            .catch((response) => {
-                handleError(response?.message ?? translate('common.error.login'));
+            .catch((error: Error) => {
+                handleError(error.message ?? translate('common.error.login'));
             });
     }, [credentials?.login, translate]);
 
