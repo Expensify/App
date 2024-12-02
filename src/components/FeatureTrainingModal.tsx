@@ -207,9 +207,11 @@ function FeatureTrainingModal({
             User.dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
-        Navigation.goBack();
+        if (onboardingIsMediumOrLargerScreenWidth) {
+            Navigation.goBack();
+        }
         onClose?.();
-    }, [onClose, willShowAgain]);
+    }, [onClose, willShowAgain, onboardingIsMediumOrLargerScreenWidth]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();
