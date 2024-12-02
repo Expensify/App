@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -51,6 +52,7 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
 
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const autoRenewalDate = privateSubscription?.endDate ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT) : CardSectionUtils.getNextBillingDate();
 
     const isPlanTypeLocked = isControl && isAnnual;
 
@@ -86,8 +88,8 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
                 {isPlanTypeLocked ? (
                     <Text style={[styles.mh5, styles.mv3]}>
                         {translate('workspace.planTypePage.lockedPlanDescription', {
-                            subscriptionUsersCount: privateSubscription?.userCount ?? 1,
-                            annualSubscriptionEndDate: CardSectionUtils.getNextBillingDate(),
+                            count: privateSubscription?.userCount ?? 1,
+                            annualSubscriptionEndDate: autoRenewalDate,
                         })}{' '}
                         <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}>{translate('workspace.planTypePage.subscriptions')}</TextLink>.
                     </Text>

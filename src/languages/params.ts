@@ -560,7 +560,7 @@ type CurrencyCodeParams = {
 };
 
 type WorkspaceLockedPlanTypeParams = {
-    subscriptionUsersCount: number;
+    count: number;
     annualSubscriptionEndDate: string;
 };
 
