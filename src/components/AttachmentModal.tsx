@@ -588,7 +588,7 @@ function AttachmentModal({
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View
-                                    style={[safeAreaPaddingBottomStyle]}
+                                    style={safeAreaPaddingBottomStyle}
                                     entering={FadeIn}
                                 >
                                     <Button
