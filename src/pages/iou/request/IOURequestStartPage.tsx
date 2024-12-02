@@ -35,6 +35,7 @@ function IOURequestStartPage({
     route: {
         params: {iouType, reportID},
     },
+    navigation,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,11 +51,11 @@ function IOURequestStartPage({
     const {canUseCombinedTrackSubmit} = usePermissions();
 
     const tabTitles = {
-        [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
@@ -110,77 +111,82 @@ function IOURequestStartPage({
             allPolicies={allPolicies}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
                 headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                {({safeAreaPaddingBottomStyle}) => (
-                    <DragAndDropProvider
-                        setIsDraggingOver={setIsDraggingOver}
-                        isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
-                    >
-                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                            <FocusTrapContainerElement
-                                onContainerElementChanged={setHeaderWithBackButtonContainerElement}
-                                style={[styles.w100]}
+                <DragAndDropProvider
+                    setIsDraggingOver={setIsDraggingOver}
+                    isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
+                >
+                    <View style={styles.flex1}>
+                        <FocusTrapContainerElement
+                            onContainerElementChanged={setHeaderWithBackButtonContainerElement}
+                            style={[styles.w100]}
+                        >
+                            <HeaderWithBackButton
+                                title={tabTitles[iouType]}
+                                onBackButtonPress={navigateBack}
+                            />
+                        </FocusTrapContainerElement>
+
+                        {shouldUseTab ? (
+                            <OnyxTabNavigator
+                                id={CONST.TAB.IOU_REQUEST_TYPE}
+                                defaultSelectedTab={CONST.TAB_REQUEST.SCAN}
+                                onTabSelected={resetIOUTypeIfChanged}
+                                tabBar={TabSelector}
+                                onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
+                                onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                             >
-                                <HeaderWithBackButton
-                                    title={tabTitles[iouType]}
-                                    onBackButtonPress={navigateBack}
+                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <IOURequestStepAmount
+                                                shouldKeepUserInput
+                                                route={route}
+                                                navigation={navigation}
+                                            />
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <IOURequestStepScan
+                                                route={route}
+                                                navigation={navigation}
+                                            />
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                                <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                    {() => (
+                                        <TabScreenWithFocusTrapWrapper>
+                                            <IOURequestStepDistance
+                                                route={route}
+                                                navigation={navigation}
+                                            />
+                                        </TabScreenWithFocusTrapWrapper>
+                                    )}
+                                </TopTab.Screen>
+                            </OnyxTabNavigator>
+                        ) : (
+                            <FocusTrapContainerElement
+                                onContainerElementChanged={setActiveTabContainerElement}
+                                style={[styles.flexColumn, styles.flex1]}
+                            >
+                                <IOURequestStepAmount
+                                    route={route}
+                                    navigation={navigation}
+                                    shouldKeepUserInput
                                 />
                             </FocusTrapContainerElement>
-
-                            {shouldUseTab ? (
-                                <OnyxTabNavigator
-                                    id={CONST.TAB.IOU_REQUEST_TYPE}
-                                    defaultSelectedTab={CONST.TAB_REQUEST.SCAN}
-                                    onTabSelected={resetIOUTypeIfChanged}
-                                    tabBar={TabSelector}
-                                    onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
-                                    onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                >
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepAmount
-                                                    shouldKeepUserInput
-                                                    route={route}
-                                                />
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepScan route={route} />
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                        {() => (
-                                            <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepDistance route={route} />
-                                            </TabScreenWithFocusTrapWrapper>
-                                        )}
-                                    </TopTab.Screen>
-                                </OnyxTabNavigator>
-                            ) : (
-                                <FocusTrapContainerElement
-                                    onContainerElementChanged={setActiveTabContainerElement}
-                                    style={[styles.flexColumn, styles.flex1]}
-                                >
-                                    <IOURequestStepAmount
-                                        route={route}
-                                        shouldKeepUserInput
-                                    />
-                                </FocusTrapContainerElement>
-                            )}
-                        </View>
-                    </DragAndDropProvider>
-                )}
+                        )}
+                    </View>
+                </DragAndDropProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
