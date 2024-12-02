@@ -40,7 +40,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
 
     useEffect(() => {
         offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
-    }, [isOn]);
+    }, [isOn, offsetX]);
 
     const handleSwitchPress = () => {
         InteractionManager.runAfterInteractions(() => {
