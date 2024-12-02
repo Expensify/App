@@ -21,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 import CarTripDetails from './CarTripDetails';
 import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
+import TrainTripDetails from './TrainTripDetails';
 
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
@@ -73,6 +74,13 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         <CarTripDetails
                             transaction={transaction}
                             personalDetails={personalDetails}
+                        />
+                    )}
+                    {reservationType === CONST.RESERVATION_TYPE.TRAIN && (
+                        <TrainTripDetails
+                            transaction={transaction}
+                            personalDetails={personalDetails}
+                            reservationIndex={route.params.reservationIndex}
                         />
                     )}
                     <MenuItem
