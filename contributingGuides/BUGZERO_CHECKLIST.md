@@ -14,7 +14,7 @@ Source of bug:
 
 Where bug was reported:
   - [ ] 2a. Reported on production (eg. bug slipped through the normal regression and PR testing process on staging)
-  - [ ] 2b. Reported on staging (eg. deploy blocker)
+  - [ ] 2b. Reported on staging (eg. found during regression or PR testing)
   - [ ] 2d. Reported on a PR
   - [ ] 2z. Other:
 
