@@ -21,6 +21,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -284,19 +285,22 @@ function IOURequestStepScan({
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
+                IOU.requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -382,31 +386,30 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
+                                IOU.requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {
@@ -636,7 +639,14 @@ function IOURequestStepScan({
                             additionalStyles={[styles.pb5]}
                         />
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        {cameraPermissionState === 'denied' ? (
+                            <Text style={[styles.subTextFileUpload]}>
+                                {translate('receipt.deniedCameraAccess')}
+                                <TextLink href={CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}>{translate('receipt.deniedCameraAccessInstructions')}</TextLink>.
+                            </Text>
+                        ) : (
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        )}
                         <Button
                             success
                             text={translate('common.continue')}

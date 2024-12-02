@@ -367,6 +367,9 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        verticalAlignTopText: {
+            verticalAlign: 'text-top',
+        },
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -415,7 +418,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -522,10 +525,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        colorReversed: {
-            color: theme.textReversed,
-        },
-
         colorMutedReversed: {
             color: theme.textMutedReversed,
         },
@@ -536,10 +535,6 @@ const styles = (theme: ThemeColors) =>
 
         bgTransparent: {
             backgroundColor: 'transparent',
-        },
-
-        bgDark: {
-            backgroundColor: theme.inverse,
         },
 
         opacity0: {
@@ -1746,6 +1741,31 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
 
+        emojisWithTextFontSizeAligned: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            marginVertical: -7,
+        },
+
+        emojisFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextFontSize: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        emojisWithTextFontFamily: {
+            fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        initialSettingsUsernameEmoji: {
+            fontSize: variables.fontSizeUsernameEmoji,
+        },
+
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
@@ -2319,7 +2339,7 @@ const styles = (theme: ThemeColors) =>
             height: 32,
             width: 32,
             padding: 6,
-            margin: 3,
+            marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
@@ -2566,6 +2586,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        searchResultsHeaderBar: {
+            display: 'flex',
+            height: variables.contentHeaderDesktopHeight,
+            zIndex: variables.popoverzIndex,
+            position: 'relative',
+            paddingHorizontal: 20,
         },
 
         headerBarDesktopHeight: {
@@ -3100,7 +3128,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
             padding: 15,
-            backgroundColor: theme.success,
         },
 
         switchInactive: {
@@ -3118,16 +3145,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        switchThumbTransformation: (translateX: AnimatableNumericValue) =>
-            ({
-                transform: [{translateX}],
-            } satisfies ViewStyle),
-
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
-            borderRadius: 10,
-            height: 20,
-            width: 20,
+            borderRadius: 14,
+            height: 28,
+            width: 28,
             borderColor: theme.border,
             borderWidth: 1,
             justifyContent: 'center',
@@ -3715,7 +3737,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
-            backgroundColor: theme.inverse,
+            backgroundColor: theme.appBG,
             flex: 1,
         },
 
@@ -4517,17 +4539,9 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
         },
 
-        assignedCardsIconContainer: {
-            height: variables.bankCardHeight,
-            width: variables.bankCardWidth,
-            borderRadius: 4,
-            overflow: 'hidden',
-            alignSelf: 'center',
-        },
-
         bankIconContainer: {
-            height: variables.bankCardWidth,
-            width: variables.bankCardWidth,
+            height: variables.cardIconWidth,
+            width: variables.cardIconWidth,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
@@ -5191,7 +5205,6 @@ const styles = (theme: ThemeColors) =>
         cardIcon: {
             overflow: 'hidden',
             borderRadius: variables.cardBorderRadius,
-            height: variables.cardIconHeight,
             alignSelf: 'center',
         },
 
@@ -5312,6 +5325,14 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
             borderColor: theme.border,
             padding: 16,
+        },
+        liDot: {
+            width: 4,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: theme.text,
+            marginHorizontal: 8,
+            alignSelf: 'center',
         },
     } satisfies Styles);
 

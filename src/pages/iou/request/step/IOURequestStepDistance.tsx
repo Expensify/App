@@ -543,7 +543,7 @@ function IOURequestStepDistance({
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                        style={[styles.w100, styles.mb5, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

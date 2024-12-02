@@ -123,7 +123,7 @@ function ReportPreview({
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [invoiceReceiverPolicy] = useOnyx(
@@ -136,7 +136,7 @@ function ReportPreview({
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
-        opacity: previewMessageOpacity.value,
+        opacity: previewMessageOpacity.get(),
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
@@ -157,8 +157,9 @@ function ReportPreview({
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ReportUtils.hasViolations(iouReportID, transactionViolations) ||
-        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations) ||
+        ReportUtils.hasViolations(iouReportID, transactionViolations, true) ||
+        ReportUtils.hasNoticeTypeViolations(iouReportID, transactionViolations, true) ||
+        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
@@ -240,7 +241,8 @@ function ReportPreview({
             return '';
         }
 
-        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+        // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
             return nonHeldAmount;
         }
 
@@ -342,7 +344,7 @@ function ReportPreview({
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID);
-    const shouldShowRBR = hasErrors;
+    const shouldShowRBR = hasErrors && !iouSettled;
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -426,11 +428,11 @@ function ReportPreview({
             return;
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        previewMessageOpacity.value = withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
-            // eslint-disable-next-line react-compiler/react-compiler
-            previewMessageOpacity.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2});
-        });
+        previewMessageOpacity.set(
+            withTiming(0.75, {duration: CONST.ANIMATION_PAID_DURATION / 2}, () => {
+                previewMessageOpacity.set(withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION / 2}));
+            }),
+        );
         // We only want to animate the text when the text changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
@@ -440,12 +442,7 @@ function ReportPreview({
             return;
         }
 
-        if (isPaidAnimationRunning) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
-        } else {
-            checkMarkScale.value = 1;
-        }
+        checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
     }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
     return (
@@ -490,7 +487,6 @@ function ReportPreview({
                                                 fill={theme.danger}
                                             />
                                         )}
-
                                         {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
@@ -595,7 +591,7 @@ function ReportPreview({
 
             {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}
