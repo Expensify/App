@@ -134,7 +134,7 @@ function NewChatPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const {insets} = useStyledSafeAreaInsets();
+    const {insets, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
@@ -255,14 +255,27 @@ function NewChatPage() {
             return (
                 <Button
                     onPress={() => toggleOption(item)}
-                    style={[styles.pl2]}
+                    style={[styles.pl2, insets.bottom ? styles.mb5 : undefined]}
                     text={translate('newChatPage.addToGroup')}
                     innerStyles={buttonInnerStyles}
                     small
                 />
             );
         },
-        [selectedOptions, setSelectedOptions, styles, translate],
+        [
+            insets.bottom,
+            selectedOptions,
+            setSelectedOptions,
+            styles.alignItemsCenter,
+            styles.buttonDefaultHovered,
+            styles.flexRow,
+            styles.mb5,
+            styles.ml0,
+            styles.ml5,
+            styles.optionSelectCircle,
+            styles.pl2,
+            translate,
+        ],
     );
 
     const createGroup = useCallback(() => {
@@ -300,7 +313,7 @@ function NewChatPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -334,6 +347,7 @@ function NewChatPage() {
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
+                    confirmButtonStyles={insets.bottom ? [safeAreaPaddingBottomStyle, styles.mb5] : undefined}
                 />
                 {isSmallScreenWidth && (
                     <>

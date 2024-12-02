@@ -1,8 +1,8 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
@@ -14,7 +14,7 @@ import withPolicy from './withPolicy';
 
 type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 
-type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
+type WorkspaceProfileAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
 function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPageProps) {
     const {translate} = useLocalize();

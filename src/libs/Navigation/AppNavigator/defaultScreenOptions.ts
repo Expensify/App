@@ -1,12 +1,14 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-const defaultScreenOptions: StackNavigationOptions = {
-    cardStyle: {
-        overflow: 'visible',
-        flex: 1,
-    },
+const defaultScreenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
     animationTypeForReplace: 'push',
+    web: {
+        cardStyle: {
+            overflow: 'visible',
+            flex: 1,
+        },
+    },
 };
 
 export default defaultScreenOptions;
