@@ -1645,33 +1645,6 @@ function filterCurrentUserOption(currentUserOption: ReportUtils.OptionData | nul
     }, currentUserOption);
 }
 
-function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
-    const searchTerms = searchValue ? searchValue.split(' ') : [];
-
-    const recentReports = filterReports(options.recentReports, searchTerms);
-    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
-    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
-    const userToInvite = filterUserToInvite(
-        {
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            userToInvite: null,
-        },
-        searchValue,
-        config,
-    );
-
-    return {
-        personalDetails,
-        recentReports,
-        userToInvite,
-        currentUserOption,
-    };
-}
-
 function filterUserToInvite(options: Options, searchValue: string, config?: FilterOptionsConfig): ReportUtils.OptionData | null {
     const {canInviteUser = true, excludeLogins = []} = config ?? {};
     if (!canInviteUser) {
@@ -1698,6 +1671,33 @@ function filterUserToInvite(options: Options, searchValue: string, config?: Filt
         selectedOptions: config?.selectedOptions,
         optionsToExclude,
     });
+}
+
+function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
+
+    const recentReports = filterReports(options.recentReports, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const userToInvite = filterUserToInvite(
+        {
+            recentReports,
+            personalDetails,
+            currentUserOption,
+            userToInvite: null,
+        },
+        searchValue,
+        config,
+    );
+
+    return {
+        personalDetails,
+        recentReports,
+        userToInvite,
+        currentUserOption,
+    };
 }
 
 type FilterAndOrderConfig = FilterOptionsConfig & OrderOptionsConfig;
