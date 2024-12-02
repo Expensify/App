@@ -106,7 +106,6 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
-    hasViolations as hasViolationsReportUtils,
     isArchivedRoom,
     isDraftReport,
     isExpenseReport,
@@ -161,7 +160,7 @@ import {clearByKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
-import {notifyNewAction} from './Report';
+import {completeOnboarding, notifyNewAction} from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
@@ -6291,9 +6290,11 @@ function getSendMoneyParams(
             },
         );
 
-        if (optimisticChatReportActionsData.value) {
+        const optimisticChatReportActionsValue = optimisticChatReportActionsData.value as Record<string, OnyxTypes.ReportAction>;
+
+        if (optimisticChatReportActionsValue) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
+            optimisticChatReportActionsValue[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
         }
     } else {
         failureData.push({
@@ -6873,7 +6874,6 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
-    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
 ) {
     // Only expense reports can be approved
@@ -6894,8 +6894,6 @@ function canApproveIOU(
     const iouSettled = isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = isArchivedRoom(iouReport, reportNameValuePairs);
-    const allViolations = violations ?? allTransactionViolations;
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID ?? '-1', allViolations);
     let isTransactionBeingScanned = false;
     const reportTransactions = getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6908,7 +6906,7 @@ function canApproveIOU(
         }
     }
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned && !hasViolations;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
@@ -6916,7 +6914,6 @@ function canIOUBePaid(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
-    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: SearchPolicy,
@@ -6963,9 +6960,7 @@ function canIOUBePaid(
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
-    const allViolations = violations ?? allTransactionViolations;
-    const shouldBeApproved = canApproveIOU(iouReport, policy, allViolations);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID ?? '-1', allViolations);
+    const shouldBeApproved = canApproveIOU(iouReport, policy);
 
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, transactions);
     return (
@@ -6977,7 +6972,6 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !shouldBeApproved &&
-        !hasViolations &&
         !isPayAtEndExpenseReport
     );
 }
@@ -6988,7 +6982,7 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     return Object.values(chatReportActions).find((action) => {
         const iouReport = getReportOrDraftReport(action.childReportID ?? '-1');
         const policy = getPolicy(iouReport?.policyID);
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined, allTransactionViolations) || canApproveIOU(iouReport, policy, allTransactionViolations);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
@@ -7576,7 +7570,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    Report.completeOnboarding(
+    completeOnboarding(
         onboardingPurpose,
         CONST.ONBOARDING_MESSAGES[onboardingPurpose],
         personalDetails?.firstName ?? '',

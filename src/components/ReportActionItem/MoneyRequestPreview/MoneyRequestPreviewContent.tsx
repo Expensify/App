@@ -106,6 +106,8 @@ function MoneyRequestPreviewContent({
         currency: requestCurrency,
         comment: requestComment,
         merchant,
+        tag,
+        category,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -145,6 +147,7 @@ function MoneyRequestPreviewContent({
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
+    const shouldShowCategoryOrTag = !!tag || !!category;
     const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
@@ -297,7 +300,11 @@ function MoneyRequestPreviewContent({
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         Transaction.abandonReviewDuplicateTransactions();
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID ?? '');
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(
+            reviewingTransactionID,
+            transaction?.reportID ?? '',
+            transaction?.transactionID ?? reviewingTransactionID,
+        );
         Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
@@ -427,6 +434,43 @@ function MoneyRequestPreviewContent({
                                             </View>
                                         )}
                                     </View>
+                                    {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
+                                    {shouldShowCategoryOrTag && (
+                                        <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
+                                            {!!category && (
+                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, tag && styles.mw50, tag && styles.pr1, styles.flexShrink1]}>
+                                                    <Icon
+                                                        src={Expensicons.Folder}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {category}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            {!!tag && (
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
+                                                    <Icon
+                                                        src={Expensicons.Tag}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {tag}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         </View>

@@ -521,7 +521,15 @@ function createPolicyCategory(policyID: string, categoryName: string) {
 }
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
-    const onyxData = updateImportSpreadsheetData(categories.length);
+    const uniqueCategories = categories.reduce<Record<string, PolicyCategory>>((acc, category) => {
+        if (!category.name) {
+            return acc;
+        }
+        acc[category.name] = category;
+        return acc;
+    }, {});
+    const categoriesLength = Object.keys(uniqueCategories).length;
+    const onyxData = updateImportSpreadsheetData(categoriesLength);
 
     const parameters = {
         policyID,
@@ -1350,28 +1358,28 @@ function getPolicyCategoriesData(policyID: string) {
 }
 
 export {
-    getPolicyCategories,
-    openPolicyCategoriesPage,
-    buildOptimisticPolicyRecentlyUsedCategories,
-    setWorkspaceCategoryEnabled,
-    setPolicyCategoryDescriptionRequired,
-    setWorkspaceCategoryDescriptionHint,
-    setWorkspaceRequiresCategory,
-    setPolicyCategoryPayrollCode,
-    createPolicyCategory,
-    renamePolicyCategory,
-    setPolicyCategoryGLCode,
-    clearCategoryErrors,
-    enablePolicyCategories,
-    setPolicyCustomUnitDefaultCategory,
-    deleteWorkspaceCategories,
     buildOptimisticPolicyCategories,
-    setPolicyCategoryReceiptsRequired,
-    removePolicyCategoryReceiptsRequired,
-    setPolicyCategoryMaxAmount,
-    setPolicyCategoryApprover,
-    setPolicyCategoryTax,
-    importPolicyCategories,
+    buildOptimisticPolicyRecentlyUsedCategories,
+    clearCategoryErrors,
+    createPolicyCategory,
+    deleteWorkspaceCategories,
     downloadCategoriesCSV,
+    enablePolicyCategories,
+    getPolicyCategories,
     getPolicyCategoriesData,
+    importPolicyCategories,
+    openPolicyCategoriesPage,
+    removePolicyCategoryReceiptsRequired,
+    renamePolicyCategory,
+    setPolicyCategoryApprover,
+    setPolicyCategoryDescriptionRequired,
+    setPolicyCategoryGLCode,
+    setPolicyCategoryMaxAmount,
+    setPolicyCategoryPayrollCode,
+    setPolicyCategoryReceiptsRequired,
+    setPolicyCategoryTax,
+    setPolicyCustomUnitDefaultCategory,
+    setWorkspaceCategoryDescriptionHint,
+    setWorkspaceCategoryEnabled,
+    setWorkspaceRequiresCategory,
 };

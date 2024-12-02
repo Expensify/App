@@ -165,6 +165,7 @@ import {
     getDescription,
     getFormattedAttendees,
     getFormattedCreated,
+    getFormattedPostedDate,
     getMCCGroup,
     getMerchant,
     getMerchantOrDescription,
@@ -540,6 +541,7 @@ type TransactionDetails = {
     cardID: number;
     originalAmount: number;
     originalCurrency: string;
+    postedDate: string;
 };
 
 type OptimisticIOUReport = Pick<
@@ -820,6 +822,12 @@ Onyx.connect({
     callback: (value) => {
         delegateEmail = value?.delegatedAccess?.delegate ?? '';
     },
+});
+
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -1331,6 +1339,8 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
 
 /**
  * Only returns true if this is the Expensify DM report.
+ *
+ * Note that this chat is no longer used for new users. We still need this function for users who have this chat.
  */
 function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
@@ -2155,9 +2165,8 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
     const workspaceName = getPolicyName(report, false, policy);
     const cacheKey = report?.policyID ?? workspaceName;
     const iconFromCache = workSpaceIconsCache.get(cacheKey);
-    // disabling to protect against empty strings
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyAvatarURL = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL || report?.policyAvatar;
+    const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const policyAvatarURL = reportPolicy ? reportPolicy?.avatarURL : report?.policyAvatar;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyExpenseChatAvatarSource = policyAvatarURL || getDefaultWorkspaceAvatar(workspaceName);
 
@@ -3210,6 +3219,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
         cardID: getCardID(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
+        postedDate: getFormattedPostedDate(transaction),
     };
 }
 
@@ -6742,18 +6752,6 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 }
 
 /**
- * Returns the system report from the list of reports.
- */
-function getSystemChat(): OnyxEntry<Report> {
-    const allReports = getAllReports();
-    if (!allReports) {
-        return undefined;
-    }
-
-    return Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM);
-}
-
-/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = getAllReports(), shouldIncludeGroupChats = false): OnyxEntry<Report> {
@@ -8280,6 +8278,44 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         (policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 
+    if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
+        const activePolicy = getPolicy(activePolicyID);
+        if (activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL && activePolicy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID ?? -1, activePolicyID ?? '-1')?.reportID ?? '-1';
+            IOU.setMoneyRequestParticipants(transactionID, [
+                {
+                    selected: true,
+                    accountID: 0,
+                    isPolicyExpenseChat: true,
+                    reportID: policyExpenseReportID,
+                    policyID: activePolicyID ?? '-1',
+                    searchText: activePolicy?.name,
+                },
+            ]);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            return;
+        }
+        if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            return;
+        }
+
+        const policyID = filteredPolicies.at(0)?.id;
+        const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID ?? -1, policyID ?? '-1')?.reportID ?? '-1';
+        IOU.setMoneyRequestParticipants(transactionID, [
+            {
+                selected: true,
+                accountID: 0,
+                isPolicyExpenseChat: true,
+                reportID: policyExpenseReportID,
+                policyID: policyID ?? '-1',
+                searchText: activePolicy?.name,
+            },
+        ]);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+        return;
+    }
+
     if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPolicies.length > 0)) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
         return;
@@ -8642,7 +8678,6 @@ export {
     getRoom,
     getRootParentReport,
     getRouteFromLink,
-    getSystemChat,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
