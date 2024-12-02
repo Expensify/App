@@ -188,7 +188,8 @@ describe('SidebarLinksData', () => {
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
 
-            // TODO add the proper assertion for the pinned report.
+            // And the pin icon should be shown
+            expect(screen.getByTestId('Pin Icon')).toBeOnTheScreen();
         });
 
         it('should display the report with violations', async () => {
@@ -209,7 +210,6 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
             await waitForBatchedUpdatesWithAct();
 
-            // And the report is initialized in Onyx.
             const expenseReport: Report = {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
