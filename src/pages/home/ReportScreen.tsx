@@ -749,7 +749,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={(isTopMostReportId || isInNarrowPaneModal) && showSoftInputOnFocus}
+                    shouldEnableKeyboardAvoidingView={(isTopMostReportId || isInNarrowPaneModal) && (!isComposerFocus || showSoftInputOnFocus)}
                     testID={`report-screen-${reportID ?? ''}`}
                 >
                     <FullPageNotFoundView
