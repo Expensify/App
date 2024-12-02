@@ -92,7 +92,7 @@ class ShareViewController: UIViewController {
     }
 
     for attachment in attachments {
-      let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("com.adobe.pdf")
+      let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("public.file-url")
       os_log("ShareViewController.saveFileToAppGroup isURL: \(isURL)")
       group.enter()
       if isURL {
