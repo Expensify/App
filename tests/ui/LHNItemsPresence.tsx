@@ -299,6 +299,7 @@ describe('SidebarLinksData', () => {
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
                 lastMessageText: 'fake last message',
+                lastActorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
             await initializeState({
