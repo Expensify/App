@@ -1,5 +1,5 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -22,16 +22,21 @@ function SearchButton({style}: SearchButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
+    const pressableRef = useRef<View>(null);
 
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
+                ref={pressableRef}
                 nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
+                // eslint-disable-next-line react-compiler/react-compiler
                 onPress={Session.checkIfActionIsAllowed(() => {
-                    Timing.start(CONST.TIMING.SEARCH_ROUTER_RENDER);
-                    Performance.markStart(CONST.TIMING.SEARCH_ROUTER_RENDER);
+                    pressableRef?.current?.blur();
+
+                    Timing.start(CONST.TIMING.OPEN_SEARCH);
+                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
                     openSearchRouter();
                 })}

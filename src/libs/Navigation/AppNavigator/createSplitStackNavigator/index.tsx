@@ -36,9 +36,9 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
 
-    const children = usePrepareSplitStackNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
+
+    // const children = usePrepareSplitStackNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
 
     const route = useRoute();
 
@@ -49,8 +49,8 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
         StackNavigationOptions,
         StackNavigationEventMap
     >(SplitStackRouter, {
-        children,
-        screenOptions: screenOptions.centralPaneNavigator,
+        children: props.children,
+        // screenOptions: screenOptions.centralPaneNavigator,
         initialRouteName: props.initialRouteName,
         sidebarScreen: props.sidebarScreen,
         defaultCentralScreen: props.defaultCentralScreen,

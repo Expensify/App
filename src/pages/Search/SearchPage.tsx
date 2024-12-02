@@ -1,5 +1,3 @@
-// eslint-disable-next-line import/extensions, prettier/prettier
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,6 +15,7 @@ import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNav
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +23,7 @@ import SCREENS from '@src/SCREENS';
 import SearchPageBottomTab from './SearchPageBottomTab';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
@@ -46,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
-    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
         return (
@@ -98,10 +97,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                hash={queryJSON.hash}
-                            />
+                            <SearchPageHeader queryJSON={queryJSON} />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search queryJSON={queryJSON} />
                         </ScreenWrapper>

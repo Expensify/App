@@ -2,12 +2,12 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import * as Localize from '@libs/Localize';
-import syncBrowserHistory from '@libs/Navigation/AppNavigator/createCustomStackNavigator/syncBrowserHistory';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import syncBrowserHistory from './syncBrowserHistory';
 
 // @TODO: Verify if these functions are still needed
 
