@@ -243,7 +243,7 @@ function FeatureTrainingModal({
                         </View>
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], !!image && styles.mb5]}>
                                     {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
