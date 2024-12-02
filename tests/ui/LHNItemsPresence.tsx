@@ -1,10 +1,12 @@
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
+import type {TextStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import * as Localize from '@libs/Localize';
+import FontUtils from '@styles/utils/FontUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ViolationName} from '@src/types/onyx';
@@ -73,9 +75,10 @@ const createReport = (
     messageCount = 1,
     chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined = undefined,
     policyID: string = CONST.POLICY.ID_FAKE,
+    isUnread = false,
 ) => {
     return {
-        ...LHNTestUtils.getFakeReport(participants, messageCount),
+        ...LHNTestUtils.getFakeReport(participants, messageCount, isUnread),
         isPinned,
         chatType,
         policyID,
@@ -245,6 +248,31 @@ describe('SidebarLinksData', () => {
 
             // And a green dot icon should be shown
             expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+        });
+
+        it('should display the unread report in the focuse mode with the bold text', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(undefined, undefined, undefined, undefined, undefined, true),
+                hasOutstandingChildRequest: true,
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in focus mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+
+            // The report should appear in the sidebar because it's unread
+            expect(getOptionRows()).toHaveLength(1);
+
+            // And the text is bold
+            const displayNameText = getDisplayNames()?.at(0);
+            expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
         });
     });
 
