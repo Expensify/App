@@ -1,0 +1,259 @@
+name: Build and deploy hybird apps for testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull Request number for correct placement of apps
+        required: true
+  pull_request_target:
+    types: [opened, synchronize, labeled]
+    branches: ['*ci-test/**']
+
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+
+jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
+    steps:
+      - name: Is Expensify employee
+        id: isExpensifyEmployee
+        run: |
+          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ github.actor }} --silent; then
+            echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - id: hasReadyToBuildLabel
+        name: Set HAS_READY_TO_BUILD_LABEL flag
+        run: |
+          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+          if [[ "$HAS_READY_TO_BUILD_LABEL" != 'true' ]]; then
+            echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  getBranchRef:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    outputs:
+      REF: ${{ steps.getHeadRef.outputs.REF }}
+    steps:
+      - name: Checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+
+      - name: Check if pull request number is correct
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: getHeadRef
+        run: |
+          set -e
+          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  postGitHubCommentBuildStarted:
+    runs-on: ubuntu-latest
+    needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    steps:
+      - name: Add build start comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.PULL_REQUEST_NUMBER,
+              body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
+            });
+
+  androidHybrid:
+    name: Build Android HybridApp
+    needs: [validateActor, getBranchRef]
+    runs-on: ubuntu-latest-xl
+    defaults:
+      run:
+        working-directory: Mobile-Expensify/react-native
+    outputs:
+      APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'Expensify/Mobile-Expensify'
+          submodules: true
+          path: 'Mobile-Expensify'
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
+
+      - name: Update submodule
+        run: |
+          git submodule update --init
+          git fetch
+          git checkout ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }} 
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
+          cache: npm
+          cache-dependency-path: 'Mobile-Expensify/react-native'
+
+      - name: Setup dotenv
+        run: |
+            cp .env.staging .env.adhoc
+            sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
+
+      - name: Install node modules
+        run: |
+          npm install
+          cd .. && npm install
+          
+          # Fixes https://github.com/Expensify/App/issues/51682
+          npm run grunt:build:shared
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+          working-directory: 'Mobile-Expensify/react-native'
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op document get --output ./upload-key.keystore upload-key.keystore 
+          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore ../Android 
+
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
+      - name: Get Android native version
+        id: getAndroidVersion
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+
+      - name: Build Android app
+        id: build
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          bundle exec fastlane android build_adhoc_hybrid
+
+          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
+          # shellcheck disable=SC1090
+          source "$GITHUB_ENV"
+
+          # apkPath is set within the Fastfile
+          echo "APK_FILE_NAME=$(basename "$apkPath")" >> "$GITHUB_OUTPUT"    
+
+
+  uploadAndroid:
+    name: Upload Android hybrid app to S3
+    needs: [androidHybrid]
+    runs-on: ubuntu-latest
+    outputs:
+      S3_APK_PATH: ${{ steps.exportS3Path.outputs.S3_APK_PATH }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Download Android build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+          pattern: android-*-artifact
+          merge-multiple: true
+
+      - name: Log downloaded artifact paths
+        run: ls -R /tmp/artifacts
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload AdHoc build to S3
+        run: bundle exec fastlane android upload_s3
+        env:
+          apkPath: /tmp/artifacts/${{ needs.androidHybrid.outputs.APK_FILE_NAME }}
+          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ad-hoc-expensify-cash
+          S3_REGION: us-east-1
+
+      - name: Export S3 paths
+        id: exportS3Path
+        run: |
+          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
+          echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
+
+  postGithubComment:
+    runs-on: ubuntu-latest
+    name: Post a GitHub comment with app download links for testing
+    needs: [validateActor, getBranchRef, uploadAndroid] #TODO add ios job
+    if: ${{ always() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+        with:
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+
+      - name: Publish links to apps for download
+        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ needs.uploadAndroid.result }}
+          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}

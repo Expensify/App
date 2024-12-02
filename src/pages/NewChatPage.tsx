@@ -256,27 +256,14 @@ function NewChatPage() {
             return (
                 <Button
                     onPress={() => toggleOption(item)}
-                    style={[styles.pl2, insets.bottom ? styles.mb5 : undefined]}
+                    style={[styles.pl2]}
                     text={translate('newChatPage.addToGroup')}
                     innerStyles={buttonInnerStyles}
                     small
                 />
             );
         },
-        [
-            insets.bottom,
-            selectedOptions,
-            setSelectedOptions,
-            styles.alignItemsCenter,
-            styles.buttonDefaultHovered,
-            styles.flexRow,
-            styles.mb5,
-            styles.ml0,
-            styles.ml5,
-            styles.optionSelectCircle,
-            styles.pl2,
-            translate,
-        ],
+        [selectedOptions, setSelectedOptions, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
