@@ -1079,6 +1079,11 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
+function hasVBBA(policyID: string) {
+    const policy = getPolicy(policyID);
+    return !!policy?.achAccount?.bankAccountID;
+}
+
 function getTagApproverRule(policyID: string, tagName: string) {
     const policy = getPolicy(policyID);
 
@@ -1186,6 +1191,7 @@ export {
     canSendInvoice,
     hasWorkspaceWithInvoices,
     hasDependentTags,
+    hasVBBA,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
