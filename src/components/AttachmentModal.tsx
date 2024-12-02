@@ -488,7 +488,6 @@ function AttachmentModal({
         <>
             <Modal
                 type={modalType}
-                onSubmit={submitAndClose}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 onModalShow={() => {
