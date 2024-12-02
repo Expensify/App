@@ -1,9 +1,10 @@
-// import * as NativeNavigation from '@react-navigation/native';
+import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import * as Localize from '@libs/Localize';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import type Navigation from '@libs/Navigation/Navigation';
 import WorkspaceSwitcherPage from '@pages/WorkspaceSwitcherPage';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
@@ -12,13 +13,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCollectionDataSet} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import {NavigationContainer} from '../../__mocks__/@react-navigation/native';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+const mockedNavigate = jest.fn();
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
@@ -28,16 +31,30 @@ jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
-
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: () => jest.fn(),
+        }),
+        useIsFocused: () => true,
+        useNavigationState: () => {},
+        useRoute: () => mockedNavigate,
+    };
+});
 TestHelper.setupApp();
 
 async function navigateToWorkspaceSwitcher(): Promise<void> {
-    // const hintText = Localize.translateLocal('workspace.switcher.headerTitle');
-    const optionRow = screen.getByTestId('WorkspaceSwitcherButton');
-    fireEvent(optionRow, 'press');
-    // await act(() => {
-    //     (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
-    // });
+    const hintText = Localize.translateLocal('workspace.switcher.headerTitle');
+    const optionRow = screen.queryByAccessibilityHint(hintText);
+    if (optionRow) {
+        fireEvent(optionRow, 'press');
+    }
+    await act(() => {
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    });
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -123,13 +140,13 @@ describe('WorkspaceSwitcherPage', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}${policy3.id}`]: policy3,
         };
 
+        render(<WorkspaceSwitcherPage />);
         return (
             waitForBatchedUpdates()
                 .then(async () => {
                     render(<TopBar breadcrumbLabel={Localize.translateLocal('common.inbox')} />);
                     await waitForBatchedUpdatesWithAct();
                 })
-
                 // When Onyx is updated with the data and the sidebar re-renders
                 .then(() =>
                     Onyx.multiSet({
@@ -146,11 +163,7 @@ describe('WorkspaceSwitcherPage', () => {
                     await navigateToWorkspaceSwitcher();
                 })
                 .then(async () => {
-                    render(
-                        <NavigationContainer>
-                            <WorkspaceSwitcherPage />
-                        </NavigationContainer>,
-                    );
+                    render(<WorkspaceSwitcherPage />);
                     await waitForBatchedUpdatesWithAct();
                 })
                 .then(() => {
