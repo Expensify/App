@@ -78,12 +78,11 @@ function SecuritySettingsPage() {
         }
 
         const position = getClickedTargetLocation(delegateButtonRef.current);
-
         setAnchorPosition({
-            horizontal: windowWidth - position.x,
+            horizontal: position.right - position.left,
             vertical: position.y + position.height,
         });
-    }, [windowWidth, delegateButtonRef]);
+    }, [delegateButtonRef]);
 
     const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
         delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
