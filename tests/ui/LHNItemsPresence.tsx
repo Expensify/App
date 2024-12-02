@@ -89,7 +89,7 @@ const createFakeTransactionViolation = (violationName: ViolationName = CONST.VIO
 };
 
 const createReportWithRBR = (): OnyxMultiSetInput => {
-    const report = createReport(undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID);
+    const report = createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID);
     const expenseReport = ReportUtils.buildOptimisticExpenseReport(report.reportID, TEST_POLICY_ID, 100, 122, 'USD');
     const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
     const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -234,10 +234,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const onyxData = createReportWithRBR();
 
-            await initializeState(undefined);
-            await waitForBatchedUpdatesWithAct();
-
-            await Onyx.multiSet(onyxData);
+            await initializeState(undefined, onyxData);
 
             expect(getOptionRows()).toHaveLength(1);
         });
