@@ -33,12 +33,11 @@ function SAMLSignInPage() {
                 window.location.replace(response.url);
             })
             .catch((response) => {
-                handleError(response.message ?? translate('common.error.login'));
-                return;
+                handleError(response?.message ?? translate('common.error.login'));
             });
-    }, [credentials?.login]);
+    }, [credentials?.login, translate]);
 
-    function handleError(errorMessage: string, cleanSignInData: boolean = false) {
+    function handleError(errorMessage: string, cleanSignInData = false) {
         if (cleanSignInData) {
             Session.clearSignInData();
         }
