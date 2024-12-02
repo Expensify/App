@@ -235,6 +235,8 @@ describe('SidebarLinksData', () => {
             const onyxData = createReportWithRBR();
 
             await initializeState(undefined);
+            await waitForBatchedUpdatesWithAct();
+
             await Onyx.multiSet(onyxData);
 
             expect(getOptionRows()).toHaveLength(1);
