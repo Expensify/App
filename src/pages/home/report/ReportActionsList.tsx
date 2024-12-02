@@ -23,7 +23,6 @@ import DateUtils from '@libs/DateUtils';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -208,8 +207,8 @@ function ReportActionsList({
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const reportLastReadTime = useMemo(() => {
-        return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
-    }, [report.reportID, report.lastReadTime]);
+        return report.lastReadTime ?? '';
+    }, [report.lastReadTime]);
 
     /**
      * The timestamp for the unread marker.
