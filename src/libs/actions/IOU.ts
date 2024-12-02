@@ -6370,6 +6370,7 @@ function getReportFromHoldRequestsOnyxData(
     optimisticHoldActionID: string;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID ?? '');
@@ -6411,6 +6412,7 @@ function getReportFromHoldRequestsOnyxData(
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
+    const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
@@ -6436,6 +6438,9 @@ function getReportFromHoldRequestsOnyxData(
                 IOUReportID: optimisticExpenseReport.reportID,
             },
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        addHoldReportActionsSuccess[reportActionID] = {
+            pendingAction: null,
         };
 
         const heldReport = ReportUtils.getReportOrDraftReport(holdReportAction.childReportID);
@@ -6519,6 +6524,23 @@ function getReportFromHoldRequestsOnyxData(
         bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     });
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: addHoldReportActionsSuccess,
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         // remove added optimistic expense report
         {
@@ -6558,6 +6580,7 @@ function getReportFromHoldRequestsOnyxData(
         optimisticData,
         optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
         failureData,
+        successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
     };
@@ -6818,6 +6841,7 @@ function getPayMoneyRequestParams(
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient);
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
@@ -7157,6 +7181,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
