@@ -16,6 +16,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -126,7 +127,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+        setTimeout(() => setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation), CONST.ANIMATED_TRANSITION);
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
