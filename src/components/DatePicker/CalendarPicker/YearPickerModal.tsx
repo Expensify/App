@@ -57,7 +57,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton

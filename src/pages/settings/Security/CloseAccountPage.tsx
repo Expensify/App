@@ -71,7 +71,7 @@ function CloseAccountPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={CloseAccountPage.displayName}
         >
             <HeaderWithBackButton

@@ -1,7 +1,7 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import usePolicy from '@hooks/usePolicy';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ImportCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORT>;
+type ImportCategoriesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORT>;
 
 function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const policyID = route.params.policyID;
