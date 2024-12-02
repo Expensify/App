@@ -9,7 +9,6 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -20,7 +19,6 @@ import TransactionStartDateSelectorModal from './TransactionStartDateSelectorMod
 function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
@@ -129,7 +127,7 @@ function TransactionStartDateStep() {
                 pressOnEnter
                 text={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onPress={submit}
-                style={[styles.m5, safePaddingBottomStyle]}
+                style={styles.m5}
             />
         </InteractiveStepWrapper>
     );

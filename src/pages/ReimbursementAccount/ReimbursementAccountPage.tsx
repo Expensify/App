@@ -1,5 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
@@ -21,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
@@ -50,7 +49,7 @@ import Finish from './NonUSD/Finish';
 import SignerInfo from './NonUSD/SignerInfo';
 import RequestorStep from './RequestorStep';
 
-type ReimbursementAccountPageProps = WithPolicyOnyxProps & StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const ROUTE_NAMES = {
     COMPANY: 'company',
@@ -68,7 +67,7 @@ const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURREN
  * We can pass stepToOpen in the URL to force which step to show.
  * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
  */
-function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
+function getStepToOpenFromRouteParams(route: PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
     switch (route.params.stepToOpen) {
         case ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
