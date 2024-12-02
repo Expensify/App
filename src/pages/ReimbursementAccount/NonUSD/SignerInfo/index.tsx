@@ -1,5 +1,5 @@
-import { ComponentType, useMemo } from "react";
-import React, {useEffect, useState} from 'react';
+import type {ComponentType} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
+import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +19,6 @@ import DateOfBirth from './substeps/DateOfBirth';
 import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import UploadDocuments from './substeps/UploadDocuments';
-import getSubstepValues from "@pages/ReimbursementAccount/utils/getSubstepValues";
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -83,18 +83,21 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
-            BankAccounts.saveCorpayOnboardingDirectorInformation({
-                signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
-                signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
-                signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
-                signerEmail: onyxValues[INPUT_KEYS.SIGNER_EMAIL],
-                signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
-                secondSignerFullName: onyxValues[INPUT_KEYS.SECOND_SIGNER_FULL_NAME],
-                secondSignerDateOfBirth: onyxValues[INPUT_KEYS.SECOND_SIGNER_DATE_OF_BIRTH],
-                secondSignerJobTitle: onyxValues[INPUT_KEYS.SECOND_SIGNER_JOB_TITLE],
-                secondSignerEmail: onyxValues[INPUT_KEYS.SECOND_SIGNER_EMAIL],
-                secondSignerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
-            }, bankAccountID);
+            BankAccounts.saveCorpayOnboardingDirectorInformation(
+                {
+                    signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
+                    signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
+                    signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
+                    signerEmail: onyxValues[INPUT_KEYS.SIGNER_EMAIL],
+                    signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                    secondSignerFullName: onyxValues[INPUT_KEYS.SECOND_SIGNER_FULL_NAME],
+                    secondSignerDateOfBirth: onyxValues[INPUT_KEYS.SECOND_SIGNER_DATE_OF_BIRTH],
+                    secondSignerJobTitle: onyxValues[INPUT_KEYS.SECOND_SIGNER_JOB_TITLE],
+                    secondSignerEmail: onyxValues[INPUT_KEYS.SECOND_SIGNER_EMAIL],
+                    secondSignerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                },
+                bankAccountID,
+            );
             onSubmit();
         }
     };
