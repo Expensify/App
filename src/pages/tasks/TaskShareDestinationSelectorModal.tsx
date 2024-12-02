@@ -63,19 +63,17 @@ function TaskShareDestinationSelectorModal() {
                 personalDetails: [],
                 userToInvite: null,
                 currentUserOption: null,
-                categoryOptions: [],
                 header: '',
             };
         }
         const filteredReports = reportFilter(optionList.reports);
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], '', [], [], true);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], [], true);
         const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
             header,
         };
     }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
