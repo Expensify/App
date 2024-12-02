@@ -4638,6 +4638,7 @@ const translations = {
             pinned: 'Fijado',
             unread: 'No leído',
             card: {
+                expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
                 cardFeeds: 'Flujos de tarjetas',
                 cardFeedName: (cardFeedBankName: string, cardFeedName?: string) => `Todo ${cardFeedBankName}${cardFeedName ? ` - ${cardFeedName}` : ''}`,

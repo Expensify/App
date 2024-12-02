@@ -4594,6 +4594,7 @@ const translations = {
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
             },
             card: {
+                expensify: 'Expensify',
                 individualCards: 'Individual cards',
                 cardFeeds: 'Card feeds',
                 cardFeedName: (cardFeedBankName: string, cardFeedName?: string) => `All ${cardFeedBankName}${cardFeedName ? ` - ${cardFeedName}` : ''}`,

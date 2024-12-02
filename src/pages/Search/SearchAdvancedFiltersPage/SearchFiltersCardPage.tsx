@@ -25,12 +25,12 @@ function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const cardListArray = Object.values(cardList ?? {});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const userCardListArray = Object.values(userCardList ?? {});
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policyList = Object.values(policies ?? {});
-    const [workspaceExpensifyCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentCards = searchAdvancedFiltersForm?.cardID;
@@ -39,13 +39,14 @@ function SearchFiltersCardPage() {
     const sections = useMemo(() => {
         const newSections = [];
 
-        const cardFeedsSection = Object.entries(workspaceExpensifyCards ?? {})
+        const cardFeedsSection = Object.entries(workspaceCardFeeds ?? {})
             .filter(([, expensifyCards]) => !isEmptyObject(expensifyCards))
             .map(([expensifyCardListKey, expensifyCards]) => {
-                const workspaceAccountID = expensifyCardListKey.split('_').at(1) ?? '';
+                const [, workspaceAccountID, bank] = expensifyCardListKey.split('_');
                 const correspondingPolicy = policyList.find((policy) => policy?.workspaceAccountID?.toString() === workspaceAccountID);
-                const text = translate('search.filters.card.cardFeedName', CONST.EXPENSIFY_CARD.BANK, correspondingPolicy?.name);
-                const correspondingCards = Object.keys(expensifyCards ?? {}).filter((expensifyCardKey) => cardListArray.some((card) => card.cardID.toString() === expensifyCardKey));
+                const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
+                const text = translate('search.filters.card.cardFeedName', cardFeedBankName, correspondingPolicy?.name);
+                const correspondingCards = Object.keys(expensifyCards ?? {}).filter((expensifyCardKey) => userCardListArray.some((card) => card.cardID.toString() === expensifyCardKey));
                 let isSelected = true;
                 correspondingCards.forEach((card) => {
                     if (newCards.includes(card)) {
@@ -54,7 +55,7 @@ function SearchFiltersCardPage() {
                     isSelected = false;
                 });
 
-                const icon = CardUtils.getCardFeedIcon(CONST.EXPENSIFY_CARD.BANK);
+                const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK);
                 return {
                     text,
                     keyForList: workspaceAccountID,
@@ -71,7 +72,7 @@ function SearchFiltersCardPage() {
             });
         newSections.push({title: translate('search.filters.card.cardFeeds'), data: cardFeedsSection, shouldShow: cardFeedsSection.length > 0});
 
-        const cards = cardListArray
+        const cards = userCardListArray
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
                 const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
@@ -99,7 +100,7 @@ function SearchFiltersCardPage() {
             shouldShow: cards.length > 0,
         });
         return newSections;
-    }, [workspaceExpensifyCards, translate, cardListArray, policyList, styles.cardIcon, newCards]);
+    }, [workspaceCardFeeds, translate, userCardListArray, policyList, styles.cardIcon, newCards]);
 
     const handleConfirmSelection = useCallback(() => {
         SearchActions.updateAdvancedFilters({
