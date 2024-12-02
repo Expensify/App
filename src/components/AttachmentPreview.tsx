@@ -130,14 +130,7 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
         );
     }
 
-    return (
-        <View style={[styles.w100, styles.br2, styles.overflowHidden, {backgroundColor: 'red'}]}>
-            <DefaultAttachmentView
-                fileName={file?.name}
-                containerStyles={styles.mh5}
-            />
-        </View>
-    );
+    return <DefaultAttachmentView fileName={file?.name} />;
 }
 
 AttachmentPreview.displayName = 'AttachmentPreview';
