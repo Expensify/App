@@ -38,6 +38,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import Visibility from '@libs/Visibility';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -52,9 +53,12 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
-const VIDEO_CONSTRAINTS = {
+const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
     facingMode: {
         exact: 'environment',
+    },
+    zoom: {
+        ideal: 1,
     },
 };
 
@@ -97,6 +101,7 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
+    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>(VIDEO_CONSTRAINTS);
     const tabIndex = 1;
     const isTabActive = useIsFocused();
 
@@ -127,7 +132,7 @@ function IOURequestStepScan({
         }
 
         navigator.mediaDevices
-            .getUserMedia({video: {...VIDEO_CONSTRAINTS, zoom: {ideal: 1}}})
+            .getUserMedia({video: videoConstraints})
             .then((stream) => {
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
@@ -587,6 +592,19 @@ function IOURequestStepScan({
         />
     ) : null;
 
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!Visibility.isVisible() || !isTabActive) {
+                return;
+            }
+
+            // When the page is active again, we set a "seed" property with a random value in order
+            // to restart the camera stream with the correct constraints and zoom.
+            setVideoConstraints((constraints) => ({...constraints, seed: Math.random()}));
+        });
+        return unsubscribeVisibilityListener;
+    }, [isTabActive]);
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -631,7 +649,7 @@ function IOURequestStepScan({
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
-                        videoConstraints={VIDEO_CONSTRAINTS}
+                        videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
                         cameraTabIndex={tabIndex}
                         audio={false}
