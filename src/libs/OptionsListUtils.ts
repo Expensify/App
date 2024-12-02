@@ -114,7 +114,6 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string;
-    excludeUnknownUsers?: boolean;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
@@ -151,6 +150,7 @@ type FilterOptionsConfig = Pick<GetOptionsConfig, 'selectedOptions' | 'excludeLo
     /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
     sortByReportTypeInSearch?: boolean;
     maxRecentReportsToShow?: number;
+    canInviteUser?: boolean;
 };
 
 type OrderOptionsConfig = {
@@ -993,7 +993,6 @@ function canCreateOptimisticPersonalDetailOption({
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
-    excludeUnknownUsers: boolean;
 }) {
     return recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
 }
@@ -1007,7 +1006,6 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    excludeUnknownUsers = false,
     optionsToExclude = [],
     selectedOptions = [],
     reportActions = {},
@@ -1022,7 +1020,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude || excludeUnknownUsers) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
     }
 
@@ -1596,10 +1594,33 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
 
+    const {canInviteUser = true, excludeLogins = []} = config ?? {};
+    let userToInvite = null;
+    if (canInviteUser) {
+        const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
+            recentReportOptions: recentReports,
+            personalDetailsOptions: personalDetails,
+            currentUserOption,
+        });
+        if (canCreateOptimisticDetail) {
+            const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+
+            excludeLogins.forEach((login) => {
+                optionsToExclude.push({login});
+            });
+
+            userToInvite = getUserToInviteOption({
+                searchValue,
+                selectedOptions: config?.selectedOptions,
+                optionsToExclude,
+            });
+        }
+    }
+
     return {
         personalDetails,
         recentReports,
-        userToInvite: null,
+        userToInvite,
         currentUserOption,
     };
 }
