@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import FontUtils from '@styles/utils/FontUtils';
 import CONST from '@src/CONST';
@@ -255,7 +256,11 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
-                hasOutstandingChildRequest: true,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
             };
 
             await initializeState({
@@ -273,6 +278,34 @@ describe('SidebarLinksData', () => {
             // And the text is bold
             const displayNameText = getDisplayNames()?.at(0);
             expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+        });
+
+        it('should disaply the archived report in the default mode', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const archivedReport: Report = {
+                ...createReport(false),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: true,
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in the default mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            // The report should appear in the sidebar because it's archived
+            expect(getOptionRows()).toHaveLength(1);
         });
     });
 
