@@ -205,6 +205,7 @@ describe('SidebarLinksData', () => {
 
             // The report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
+            await waitForBatchedUpdatesWithAct();
 
             const expenseReport: Report = {
                 ...createReport(true, undefined, undefined, undefined, TEST_POLICY_ID),
