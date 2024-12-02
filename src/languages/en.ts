@@ -2464,7 +2464,7 @@ const translations = {
             cancellationUntil: 'Free cancellation until',
             confirmation: 'Confirmation number',
         },
-        train: 'Train',
+        train: 'Rail',
         trainDetails: {
             passenger: 'Passenger',
             departs: 'Departs',
