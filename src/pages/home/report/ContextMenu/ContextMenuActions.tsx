@@ -68,8 +68,6 @@ type ShouldShow = (args: {
     isOffline: boolean;
     isMini: boolean;
     isProduction: boolean;
-    moneyRequestAction: ReportAction | undefined;
-    areHoldRequirementsMet: boolean;
     user: OnyxEntry<User>;
 }) => boolean;
 
@@ -88,7 +86,6 @@ type ContextMenuActionPayload = {
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: MutableRefObject<View | null>;
-    moneyRequestAction: ReportAction | undefined;
     hasCard?: boolean;
 };
 
@@ -268,16 +265,24 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canUnholdRequest,
-        onPress: (closePopover, {moneyRequestAction}) => {
+        shouldShow: ({type, reportAction}) => {
+            const areHoldRequirementsMet = !!reportAction?.childHoldData;
+            const isOnHold = !!reportAction?.childHoldData?.isOnHold;
+
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && isOnHold;
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const isOnHold = !!reportAction?.childHoldData?.isOnHold;
+            const transactionID = reportAction.childHoldData?.transactionID ?? '-1';
+            const reportID = reportAction.childHoldData?.reportID ?? '-1';
+
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
+                hideContextMenu(false, () => ReportUtils.changePreviewHoldStatus(isOnHold, transactionID, reportID));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
+            ReportUtils.changePreviewHoldStatus(isOnHold, transactionID, reportID);
         },
         getDescription: () => {},
     },
@@ -285,16 +290,24 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: Expensicons.Stopwatch,
-        shouldShow: ({type, moneyRequestAction, areHoldRequirementsMet}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && ReportUtils.canHoldUnholdReportAction(moneyRequestAction).canHoldRequest,
-        onPress: (closePopover, {moneyRequestAction}) => {
+        shouldShow: ({type, reportAction}) => {
+            const areHoldRequirementsMet = !!reportAction?.childHoldData;
+            const isOnHold = !!reportAction?.childHoldData?.isOnHold;
+
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && areHoldRequirementsMet && !isOnHold;
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const isOnHold = !!reportAction?.childHoldData?.isOnHold;
+            const transactionID = reportAction.childHoldData?.transactionID ?? '-1';
+            const reportID = reportAction.childHoldData?.reportID ?? '-1';
+
             if (closePopover) {
-                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction));
+                hideContextMenu(false, () => ReportUtils.changePreviewHoldStatus(isOnHold, transactionID, reportID));
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            ReportUtils.changeMoneyRequestHoldStatus(moneyRequestAction);
+            ReportUtils.changePreviewHoldStatus(isOnHold, transactionID, reportID);
         },
         getDescription: () => {},
     },
