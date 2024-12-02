@@ -6406,6 +6406,7 @@ function getReportFromHoldRequestsOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 iouReportID: optimisticExpenseReport.reportID,
+                hasOutstandingChildRequest: optimisticExpenseReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && optimisticExpenseReport.statusNum === CONST.REPORT.STATE_NUM.SUBMITTED,
             },
         },
         // add new optimistic expense report
@@ -7069,6 +7070,13 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
+            value: {
+                hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport?.reportID ?? '-1'),
+            },
+        });
         const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport?.reportID);
         heldTransactions.forEach((heldTransaction) => {
             optimisticData.push({
