@@ -602,11 +602,10 @@ function IOURequestStepConfirmation({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
-            <View style={[styles.flex1, styles.mb6]}>
+            <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={navigateBack}
