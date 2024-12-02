@@ -201,7 +201,9 @@ describe('SidebarLinksData', () => {
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            await initializeState(report);
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
 
             // The report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
