@@ -279,11 +279,22 @@ function MoneyRequestParticipantsSelector({
      */
     const addSingleParticipant = useCallback(
         (option: Participant & OptionsListUtils.Option) => {
-            const participantDetails = lodashPick(option?.participantsList?.at(0), 'firstName', 'lastName', 'displayName', 'phoneNumber', 'avatar');
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
-                    ...participantDetails,
+                    ...lodashPick(
+                        option,
+                        'accountID',
+                        'login',
+                        'isPolicyExpenseChat',
+                        'reportID',
+                        'searchText',
+                        'policyID',
+                        'participantsList[0].firstName',
+                        'participantsList[0].lastName',
+                        'participantsList[0].displayName',
+                        'participantsList[0].phoneNumber',
+                        'participantsList[0].avatar',
+                    ),
                     selected: true,
                     iouType,
                 },
