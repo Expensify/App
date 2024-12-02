@@ -66,6 +66,9 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value ?? {};
+        if (!session.creationDate){
+            session.creationDate = new Date().getTime();
+        }
         if (session.authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;

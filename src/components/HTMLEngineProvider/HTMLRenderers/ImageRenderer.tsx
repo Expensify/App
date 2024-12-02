@@ -53,7 +53,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]??(new RegExp(CONST.ATTACHMENT_LOCAL_URL).test(htmlAttribs.src)?htmlAttribs.src:null);
+    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]??(new RegExp(CONST.ATTACHMENT_LOCAL_URL, "i").test(htmlAttribs.src)?htmlAttribs.src:null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
