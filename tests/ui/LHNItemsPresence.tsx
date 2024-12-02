@@ -209,20 +209,20 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
             await waitForBatchedUpdatesWithAct();
 
+            // And the report is initialized in Onyx.
             const expenseReport: Report = {
-                ...createReport(true, undefined, undefined, undefined, TEST_POLICY_ID),
+                ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            // When the report has outstanding violations
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
-            // And the draft icon should be shown, indicating there is unsent content.
+            // The RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
     });
