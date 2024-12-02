@@ -3,10 +3,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
 const MASKING_PATTERN = '***';
+const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
 const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
+
+function stringContainsEmail(text: string) {
+    return emailRegex.test(text);
+}
+
+function extractEmail(text: string) {
+    const match = text.match(emailRegex);
+    return match ? match[0] : null; // Return the email if found, otherwise null
+}
 
 const randomizeEmail = (email: string): string => {
     const [localPart, domain] = email.split('@');
@@ -18,6 +28,10 @@ const randomizeEmail = (email: string): string => {
 
     return `${randomLocal}@${randomDomain}.${tld}`;
 };
+
+function replaceEmailInString(text: string, emailReplacement: string) {
+    return text.replace(emailRegex, emailReplacement);
+}
 
 const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
     const session = data.session as Session;
@@ -43,7 +57,20 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
     }
 
     if (Array.isArray(data)) {
-        return data.map((item): unknown => (typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item));
+        return data.map((item): unknown => {
+            if (typeof item === 'string' && Str.isValidEmail(item)) {
+                let maskedEmail = '';
+                if (!emailMap.has(item)) {
+                    maskedEmail = randomizeEmail(item);
+                    emailMap.set(item, maskedEmail);
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    maskedEmail = emailMap.get(item) as string;
+                }
+                return maskedEmail;
+            }
+            return typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item;
+        });
     }
 
     const maskedData: Record<string, unknown> = {};
@@ -79,6 +106,19 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
                 maskedEmail = emailMap.get(value) as string;
             }
             maskedData[propertyName] = maskedEmail;
+        } else if (typeof value === 'string' && stringContainsEmail(value)) {
+            let maskedEmailString = value;
+            const email = extractEmail(value) ?? '';
+
+            if (!emailMap.has(email)) {
+                const randomEmail = randomizeEmail(email);
+                emailMap.set(email, randomEmail);
+                maskedEmailString = replaceEmailInString(value, randomEmail);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                maskedEmailString = replaceEmailInString(value, emailMap.get(email) as string);
+            }
+            maskedData[propertyName] = maskedEmailString;
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
             maskedData[propertyName] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
