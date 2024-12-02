@@ -450,23 +450,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -508,17 +491,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (report?.reportID && isDebugModeEnabled) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
-                translationKey: 'debug.debug',
-                icon: Expensicons.Bug,
-                action: () => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID)),
-                isAnonymousAction: true,
-                shouldShowRightIcon: true,
-            });
-        }
-
         if (report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
@@ -536,12 +508,22 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (report?.reportID && isDebugModeEnabled) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
+                translationKey: 'debug.debug',
+                icon: Expensicons.Bug,
+                action: () => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID)),
+                isAnonymousAction: true,
+                shouldShowRightIcon: true,
+            });
+        }
+
         return items;
     }, [
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -893,6 +875,23 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             brickRoadIndicator={item.brickRoadIndicator}
                         />
                     ))}
+
+                    {shouldShowLeaveButton && (
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
+                            icon={Expensicons.Exit}
+                            title={translate('common.leave')}
+                            isAnonymousAction
+                            onPress={() => {
+                                if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                                    setIsLastMemberLeavingGroupModalVisible(true);
+                                    return;
+                                }
+
+                                leaveChat();
+                            }}
+                        />
+                    )}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
