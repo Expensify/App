@@ -1,25 +1,33 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import isSearchTopmostCentralPane from '@navigation/isSearchTopmostCentralPane';
 import * as Modal from '@userActions/Modal';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const defaultSearchContext = {
+type SearchRouterContext = {
+    isSearchRouterDisplayed: boolean;
+    openSearchRouter: () => void;
+    closeSearchRouter: () => void;
+    toggleSearch: () => void;
+    registerSearchPageInput: (ref: BaseTextInputRef) => void;
+    unregisterSearchPageInput: () => void;
+};
+
+const defaultSearchContext: SearchRouterContext = {
     isSearchRouterDisplayed: false,
     openSearchRouter: () => {},
     closeSearchRouter: () => {},
     toggleSearch: () => {},
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    registerSearchPageInput: (fn?: () => void) => {},
+    registerSearchPageInput: () => {},
+    unregisterSearchPageInput: () => {},
 };
-
-type SearchRouterContext = typeof defaultSearchContext;
 
 const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageFocusInputRef = useRef<(() => void) | undefined>(undefined);
+    const searchPageInputRef = useRef<BaseTextInputRef | undefined>();
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
@@ -39,12 +47,16 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
         // There are callbacks that live outside of React render-loop and interact with SearchRouter
         // So we need a function that is based on ref to correctly open/close it
-        // When on `/search` Page we instead focus the Input
+        // When user is on `/search` page we focus the Input instead of showing router
         const toggleSearch = () => {
             const isUserOnSearchPage = isSearchTopmostCentralPane();
 
-            if (isUserOnSearchPage && searchPageFocusInputRef.current) {
-                searchPageFocusInputRef.current?.();
+            if (isUserOnSearchPage && searchPageInputRef.current) {
+                if (searchPageInputRef.current?.isFocused()) {
+                    searchPageInputRef.current.blur();
+                } else {
+                    searchPageInputRef.current.focus();
+                }
             } else if (searchRouterDisplayedRef.current) {
                 closeSearchRouter();
             } else {
@@ -52,8 +64,12 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
         };
 
-        const registerSearchPageInput = (focusSearchInput?: () => void) => {
-            searchPageFocusInputRef.current = focusSearchInput;
+        const registerSearchPageInput = (ref: BaseTextInputRef) => {
+            searchPageInputRef.current = ref;
+        };
+
+        const unregisterSearchPageInput = () => {
+            searchPageInputRef.current = undefined;
         };
 
         return {
@@ -62,6 +78,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             closeSearchRouter,
             toggleSearch,
             registerSearchPageInput,
+            unregisterSearchPageInput,
         };
     }, [isSearchRouterDisplayed, setIsSearchRouterDisplayed]);
 

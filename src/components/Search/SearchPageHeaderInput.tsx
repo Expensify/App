@@ -86,29 +86,23 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<BaseTextInputRef>(null);
-    const {registerSearchPageInput} = useSearchRouterContext();
+    const {registerSearchPageInput, unregisterSearchPageInput} = useSearchRouterContext();
+
+    // If query is non-canned that means Search Input is displayed, so we need to register it in the context.
+    useEffect(() => {
+        if (isCannedQuery || !textInputRef.current) {
+            return unregisterSearchPageInput();
+        }
+
+        registerSearchPageInput(textInputRef.current);
+
+        return unregisterSearchPageInput;
+    }, [isCannedQuery, registerSearchPageInput, unregisterSearchPageInput]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates);
         setAutocompleteSubstitutions(substitutionsMap);
     }, [originalInputQuery, personalDetails, reports, taxRates]);
-
-    // If query is non-canned that means Search Input is displayed so we need to register it in the context
-    useEffect(() => {
-        if (!isCannedQuery) {
-            registerSearchPageInput(() => {
-                setIsAutocompleteListVisible(true);
-                textInputRef.current?.focus();
-                listRef.current?.updateAndScrollToFocusedIndex(0);
-            });
-        } else {
-            registerSearchPageInput(undefined);
-        }
-
-        return () => {
-            registerSearchPageInput(undefined);
-        };
-    }, [registerSearchPageInput, isCannedQuery]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
