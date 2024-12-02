@@ -32,7 +32,7 @@ Onyx.connect({
  * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
  */
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
+export const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
 let isLoadingReportData = true;
 Onyx.connect({
@@ -68,7 +68,7 @@ Onyx.connect({
     },
 });
 
-function resetHasReadRequiredDataFromStorage() {
+export function resetHasReadRequiredDataFromStorage() {
     // Create a new promise and a new resolve function
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
@@ -127,5 +127,3 @@ function tryFocusModeUpdate() {
         Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, true);
     });
 }
-
-export {resetHasReadRequiredDataFromStorage, autoSwitchToFocusMode};

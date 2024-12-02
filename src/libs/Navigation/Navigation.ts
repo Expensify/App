@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import {getAllReports} from '@libs/ReportConnection';
-import * as ReportUtils from '@libs/ReportUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,12 +105,12 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         default:
             return url;
     }

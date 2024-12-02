@@ -59,9 +59,9 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
-import * as PolicyActions from './actions/Policy/Policy';
+import {createDraftWorkspace} from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
-import * as SessionUtils from './actions/Session';
+import {isAnonymousUser as isAnonymousUserSessionUtils} from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -8180,7 +8180,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return true;
     }
 
-    if (isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
+    if (isPublicRoom(report) && isAnonymousUserSessionUtils()) {
         return false;
     }
 
@@ -8226,7 +8226,7 @@ function getReportActionActorAccountID(
 }
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = PolicyActions.createDraftWorkspace();
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
     IOU.setMoneyRequestParticipants(transactionID, [
         {
             selected: true,

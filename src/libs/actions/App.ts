@@ -16,7 +16,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as SessionUtils from '@libs/SessionUtils';
+import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,9 +27,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import * as PersistedRequests from './PersistedRequests';
-import * as Policy from './Policy/Policy';
+import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
-import * as Session from './Session';
+import {isAnonymousUser} from './Session';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -369,8 +369,8 @@ function endSignOnTransition() {
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
-    const policyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
+    const policyID = generatePolicyID();
+    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -393,7 +393,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**
@@ -421,7 +421,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
 
-    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo') as Route | null;
 
@@ -468,7 +468,7 @@ function redirectThirdPartyDesktopSignIn() {
  */
 function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
     // There's no support for anonymous users on desktop
-    if (Session.isAnonymousUser()) {
+    if (isAnonymousUser()) {
         return;
     }
 

@@ -8,15 +8,15 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import * as CurrencyUtils from './CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
 import {validateAmount} from './MoneyRequestUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
-import * as searchParser from './SearchParser/searchParser';
-import * as UserUtils from './UserUtils';
-import * as ValidationUtils from './ValidationUtils';
+import {getReportName} from './ReportUtils';
+import {parse} from './SearchParser/searchParser';
+import {hashText} from './UserUtils';
+import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
@@ -171,10 +171,10 @@ function getFindIDFromDisplayValue(cardList: OnyxTypes.CardList, taxRates: Recor
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
             if (typeof filter === 'string') {
                 const email = filter;
-                return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
+                return getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
             }
             const emails = filter;
-            return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+            return emails.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
         }
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             const names = Array.isArray(filter) ? filter : ([filter] as string[]);
@@ -216,11 +216,11 @@ function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
     }
 
     if (typeof filter === 'string') {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
+        const backendAmount = convertToBackendAmount(Number(filter));
         return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
     }
     return filter.map((amount) => {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+        const backendAmount = convertToBackendAmount(Number(amount));
         return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
     });
 }
@@ -244,14 +244,14 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
-    const recentSearchHash = UserUtils.hashText(orderedQuery, 2 ** 32);
+    const recentSearchHash = hashText(orderedQuery, 2 ** 32);
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     if (query.policyID) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
     }
-    const primaryHash = UserUtils.hashText(orderedQuery, 2 ** 32);
+    const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash};
 }
@@ -264,7 +264,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
  */
 function buildSearchQueryJSON(query: SearchQueryString) {
     try {
-        const result = searchParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results
@@ -475,9 +475,9 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE) {
             filtersForm[FILTER_KEYS.DATE_BEFORE] =
-                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
+                filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_BEFORE];
             filtersForm[FILTER_KEYS.DATE_AFTER] =
-                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_AFTER];
+                filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[FILTER_KEYS.DATE_AFTER];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
@@ -544,10 +544,10 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
         return cardList[filter]?.bank || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filter));
+        const frontendAmount = convertToFrontendAmountAsInteger(Number(filter));
         return Number.isNaN(frontendAmount) ? filter : frontendAmount.toString();
     }
     return filter;

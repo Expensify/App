@@ -69,7 +69,7 @@
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-live-markdown": "0.1.187",
-    "@expo/metro-runtime": "~3.2.3",
+    "@expo/metro-runtime": "4.0.0",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
     "@formatjs/intl-datetimeformat": "^6.12.5",
