@@ -2539,7 +2539,6 @@ const translations = {
                         return 'Member';
                 }
             },
-            submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
         perDiem: {
