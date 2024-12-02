@@ -13,7 +13,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,7 +44,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {isOffline} = useNetwork();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
     const {canUseDefaultRooms} = usePermissions();
@@ -144,7 +142,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >

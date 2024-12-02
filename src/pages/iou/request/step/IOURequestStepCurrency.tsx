@@ -69,7 +69,7 @@ function IOURequestStepCurrency({
             onBackButtonPress={() => navigateBack()}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             {({didScreenTransitionEnd}) => (
                 <CurrencySelectionList

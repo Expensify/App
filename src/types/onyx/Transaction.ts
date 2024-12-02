@@ -458,6 +458,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
+
+        /** The card transaction's posted date */
+        posted?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
