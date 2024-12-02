@@ -87,10 +87,12 @@ import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
-import * as UnreadIndicatorUpdaterHelper from './UnreadIndicatorUpdater';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
+
+// Dynamic Import to avoid circular dependency
+const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -632,7 +634,9 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-        UnreadIndicatorUpdaterHelper.triggerUnreadUpdate();
+        UnreadIndicatorUpdaterHelper().then((module) => {
+            module.triggerUnreadUpdate();
+        });
 
         // Each time a new report is added we will check to see if the user should be switched
         PriorityModeActions.autoSwitchToFocusMode();
