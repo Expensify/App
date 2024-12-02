@@ -999,7 +999,6 @@ describe('OptionsListUtils', () => {
                 recentReportOptions: OPTIONS.reports,
                 personalDetailsOptions: OPTIONS.personalDetails,
                 currentUserOption: null,
-                excludeUnknownUsers: false,
             });
 
             expect(canCreate).toBe(false);

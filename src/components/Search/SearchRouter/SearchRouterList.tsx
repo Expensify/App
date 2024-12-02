@@ -140,7 +140,7 @@ function SearchRouterList(
             return [];
         }
 
-        const filteredOptions = OptionsListUtils.getOptions(
+        const filteredOptions = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
