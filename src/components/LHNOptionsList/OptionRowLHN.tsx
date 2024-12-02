@@ -322,6 +322,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     {shouldShowGreenDotIndicator && (
                                         <View style={styles.ml2}>
                                             <Icon
+                                                testID="GBR Icon"
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.success}
                                             />

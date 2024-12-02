@@ -226,6 +226,26 @@ describe('SidebarLinksData', () => {
             // The RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
+
+        it('should display the report with needing user action', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(false),
+                hasOutstandingChildRequest: true,
+            };
+
+            // And the report is initialized in Onyx.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then the report should appear in the sidebar because it requires attention from the user
+            expect(getOptionRows()).toHaveLength(1);
+
+            // And a green dot icon should be shown
+            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+        });
     });
 
     describe('Report that should NOT be included in the LHN', () => {
