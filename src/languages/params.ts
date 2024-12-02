@@ -531,6 +531,10 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
@@ -557,6 +561,10 @@ type CurrencyCodeParams = {
 
 type CompanyNameParams = {
     companyName: string;
+};
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -759,6 +767,8 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     CompanyNameParams,
+    ChatWithAccountManagerParams,
 };
