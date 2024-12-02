@@ -254,7 +254,10 @@ describe('SidebarLinksData', () => {
         it('should display the unread report in the focuse mode with the bold text', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const report: Report = createReport(undefined, undefined, undefined, undefined, undefined, true);
+            const report: Report = {
+                ...createReport(undefined, undefined, undefined, undefined, undefined, true),
+                lastMessageText: 'fake last message',
+            };
 
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
