@@ -934,7 +934,6 @@ function orderReportOptions(
     return lodashOrderBy(
         options,
         [
-            (option) => option?.lastVisibleActionCreated ?? 0,
             (option) => {
                 if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
                     return 0;
@@ -965,11 +964,17 @@ function orderReportOptions(
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
+            (option) => {
+                if (option.private_isArchived) {
+                    return CONST.DATE.UNIX_EPOCH;
+                }
+                return option?.lastVisibleActionCreated ?? '';
+            },
             // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
             preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
             preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
-        ['desc', 'asc', 'desc', 'desc'],
+        ['asc', 'desc', 'desc', 'desc'],
     );
 }
 
