@@ -1,11 +1,15 @@
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import * as Localize from '@libs/Localize';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -48,6 +52,7 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+const TEST_POLICY_ID = '1';
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -64,10 +69,58 @@ const getDisplayNames = () => {
 };
 
 // Reusable function to setup a mock report. Feel free to add more parameters as needed.
-const createReport = (isPinned = false, participants = [1, 2], messageCount = 1) => {
+const createReport = (
+    isPinned = false,
+    participants = [1, 2],
+    messageCount = 1,
+    chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined = undefined,
+    policyID: string = CONST.POLICY.ID_FAKE,
+) => {
     return {
         ...LHNTestUtils.getFakeReport(participants, messageCount),
         isPinned,
+        chatType,
+        policyID,
+    };
+};
+
+const createFakeTransactionViolation = (violationName: ViolationName = CONST.VIOLATIONS.HOLD, showInReview = true) => {
+    return LHNTestUtils.getFakeTransactionViolation(violationName, showInReview);
+};
+
+const createReportWithRBR = (): OnyxMultiSetInput => {
+    const report = createReport(undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID);
+    const expenseReport = ReportUtils.buildOptimisticExpenseReport(report.reportID, TEST_POLICY_ID, 100, 122, 'USD');
+    const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+    const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+        'create',
+        100,
+        'USD',
+        '',
+        [],
+        expenseTransaction.transactionID,
+        undefined,
+        expenseReport.reportID,
+        undefined,
+        false,
+        false,
+        undefined,
+        undefined,
+    );
+    const transactionViolation = createFakeTransactionViolation();
+
+    return {
+        [ONYXKEYS.COLLECTION.REPORT]: {
+            [expenseReport.reportID]: expenseReport,
+            [report.reportID]: report,
+        },
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`]: {
+            [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+        },
+        [ONYXKEYS.COLLECTION.TRANSACTION]: {
+            [expenseTransaction.transactionID]: expenseTransaction,
+        },
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${expenseTransaction.transactionID}`]: [transactionViolation],
     };
 };
 
@@ -80,14 +133,15 @@ describe('SidebarLinksData', () => {
     });
 
     // Helper to initialize common state
-    const initializeState = async (reportData: ReportCollectionDataSet) => {
+    const initializeState = async (reportData?: ReportCollectionDataSet, otherData?: OnyxMultiSetInput) => {
         await waitForBatchedUpdates();
         await Onyx.multiSet({
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
             [ONYXKEYS.BETAS]: betas,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.IS_LOADING_APP]: false,
-            ...reportData,
+            ...(reportData ?? {}),
+            ...(otherData ?? {}),
         });
     };
 
@@ -173,6 +227,17 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
 
             // TODO add the proper assertion for the pinned report.
+        });
+
+        it('should display the report with violations', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const onyxData = createReportWithRBR();
+
+            await initializeState(undefined);
+            await Onyx.multiSet(onyxData);
+
+            expect(getOptionRows()).toHaveLength(1);
         });
     });
 

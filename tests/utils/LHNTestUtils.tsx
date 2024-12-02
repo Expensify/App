@@ -14,7 +14,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -244,6 +244,14 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
     };
 }
 
+function getFakeTransactionViolation(violationName: ViolationName, showInReview = true): TransactionViolation {
+    return {
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        name: violationName,
+        showInReview,
+    };
+}
+
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
@@ -354,4 +362,5 @@ export {
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,
+    getFakeTransactionViolation,
 };
