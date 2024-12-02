@@ -6,11 +6,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
@@ -85,7 +85,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
-    const textInputRef = useRef<BaseTextInputRef>(null);
+    const textInputRef = useRef<AnimatedTextInputRef>(null);
     const {registerSearchPageInput, unregisterSearchPageInput} = useSearchRouterContext();
 
     // If query is non-canned that means Search Input is displayed, so we need to register it in the context.
@@ -229,14 +229,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
-    const searchQueryItem = {
-        text: textInputValue,
-        singleIcon: Expensicons.MagnifyingGlass,
-        searchQuery: textInputValue,
-        itemStyle: styles.activeComponentBG,
-        keyForList: 'findItem',
-        searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-    };
+    const searchQueryItem = textInputValue
+        ? {
+              text: textInputValue,
+              singleIcon: Expensicons.MagnifyingGlass,
+              searchQuery: textInputValue,
+              itemStyle: styles.activeComponentBG,
+              keyForList: 'findItem',
+              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+          }
+        : undefined;
 
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const popoverHorizontalPosition = 12 - BORDER_WIDTH;

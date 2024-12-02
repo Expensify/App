@@ -1,5 +1,5 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostCentralPane from '@navigation/isSearchTopmostCentralPane';
 import * as Modal from '@userActions/Modal';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -9,7 +9,7 @@ type SearchRouterContext = {
     openSearchRouter: () => void;
     closeSearchRouter: () => void;
     toggleSearch: () => void;
-    registerSearchPageInput: (ref: BaseTextInputRef) => void;
+    registerSearchPageInput: (ref: AnimatedTextInputRef) => void;
     unregisterSearchPageInput: () => void;
 };
 
@@ -27,7 +27,7 @@ const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageInputRef = useRef<BaseTextInputRef | undefined>();
+    const searchPageInputRef = useRef<AnimatedTextInputRef>();
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
@@ -52,7 +52,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             const isUserOnSearchPage = isSearchTopmostCentralPane();
 
             if (isUserOnSearchPage && searchPageInputRef.current) {
-                if (searchPageInputRef.current?.isFocused()) {
+                if (searchPageInputRef.current.isFocused()) {
                     searchPageInputRef.current.blur();
                 } else {
                     searchPageInputRef.current.focus();
@@ -64,7 +64,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             }
         };
 
-        const registerSearchPageInput = (ref: BaseTextInputRef) => {
+        const registerSearchPageInput = (ref: AnimatedTextInputRef) => {
             searchPageInputRef.current = ref;
         };
 
