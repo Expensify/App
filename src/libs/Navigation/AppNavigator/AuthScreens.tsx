@@ -398,7 +398,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.SEARCH.CENTRAL_PANE}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={rootNavigatorOptions.searchPage}
                         getComponent={loadSearchPage}
                         initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                     />

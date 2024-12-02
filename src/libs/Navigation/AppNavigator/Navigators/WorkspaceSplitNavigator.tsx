@@ -1,6 +1,8 @@
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
+import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -30,15 +32,21 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 const Stack = createSplitStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceNavigator() {
+    const route = useRoute();
+    const rootNavigatorOptions = useRootNavigatorOptions();
+
     return (
         <FocusTrapForScreens>
             <Stack.Navigator
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
+                parentRoute={route}
+                screenOptions={rootNavigatorOptions.centralPaneNavigator}
             >
                 <Stack.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     getComponent={loadWorkspaceInitialPage}
+                    options={rootNavigatorOptions.homeScreen}
                 />
                 {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
                     <Stack.Screen

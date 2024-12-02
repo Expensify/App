@@ -1,21 +1,27 @@
-import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
-import {createNavigatorFactory, useNavigationBuilder, useRoute} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import {StackView} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import type {ParamListBase} from '@react-navigation/native';
+import {createNavigatorFactory} from '@react-navigation/native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
+import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
+import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
+import type {
+    CustomEffectsHookProps,
+    CustomStateHookProps,
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import SplitStackRouter from './SplitStackRouter';
-import type {SplitStackNavigatorProps, SplitStackNavigatorRouterOptions} from './types';
-import useHandleScreenResize from './useHandleScreenResize';
-import usePrepareSplitStackNavigatorChildren from './usePrepareSplitStackNavigatorChildren';
 import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
 
-function getStateToRender(state: StackNavigationState<ParamListBase>, isSmallScreenWidth: boolean): StackNavigationState<ParamListBase> {
+function useCustomEffects(props: CustomEffectsHookProps, route) {
+    useNavigationResetOnLayoutChange(props);
+    usePreserveSplitNavigatorState(route, props.navigation.getState());
+}
+
+function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const sidebarScreenRoute = state.routes.at(0);
 
     if (!sidebarScreenRoute) {
@@ -23,67 +29,22 @@ function getStateToRender(state: StackNavigationState<ParamListBase>, isSmallScr
     }
 
     const centralScreenRoutes = state.routes.slice(1);
-    const routes = isSmallScreenWidth ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
+    const routesToRender = shouldUseNarrowLayout ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
 
-    return {
-        ...state,
-        routes,
-        index: routes.length - 1,
-    };
+    return {stateToRender: {...state, routes: routesToRender, index: routesToRender.length - 1}};
 }
 
-function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackNavigatorProps<ParamList>) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
+    createRouter: SplitStackRouter,
+    useCustomEffects,
+    defaultScreenOptions: defaultPlatformStackScreenOptions,
+    useCustomState: useCustomSplitNavigatorState,
+});
 
-
-    // const children = usePrepareSplitStackNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
-
-    const route = useRoute();
-
-    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-        StackNavigationState<ParamListBase>,
-        SplitStackNavigatorRouterOptions,
-        StackActionHelpers<ParamListBase>,
-        StackNavigationOptions,
-        StackNavigationEventMap
-    >(SplitStackRouter, {
-        children: props.children,
-        // screenOptions: screenOptions.centralPaneNavigator,
-        initialRouteName: props.initialRouteName,
-        sidebarScreen: props.sidebarScreen,
-        defaultCentralScreen: props.defaultCentralScreen,
-        parentRoute: route,
-    });
-
-    // We need to copy the state to the params so that the state is preserved when the root navigator unmount this route for performance reasons.
-    usePreserveSplitNavigatorState(route, state);
-    useHandleScreenResize(navigation);
-
-    const stateToRender = useMemo(() => getStateToRender(state, shouldUseNarrowLayout), [state, shouldUseNarrowLayout]);
-
-    return (
-        <FocusTrapForScreens>
-            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
-                <NavigationContent>
-                    <StackView
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                        state={stateToRender}
-                        descriptors={descriptors}
-                        navigation={navigation}
-                    />
-                </NavigationContent>
-            </View>
-        </FocusTrapForScreens>
-    );
-}
-
-SplitStackNavigator.displayName = 'SplitStackNavigator';
-
-export default function <ParamList extends ParamListBase>() {
-    return createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, React.ComponentType<SplitStackNavigatorProps<ParamList>>>(
-        SplitStackNavigator,
+function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigatorComponent>(
+        CustomFullScreenNavigatorComponent,
     )<ParamList>();
 }
+
+export default createCustomFullScreenNavigator;

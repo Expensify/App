@@ -1,9 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -20,7 +22,8 @@ const Stack = createSplitStackNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator() {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-
+    const rootNavigatorOptions = useRootNavigatorOptions();
+    const route = useRoute();
     let initialReportID: string | undefined;
     const isInitialRender = useRef(true);
 
@@ -47,10 +50,13 @@ function ReportsSplitNavigator() {
                 <Stack.Navigator
                     sidebarScreen={SCREENS.HOME}
                     defaultCentralScreen={SCREENS.REPORT}
+                    parentRoute={route}
+                    screenOptions={rootNavigatorOptions.centralPaneNavigator}
                 >
                     <Stack.Screen
                         name={SCREENS.HOME}
                         getComponent={loadSidebarScreen}
+                        options={rootNavigatorOptions.homeScreen}
                     />
                     <Stack.Screen
                         name={SCREENS.REPORT}
