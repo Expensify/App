@@ -124,6 +124,7 @@ const fakePersonalDetails: PersonalDetailsList = {
 
 let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
+let lastFakeTransactionID = 0;
 
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
@@ -188,6 +189,15 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
         },
+    };
+}
+
+function getFakeTransaction(expenseReportID: string, amount = 1, currency: string = CONST.CURRENCY.USD) {
+    return {
+        transactionID: `${++lastFakeTransactionID}`,
+        amount,
+        currency,
+        reportID: expenseReportID,
     };
 }
 
@@ -363,4 +373,5 @@ export {
     getFakePolicy,
     getFakeAdvancedReportAction,
     getFakeTransactionViolation,
+    getFakeTransaction,
 };

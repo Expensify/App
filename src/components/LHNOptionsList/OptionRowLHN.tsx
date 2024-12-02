@@ -307,6 +307,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                         {hasBrickError && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
+                                                    testID="RBR Icon"
                                                     src={Expensicons.DotIndicator}
                                                     fill={theme.danger}
                                                 />

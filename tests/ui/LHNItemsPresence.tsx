@@ -5,11 +5,9 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import * as Localize from '@libs/Localize';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ViolationName} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -86,42 +84,6 @@ const createReport = (
 
 const createFakeTransactionViolation = (violationName: ViolationName = CONST.VIOLATIONS.HOLD, showInReview = true) => {
     return LHNTestUtils.getFakeTransactionViolation(violationName, showInReview);
-};
-
-const createReportWithRBR = (): OnyxMultiSetInput => {
-    const report = createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID);
-    const expenseReport = ReportUtils.buildOptimisticExpenseReport(report.reportID, TEST_POLICY_ID, 100, 122, 'USD');
-    const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
-    const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
-        'create',
-        100,
-        'USD',
-        '',
-        [],
-        expenseTransaction.transactionID,
-        undefined,
-        expenseReport.reportID,
-        undefined,
-        false,
-        false,
-        undefined,
-        undefined,
-    );
-    const transactionViolation = createFakeTransactionViolation();
-
-    return {
-        [ONYXKEYS.COLLECTION.REPORT]: {
-            [expenseReport.reportID]: expenseReport,
-            [report.reportID]: report,
-        },
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`]: {
-            [expenseCreatedAction.reportActionID]: expenseCreatedAction,
-        },
-        [ONYXKEYS.COLLECTION.TRANSACTION]: {
-            [expenseTransaction.transactionID]: expenseTransaction,
-        },
-        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${expenseTransaction.transactionID}`]: [transactionViolation],
-    };
 };
 
 describe('SidebarLinksData', () => {
@@ -232,11 +194,40 @@ describe('SidebarLinksData', () => {
         it('should display the report with violations', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const onyxData = createReportWithRBR();
 
-            await initializeState(undefined, onyxData);
+            // And the report is initialized in Onyx.
+            const report: Report = {
+                ...createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID),
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+            };
 
+            await initializeState(report);
+
+            // The report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
+
+            const expenseReport: Report = {
+                ...createReport(true, undefined, undefined, undefined, TEST_POLICY_ID),
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
+            const transactionViolation = createFakeTransactionViolation();
+
+            await Onyx.multiSet({
+                [ONYXKEYS.COLLECTION.REPORT]: {
+                    [expenseReport.reportID]: expenseReport,
+                },
+                [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                    [transaction.transactionID]: transaction,
+                },
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
+
+            // And the draft icon should be shown, indicating there is unsent content.
+            expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
     });
 
