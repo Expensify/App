@@ -242,7 +242,6 @@ export default {
     cardBorderRadius: 4,
 
     cardNameWidth: 156,
-    holdMenuIconSize: 50,
     updateAnimationW: 390,
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,

@@ -42,8 +42,8 @@ function HoldMenuSectionList() {
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}
                 >
                     <Icon
-                        width={variables.holdMenuIconSize}
-                        height={variables.holdMenuIconSize}
+                        width={variables.menuIconSize}
+                        height={variables.menuIconSize}
                         src={section.icon}
                         additionalStyles={[styles.mr4]}
                     />
