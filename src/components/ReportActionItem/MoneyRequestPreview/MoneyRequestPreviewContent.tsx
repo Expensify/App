@@ -203,7 +203,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (TransactionUtils.isPending(transaction)) {
-            message += `${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
