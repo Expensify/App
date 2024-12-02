@@ -401,8 +401,8 @@ function MoneyRequestParticipantsSelector({
     }, []);
 
     const headerContent = useMemo(() => {
-        if (showImportContacts && inputHelperText) {
-            return (
+        const importContacts =
+            showImportContacts && inputHelperText ? (
                 <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>
                         {`${translate('common.noResultsFound')}. `}
@@ -415,20 +415,23 @@ function MoneyRequestParticipantsSelector({
                         {translate('contact.importContactsExplanation')}
                     </Text>
                 </View>
-            );
-        }
-        if (!shouldDisplayTrackExpenseButton) {
-            return;
-        }
+            ) : null;
 
         // We only display the track expense button if the user is coming from the combined submit/track flow.
-        return (
+        const expenseButton = shouldDisplayTrackExpenseButton ? (
             <MenuItem
                 title={translate('iou.justTrackIt')}
                 shouldShowRightIcon
                 icon={Expensicons.Coins}
                 onPress={onTrackExpensePress}
             />
+        ) : null;
+
+        return (
+            <>
+                {importContacts}
+                {expenseButton}
+            </>
         );
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
