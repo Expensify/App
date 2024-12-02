@@ -3,19 +3,21 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import getBankIcon from '@components/Icon/BankIcons';
-import type {BankName} from '@components/Icon/BankIconsUtils';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/CardListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CategorySection} from '@libs/OptionsListUtils';
+import * as CardUtils from '@libs/CardUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import * as SearchActions from '@userActions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
@@ -27,19 +29,26 @@ function SearchFiltersCardPage() {
     const [newCards, setNewCards] = useState(currentCards ?? []);
 
     const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
+        const newSections: Section[] = [];
         const cards = Object.values(cardList ?? {})
             .sort((a, b) => a.bank.localeCompare(b.bank))
             .map((card) => {
-                const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
+                const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
+                const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+                const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
 
                 return {
                     lastFourPAN: card.lastFourPAN,
                     isVirtual: card?.nameValuePairs?.isVirtual,
-                    text: card.bank,
+                    text,
                     keyForList: card.cardID.toString(),
                     isSelected: newCards.includes(card.cardID.toString()),
-                    bankIcon: icon,
+                    bankIcon: {
+                        icon,
+                        iconWidth: variables.cardIconWidth,
+                        iconHeight: variables.cardIconHeight,
+                        iconStyles: [styles.cardIcon],
+                    },
                 };
             });
         newSections.push({

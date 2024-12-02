@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -26,15 +27,23 @@ import type * as OnyxTypes from '@src/types/onyx';
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
 type AssigneeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Selected feed */
+    feed: OnyxTypes.CompanyCardFeed;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
+function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const isEditing = assignCard?.isEditing;
 
@@ -57,11 +66,15 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
 
+        const nextStep = CardUtils.hasOnlyOneCardToAssign(filteredCardList) ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
+
         CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data: {
                 email: selectedMember,
-                cardName: `${memberName}'s card`,
+                cardName: CardUtils.getDefaultCardName(memberName),
+                cardNumber: Object.keys(filteredCardList).at(0),
+                encryptedCardNumber: Object.values(filteredCardList).at(0),
             },
             isEditing: false,
         });
@@ -69,7 +82,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                isEditing: false,
+            });
             return;
         }
         Navigation.goBack();

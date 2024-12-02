@@ -531,6 +531,10 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
@@ -543,12 +547,24 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type LastFourDigitsParams = {
+    lastFourDigits: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
 
 type CurrencyCodeParams = {
     currencyCode: string;
+};
+
+type CompanyNameParams = {
+    companyName: string;
+};
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -641,6 +657,7 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -750,5 +767,8 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
+    CompanyNameParams,
+    ChatWithAccountManagerParams,
 };

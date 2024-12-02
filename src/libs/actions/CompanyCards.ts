@@ -10,6 +10,7 @@ import type {
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -121,19 +122,20 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME, parameters, onyxData);
 }
 
-function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: string, liabilityType: string) {
+function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: CompanyCardFeed, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
+    const feedUpdates = {
+        [bankName]: {liabilityType},
+    };
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    settings: {
-                        companyCards: {
-                            [bankName]: {liabilityType},
-                        },
-                    },
+                    settings: isCustomFeed ? {companyCards: feedUpdates} : {oAuthAccountDetails: feedUpdates},
                 },
             },
         ],
@@ -149,27 +151,33 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
 
-function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: string) {
+function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: CompanyCardFeed, feedToOpen?: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
+    const feedUpdates = {[bankName]: null};
 
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-                value: {
-                    settings: {
-                        companyCards: {
-                            [bankName]: null,
-                        },
-                        companyCardNicknames: {
-                            [bankName]: null,
-                        },
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    ...(isCustomFeed ? {companyCards: feedUpdates} : {oAuthAccountDetails: feedUpdates}),
+                    companyCardNicknames: {
+                        [bankName]: null,
                     },
                 },
             },
-        ],
-    };
+        },
+    ];
+
+    if (feedToOpen) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: feedToOpen,
+        });
+    }
 
     const parameters = {
         authToken,
@@ -177,7 +185,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
         bankName,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData});
 }
 
 function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardData>) {
@@ -244,6 +252,27 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        ],
+
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
                     [cardID]: null,
                 },
             },
@@ -262,7 +291,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
                 value: {
                     [cardID]: {
-                        ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
@@ -272,7 +301,7 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
                 key: ONYXKEYS.CARD_LIST,
                 value: {
                     [cardID]: {
-                        ...card,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
@@ -288,8 +317,12 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: string) {
+function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
+    const optimisticFeedUpdates = {[bankName]: {errors: null}};
+    const failureFeedUpdates = {[bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}}};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -325,13 +358,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: null,
-                        },
-                    },
-                },
+                settings: isCustomFeed ? {companyCards: optimisticFeedUpdates} : {oAuthAccountDetails: optimisticFeedUpdates},
             },
         },
     ];
@@ -398,13 +425,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: {
-                    companyCards: {
-                        [bankName]: {
-                            errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR},
-                        },
-                    },
-                },
+                settings: isCustomFeed ? {companyCards: failureFeedUpdates} : {oAuthAccountDetails: failureFeedUpdates},
             },
         },
     ];
@@ -493,25 +514,23 @@ function updateCompanyCardName(workspaceAccountID: number, cardID: string, newCa
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
 }
 
-function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bankName: string) {
+function setCompanyCardExportAccount(policyID: string, workspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: string) {
     const authToken = NetworkStore.getAuthToken();
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            [accountKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         errorFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
-                        exportAccountDetails: {
-                            [accountKey]: newAccount,
-                        },
+                        [accountKey]: newAccount,
                     },
                 },
             },
@@ -521,12 +540,12 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: null,
                         },
                     },
                 },
@@ -536,15 +555,15 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`,
             value: {
                 [cardID]: {
                     nameValuePairs: {
                         pendingFields: {
-                            exportAccountDetails: null,
+                            [accountKey]: newAccount,
                         },
                         errorFields: {
-                            exportAccountDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            [accountKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         },
                     },
                 },
@@ -555,7 +574,7 @@ function setCompanyCardExportAccount(workspaceAccountID: number, cardID: string,
     const parameters: SetCompanyCardExportAccountParams = {
         authToken,
         cardID: Number(cardID),
-        exportAccountDetails: {[accountKey]: newAccount},
+        exportAccountDetails: JSON.stringify({[accountKey]: newAccount, [`${accountKey}_policy_id`]: policyID}),
     };
 
     API.write(WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT, parameters, {optimisticData, finallyData, failureData});
@@ -574,6 +593,15 @@ function clearCompanyCardErrorField(workspaceAccountID: number, cardID: string, 
         [cardID]: {
             nameValuePairs: {
                 errorFields: {[fieldName]: null},
+            },
+        },
+    });
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            nameValuePairs: {
+                errorFields: {
+                    [fieldName]: null,
+                },
             },
         },
     });
