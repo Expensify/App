@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
-import type {Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
@@ -296,7 +296,17 @@ function removeMembers(accountIDs: number[], policyID: string) {
         failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
     });
 
+    const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
+    const optimisticApprovalRules: ApprovalRule[] = [];
+
     Object.keys(policy?.employeeList ?? {}).forEach((employeeEmail) => {
+        approvalRules.forEach((rule) => {
+            if (employeeEmail === rule?.approver) {
+                return;
+            }
+            optimisticApprovalRules.push(rule);
+        });
+
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
         failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
@@ -336,7 +346,14 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: optimisticMembersState, approver: emailList.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver},
+            value: {
+                employeeList: optimisticMembersState,
+                approver: emailList.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver,
+                rules: {
+                    ...(policy?.rules ?? {}),
+                    approvalRules: optimisticApprovalRules,
+                },
+            },
         },
     ];
     optimisticData.push(...announceRoomMembers.onyxOptimisticData);
@@ -354,7 +371,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: failureMembersState, approver: policy?.approver},
+            value: {employeeList: failureMembersState, approver: policy?.approver, rules: policy?.rules},
         },
     ];
     failureData.push(...announceRoomMembers.onyxFailureData);
