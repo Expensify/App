@@ -17,6 +17,9 @@ type ReportMetadata = {
 
     /** The time when user last visited the report */
     lastVisitTime?: string;
+
+    /** Whether participants private notes are being currently loaded */
+    isLoadingPrivateNotes?: boolean;
 };
 
 export default ReportMetadata;
