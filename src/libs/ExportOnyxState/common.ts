@@ -143,4 +143,4 @@ const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnable
     return onyxState;
 };
 
-export default {maskOnyxState};
+export {maskOnyxState, emailRegex};
