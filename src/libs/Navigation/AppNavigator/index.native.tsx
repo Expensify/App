@@ -21,25 +21,16 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
-    /**
-     * kiedy chcemy pokazać auth screens:
-     * - logujemy do OD
-     *      - nie chcemy wcale
-     * - logujemy do ND
-     *      - gdy jesteśmy authenticated (po odpaleniu signInToOldDot)
-     * - przechodzimy z OD do ND
-     *      - od razu o ile jesteśmy zalogowani, ale powinniśmy być zawsze
-     */
     const shouldShowAuthScreens = useMemo(() => {
         if (!NativeModules.HybridAppModule) {
             return authenticated;
         }
-        if (shouldUseOldApp(tryNewDot)) {
+        if (shouldUseOldApp(tryNewDot) && !hybridApp?.isSingleNewDotEntry) {
             return false;
         }
 
         return authenticated && (!hybridApp?.useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
-    }, [authenticated, hybridApp?.readyToShowAuthScreens, tryNewDot, hybridApp?.useNewDotSignInPage]);
+    }, [tryNewDot, hybridApp?.isSingleNewDotEntry, hybridApp?.useNewDotSignInPage, hybridApp?.readyToShowAuthScreens, authenticated]);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initialURL || !shouldShowAuthScreens) {
