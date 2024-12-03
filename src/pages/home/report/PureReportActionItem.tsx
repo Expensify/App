@@ -193,9 +193,6 @@ type PureReportActionItemProps = {
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
-    /** Whether the user has a payment card added to its account. */
-    doesUserHavePaymentCardAdded?: boolean | undefined;
-
     /** Function to create a draft transaction and navigate to participant selector */
     createDraftTransactionAndNavigateToParticipantSelector?: (transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string) => void;
 
@@ -246,6 +243,9 @@ type PureReportActionItemProps = {
 
     /** Function to dismiss the actionable whisper for tracking expenses */
     dismissTrackExpenseActionableWhisper?: (reportID: string, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => void;
+
+    /** User payment card ID */
+    userBillingFundID?: number;
 };
 
 function PureReportActionItem({
@@ -281,7 +281,6 @@ function PureReportActionItem({
     isArchivedRoom,
     isChronosReport,
     toggleEmojiReaction = () => {},
-    doesUserHavePaymentCardAdded,
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
@@ -296,6 +295,7 @@ function PureReportActionItem({
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
+    userBillingFundID,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -525,7 +525,7 @@ function PureReportActionItem({
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (ReportActionsUtils.isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded && shouldRenderAddPaymentCard()) {
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',
@@ -630,9 +630,9 @@ function PureReportActionItem({
         action,
         isActionableWhisper,
         reportID,
+        userBillingFundID,
         createDraftTransactionAndNavigateToParticipantSelector,
         dismissTrackExpenseActionableWhisper,
-        doesUserHavePaymentCardAdded,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
     ]);
@@ -1216,7 +1216,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport &&
-        prevProps.doesUserHavePaymentCardAdded === nextProps.doesUserHavePaymentCardAdded
+        prevProps.isChronosReport === nextProps.isChronosReport
     );
 });

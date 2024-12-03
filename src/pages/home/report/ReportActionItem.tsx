@@ -4,7 +4,6 @@ import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvi
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Transaction from '@userActions/Transaction';
@@ -39,6 +38,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const blockedFromConcierge = useBlockedFromConcierge();
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
 
     return (
         <PureReportActionItem
@@ -61,7 +61,6 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             isArchivedRoom={ReportUtils.isArchivedRoomWithID(originalReportID)}
             isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={Report.toggleEmojiReaction}
-            doesUserHavePaymentCardAdded={doesUserHavePaymentCardAdded()}
             createDraftTransactionAndNavigateToParticipantSelector={ReportUtils.createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={Report.resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={Report.resolveActionableMentionWhisper}
@@ -75,6 +74,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             clearError={Transaction.clearError}
             clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={Report.dismissTrackExpenseActionableWhisper}
+            userBillingFundID={userBillingFundID}
         />
     );
 }
