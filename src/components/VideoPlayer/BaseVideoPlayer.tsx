@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -212,7 +212,7 @@ function BaseVideoPlayer({
             }
 
             if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
-                updateVolume(0.25);
+                updateVolume(Platform.OS === 'web' ? 0.25 : 1);
             }
             if (isFullScreenRef.current && prevVolumeRef.current !== 0 && status.volume === 0 && !status.isMuted) {
                 currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
