@@ -21,7 +21,7 @@ type DelegateMagicCodeModalProps = {
 function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
     const validateLoginError = ErrorUtils.getLatestError(addDelegateErrors);
@@ -54,7 +54,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => User.requestValidateCodeAction()}
-            hasMagicCodeBeenSent={!!currentDelegate?.validateCodeSent}
+            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={(validateCode) => Delegate.addDelegate(login, role, validateCode)}
             description={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
