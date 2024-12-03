@@ -40,8 +40,11 @@ type FeatureTrainingModalProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
-    /** Style for the animation container */
-    animationContainerStyle?: StyleProp<ViewStyle>;
+    /** Style for the animation inner container */
+    animationInnerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the animation outer container */
+    animationOuterContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to render the animation instead of the video */
     animationStyle?: StyleProp<ViewStyle>;
@@ -94,7 +97,8 @@ type FeatureTrainingModalProps = {
 function FeatureTrainingModal({
     animation,
     animationStyle,
-    animationContainerStyle,
+    animationInnerContainerStyle,
+    animationOuterContainerStyle,
     videoURL,
     videoAspectRatio: videoAspectRatioProp,
     title = '',
@@ -158,6 +162,7 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
+                    animationInnerContainerStyle,
                     !shouldRenderAnimation && {aspectRatio},
                 ]}
             >
@@ -200,6 +205,7 @@ function FeatureTrainingModal({
         animationStyle,
         animation,
         shouldUseNarrowLayout,
+        animationInnerContainerStyle,
     ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
@@ -242,7 +248,7 @@ function FeatureTrainingModal({
                     }}
                 >
                     <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationContainerStyle]}>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationOuterContainerStyle]}>
                             {renderIllustration()}
                         </View>
                         <View style={[styles.mt5, styles.mh5]}>

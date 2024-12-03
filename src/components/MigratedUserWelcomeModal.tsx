@@ -44,11 +44,8 @@ function OnboardingWelcomeVideo() {
             }}
             shouldRenderAnimation
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
-            animationContainerStyle={[
-                StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor),
-                shouldUseNarrowLayout && styles.migratedUserModalIllustration,
-                styles.ph0,
-            ]}
+            animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), shouldUseNarrowLayout && styles.cardSectionIllustration]}
+            animationOuterContainerStyle={styles.p0}
             contentContainerStyles={styles.mb4}
             modalInnerContainerStyle={styles.pt0}
         >

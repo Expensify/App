@@ -5340,11 +5340,6 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-
-        migratedUserModalIllustration: {
-            width: 'auto',
-            height: variables.modalTopBigIconHeight,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
