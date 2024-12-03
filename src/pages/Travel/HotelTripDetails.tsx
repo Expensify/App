@@ -1,44 +1,71 @@
 import React from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import * as TripReservationUtils from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
+import type {Reservation} from '@src/types/onyx/Transaction';
 
 type HotelTripDetailsProps = {
-    transaction: OnyxEntry<Transaction>;
+    reservation: Reservation;
     personalDetails: OnyxEntry<PersonalDetails>;
 };
 
-function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps) {
+function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const hotelReservation = transaction?.receipt?.reservationList?.at(0);
-
-    if (!transaction || !hotelReservation) {
-        return null;
-    }
-
-    const reservationIcon = TripReservationUtils.getTripReservationIcon(hotelReservation.type);
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.start.date));
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.end.date));
-    const cancellationText = hotelReservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(hotelReservation.cancellationDeadline)).date}`
-        : hotelReservation.cancellationPolicy;
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const cancellationText = reservation.cancellationDeadline
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline)).date}`
+        : reservation.cancellationPolicy;
 
     return (
         <>
+            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{reservation.start.longName}</Text>
+            <MenuItemWithTopDescription
+                description={translate('common.address')}
+                title={reservation.start.address}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                description={translate('travel.hotelDetails.checkIn')}
+                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkInDate.date}</Text>}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                description={translate('travel.hotelDetails.checkOut')}
+                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkOutDate.date}</Text>}
+                interactive={false}
+            />
+
+            {!!reservation.roomClass && (
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.roomType')}
+                    title={reservation.roomClass.trim()}
+                    interactive={false}
+                />
+            )}
+            {!!cancellationText && (
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.cancellation')}
+                    title={cancellationText}
+                    interactive={false}
+                />
+            )}
+            {!!reservation.confirmations?.at(0)?.value && (
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.confirmation')}
+                    title={reservation.confirmations?.at(0)?.value}
+                    interactive={false}
+                />
+            )}
             <MenuItem
                 label={translate('travel.hotelDetails.guest')}
                 title={personalDetails?.displayName}
@@ -48,52 +75,6 @@ function HotelTripDetails({transaction, personalDetails}: HotelTripDetailsProps)
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />
-            <MenuItem
-                title={hotelReservation.start.longName}
-                description={translate('travel.hotel')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                secondaryIcon={reservationIcon}
-                wrapperStyle={[styles.taskDescriptionMenuItem]}
-                numberOfLinesDescription={2}
-                iconHeight={20}
-                iconWidth={20}
-                iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                secondaryIconFill={theme.icon}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.address')}
-                title={hotelReservation.start.address}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={`${translate('travel.hotelDetails.checkIn')} ${CONST.DOT_SEPARATOR} ${checkInDate.date}`}
-                title={checkInDate.hour}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={`${translate('travel.hotelDetails.checkOut')} ${CONST.DOT_SEPARATOR} ${checkOutDate.date}`}
-                title={checkOutDate.hour}
-                interactive={false}
-            />
-            {!!cancellationText && (
-                <View>
-                    <MenuItemWithTopDescription
-                        description={translate('travel.carDetails.cancellation')}
-                        title={cancellationText}
-                        interactive={false}
-                    />
-                </View>
-            )}
-            {!!hotelReservation.confirmations?.at(0)?.value && (
-                <View>
-                    <MenuItemWithTopDescription
-                        description={translate('travel.hotelDetails.confirmation')}
-                        title={hotelReservation.confirmations?.at(0)?.value}
-                        interactive={false}
-                    />
-                </View>
-            )}
         </>
     );
 }

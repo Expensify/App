@@ -222,6 +222,9 @@ type Reservation = {
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
 
+    /** In hotel reservations, this represents the room class */
+    roomClass?: string;
+
     /** In flight reservations, this represents the details of the route */
     route?: {
         /** Route airline code */
