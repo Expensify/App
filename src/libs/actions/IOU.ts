@@ -7540,12 +7540,20 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
     }
 
     if (chatReport?.reportID) {
-        failureData.push({
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 hasOutstandingChildRequest: true,
                 iouReportID: expenseReport.reportID,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
+                iouReportID: chatReport.iouReportID,
             },
         });
     }
