@@ -67,30 +67,28 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     iconFill={theme.icon}
                 />
                 <ScrollView>
-                    {reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
-                            transaction={transaction}
+                            reservation={reservation}
                             personalDetails={personalDetails}
-                            reservationIndex={route.params.reservationIndex}
                         />
                     )}
-                    {reservationType === CONST.RESERVATION_TYPE.HOTEL && (
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.HOTEL && (
                         <HotelTripDetails
-                            transaction={transaction}
+                            reservation={reservation}
                             personalDetails={personalDetails}
                         />
                     )}
-                    {reservationType === CONST.RESERVATION_TYPE.CAR && (
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.CAR && (
                         <CarTripDetails
-                            transaction={transaction}
+                            reservation={reservation}
                             personalDetails={personalDetails}
                         />
                     )}
-                    {reservationType === CONST.RESERVATION_TYPE.TRAIN && (
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.TRAIN && (
                         <TrainTripDetails
-                            transaction={transaction}
+                            reservation={reservation}
                             personalDetails={personalDetails}
-                            reservationIndex={route.params.reservationIndex}
                         />
                     )}
                     <MenuItem
