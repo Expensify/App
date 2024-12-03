@@ -290,6 +290,9 @@ type OriginalMessageChangeLog = {
 
     /** Name of connection */
     connectionName?: AllConnectionName;
+
+    /** Name of the added category */
+    categoryName?: string;
 };
 
 /** Model of `join policy changelog` report action */

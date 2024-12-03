@@ -4868,6 +4868,18 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
     });
 }
 
+function getWorkspaceAddCategoryMessage(action: ReportAction): string {
+    const {categoryName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (!categoryName) {
+        return ReportActionsUtils.getReportActionText(action);
+    }
+
+    return Localize.translateLocal('workspaceActions.addCategory', {
+        categoryName,
+    });
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -8822,6 +8834,7 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
+    getWorkspaceAddCategoryMessage,
 };
 
 export type {

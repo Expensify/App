@@ -4444,10 +4444,8 @@ const translations = {
         },
     },
     workspaceActions: {
+        addCategory: ({categoryName}: {categoryName: string}) => `added the category "${categoryName}"`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
-            `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4462,6 +4460,10 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
+            `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
+        updatedWorkspaceCorporatePlan: 'upgraded this workspace to the Control plan',
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

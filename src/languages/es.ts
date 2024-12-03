@@ -4493,10 +4493,8 @@ const translations = {
         },
     },
     workspaceActions: {
+        addCategory: ({categoryName}: {categoryName: string}) => `agregó la categoría "${categoryName}"`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `actualizó la moneda predeterminada de ${oldCurrency} a ${newCurrency}`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
-            `actualizó la frecuencia de generación automática de informes de "${oldFrequency}" a "${newFrequency}"`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4511,6 +4509,10 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `actualizó la moneda predeterminada de ${oldCurrency} a ${newCurrency}`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
+            `actualizó la frecuencia de generación automática de informes de "${oldFrequency}" a "${newFrequency}"`,
+        updatedWorkspaceCorporatePlan: 'mejoró este espacio de trabajo al plan Controlar',
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
