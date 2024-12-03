@@ -46,6 +46,14 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+/**
+ * Workspace downgrade is temporarily disabled
+ * API is being integrated in this GH issue https://github.com/Expensify/App/issues/51494
+ */
+function canUseWorkspaceDowngrade() {
+    return false;
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -55,4 +63,5 @@ export default {
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUsePerDiem,
+    canUseWorkspaceDowngrade,
 };

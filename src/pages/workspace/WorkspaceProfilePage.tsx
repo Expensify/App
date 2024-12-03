@@ -47,7 +47,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, canUseWorkspaceDowngrade} = usePermissions();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -268,7 +268,8 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 </View>
                             </OfflineWithFeedback>
                         )}
-                        {!readOnly && !!policy?.type && (
+
+                        {canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
