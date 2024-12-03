@@ -554,6 +554,7 @@ jobs:
         run: |
           op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
           op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
+          op document get --output ./OldApp_AppStore_Notification_Service.mobileprovision OldApp_AppStore_Notification_Service
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
