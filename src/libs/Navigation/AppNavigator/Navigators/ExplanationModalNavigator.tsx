@@ -1,19 +1,18 @@
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import ExplanationModal from '@components/ExplanationModal';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {ExplanationModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createPlatformStackNavigator<ExplanationModalNavigatorParamList>();
+const Stack = createStackNavigator<ExplanationModalNavigatorParamList>();
 
 function ExplanationModalNavigator() {
     return (
         <NoDropZone>
             <View>
-                <Stack.Navigator screenOptions={{headerShown: false, animation: Animations.SLIDE_FROM_RIGHT}}>
+                <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: true}}>
                     <Stack.Screen
                         name={SCREENS.EXPLANATION_MODAL.ROOT}
                         component={ExplanationModal}

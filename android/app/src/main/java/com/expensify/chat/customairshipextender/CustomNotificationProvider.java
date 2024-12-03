@@ -8,7 +8,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -31,13 +30,10 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
-import androidx.core.content.pm.ShortcutInfoCompat;
-import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
 import com.expensify.chat.R;
-import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -51,7 +47,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -210,47 +205,44 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
-            // Create the Person object who sent the latest report comment
+            // create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
             builder.setLargeIcon(personIcon);
 
             Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
 
-            ShortcutManagerUtils.addDynamicShortcut(context, reportID, name, accountID, personIcon, person);
-
             // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             NotificationCompat.MessagingStyle.Message newMessage = new NotificationCompat.MessagingStyle.Message(message, createdTimeInMillis, person);
 
-            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
-
-            // Add all conversation messages to the notification, including the last one we just received.
-            List<NotificationCompat.MessagingStyle.Message> messages;
-            if (hasExistingNotification) {
-                NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
-                messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
-            } else {
-                messages = new ArrayList<>();
-            }
-
-            // add the last one message we just received.
-            messages.add(newMessage);
-
-            for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
-                messagingStyle.addMessage(activeMessage);
-            }
-
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!roomName.isEmpty()) {
+            if (!conversationName.isEmpty() || hasExistingNotification) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
-                messagingStyle
+                NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                         .setGroupConversation(true)
-                        .setConversationTitle(roomName);
+                        .setConversationTitle(conversationName);
+
+
+                // Add all conversation messages to the notification, including the last one we just received.
+                List<NotificationCompat.MessagingStyle.Message> messages;
+                if (hasExistingNotification) {
+                    NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
+                    messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+                } else {
+                    messages = new ArrayList<>();
+                }
+
+                // add the last one message we just received.
+                messages.add(newMessage);
+
+                for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
+                    messagingStyle.addMessage(activeMessage);
+                }
+
+                builder.setStyle(messagingStyle);
             }
-            builder.setStyle(messagingStyle);
-            builder.setShortcutId(accountID);
 
             // save reportID and person info for future merging
             builder.addExtras(createMessageExtrasBundle(reportID, person));

@@ -80,17 +80,12 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DEPLOY_VERSION':
             return version;
         case 'IOS':
-        case 'IOS_HYBRID':
         case 'ANDROID':
-        case 'ANDROID_HYBRID':
         case 'DESKTOP':
         case 'WEB':
             return 'success';
-        case 'DATE':
-        case 'NOTE':
-            return '';
         default:
-            throw new Error(`Trying to access invalid input: ${key}`);
+            throw new Error('Trying to access invalid input');
     }
 }
 
@@ -198,9 +193,7 @@ platform | result
 🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🕸 web 🕸|success ✅`,
                 issue_number: PR.issue_number,
                 owner: 'Expensify',
                 repo: 'App',
@@ -230,9 +223,7 @@ platform | result
 🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🕸 web 🕸|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
                 owner: 'Expensify',
                 repo: 'App',
@@ -295,8 +286,6 @@ platform | result
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
@@ -333,9 +322,7 @@ platform | result
 🤖 android 🤖|skipped 🚫
 🖥 desktop 🖥|cancelled 🔪
 🍎 iOS 🍎|failed ❌
-🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🕸 web 🕸|success ✅`,
                 issue_number: PR.issue_number,
                 owner: 'Expensify',
                 repo: 'App',

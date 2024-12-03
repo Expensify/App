@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -15,56 +15,46 @@ import CarouselButtons from './CarouselButtons';
 import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
-import type {AttachmentCarouselProps} from './types';
+import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
+
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        let newAttachments: Attachment[] = [];
+        let targetAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, reportID: report.reportID});
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions, reportID: report.reportID});
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
         }
 
-        let newIndex = newAttachments.findIndex(compareImage);
-        const index = attachments.findIndex(compareImage);
+        const initialPage = targetAttachments.findIndex(compareImage);
 
-        // If newAttachments includes an attachment with the same index, update newIndex to that index.
-        // Previously, uploading an attachment offline would dismiss the modal when the image was previewed and the connection was restored.
-        // Now, instead of dismissing the modal, we replace it with the new attachment that has the same index.
-        if (newIndex === -1 && index !== -1 && newAttachments.at(index)) {
-            newIndex = index;
-        }
-
-        // If no matching attachment with the same index, dismiss the modal
-        if (newIndex === -1 && index !== -1 && attachments.at(index)) {
+        // Dismiss the modal when deleting an attachment during its display in preview.
+        if (initialPage === -1 && attachments.find(compareImage)) {
             Navigation.dismissModal();
         } else {
-            setPage(newIndex);
-            setAttachments(newAttachments);
+            setPage(initialPage);
+            setAttachments(targetAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(newIndex !== -1);
+                setDownloadButtonVisibility(initialPage !== -1);
             }
 
-            const attachment = newAttachments.at(newIndex);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
-                onNavigate(attachment);
+            if (targetAttachments[initialPage] !== undefined && onNavigate) {
+                onNavigate(targetAttachments[initialPage]);
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -76,15 +66,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Keyboard.dismiss();
             setShouldShowArrows(true);
 
-            const item = attachments.at(newPageIndex);
+            const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
-            if (newPageIndex >= 0 && item) {
-                setActiveSource(item.source);
-                if (onNavigate) {
-                    onNavigate(item);
-                }
-                onNavigate?.(item);
+            setActiveSource(item.source);
+
+            if (onNavigate) {
+                onNavigate(item);
             }
         },
         [setShouldShowArrows, attachments, onNavigate],
@@ -156,4 +144,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default AttachmentCarousel;
+export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+        canEvict: false,
+    },
+    reportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+    },
+})(AttachmentCarousel);

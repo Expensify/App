@@ -20,15 +20,6 @@ Onyx.connect({
     },
 });
 
-// Check if the user is logged in as a delegate and send that if so
-let delegate = '';
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        delegate = val?.delegatedAccess?.delegate ?? '';
-    },
-});
-
 /**
  * Does this command require an authToken?
  */
@@ -65,10 +56,6 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.appversion = pkg.version;
 
     finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
-
-    if (delegate) {
-        finalParameters.delegate = delegate;
-    }
 
     return finalParameters;
 }

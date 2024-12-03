@@ -61,28 +61,21 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
-        suffixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
-        excludedMarkdownStyles = [],
         shouldShowClearButton = false,
-        shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
-        suffixContainerStyle = [],
-        suffixStyle = [],
         contentWidth,
-        loadingSpinnerStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
-    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle();
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -90,7 +83,7 @@ function BaseTextInput(
     // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
-    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
@@ -98,7 +91,6 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
-
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
@@ -150,13 +142,13 @@ function BaseTextInput(
     const deactivateLabel = useCallback(() => {
         const newValue = value ?? '';
 
-        if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter || suffixCharacter) {
+        if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
+    }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
 
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         inputProps.onFocus?.(event);
@@ -253,7 +245,7 @@ function BaseTextInput(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
-    const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
@@ -261,7 +253,6 @@ function BaseTextInput(
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
@@ -285,7 +276,6 @@ function BaseTextInput(
     }, [inputStyle]);
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
-    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     return (
         <>
@@ -303,10 +293,7 @@ function BaseTextInput(
                     // or if multiline is not supplied we calculate the textinput height, using onLayout.
                     onLayout={onLayout}
                     style={[
-                        autoGrowHeight &&
-                            !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -325,6 +312,7 @@ function BaseTextInput(
                 to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
+                                    isLabelActive={isLabelActive.current}
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
@@ -332,9 +320,8 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {!!iconLeft && (
+                            {iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={iconLeft}
@@ -379,7 +366,6 @@ function BaseTextInput(
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
-                                    inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -393,12 +379,12 @@ function BaseTextInput(
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
+                                    ...(autoGrowHeight
                                         ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
-                                    isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
+
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
+                                    inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}
@@ -416,23 +402,12 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {!!suffixCharacter && (
-                                <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
-                                    <Text
-                                        tabIndex={-1}
-                                        style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    >
-                                        {suffixCharacter}
-                                    </Text>
-                                </View>
-                            )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
-                            {!!inputProps.isLoading && (
+                            {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle]}
+                                    style={[styles.mt4, styles.ml1]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -468,7 +443,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {!!contentWidth && (
+            {contentWidth && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
@@ -497,7 +472,7 @@ function BaseTextInput(
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
+            {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
                 // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).

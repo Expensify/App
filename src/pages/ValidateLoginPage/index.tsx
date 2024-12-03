@@ -1,19 +1,18 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ValidateLoginPageProps from './types';
+import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
     route: {
         params: {accountID, validateCode, exitTo},
     },
-}: ValidateLoginPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
+    session,
+}: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
     useEffect(() => {
         // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
@@ -47,4 +46,6 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default ValidateLoginPage;
+export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>, ValidateLoginPageOnyxNativeProps>({
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateLoginPage);

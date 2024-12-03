@@ -9,9 +9,10 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
 import Popover from './Popover';
-import type PopoverProps from './Popover/types';
+import type {PopoverProps} from './Popover/types';
+import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
+type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 
@@ -49,7 +50,6 @@ function PopoverWithMeasuredContent({
     shouldCloseOnOutsideClick = false,
     shouldSetModalVisibility = true,
     statusBarTranslucent = true,
-    navigationBarTranslucent = true,
     avoidKeyboard = false,
     hideModalContentWhileAnimating = false,
     anchorDimensions = {
@@ -155,7 +155,6 @@ function PopoverWithMeasuredContent({
             shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
             shouldSetModalVisibility={shouldSetModalVisibility}
             statusBarTranslucent={statusBarTranslucent}
-            navigationBarTranslucent={navigationBarTranslucent}
             avoidKeyboard={avoidKeyboard}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             modalId={modalId}

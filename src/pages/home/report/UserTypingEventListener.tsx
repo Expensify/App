@@ -1,25 +1,29 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type UserTypingEventListenerProps = {
+type UserTypingEventListenerOnyxProps = {
+    /** Stores last visited path */
+    lastVisitedPath?: string;
+};
+
+type UserTypingEventListenerProps = UserTypingEventListenerOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
-function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
+function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListenerProps) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
 
     useEffect(
         () => () => {
@@ -79,4 +83,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
 UserTypingEventListener.displayName = 'UserTypingEventListener';
 
-export default UserTypingEventListener;
+export default withOnyx<UserTypingEventListenerProps, UserTypingEventListenerOnyxProps>({
+    lastVisitedPath: {
+        key: ONYXKEYS.LAST_VISITED_PATH,
+        selector: (path) => path ?? '',
+    },
+})(UserTypingEventListener);

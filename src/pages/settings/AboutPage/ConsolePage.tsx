@@ -1,9 +1,10 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,7 +26,6 @@ import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,15 +33,23 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CapturedLogs} from '@src/types/onyx';
 
+type ConsolePageOnyxProps = {
+    /** Logs captured on the current device */
+    capturedLogs: OnyxEntry<CapturedLogs>;
+
+    /** Whether or not logs should be stored */
+    shouldStoreLogs: OnyxEntry<boolean>;
+};
+
+type ConsolePageProps = ConsolePageOnyxProps;
+
 const filterBy = {
     all: '',
     network: '[Network]',
 } as const;
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
-function ConsolePage() {
-    const [capturedLogs] = useOnyx(ONYXKEYS.LOGS);
-    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
@@ -50,7 +58,7 @@ function ConsolePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
+    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -96,7 +104,6 @@ function ConsolePage() {
             .reverse();
     }, [capturedLogs, shouldStoreLogs]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const logsList = useMemo(() => getLogs(), [getLogs]);
 
     const filteredLogsList = useMemo(() => logsList.filter((log) => log.message.includes(activeFilterIndex)), [activeFilterIndex, logsList]);
@@ -152,10 +159,7 @@ function ConsolePage() {
     );
 
     return (
-        <ScreenWrapper
-            testID={ConsolePage.displayName}
-            shouldEnableMaxHeight
-        >
+        <ScreenWrapper testID={ConsolePage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
@@ -211,7 +215,6 @@ function ConsolePage() {
                 title={translate('initialSettingsPage.debugConsole.shareLog')}
                 isVisible={isLimitModalVisible}
                 onConfirm={() => setIsLimitModalVisible(false)}
-                onCancel={() => setIsLimitModalVisible(false)}
                 prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
                     size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
                 })}
@@ -224,4 +227,11 @@ function ConsolePage() {
 
 ConsolePage.displayName = 'ConsolePage';
 
-export default ConsolePage;
+export default withOnyx<ConsolePageProps, ConsolePageOnyxProps>({
+    capturedLogs: {
+        key: ONYXKEYS.LOGS,
+    },
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+})(ConsolePage);

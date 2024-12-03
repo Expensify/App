@@ -1,6 +1,8 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,7 +13,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -19,20 +20,22 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+import type {PolicyTagLists} from '@src/types/onyx';
 
-type EditTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
+type EditTagPageOnyxProps = {
+    /** All policy tags */
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-function EditTagPage({route}: EditTagPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
-    const backTo = route.params.backTo;
+type EditTagPageProps = EditTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>;
+
+function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = PolicyUtils.getCleanedTagName(route.params.tagName);
-    const isQuickSettingsFlow = !!backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -42,8 +45,6 @@ function EditTagPage({route}: EditTagPageProps) {
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (escapedTagName === '0') {
-                errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             }
@@ -61,13 +62,9 @@ function EditTagPage({route}: EditTagPageProps) {
                 Tag.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
             }
             Keyboard.dismiss();
-            Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName, backTo)
-                    : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
-            );
+            Navigation.goBack();
         },
-        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight],
     );
 
     return (
@@ -77,20 +74,14 @@ function EditTagPage({route}: EditTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={EditTagPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.editTag')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName, backTo)
-                                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
-                        )
-                    }
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -118,4 +109,8 @@ function EditTagPage({route}: EditTagPageProps) {
 
 EditTagPage.displayName = 'EditTagPage';
 
-export default EditTagPage;
+export default withOnyx<EditTagPageProps, EditTagPageOnyxProps>({
+    policyTags: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
+    },
+})(EditTagPage);

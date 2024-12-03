@@ -11,7 +11,6 @@ type GoogleSignInProps = {
     isDesktopFlow?: boolean;
     // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
-    onPointerDown?: () => void;
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
@@ -28,7 +27,7 @@ const signIn = (response: Response) => {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
+function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const loadScript = useCallback(() => {
@@ -77,7 +76,6 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 id={desktopId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
-                onPointerDown={onPointerDown}
             />
         </View>
     ) : (
@@ -86,7 +84,6 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 id={mainId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
-                onPointerDown={onPointerDown}
             />
         </View>
     );

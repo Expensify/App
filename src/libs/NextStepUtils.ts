@@ -8,9 +8,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -37,20 +37,14 @@ Onyx.connect({
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
-    messages?.forEach((part, index) => {
+
+    messages?.forEach((part) => {
         const isEmail = Str.isValidEmail(part.text);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         let tagType = part.type ?? 'span';
         let content = Str.safeEscape(part.text);
 
-        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-        const nextPart = messages.at(index + 1);
-
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'Your' : 'You';
-        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-            content = '';
-        } else if (isEmail) {
+        if (isEmail) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
@@ -66,10 +60,18 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-function getNextApproverDisplayName(report: OnyxEntry<Report>) {
-    const approverAccountID = getNextApproverAccountID(report);
+function getNextApproverDisplayName(policy: Policy, ownerAccountID: number, submitToAccountID: number, report: OnyxEntry<Report>) {
+    const approvalChain = ReportUtils.getApprovalChain(policy, ownerAccountID, report?.total ?? 0);
+    if (approvalChain.length === 0) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
 
-    return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain[0] : approvalChain[approvalChain.indexOf(currentUserEmail) + 1];
+    if (!nextApproverEmail) {
+        return ReportUtils.getDisplayNameForParticipant(submitToAccountID);
+    }
+
+    return PersonalDetailsUtils.getPersonalDetailByEmail(nextApproverEmail)?.displayName ?? nextApproverEmail;
 }
 
 /**
@@ -89,23 +91,14 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    const nextApproverDisplayName = getNextApproverDisplayName(report);
+    const nextApproverDisplayName = getNextApproverDisplayName(policy, ownerAccountID, submitToAccountID, report);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber;
+    const reimburserDisplayName = ReportUtils.getDisplayNameForParticipant(reimburserAccountID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
-
-    const noActionRequired = {
-        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        type,
-        message: [
-            {
-                text: 'No further action required!',
-            },
-        ],
-    };
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -121,7 +114,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: `${ownerDisplayName}`,
                         type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                     },
                     {
                         text: ' to ',
@@ -142,12 +134,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         text: 'Waiting for ',
                     },
                     {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: `'s`,
+                        text: `${ownerDisplayName}'s`,
                         type: 'strong',
                     },
                     {
@@ -227,13 +214,15 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
         case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = noActionRequired;
-
-            break;
-
-        // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            optimisticNextStep = noActionRequired;
+            optimisticNextStep = {
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                type,
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
 
             break;
 
@@ -249,8 +238,15 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     report,
                 )
             ) {
-                optimisticNextStep = noActionRequired;
-
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    message: [
+                        {
+                            text: 'No further action required!',
+                        },
+                    ],
+                };
                 break;
             }
             // Self review
@@ -261,25 +257,36 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
-                              type: 'strong',
-                          },
+                    {
+                        text: reimburserDisplayName,
+                        type: 'strong',
+                    },
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
+            // Paid with wallet
+            optimisticNextStep = {
+                type,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
+
             break;
 
         // Resets a nextStep

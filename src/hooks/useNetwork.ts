@@ -10,7 +10,6 @@ type UseNetwork = {isOffline: boolean};
 
 export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
-    // eslint-disable-next-line react-compiler/react-compiler
     callback.current = onReconnect;
 
     const {isOffline, networkStatus} = useContext(NetworkContext) ?? {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};

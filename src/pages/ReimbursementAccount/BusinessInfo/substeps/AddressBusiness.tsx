@@ -76,11 +76,11 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            submitButtonStyles={[styles.mb0]}
+            submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
-            <Text style={[styles.pv3, styles.textSupporting]}>{translate('common.noPO')}</Text>
+            <Text>{translate('common.noPO')}</Text>
             <AddressFormFields
                 inputKeys={INPUT_KEYS}
                 shouldSaveDraft={!isEditing}

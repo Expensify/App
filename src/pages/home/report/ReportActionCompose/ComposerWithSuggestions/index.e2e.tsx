@@ -1,7 +1,5 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -27,43 +25,38 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
     // disable compiler for this file.
 
     const textInputRef = useRef<ComposerRef | null>();
-    const hasFocusBeenRequested = useRef(false);
-    const onLayout = useCallback((event: LayoutChangeEvent) => {
+
+    // Eventually Auto focus on e2e tests
+    useEffect(() => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
         if (testConfig?.reportScreen && typeof testConfig.reportScreen !== 'string' && !testConfig?.reportScreen.autoFocus) {
             return;
         }
-        const canRequestFocus = event.nativeEvent.layout.width > 0 && !hasFocusBeenRequested.current;
-        if (!canRequestFocus) {
-            return;
-        }
 
-        hasFocusBeenRequested.current = true;
-
-        const setFocus = () => {
-            console.debug('[E2E] Requesting focus for ComposerWithSuggestions');
-            if (!(textInputRef && 'current' in textInputRef)) {
-                console.error('[E2E] textInputRef is not available, failed to focus');
-                return;
-            }
-
-            textInputRef.current?.focus(true);
-
-            setTimeout(() => {
-                // and actually let's verify that the keyboard is visible
-                if (Keyboard.isVisible()) {
+        // We need to wait for the component to be mounted before focusing
+        setTimeout(() => {
+            const setFocus = () => {
+                if (!(textInputRef && 'current' in textInputRef)) {
                     return;
                 }
 
-                textInputRef.current?.blur();
-                setFocus();
-                // 1000ms is enough time for any keyboard to open
-            }, 1_000);
-        };
+                textInputRef.current?.focus(true);
 
-        // Simulate user behavior and don't set focus immediately
-        setTimeout(setFocus, 2_000);
-    }, []);
+                setTimeout(() => {
+                    // and actually let's verify that the keyboard is visible
+                    if (Keyboard.isVisible()) {
+                        return;
+                    }
+
+                    textInputRef.current?.blur();
+                    setFocus();
+                    // 1000ms is enough time for any keyboard to open
+                }, 1000);
+            };
+
+            setFocus();
+        }, 1);
+    }, [textInputRef]);
 
     return (
         <ComposerWithSuggestions
@@ -76,7 +69,6 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
                     ref(composerRef);
                 }
             }}
-            onLayout={onLayout}
         >
             {/* Important: 
                     this has to be a child, as this container might not

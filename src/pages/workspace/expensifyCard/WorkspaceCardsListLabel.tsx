@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -18,11 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +38,7 @@ type WorkspaceCardsListLabelProps = {
 };
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
-    const route = useRoute<PlatformStackRouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
+    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
     const policy = usePolicy(route.params.policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -52,18 +50,9 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-
-    const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? 0]?.accountData;
-
-        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
-        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
-        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
-    }, [bankAccountList, paymentBankAccountID]);
+    // TODO: instead of the first bankAccount on the list get settlementBankAccountID from the private_expensifyCardSettings NVP and check if that is connected via Plaid.
+    const isConnectedWithPlaid = useMemo(() => !!Object.values(bankAccountList ?? {})[0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -80,7 +69,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        Policy.requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
+        // TODO: uncomment when RequestExpensifyCardLimitIncrease API call is supported
+        // Policy.requestExpensifyCardLimitIncrease(settlementBankAccountID);
         setVisible(false);
         Report.navigateToConciergeChat();
     };
@@ -128,6 +118,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
                         <View style={[styles.flexRow, styles.mt3]}>
                             <Button
+                                medium
                                 onPress={requestLimitIncrease}
                                 text={translate('workspace.expensifyCard.requestLimitIncrease')}
                                 style={shouldUseNarrowLayout && styles.flex1}

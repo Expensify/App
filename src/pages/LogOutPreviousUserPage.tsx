@@ -1,9 +1,10 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -13,18 +14,24 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Session} from '@src/types/onyx';
 
-type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type LogOutPreviousUserPageOnyxProps = {
+    /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
+    session: OnyxEntry<Session>;
+
+    /** Is the account loading? */
+    isAccountLoading: boolean;
+};
+
+type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
 // out if the transition is for another user.
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
-function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
-    const {initialURL} = useContext(InitialURLContext);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isAccountLoading = account?.isLoading;
+function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
+    const initialURL = useContext(InitialURLContext);
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -54,8 +61,9 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
         const shouldForceLogin = route.params.shouldForceLogin === 'true';
         if (shouldForceLogin) {
+            const email = route.params.email ?? '';
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-            SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
+            SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
         }
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -85,4 +93,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
-export default LogOutPreviousUserPage;
+export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
+    isAccountLoading: {
+        key: ONYXKEYS.ACCOUNT,
+        selector: (account) => account?.isLoading ?? false,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(LogOutPreviousUserPage);

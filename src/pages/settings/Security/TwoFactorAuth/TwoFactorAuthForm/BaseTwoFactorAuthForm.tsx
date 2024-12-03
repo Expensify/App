@@ -12,13 +12,9 @@ import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from './t
 
 type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
     autoComplete: AutoCompleteVariant;
-
-    // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
-    // Set this to false in order to disable 2FA when a valid code is entered.
-    validateInsteadOfDisable?: boolean;
 };
 
-function BaseTwoFactorAuthForm({account, autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
@@ -58,13 +54,8 @@ function BaseTwoFactorAuthForm({account, autoComplete, validateInsteadOfDisable}
         }
 
         setFormError({});
-
-        if (validateInsteadOfDisable !== false) {
-            Session.validateTwoFactorAuth(twoFactorAuthCode, shouldClearData);
-            return;
-        }
-        Session.toggleTwoFactorAuth(false, twoFactorAuthCode);
-    }, [twoFactorAuthCode, validateInsteadOfDisable, translate, shouldClearData]);
+        Session.validateTwoFactorAuth(twoFactorAuthCode, shouldClearData);
+    }, [twoFactorAuthCode, shouldClearData, translate]);
 
     useImperativeHandle(ref, () => ({
         validateAndSubmitForm() {

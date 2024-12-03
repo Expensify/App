@@ -16,7 +16,8 @@ function VolumeContextProvider({children}: ChildrenProps) {
                 return;
             }
             currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
-            volume.set(newVolume);
+            // eslint-disable-next-line react-compiler/react-compiler
+            volume.value = newVolume;
         },
         [currentVideoPlayerRef, volume],
     );
@@ -27,8 +28,8 @@ function VolumeContextProvider({children}: ChildrenProps) {
         if (!originalParent) {
             return;
         }
-        updateVolume(volume.get());
-    }, [originalParent, updateVolume, volume]);
+        updateVolume(volume.value);
+    }, [originalParent, updateVolume, volume.value]);
 
     const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

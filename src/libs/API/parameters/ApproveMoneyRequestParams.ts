@@ -12,6 +12,10 @@ type ApproveMoneyRequestParams = {
      * }>
      */
     optimisticHoldReportExpenseActionIDs?: string;
+    /**
+     * Call the optimized version of ApproveMoneyRequest
+     */
+    v2?: boolean;
 };
 
 export default ApproveMoneyRequestParams;

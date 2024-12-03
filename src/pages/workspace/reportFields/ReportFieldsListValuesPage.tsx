@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -14,11 +15,9 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -26,7 +25,6 @@ import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -50,7 +48,7 @@ type ValueListItem = ListItem & {
     orderWeight?: number;
 };
 
-type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type ReportFieldsListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 function ReportFieldsListValuesPage({
     policy,
@@ -60,12 +58,9 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
-    // See https://github.com/Expensify/App/issues/48724 for more details
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-    const {selectionMode} = useMobileSelectionMode();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
@@ -98,8 +93,13 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues.at(index) ?? true,
-                rightElement: <ListItemRightCaretWithLabel labelText={disabledListValues.at(index) ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
+                enabled: !disabledListValues[index] ?? true,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        shouldShowCaret={false}
+                        labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    />
+                ),
             }))
             .sort((a, b) => localeCompare(a.value, b.value));
         return [{data, isDisabled: false}];
@@ -116,9 +116,9 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const areAllSelected = listValues.length === selectedValuesArray.length;
+        const isAllSelected = listValues.length === Object.keys(selectedValues).length;
 
-        setSelectedValues(areAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -154,18 +154,29 @@ function ReportFieldsListValuesPage({
     };
 
     const getCustomListHeader = () => {
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
-            />
+        const header = (
+            <View
+                style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    canSelectMultiple && styles.pl3,
+                ]}
+            >
+                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+            </View>
         );
+        if (canSelectMultiple) {
+            return header;
+        }
+        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (isSmallScreenWidth ? selectionMode?.isEnabled : selectedValuesArray.length > 0) {
+        if ((isSmallScreenWidth ? selectionMode?.isEnabled : true) && selectedValuesArray.length > 0) {
             if (selectedValuesArray.length > 0) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -176,13 +187,13 @@ function ReportFieldsListValuesPage({
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return !disabledListValues?.at(index);
+                return !disabledListValues?.[index];
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (!disabledListValues?.at(index) && index !== -1) {
+                    if (!disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
@@ -190,7 +201,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: Expensicons.DocumentSlash,
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -208,13 +219,13 @@ function ReportFieldsListValuesPage({
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
                 const index = listValues?.indexOf(valueName) ?? -1;
-                return disabledListValues?.at(index);
+                return disabledListValues?.[index];
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
                     const index = listValues?.indexOf(valueName) ?? -1;
-                    if (disabledListValues?.at(index) && index !== -1) {
+                    if (disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
@@ -222,7 +233,7 @@ function ReportFieldsListValuesPage({
                 }, []);
 
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: Expensicons.Document,
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
@@ -244,7 +255,7 @@ function ReportFieldsListValuesPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
@@ -256,6 +267,7 @@ function ReportFieldsListValuesPage({
         return (
             <Button
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                medium
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
@@ -301,15 +313,15 @@ function ReportFieldsListValuesPage({
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                         SkeletonComponent={TableListItemSkeleton}
                         headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.FolderWithPapers}
-                        headerStyles={styles.emptyFolderDarkBG}
-                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
+                        headerMedia={Illustrations.EmptyStateExpenses}
+                        headerStyles={styles.emptyFolderBG}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                     />
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
+                        turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}

@@ -35,11 +35,12 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
             scale.current = newScale;
 
             const newIsScrollEnabled = newScale === 1;
-            if (isScrollEnabled.get() === newIsScrollEnabled) {
+            if (isScrollEnabled.value === newIsScrollEnabled) {
                 return;
             }
 
-            isScrollEnabled.set(newIsScrollEnabled);
+            // eslint-disable-next-line react-compiler/react-compiler
+            isScrollEnabled.value = newIsScrollEnabled;
             onRequestToggleArrows(newIsScrollEnabled);
         },
         [isScrollEnabled, onRequestToggleArrows],
@@ -50,14 +51,14 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
      * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
      */
     const handleTap = useCallback(() => {
-        if (!isScrollEnabled.get()) {
+        if (!isScrollEnabled.value) {
             return;
         }
 
         onRequestToggleArrows();
-    }, [isScrollEnabled, onRequestToggleArrows]);
+    }, [isScrollEnabled.value, onRequestToggleArrows]);
 
-    return {handleTap, handleScaleChange, scale, isScrollEnabled};
+    return {handleTap, handleScaleChange, scale};
 }
 
 export default useCarouselContextEvents;

@@ -1,4 +1,4 @@
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 import type {OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -13,11 +13,11 @@ type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFT
  */
 export default function (): Promise<void> {
     return new Promise<void>((resolve) => {
-        const connection = Onyx.connect({
+        const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
             waitForCollectionCallback: true,
             callback: (allReportActionsDrafts) => {
-                Onyx.disconnect(connection);
+                Onyx.disconnect(connectionID);
 
                 if (!allReportActionsDrafts) {
                     Log.info('[Migrate Onyx] Skipped migration RemoveEmptyReportActionsDrafts because there were no reportActionsDrafts');
@@ -38,7 +38,7 @@ export default function (): Promise<void> {
                                 hasUnmigratedDraft = true;
                                 Log.info(`[Migrate Onyx] Migrating draft for report action ${reportActionID}`);
 
-                                if (isEmpty(reportActionDraft)) {
+                                if (_.isEmpty(reportActionDraft)) {
                                     Log.info(`[Migrate Onyx] Removing draft for report action ${reportActionID}`);
                                     return;
                                 }

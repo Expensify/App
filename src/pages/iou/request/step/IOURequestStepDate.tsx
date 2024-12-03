@@ -99,7 +99,7 @@ function IOURequestStepDate({
             return;
         }
 
-        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
 
         IOU.setMoneyRequestCreated(transaction?.transactionID ?? '-1', newCreated, isTransactionDraft);
 
@@ -117,7 +117,7 @@ function IOURequestStepDate({
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}

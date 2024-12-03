@@ -16,7 +16,6 @@ type WorkspaceCardListHeaderProps = {
 };
 
 function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,8 +44,8 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 />
             </View>
 
-            <View style={[styles.flexRow, styles.mh5, styles.gap2, styles.p4]}>
-                <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.mh5, styles.gap5, styles.p4]}>
+                <View style={[styles.flexRow, styles.flex5, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}
@@ -54,25 +53,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                         {translate('workspace.expensifyCard.name')}
                     </Text>
                 </View>
-                {!shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textLabelSupporting, styles.lh16]}
-                        >
-                            {translate('common.type')}
-                        </Text>
-                    </View>
-                )}
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.gap2,
-                        shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
-                        styles.alignItemsCenter,
-                        shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
-                    ]}
-                >
+                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}

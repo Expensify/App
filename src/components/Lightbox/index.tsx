@@ -50,7 +50,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
      * we need to create a shared value that can be used in the render function.
      */
     const isPagerScrollingFallback = useSharedValue(false);
-    const isScrollingEnabledFallback = useSharedValue(false);
     const {isOffline} = useNetwork();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
@@ -64,14 +63,12 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         onScaleChanged: onScaleChangedContext,
         onSwipeDown,
         pagerRef,
-        isScrollEnabled,
     } = useMemo(() => {
         if (attachmentCarouselPagerContext === null) {
             return {
                 isUsedInCarousel: false,
                 isSingleCarouselItem: true,
                 isPagerScrolling: isPagerScrollingFallback,
-                isScrollEnabled: isScrollingEnabledFallback,
                 page: 0,
                 activePage: 0,
                 onTap: () => {},
@@ -88,7 +85,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
             page: foundPage,
         };
-    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback, uri]);
+    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, uri]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
@@ -218,9 +215,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
                                 pagerRef={pagerRef}
-                                isUsedInCarousel={isUsedInCarousel}
                                 shouldDisableTransformationGestures={isPagerScrolling}
-                                isPagerScrollEnabled={isScrollEnabled}
                                 onTap={onTap}
                                 onScaleChanged={scaleChange}
                                 onSwipeDown={onSwipeDown}

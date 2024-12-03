@@ -1,15 +1,28 @@
 // eslint-disable-next-line no-restricted-imports
-import {useSafeAreaFrame} from 'react-native-safe-area-context';
+import {useWindowDimensions} from 'react-native';
+import variables from '@styles/variables';
 import type WindowDimensions from './types';
 
 /**
- * A wrapper around React Native's useWindowDimensions hook.
+ * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
 export default function (): WindowDimensions {
-    // we need to use `useSafeAreaFrame` instead of `useWindowDimensions` because of https://github.com/facebook/react-native/issues/41918
-    const {width: windowWidth, height: windowHeight} = useSafeAreaFrame();
+    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+    const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
+    const isSmallScreenWidth = true;
+    const isMediumScreenWidth = false;
+    const isLargeScreenWidth = false;
+    const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
+    const isSmallScreen = true;
+
     return {
         windowWidth,
         windowHeight,
+        isExtraSmallScreenHeight,
+        isSmallScreenWidth,
+        isMediumScreenWidth,
+        isLargeScreenWidth,
+        isExtraSmallScreenWidth,
+        isSmallScreen,
     };
 }

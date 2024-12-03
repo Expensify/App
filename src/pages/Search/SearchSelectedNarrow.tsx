@@ -45,17 +45,18 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     };
 
     return (
-        <View style={[styles.pb3]}>
+        <View style={[styles.pb4]}>
             <Button
                 onPress={openMenu}
                 ref={buttonRef}
                 style={[styles.w100, styles.ph5]}
-                text={translate('workspace.common.selected', {count: itemsLength})}
+                text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
                 isContentCentered
                 iconRight={Expensicons.DownArrow}
                 isDisabled={options.length === 0}
                 shouldShowRightIcon={options.length !== 0}
             />
+
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

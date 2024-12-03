@@ -1,10 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -24,7 +23,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -32,20 +31,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
     );
 
-    const members = useMemo(() => {
-        if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
-        }
-
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
-            .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
-
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
-            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
+            style={[styles.border, isSmallScreenWidth ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={onPress}
             accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
         >
@@ -71,8 +60,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
                     descriptionTextStyle={styles.textNormalThemeText}
-                    description={members}
-                    numberOfLinesDescription={4}
+                    description={approvalWorkflow.isDefault ? translate('workspace.common.everyone') : approvalWorkflow.members.map((m) => m.displayName).join(', ')}
                     icon={Expensicons.Users}
                     iconHeight={20}
                     iconWidth={20}

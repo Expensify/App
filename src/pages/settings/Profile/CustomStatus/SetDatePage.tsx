@@ -51,7 +51,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             testID={SetDatePage.displayName}
         >
             <HeaderWithBackButton

@@ -17,11 +17,11 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     };
 }
 
-function getShareMenuItem(report: OnyxReport, backTo?: string): ThreeDotsMenuItem {
+function getShareMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     return {
         icon: Expensicons.QrCode,
         text: Localize.translateLocal('common.share'),
-        onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '', backTo)),
+        onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
     };
 }
 

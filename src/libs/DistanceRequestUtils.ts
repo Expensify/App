@@ -1,9 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -11,7 +12,6 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
-import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -19,7 +19,6 @@ type MileageRate = {
     currency?: string;
     unit: Unit;
     name?: string;
-    enabled?: boolean;
 };
 
 let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
@@ -33,24 +32,20 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
-function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
     if (!policy?.customUnits) {
         return mileageRates;
     }
 
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
-            return;
-        }
-
-        if (!distanceUnit.attributes) {
+        if (!includeDisabledRates && rate.enabled === false) {
             return;
         }
 
@@ -60,7 +55,6 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             unit: distanceUnit.attributes.unit,
             name: rate.name,
             customUnitRateID: rate.customUnitRateID,
-            enabled: rate.enabled,
         };
     });
 
@@ -82,13 +76,13 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
         return undefined;
     }
 
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    if (!distanceUnit?.rates || !distanceUnit.attributes) {
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    if (!distanceUnit?.rates) {
         return;
     }
     const mileageRates = Object.values(getMileageRates(policy));
 
-    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates.at(0) ?? ({} as MileageRate);
+    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates[0] ?? {};
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -134,7 +128,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
- * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
 function getRateForDisplay(
@@ -144,7 +137,6 @@ function getRateForDisplay(
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     isOffline?: boolean,
-    useShortFormUnit?: boolean,
 ): string {
     if (isOffline && !rate) {
         return translate('iou.defaultRate');
@@ -154,11 +146,11 @@ function getRateForDisplay(
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
+    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
+    return `${currencySymbol}${formattedRate} / ${singularDistanceUnit}`;
 }
 
 /**
@@ -167,26 +159,14 @@ function getRateForDisplay(
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param translate Translate function
- * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(
-    hasRoute: boolean,
-    distanceInMeters: number,
-    unit: Unit | undefined,
-    rate: number | undefined,
-    translate: LocaleContextProps['translate'],
-    useShortFormUnit?: boolean,
-): string {
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
     if (!hasRoute || !rate || !unit || !distanceInMeters) {
         return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
-    if (useShortFormUnit) {
-        return `${distanceInUnits} ${unit}`;
-    }
-
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
@@ -217,36 +197,23 @@ function getDistanceMerchant(
         return translate('iou.fieldPending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit);
 
     return `${distanceInUnits} @ ${ratePerUnit}`;
-}
-
-function ensureRateDefined(rate: number | undefined): asserts rate is number {
-    if (rate !== undefined) {
-        return;
-    }
-    throw new Error('All default P2P rates should have a rate defined');
 }
 
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
- * @returns The rate and unit in MileageRate object.
+ * @returns The rate and unit in RateAndUnit object.
  */
-function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
+function getRateForP2P(currency: string): RateAndUnit {
     const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
-    const mileageRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate];
-    ensureRateDefined(mileageRate.rate);
-
-    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = TransactionUtils.getCurrency(transaction) === currency ? transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate : mileageRate.rate;
     return {
-        ...mileageRate,
+        ...CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate],
         currency: currencyWithExistingRate,
-        rate,
     };
 }
 
@@ -306,8 +273,8 @@ function getCustomUnitRateID(reportID: string) {
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
-    const distanceUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    const customUnitRate = PolicyUtils.getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitRate = PolicyUtils.getCustomUnitRate(policy, customUnitRateID);
     if (!distanceUnit || !distanceUnit?.customUnitID || !customUnitRate) {
         return 0;
     }
@@ -316,60 +283,6 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const amount = getDistanceRequestAmount(distance, unit, rate);
     const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 0;
     return amount * taxClaimablePercentage;
-}
-
-function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
-    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-}
-
-/**
- * Get the selected rate for a transaction, from the policy or P2P default rate.
- * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
- */
-function getRate({
-    transaction,
-    policy,
-    policyDraft,
-    useTransactionDistanceUnit = true,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    policyDraft?: OnyxEntry<Policy>;
-    useTransactionDistanceUnit?: boolean;
-}): MileageRate {
-    let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
-    if (isEmptyObject(mileageRates) && policyDraft) {
-        mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
-    }
-    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const defaultMileageRate = getDefaultMileageRate(policy);
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
-    const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
-    return {
-        ...mileageRate,
-        unit,
-        currency: mileageRate?.currency ?? policyCurrency,
-    };
-}
-
-/**
- * Get the updated distance unit from the selected rate instead of the distanceUnit stored on the transaction.
- * Useful for updating the transaction distance unit when the distance or rate changes.
- *
- * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
- * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
- */
-function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
-}
-
-/**
- * Get the mileage rate by its ID in the form it's configured for the policy.
- * If not found, return undefined.
- */
-function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
-    return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
 }
 
 export default {
@@ -383,10 +296,6 @@ export default {
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
-    getDistanceUnit,
-    getUpdatedDistanceUnit,
-    getRate,
-    getRateByCustomUnitRateID,
 };
 
 export type {MileageRate};

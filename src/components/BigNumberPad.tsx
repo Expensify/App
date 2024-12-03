@@ -5,7 +5,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import Button from './Button';
-import * as Expensicons from './Icon/Expensicons';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -80,8 +79,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 large={!isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
-                                text={column === '<' ? undefined : toLocaleDigit(column)}
-                                icon={column === '<' ? Expensicons.BackArrow : undefined}
+                                text={column === '<' ? column : toLocaleDigit(column)}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}

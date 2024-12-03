@@ -1,7 +1,5 @@
-import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import type CONST from '@src/CONST';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -14,68 +12,33 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
-    /** Whether the transaction is currently held */
-    isHeld: boolean;
-
     /** If the transaction can be removed from hold */
     canUnhold: boolean;
 
     /** The action that can be performed for the transaction */
-    action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-
-    /** The reportID of the transaction */
-    reportID: string;
-
-    /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
-
-    /** The transaction amount */
-    amount: number;
+    action: string;
 };
 
-/** Model of selected transactons */
+/** Model of selected results */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
-
-/** Model of selected reports */
-type SelectedReports = {
-    reportID: string;
-    policyID: string;
-    action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-    total: number;
-};
-
-/** Model of payment data used by Search bulk actions */
-type PaymentData = {
-    reportID: string;
-    amount: number;
-    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
-};
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
-type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
+type SearchStatus = ExpenseSearchStatus;
 
 type SearchContext = {
     currentSearchHash: number;
     selectedTransactions: SelectedTransactions;
-    selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions) => void;
     clearSelectedTransactions: (hash?: number) => void;
-    shouldShowStatusBarLoading: boolean;
-    setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
-    setLastSearchType: (type: string | undefined) => void;
-    lastSearchType: string | undefined;
 };
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
-    right: string | ASTNode | string[];
+    right: string | ASTNode;
 };
 
 type QueryFilter = {
@@ -83,47 +46,26 @@ type QueryFilter = {
     value: string | number;
 };
 
-type SearchFilterKey =
-    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
+type AdvancedFiltersKeys = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS;
 
-type QueryFilters = Array<{
-    key: SearchFilterKey;
-    filters: QueryFilter[];
-}>;
+type QueryFilters = {
+    [K in AdvancedFiltersKeys]?: QueryFilter[];
+};
 
 type SearchQueryString = string;
 
 type SearchQueryAST = {
-    type: SearchDataTypes;
+    type: string;
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
     filters: ASTNode;
-    policyID?: string;
 };
 
 type SearchQueryJSON = {
     inputQuery: SearchQueryString;
     hash: number;
-    /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
-    recentSearchHash: number;
-    flatFilters: QueryFilters;
 } & SearchQueryAST;
-
-type SearchAutocompleteResult = {
-    autocomplete: SearchAutocompleteQueryRange | null;
-    ranges: SearchAutocompleteQueryRange[];
-};
-
-type SearchAutocompleteQueryRange = {
-    key: SearchFilterKey;
-    length: number;
-    start: number;
-    value: string;
-};
 
 export type {
     SelectedTransactionInfo,
@@ -138,12 +80,5 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    SearchFilterKey,
-    ExpenseSearchStatus,
-    InvoiceSearchStatus,
-    TripSearchStatus,
-    ChatSearchStatus,
-    SearchAutocompleteResult,
-    PaymentData,
-    SearchAutocompleteQueryRange,
+    AdvancedFiltersKeys,
 };

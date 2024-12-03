@@ -33,19 +33,8 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        hiddenTranslation = Localize.translateLocal('common.hidden');
-        youTranslation = Localize.translateLocal('common.you').toLowerCase();
-    },
-});
+const hiddenTranslation = Localize.translateLocal('common.hidden');
+const youTranslation = Localize.translateLocal('common.you').toLowerCase();
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
@@ -150,7 +139,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
     logins.forEach((login, index) => {
-        const accountID = accountIDs.at(index) ?? -1;
+        const accountID = accountIDs[index];
         if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
@@ -169,7 +158,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
     const personalDetailsCleanup: PersonalDetailsList = {};
 
     newLogins.forEach((login, index) => {
-        const accountID = newAccountIDs.at(index) ?? -1;
+        const accountID = newAccountIDs[index];
         personalDetailsNew[accountID] = {
             login,
             accountID,
@@ -233,7 +222,7 @@ function getFormattedStreet(street1 = '', street2 = '') {
  */
 function getStreetLines(street = '') {
     const streets = street.split('\n');
-    return [streets.at(0), streets.at(1)];
+    return [streets[0], streets[1]];
 }
 
 /**
@@ -338,14 +327,6 @@ function getPersonalDetailsLength() {
     return personalDetails.length;
 }
 
-function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
-    const userDetails = getPersonalDetailByEmail(email);
-    if (userDetails) {
-        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
-    }
-    return email;
-}
-
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -363,5 +344,4 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
     getPersonalDetailsLength,
-    getUserNameByEmail,
 };

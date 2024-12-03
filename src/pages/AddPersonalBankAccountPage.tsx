@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -14,33 +15,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
-function AddPersonalBankAccountPage() {
+type AddPersonalBankAccountPageWithOnyxProps = {
+    /** Contains plaid data */
+    plaidData: OnyxEntry<PlaidData>;
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
+};
+
+function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersonalBankAccountPageWithOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
-
-    const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
-                break;
-            case SCREENS.REPORT:
-                Navigation.closeRHPFlow();
-                break;
-            default:
-                Navigation.goBack();
-                break;
-        }
-    }, [topMostCentralPane]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -61,10 +52,10 @@ function AddPersonalBankAccountPage() {
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                goBack();
+                Navigation.goBack();
             }
         },
-        [personalBankAccount, goBack],
+        [personalBankAccount],
     );
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
@@ -106,7 +97,7 @@ function AddPersonalBankAccountPage() {
                             text={translate('walletPage.chooseAccountBody')}
                             plaidData={plaidData}
                             isDisplayedInWalletFlow
-                            onExitPlaid={goBack}
+                            onExitPlaid={() => Navigation.goBack()}
                             receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             selectedPlaidAccountID={selectedPlaidAccountId}
                         />
@@ -118,4 +109,12 @@ function AddPersonalBankAccountPage() {
 }
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
-export default AddPersonalBankAccountPage;
+export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+    },
+    plaidData: {
+        key: ONYXKEYS.PLAID_DATA,
+    },
+})(AddPersonalBankAccountPage);

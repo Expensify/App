@@ -6,9 +6,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -29,7 +28,7 @@ type PaymentCardCurrencyModalProps = {
 };
 
 function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {sections} = useMemo(
@@ -55,8 +54,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onClose={() => onClose?.()}
             onModalHide={onClose}
             hideModalContentWhileAnimating
-            innerContainerStyle={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}
-            onBackdropPress={Navigation.dismissModal}
+            innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
             useNativeDriver
         >
             <ScreenWrapper

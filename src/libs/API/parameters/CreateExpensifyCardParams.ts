@@ -5,7 +5,6 @@ type CreateExpensifyCardParams = {
     limitType: string;
     cardTitle: string;
     feedCountry: string;
-    domainAccountID: number;
 };
 
 export default CreateExpensifyCardParams;

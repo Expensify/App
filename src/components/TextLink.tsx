@@ -62,7 +62,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     return (
         <Text
             style={[styles.link, style]}
-            role={CONST.ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             href={href}
             onPress={openLinkOnTap}
             onKeyDown={openLinkOnEnterKey}

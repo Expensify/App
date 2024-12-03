@@ -1,7 +1,6 @@
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type CreateWorkspaceParams from './CreateWorkspaceParams';
 
-type PayInvoiceParams = Partial<CreateWorkspaceParams> & {
+type PayInvoiceParams = {
     reportID: string;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;

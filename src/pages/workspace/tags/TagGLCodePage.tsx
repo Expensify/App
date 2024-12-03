@@ -1,5 +1,7 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,43 +10,34 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+import type {PolicyTagLists} from '@src/types/onyx';
 
-type EditTagGLCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
+type WorkspaceEditTagGLCodePageOnyxProps = {
+    /** Collection of categories attached to a policy */
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-function TagGLCodePage({route}: EditTagGLCodePageProps) {
+type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
+
+function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const policy = usePolicy(route.params.policyID);
-    const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
     const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
-    const isQuickSettingsFlow = !!backTo;
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName, backTo)
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName),
-        );
-    }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow, backTo]);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -52,9 +45,9 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
             }
-            goBack();
+            Navigation.dismissModal();
         },
-        [glCode, route.params.policyID, tagName, orderWeight, goBack],
+        [glCode, route.params.policyID, tagName, orderWeight],
     );
 
     return (
@@ -62,17 +55,16 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={TagGLCodePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.glCode')}
-                    onBackButtonPress={goBack}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -99,4 +91,8 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
 
 TagGLCodePage.displayName = 'TagGLCodePage';
 
-export default TagGLCodePage;
+export default withOnyx<EditTagGLCodePageProps, WorkspaceEditTagGLCodePageOnyxProps>({
+    policyTags: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
+    },
+})(TagGLCodePage);

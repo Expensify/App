@@ -40,6 +40,9 @@ type IconProps = {
     /** Is icon pressed */
     pressed?: boolean;
 
+    /** Is icon will be used with text */
+    hasText?: boolean;
+
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
 
@@ -48,9 +51,6 @@ type IconProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFit?: ImageContentFit;
-
-    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
-    isButtonIcon?: boolean;
 };
 
 function Icon({
@@ -59,6 +59,7 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     small = false,
+    hasText = false,
     large = false,
     medium = false,
     inline = false,
@@ -67,11 +68,10 @@ function Icon({
     pressed = false,
     testID = '',
     contentFit = 'cover',
-    isButtonIcon = false,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, hasText);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {

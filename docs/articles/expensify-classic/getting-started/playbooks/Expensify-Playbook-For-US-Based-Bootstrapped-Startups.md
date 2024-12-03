@@ -59,7 +59,7 @@ Here’s how to set it up:
 Once this is done, you are all set to begin the process of enabling the Expensify Card. Not just for you, but if you have a co-founder, you can also issue them a card.
 
 ## Step 5: Get the Expensify Card
-If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, earns you 1% cash back on all US purchases (2% if you spend $250k+/mo across cards), and they are all stored in your team’s workspace. It’s easy to apply, and it takes minutes!
+If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you up to 2% cash back, and they are all stored in your team’s workspace. It’s easy to apply, and it takes minutes!
 
 Here’s how to enable the Expensify Card:
 
@@ -90,4 +90,4 @@ To view and pay bills:
 When you have bills to pay you can click *View all bills* under the *Manage your bills* box and we’ll keep a neatly organized list of all of the bills you can pay via ACH directly from your Expensify account.
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in *[new.expensify.com](https://new.expensify.com/concierge)*, or email concierge@expensify.com. Create a Collect or Control Workspace, and we’ll automatically assign a dedicated Setup Specialist to you.
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in *[new.expensify.com](https://new.expensify.com/concierge)*, or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.

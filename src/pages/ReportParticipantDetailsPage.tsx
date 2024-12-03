@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,8 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
@@ -37,7 +36,7 @@ type ReportParticipantDetailsOnyxProps = {
 };
 
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
-    PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
+    StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
     ReportParticipantDetailsOnyxProps;
 
 function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {
@@ -49,12 +48,12 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', route.params.backTo);
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1');
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
+    const displayName = details.displayName ?? '';
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
@@ -68,8 +67,8 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
-    }, [accountID, report.reportID, route.params.backTo]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
+    }, [accountID, report.reportID]);
 
     if (!member) {
         return <NotFoundPage />;
@@ -92,7 +91,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {!!(displayName ?? '') && (
+                    {!!(details.displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
@@ -103,8 +102,9 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     {isCurrentUserAdmin && (
                         <>
                             <Button
-                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
+                                text={translate('workspace.people.removeMemberGroupButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
+                                medium
                                 isDisabled={isSelectedMemberCurrentUser}
                                 icon={Expensicons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -112,7 +112,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                             />
                             <ConfirmModal
                                 danger
-                                title={translate('workspace.people.removeGroupMemberButtonTitle')}
+                                title={translate('workspace.people.removeMemberGroupButtonTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}

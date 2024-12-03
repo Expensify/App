@@ -8,7 +8,6 @@ type RequestPhysicalExpensifyCardParams = {
     addressState: string;
     addressStreet: string;
     addressZip: string;
-    validateCode: string;
 };
 
 export default RequestPhysicalExpensifyCardParams;

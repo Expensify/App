@@ -138,13 +138,13 @@ function BaseOptionsList(
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListDataWithIndexOffset[] | null, flatDataArrayIndex: number) => {
-        if (!flattenedData.current.at(flatDataArrayIndex) || flatDataArrayIndex === -1) {
+        if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
-        const targetItem = flattenedData.current.at(flatDataArrayIndex);
+        const targetItem = flattenedData.current[flatDataArrayIndex];
         return {
-            length: targetItem?.length ?? 0,
-            offset: targetItem?.offset ?? 0,
+            length: targetItem.length,
+            offset: targetItem.offset,
             index: flatDataArrayIndex,
         };
     };
@@ -219,7 +219,7 @@ function BaseOptionsList(
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
-                    {!!shouldShowActionButton && (
+                    {shouldShowActionButton && (
                         <PressableWithFeedback
                             onPress={onActionButtonPress}
                             accessibilityLabel={CONST.ROLE.BUTTON}

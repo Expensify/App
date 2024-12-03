@@ -29,11 +29,17 @@ const FS = {
      */
     onReady: () =>
         new Promise((resolve) => {
-            if (!isInitialized()) {
-                init({orgId: ''}, resolve);
-            } else {
-                FullStory('observe', {type: 'start', callback: resolve});
-            }
+            Environment.getEnvironment().then((envName: string) => {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                // Initialised via HEAD snippet
+                if (!isInitialized()) {
+                    init({orgId: ''}, resolve);
+                } else {
+                    FullStory('observe', {type: 'start', callback: resolve});
+                }
+            });
         }),
 
     /**
@@ -50,22 +56,18 @@ const FS = {
      * Initializes the FullStory metadata with the provided metadata information.
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
-        // On the first subscribe for UserMetadata, this function will be called. We need
-        // to confirm that we actually have any value here before proceeding.
-        if (!value?.accountID) {
-            return;
-        }
         try {
             Environment.getEnvironment().then((envName: string) => {
-                const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
-                if (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
                     return;
                 }
                 FS.onReady().then(() => {
                     FS.consent(true);
-                    const localMetadata = value;
-                    localMetadata.environment = envName;
-                    FS.fsIdentify(localMetadata);
+                    if (value) {
+                        const localMetadata = value;
+                        localMetadata.environment = envName;
+                        FS.fsIdentify(localMetadata);
+                    }
                 });
             });
         } catch (e) {
@@ -78,18 +80,23 @@ const FS = {
      * If the metadata does not contain an email, the user identity is anonymized.
      * If the metadata contains an accountID, the user identity is defined with it.
      */
-    fsIdentify: (metadata: UserMetadata) => {
-        FullStory('setIdentity', {
-            uid: String(metadata.accountID),
-            properties: metadata,
-        });
+    fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
+        if (!metadata?.accountID) {
+            // anonymize FullStory user identity metadata
+            FS.anonymize();
+        } else {
+            // define FullStory user identity
+            FullStory('setIdentity', {
+                uid: String(metadata.accountID),
+                properties: metadata,
+            });
+        }
     },
 
     /**
      * Init function, created so we're consistent with the native file
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    init: (_value: OnyxEntry<UserMetadata>) => {},
+    init: () => {},
 };
 
 export default FS;

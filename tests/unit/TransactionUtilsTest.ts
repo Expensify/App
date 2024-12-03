@@ -1,4 +1,3 @@
-import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Transaction} from '../../src/types/onyx';
 
@@ -7,9 +6,8 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const amount = 100;
     const currency = 'USD';
     const comment = '';
-    const attendees: Attendee[] = [];
     const created = '2023-10-01';
-    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, attendees, created);
+    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, created);
 
     return {...baseValues, ...values};
 }
@@ -60,35 +58,6 @@ describe('TransactionUtils', () => {
 
                     expect(result).toEqual(expectedResult);
                 });
-            });
-        });
-    });
-    describe('getPostedDate', () => {
-        describe('when posted date is undefined', () => {
-            const transaction = generateTransaction({
-                posted: undefined,
-            });
-
-            it('returns an empty string', () => {
-                const expectedResult = '';
-
-                const result = TransactionUtils.getFormattedPostedDate(transaction);
-
-                expect(result).toEqual(expectedResult);
-            });
-        });
-
-        describe('when posted date has value with format YYYYMMdd', () => {
-            const transaction = generateTransaction({
-                posted: '20241125',
-            });
-
-            it('returns the posted date with the correct format YYYY-MM-dd', () => {
-                const expectedResult = '2024-11-25';
-
-                const result = TransactionUtils.getFormattedPostedDate(transaction);
-
-                expect(result).toEqual(expectedResult);
             });
         });
     });

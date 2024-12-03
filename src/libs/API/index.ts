@@ -9,7 +9,7 @@ import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
@@ -45,13 +45,7 @@ type OnyxData = {
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
-function prepareRequest<TCommand extends ApiCommand>(
-    command: TCommand,
-    type: ApiRequestType,
-    params: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
-    conflictResolver: RequestConflictResolver = {},
-): OnyxRequest {
+function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: ApiRequestType, params: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
@@ -77,7 +71,6 @@ function prepareRequest<TCommand extends ApiCommand>(
         command,
         data,
         ...onyxDataWithoutOptimisticData,
-        ...conflictResolver,
     };
 
     if (isWriteRequest) {
@@ -123,16 +116,10 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-
-function write<TCommand extends WriteCommand>(
-    command: TCommand,
-    apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
-    conflictResolver: RequestConflictResolver = {},
-): Promise<void | Response> {
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
-    return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData);
+    processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
 /**
@@ -194,9 +181,8 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
-    // Apply optimistic updates of read requests immediately
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
     waitForWrites(command).then(() => {
+        const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
 }
@@ -208,20 +194,12 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUES
     onyxData: OnyxData,
     config: PaginationConfig,
 ): Promise<Response | void>;
-function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TCommand extends CommandOfType<TRequestType>>(
+function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ | typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
     config: PaginationConfig,
-): void;
-function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
-    type: TRequestType,
-    command: TCommand,
-    apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData,
-    config: PaginationConfig,
-    conflictResolver?: RequestConflictResolver,
 ): void;
 function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
@@ -229,11 +207,10 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
     config: PaginationConfig,
-    conflictResolver: RequestConflictResolver = {},
 ): Promise<Response | void> | void {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
     const request: PaginatedRequest = {
-        ...prepareRequest(command, type, apiCommandParameters, onyxData, conflictResolver),
+        ...prepareRequest(command, type, apiCommandParameters, onyxData),
         ...config,
         ...{
             isPaginated: true,

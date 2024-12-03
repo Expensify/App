@@ -170,7 +170,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={StatusClearAfterPage.displayName}
         >

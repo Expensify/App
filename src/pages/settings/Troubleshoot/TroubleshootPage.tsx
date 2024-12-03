@@ -1,17 +1,15 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -28,7 +26,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearOnyxAndResetApp} from '@userActions/App';
+import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +39,14 @@ type BaseMenuItem = {
     action: () => void | Promise<void>;
 };
 
-function TroubleshootPage() {
+type TroubleshootPageOnyxProps = {
+    shouldStoreLogs: OnyxEntry<boolean>;
+    shouldMaskOnyxState: boolean;
+};
+
+type TroubleshootPageProps = TroubleshootPageOnyxProps;
+
+function TroubleshootPage({shouldStoreLogs, shouldMaskOnyxState}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -49,14 +54,14 @@ function TroubleshootPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrationStyle = getLightbulbIllustrationStyle();
-    const [isLoading, setIsLoading] = useState(false);
-    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
-    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
-    const {resetOptions} = useOptionsList({shouldInitialize: false});
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
+            let dataToShare = value;
+            if (shouldMaskOnyxState) {
+                dataToShare = ExportOnyxState.maskFragileData(value);
+            }
+
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
@@ -105,11 +110,9 @@ function TroubleshootPage() {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.Lightbulb}
             />
-            {isLoading && <FullScreenLoadingIndicator />}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -144,10 +147,6 @@ function TroubleshootPage() {
                                     />
                                 </TestToolRow>
                             </View>
-                            <ImportOnyxState
-                                setIsLoading={setIsLoading}
-                                isLoading={isLoading}
-                            />
                             <MenuItemList
                                 menuItems={menuItems}
                                 shouldUseSingleExecution
@@ -162,8 +161,9 @@ function TroubleshootPage() {
                                 isVisible={isConfirmationModalVisible}
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
-                                    resetOptions();
-                                    clearOnyxAndResetApp();
+                                    Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
+                                        App.openApp();
+                                    });
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}
                                 prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
@@ -180,4 +180,12 @@ function TroubleshootPage() {
 
 TroubleshootPage.displayName = 'TroubleshootPage';
 
-export default TroubleshootPage;
+export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+    shouldMaskOnyxState: {
+        key: ONYXKEYS.SHOULD_MASK_ONYX_STATE,
+        selector: (shouldMaskOnyxState) => shouldMaskOnyxState ?? true,
+    },
+})(TroubleshootPage);

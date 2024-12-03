@@ -169,8 +169,8 @@ const createServerInstance = (): ServerInstance => {
 
             case Routes.testNativeCommand: {
                 getPostJSONRequestData<NativeCommand>(req, res)
-                    ?.then((data) => nativeCommands.executeFromPayload(data?.actionName, data?.payload))
-                    .then((status) => {
+                    ?.then((data) => {
+                        const status = nativeCommands.executeFromPayload(data?.actionName, data?.payload);
                         if (status) {
                             res.end('ok');
                             return;

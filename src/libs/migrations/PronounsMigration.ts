@@ -7,10 +7,10 @@ import type {PersonalDetails as TPersonalDetails} from '@src/types/onyx';
 
 function getCurrentUserAccountIDFromOnyx(): Promise<number> {
     return new Promise((resolve) => {
-        const connection = Onyx.connect({
+        const connectionID = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => {
-                Onyx.disconnect(connection);
+                Onyx.disconnect(connectionID);
                 return resolve(val?.accountID ?? -1);
             },
         });
@@ -19,10 +19,10 @@ function getCurrentUserAccountIDFromOnyx(): Promise<number> {
 
 function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Promise<NonNullable<OnyxEntry<TPersonalDetails>> | null> {
     return new Promise((resolve) => {
-        const connection = Onyx.connect({
+        const connectionID = Onyx.connect({
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             callback: (val) => {
-                Onyx.disconnect(connection);
+                Onyx.disconnect(connectionID);
                 return resolve(val?.[currentUserAccountID] ?? null);
             },
         });

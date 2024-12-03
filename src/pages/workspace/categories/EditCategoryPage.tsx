@@ -1,12 +1,13 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
@@ -14,17 +15,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyCategories} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
 
-type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
+type WorkspaceEditCategoryPageOnyxProps = {
+    /** All policy categories */
+    policyCategories: OnyxEntry<PolicyCategories>;
+};
 
-function EditCategoryPage({route}: EditCategoryPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
+type EditCategoryPageProps = WorkspaceEditCategoryPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
+
+function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
     const backTo = route.params?.backTo;
-    const isQuickSettingsFlow = !!backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -49,13 +54,13 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             if (currentCategoryName !== newCategoryName) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
-            Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
-            );
+            if (backTo) {
+                Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
+                return;
+            }
+            Navigation.goBack();
         },
-        [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID, backTo],
+        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -65,7 +70,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={EditCategoryPage.displayName}
                 shouldEnableMaxHeight
@@ -73,11 +78,9 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
-                        )
+                        backTo
+                            ? Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo))
+                            : Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
                     }
                 />
                 <CategoryForm
@@ -93,4 +96,8 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
 EditCategoryPage.displayName = 'EditCategoryPage';
 
-export default EditCategoryPage;
+export default withOnyx<EditCategoryPageProps, WorkspaceEditCategoryPageOnyxProps>({
+    policyCategories: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
+    },
+})(EditCategoryPage);

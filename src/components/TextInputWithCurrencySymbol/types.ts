@@ -1,13 +1,13 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
-import type {TextSelection} from '@components/Composer/types';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import type { NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle } from 'react-native';
+import type { TextSelection } from '@components/Composer/types';
+import type { BaseTextInputProps } from '@components/TextInput/BaseTextInput/types';
 
-type BaseTextInputWithCurrencySymbolProps = {
+type TextInputWithCurrencySymbolProps = {
     /** Formatted amount in local currency  */
     formattedAmount: string;
 
     /** Function to call when amount in text input is changed */
-    onChangeAmount?: (value: string) => void;
+    onChangeAmountssss?: (value: string) => void;
 
     /** Function to call when currency button is pressed */
     onCurrencyButtonPress?: () => void;
@@ -77,12 +77,6 @@ type BaseTextInputWithCurrencySymbolProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'contentWidth' | 'onPress'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'contentWidth'>;
 
-type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {
-    onSelectionChange?: (start: number, end: number) => void;
-};
-
-export type {TextInputWithCurrencySymbolProps};
-
-export default BaseTextInputWithCurrencySymbolProps;
+export default TextInputWithCurrencySymbolProps;

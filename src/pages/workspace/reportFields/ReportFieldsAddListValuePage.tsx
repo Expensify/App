@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,9 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -25,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
-type ReportFieldsAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type ReportFieldsAddListValuePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
 function ReportFieldsAddListValuePage({
     policy,
@@ -38,21 +37,10 @@ function ReportFieldsAddListValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const listValues = useMemo(() => {
-        let reportFieldListValues: string[];
-        if (reportFieldID) {
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
-        } else {
-            reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
-        }
-        return reportFieldListValues;
-    }, [formDraft, policy?.fieldList, reportFieldID]);
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            WorkspaceReportFieldUtils.validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME),
-        [listValues],
+            WorkspaceReportFieldUtils.validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.VALUE_NAME),
+        [formDraft],
     );
 
     const createValue = useCallback(
@@ -76,7 +64,7 @@ function ReportFieldsAddListValuePage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsAddListValuePage.displayName}
                 shouldEnableMaxHeight

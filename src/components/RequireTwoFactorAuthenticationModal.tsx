@@ -47,7 +47,6 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                     type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                     innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
                     shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-                    animationOutTiming={500}
                 >
                     <View style={safeAreaPaddingBottomStyle}>
                         <View

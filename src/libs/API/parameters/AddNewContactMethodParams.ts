@@ -1,3 +1,3 @@
-type AddNewContactMethodParams = {partnerUserID: string; validateCode: string};
+type AddNewContactMethodParams = {partnerUserID: string};
 
 export default AddNewContactMethodParams;

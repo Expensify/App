@@ -6,8 +6,6 @@ type DeeplinkWrapperProps = ChildrenProps & {
 
     /** The auto authentication status */
     autoAuthState?: string;
-
-    initialUrl?: string;
 };
 
 export default DeeplinkWrapperProps;

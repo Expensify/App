@@ -1,4 +1,4 @@
-import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import type {PendingMapViewProps} from './MapViewTypes';
 
 function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false}: PendingMapViewProps) {
-    const hasTextContent = !isEmpty(title) || !isEmpty(subtitle);
+    const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
     const styles = useThemeStyles();
     const theme = useTheme();
     const iconSize = isSmallerIcon ? variables.iconSizeSuperLarge : variables.iconSizeUltraLarge;

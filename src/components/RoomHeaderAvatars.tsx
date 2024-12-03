@@ -36,28 +36,22 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     }
 
     if (icons.length === 1) {
-        const icon = icons.at(0);
-
-        if (!icon) {
-            return;
-        }
-
         return (
             <PressableWithoutFocus
                 style={styles.noOutline}
-                onPress={() => navigateToAvatarPage(icon)}
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                onPress={() => navigateToAvatarPage(icons[0])}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={icons[0].name ?? ''}
+                disabled={icons[0].source === Expensicons.FallbackAvatar}
             >
                 <Avatar
-                    source={icon.source}
+                    source={icons[0].source}
                     imageStyles={styles.avatarXLarge}
                     size={CONST.AVATAR_SIZE.XLARGE}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type}
-                    fallbackIcon={icon.fallbackIcon}
+                    name={icons[0].name}
+                    avatarID={icons[0].id}
+                    type={icons[0].type}
+                    fallbackIcon={icons[0].fallbackIcon}
                 />
             </PressableWithoutFocus>
         );
@@ -83,7 +77,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                         <PressableWithoutFocus
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={icon.name ?? ''}
                             disabled={icon.source === Expensicons.FallbackAvatar}
                         >

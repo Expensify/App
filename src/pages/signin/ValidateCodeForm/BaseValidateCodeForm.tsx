@@ -2,7 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -29,11 +30,24 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account, Credentials, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
 
+type BaseValidateCodeFormOnyxProps = {
+    /** The details about the account that the user is signing in with */
+    account: OnyxEntry<Account>;
+
+    /** The credentials of the person logging in */
+    credentials: OnyxEntry<Credentials>;
+
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<Session>;
+};
+
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
-    ValidateCodeFormProps & {
+    ValidateCodeFormProps &
+    BaseValidateCodeFormOnyxProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
         autoComplete: 'sms-otp' | 'one-time-code';
     };
@@ -46,10 +60,10 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+function BaseValidateCodeForm(
+    {account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps,
+    forwardedRef: ForwardedRef<BaseValidateCodeFormRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -331,10 +345,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     )}
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                     <PressableWithFeedback
-                        key={isUsingRecoveryCode.toString()}
                         style={[styles.mt2]}
                         onPress={switchBetween2faAndRecoveryCode}
                         hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
@@ -408,6 +422,12 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
 BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
-export default withToggleVisibilityView(forwardRef(BaseValidateCodeForm));
+export default withToggleVisibilityView(
+    withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
+        account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
+    })(forwardRef(BaseValidateCodeForm)),
+);
 
 export type {BaseValidateCodeFormRef};

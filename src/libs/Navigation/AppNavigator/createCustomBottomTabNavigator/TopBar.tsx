@@ -2,36 +2,29 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import Performance from '@libs/Performance';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {
-    breadcrumbLabel: string;
-    activeWorkspaceID?: string;
-    shouldDisplaySearch?: boolean;
-    shouldDisplayCancelSearch?: boolean;
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean};
 
-    /**
-     * Callback used to keep track of the workspace switching process in the BaseSidebarScreen.
-     * Passed to the WorkspaceSwitcherButton component.
-     */
-    onSwitchWorkspace?: () => void;
-};
-
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false, onSwitchWorkspace}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}: TopBarProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
@@ -53,10 +46,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
-                    <WorkspaceSwitcherButton
-                        policy={policy}
-                        onSwitchWorkspace={onSwitchWorkspace}
-                    />
+                    <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs
@@ -70,18 +60,24 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </View>
                 </View>
                 {displaySignIn && <SignInButton />}
-                {shouldDisplayCancelSearch && (
-                    <PressableWithoutFeedback
-                        accessibilityLabel={translate('common.cancel')}
-                        style={[styles.textBlue]}
-                        onPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
-                        }}
-                    >
-                        <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
-                    </PressableWithoutFeedback>
+                {displaySearch && (
+                    <Tooltip text={translate('common.find')}>
+                        <PressableWithoutFeedback
+                            accessibilityLabel={translate('sidebarScreen.buttonFind')}
+                            style={[styles.flexRow, styles.mr2, styles.touchableButtonImage]}
+                            onPress={Session.checkIfActionIsAllowed(() => {
+                                Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
+                                Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
+                                Navigation.navigate(ROUTES.CHAT_FINDER);
+                            })}
+                        >
+                            <Icon
+                                src={Expensicons.MagnifyingGlass}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    </Tooltip>
                 )}
-                {displaySearch && <SearchButton />}
             </View>
         </View>
     );

@@ -1,79 +1,142 @@
-import React, {useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
+import Header from '@components/Header';
+import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import * as Illustrations from '@components/Icon/Illustrations';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
-import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {PaymentData, SearchQueryJSON} from './types';
+import type {SearchQueryJSON, SearchStatus} from './types';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type HeaderWrapperProps = Pick<HeaderWithBackButtonProps, 'title' | 'subtitle' | 'icon' | 'children'> & {
+    subtitleStyles?: StyleProp<TextStyle>;
+};
+
+function HeaderWrapper({icon, title, subtitle, children, subtitleStyles = {}}: HeaderWrapperProps) {
+    const styles = useThemeStyles();
+
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
+    const middleContent = useMemo(() => {
+        return (
+            <Header
+                title={
+                    <Text
+                        style={[styles.mutedTextLabel, styles.pre]}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
+                }
+                subtitle={
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.textLarge, subtitleStyles]}
+                    >
+                        {subtitle}
+                    </Text>
+                }
+            />
+        );
+    }, [styles.mutedTextLabel, styles.pre, styles.textLarge, subtitle, subtitleStyles, title]);
+
+    return (
+        <View
+            dataSet={{dragArea: false}}
+            style={[styles.headerBar, isCentralPaneSettings && styles.headerBarDesktopHeight]}
+        >
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
+                    />
+                )}
+
+                {middleContent}
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>{children}</View>
+            </View>
+        </View>
+    );
+}
+
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    hash: number;
+    onSelectDeleteOption?: (itemsToDelete: string[]) => void;
+    isCustomQuery: boolean;
+    setOfflineModalOpen?: () => void;
+    setDownloadErrorModalOpen?: () => void;
+    data?: TransactionListItemType[] | ReportListItemType[];
+};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+const headerContent: {[key in SearchStatus]: {icon: IconAsset; titleText: TranslationPaths}} = {
+    all: {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'},
+    shared: {icon: Illustrations.SendMoney, titleText: 'common.shared'},
+    drafts: {icon: Illustrations.Pencil, titleText: 'common.drafts'},
+    finished: {icon: Illustrations.CheckmarkCircle, titleText: 'common.finished'},
+};
+
+function SearchPageHeader({queryJSON, hash, onSelectDeleteOption, setOfflineModalOpen, setDownloadErrorModalOpen, isCustomQuery, data}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-    const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-
-    const {status, hash} = queryJSON;
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    const handleDeleteExpenses = () => {
-        if (selectedTransactionsKeys.length === 0) {
-            return;
-        }
+    const selectedReports: Array<SearchReport['reportID']> = useMemo(
+        () =>
+            (data ?? [])
+                .filter(
+                    (item) =>
+                        !SearchUtils.isTransactionListItemType(item) &&
+                        item.reportID &&
+                        item.transactions.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
+                )
+                .map((item) => item.reportID),
+        [data, selectedTransactions],
+    );
+    const {status} = queryJSON;
+    const headerSubtitle = isCustomQuery ? SearchUtils.getSearchHeaderTitle(queryJSON) : translate(headerContent[status]?.titleText);
+    const headerTitle = isCustomQuery ? translate('search.filtersHeader') : '';
+    const headerIcon = isCustomQuery ? Illustrations.Filters : headerContent[status]?.icon;
 
-        setIsDeleteExpensesConfirmModalVisible(false);
-        SearchActions.deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
-
-        // Translations copy for delete modal depends on amount of selected items,
-        // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
-        InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
-        });
-    };
+    const subtitleStyles = isCustomQuery ? {} : styles.textHeadlineH2;
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0) {
@@ -81,92 +144,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
-
-        const shouldShowApproveOption =
-            !isOffline &&
-            !isAnyTransactionOnHold &&
-            (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
-                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
-
-        if (shouldShowApproveOption) {
-            options.push({
-                icon: Expensicons.ThumbsUp,
-                text: translate('search.bulkActions.approve'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const reportIDList = !selectedReports.length
-                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    SearchActions.approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
-                },
-            });
-        }
-
-        const shouldShowPayOption =
-            !isOffline &&
-            !isAnyTransactionOnHold &&
-            (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
-                : selectedTransactionsKeys.every(
-                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
-                  ));
-
-        if (shouldShowPayOption) {
-            options.push({
-                icon: Expensicons.MoneyBag,
-                text: translate('search.bulkActions.pay'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    const activeRoute = Navigation.getActiveRoute();
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-
-                    for (const item of items) {
-                        const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
-
-                        if (!lastPolicyPaymentMethod) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
-                            return;
-                        }
-
-                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
-
-                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
-                            return;
-                        }
-                    }
-
-                    const paymentData = (
-                        selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
-                            : Object.values(selectedTransactions).map((transaction) => ({
-                                  reportID: transaction.reportID,
-                                  amount: transaction.amount,
-                                  paymentType: lastPaymentMethods[transaction.policyID],
-                              }))
-                    ) as PaymentData[];
-
-                    SearchActions.payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
-                },
-            });
-        }
 
         options.push({
             icon: Expensicons.Download,
@@ -175,17 +152,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 if (isOffline) {
-                    setIsOfflineModalVisible(true);
+                    setOfflineModalOpen?.();
                     return;
                 }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                SearchActions.exportSearchItemsToCSV(
-                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
+                const reportIDList = (selectedReports?.filter((report) => !!report) as string[]) ?? [];
+                SearchActions.exportSearchItemsToCSV({query: status, reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']}, () => {
+                    setDownloadErrorModalOpen?.();
+                });
             },
         });
 
@@ -199,10 +173,13 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        setOfflineModalOpen?.();
                         return;
                     }
 
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
+                    }
                     Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                 },
             });
@@ -218,10 +195,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        setOfflineModalOpen?.();
                         return;
                     }
 
+                    clearSelectedTransactions();
+                    if (selectionMode?.isEnabled) {
+                        turnOffMobileSelectionMode();
+                    }
                     SearchActions.unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
                 },
             });
@@ -237,10 +218,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
-                        setIsOfflineModalVisible(true);
+                        setOfflineModalOpen?.();
                         return;
                     }
-                    setIsDeleteExpensesConfirmModalVisible(true);
+
+                    onSelectDeleteOption?.(selectedTransactionsKeys);
                 },
             });
         }
@@ -265,128 +247,57 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         return options;
     }, [
-        queryJSON,
         status,
         selectedTransactionsKeys,
         selectedTransactions,
         translate,
+        onSelectDeleteOption,
+        clearSelectedTransactions,
         hash,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         isOffline,
+        setOfflineModalOpen,
+        setDownloadErrorModalOpen,
         activeWorkspaceID,
         selectedReports,
         styles.textWrap,
-        lastPaymentMethods,
+        selectionMode?.isEnabled,
     ]);
 
-    if (shouldUseNarrowLayout) {
+    if (isSmallScreenWidth) {
         if (selectionMode?.isEnabled) {
             return (
-                <View>
-                    <SearchSelectedNarrow
-                        options={headerButtonsOptions}
-                        itemsLength={selectedTransactionsKeys.length}
-                    />
-                    <ConfirmModal
-                        isVisible={isDeleteExpensesConfirmModalVisible}
-                        onConfirm={handleDeleteExpenses}
-                        onCancel={() => {
-                            setIsDeleteExpensesConfirmModalVisible(false);
-                        }}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={() => setIsDownloadErrorModalVisible(false)}
-                    />
-                </View>
+                <SearchSelectedNarrow
+                    options={headerButtonsOptions}
+                    itemsLength={selectedTransactionsKeys.length}
+                />
             );
         }
         return null;
     }
 
-    const onFiltersButtonPress = () => {
-        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
-        SearchActions.updateAdvancedFilters(filterFormValues);
-
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    };
-
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-
     return (
-        <>
-            <SearchPageHeaderInput queryJSON={queryJSON}>
-                {headerButtonsOptions.length > 0 ? (
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        shouldUseStyleUtilityForAnchorPosition
-                    />
-                ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onFiltersButtonPress}
-                    />
-                )}
-            </SearchPageHeaderInput>
-            <ConfirmModal
-                isVisible={isDeleteExpensesConfirmModalVisible}
-                onConfirm={handleDeleteExpenses}
-                onCancel={() => {
-                    setIsDeleteExpensesConfirmModalVisible(false);
-                }}
-                title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isOfflineModalVisible}
-                onClose={() => setIsOfflineModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-        </>
+        <HeaderWrapper
+            title={headerTitle}
+            subtitle={headerSubtitle}
+            icon={headerIcon}
+            subtitleStyles={subtitleStyles}
+        >
+            {headerButtonsOptions.length > 0 && (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedTransactionsKeys.length})}
+                    options={headerButtonsOptions}
+                    isSplitButton={false}
+                    style={styles.ml2}
+                />
+            )}
+        </HeaderWrapper>
     );
 }
 

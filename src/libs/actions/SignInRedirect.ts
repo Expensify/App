@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as Policy from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
@@ -20,7 +19,6 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
 
@@ -31,7 +29,6 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     }
 
     return Onyx.clear(keysToPreserve).then(() => {
-        Policy.clearAllPolicies();
         if (!errorMessage) {
             return;
         }

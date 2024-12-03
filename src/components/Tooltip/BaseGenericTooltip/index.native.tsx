@@ -1,9 +1,8 @@
 import {Portal} from '@gorhom/portal';
 import React, {useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {Animated, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,7 +34,7 @@ function BaseGenericTooltip({
     },
     wrapperStyle = {},
     shouldUseOverlay = false,
-    onHideTooltip = () => {},
+    onPressOverlay = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -47,11 +46,12 @@ function BaseGenericTooltip({
     const rootWrapper = useRef<RNView>(null);
 
     const StyleUtils = useStyleUtils();
-    const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+
+    const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
-                // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
+                currentSize: animation,
                 windowWidth,
                 xOffset,
                 yOffset,
@@ -69,6 +69,7 @@ function BaseGenericTooltip({
             }),
         [
             StyleUtils,
+            animation,
             windowWidth,
             xOffset,
             yOffset,
@@ -84,10 +85,6 @@ function BaseGenericTooltip({
             wrapperStyle,
         ],
     );
-
-    const animationStyle = useAnimatedStyle(() => {
-        return StyleUtils.getTooltipAnimatedStyles({tooltipContentWidth: contentMeasuredWidth, tooltipWrapperHeight: wrapperMeasuredHeight, currentSize: animation});
-    });
 
     let content;
     if (renderTooltipContent) {
@@ -105,7 +102,7 @@ function BaseGenericTooltip({
 
     return (
         <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && <TransparentOverlay onPress={onPressOverlay} />}
             <Animated.View
                 ref={rootWrapper}
                 style={[rootWrapperStyle, animationStyle]}

@@ -260,20 +260,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** These are the account IDs to whom a message was whispered. It is used to check if a specific user should be displayed a whisper message or not. */
     whisperedToAccountIDs?: number[];
-
-    /**
-     * Unix timestamp of when the report action was created
-     *
-     * Note: This is sent by the backend but we don't use it locally
-     */
-    reportActionTimestamp?: number;
-
-    /**
-     * Unix timestamp of when the report action was created, without the milliseconds (need to multiply by 1000)
-     *
-     * Note: This is sent by the backend but we don't use it locally
-     */
-    timestamp?: number;
 }>;
 
 /**
@@ -305,4 +291,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction, Person};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction};

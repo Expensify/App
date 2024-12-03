@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
@@ -13,16 +12,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
-
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function InviteMemberListItem<TItem extends ListItem>({
     item,
@@ -36,7 +27,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
-    shouldHighlightSelectedItem,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -46,8 +36,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -59,9 +47,8 @@ function InviteMemberListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
-            pressableStyle={[[shouldHighlightSelectedItem && item.isSelected && styles.activeComponentBG]]}
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -81,21 +68,20 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
         >
             {(hovered?: boolean) => (
                 <>
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
-                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                secondaryAvatar={item.icons.at(1)}
+                                mainAvatar={item.icons[0]}
+                                secondaryAvatar={item.icons[1]}
                                 showTooltip={showTooltip}
                                 backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             />
                         ) : (
                             <MultipleAvatars
-                                icons={item.icons}
+                                icons={item.icons ?? []}
                                 shouldShowTooltip={showTooltip}
                                 secondAvatarStyle={[
                                     StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -127,7 +113,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {!!shouldShowCheckBox && (
+                    {canSelectMultiple && !item.isDisabled && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}

@@ -1,5 +1,8 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,11 +12,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -24,31 +24,35 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 
-type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type CreateDistanceRatePageOnyxProps = {
+    policy: OnyxEntry<Policy>;
+};
 
-function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
+type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+
+function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const policyID = route.params.policyID;
-    const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const customUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = customUnit?.customUnitID ?? '';
+    const customUnits = policy?.customUnits ?? {};
+    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit),
-        [toLocaleDigit, customUnit?.rates],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
+        [currency, toLocaleDigit],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(customUnit?.rates ?? {}),
+            name: getOptimisticRateName(customUnits[customUnitID]?.rates),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
@@ -65,7 +69,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={CreateDistanceRatePage.displayName}
                 shouldEnableMaxHeight
@@ -86,7 +90,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
                         <InputWrapperWithRef
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.RATE}
-                            fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                            extraDecimals={1}
                             isCurrencyPressable={false}
                             currency={currency}
                             ref={inputCallbackRef}
@@ -100,4 +104,8 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
 
 CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
 
-export default CreateDistanceRatePage;
+export default withOnyx<CreateDistanceRatePageProps, CreateDistanceRatePageOnyxProps>({
+    policy: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+    },
+})(CreateDistanceRatePage);

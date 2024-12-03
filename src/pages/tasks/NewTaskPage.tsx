@@ -1,7 +1,9 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -16,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -26,34 +27,41 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList, Report, Task} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
+type NewTaskPageOnyxProps = {
+    /** Task Creation Data */
+    task: OnyxEntry<Task>;
 
-function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** All reports shared with the user */
+    reports: OnyxCollection<Report>;
+};
+
+type NewTaskPageProps = NewTaskPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
+
+function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const assignee = useMemo(() => TaskActions.getAssignee(task?.assigneeAccountID ?? -1, personalDetails), [task?.assigneeAccountID, personalDetails]);
+    const [assignee, setAssignee] = useState<TaskActions.Assignee>();
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
     );
-    const shareDestination = useMemo(
-        () => (task?.shareDestination ? TaskActions.getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
-        [task?.shareDestination, reports, personalDetails],
-    );
-    const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const [shareDestination, setShareDestination] = useState<TaskActions.ShareDestination>();
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>();
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
-    const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
@@ -70,13 +78,38 @@ function NewTaskPage({route}: NewTaskPageProps) {
     useEffect(() => {
         setErrorMessage('');
 
+        // If we have an assignee, we want to set the assignee data
+        // If there's an issue with the assignee chosen, we want to notify the user
+        if (task?.assignee) {
+            const displayDetails = TaskActions.getAssignee(task?.assigneeAccountID ?? -1, personalDetails);
+            setAssignee(displayDetails);
+        }
+
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (task?.parentReportID) {
             TaskActions.setShareDestinationValue(task.parentReportID);
         }
-    }, [task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
+
+        // If we have a share destination, we want to set the parent report and
+        // the share destination data
+        if (task?.shareDestination) {
+            setParentReport(reports?.[`report_${task.shareDestination}`]);
+            const displayDetails = TaskActions.getShareDestination(task.shareDestination, reports, personalDetails);
+            setShareDestination(displayDetails);
+        }
+
+        // If we have a title, we want to set the title
+        if (task?.title !== undefined) {
+            setTitle(task.title);
+        }
+
+        // If we have a description, we want to set the description
+        if (task?.description !== undefined) {
+            setDescription(task.description);
+        }
+    }, [personalDetails, reports, task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
@@ -120,12 +153,13 @@ function NewTaskPage({route}: NewTaskPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('newTaskPage.confirmTask')}
+                    onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.NEW_TASK_DETAILS.getRoute(backTo));
+                        Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                {!!hasDestinationError && (
+                {hasDestinationError && (
                     <FormHelpMessage
                         style={[styles.ph4, styles.mb4]}
                         isError={false}
@@ -145,15 +179,15 @@ function NewTaskPage({route}: NewTaskPageProps) {
                         <View style={styles.mb5}>
                             <MenuItemWithTopDescription
                                 description={translate('task.title')}
-                                title={task?.title}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE.getRoute(backTo))}
+                                title={title}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                                 shouldShowRightIcon
                                 rightLabel={translate('common.required')}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
-                                title={task?.description}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION.getRoute(backTo))}
+                                title={description}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                                 shouldShowRightIcon
                                 shouldParseTitle
                                 numberOfLinesTitle={2}
@@ -164,7 +198,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 title={assignee?.displayName ?? ''}
                                 description={assignee?.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
                                 icon={assignee?.icons}
-                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
+                                onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                                 shouldShowRightIcon
                                 titleWithTooltips={assigneeTooltipDetails}
                             />
@@ -200,4 +234,14 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
 NewTaskPage.displayName = 'NewTaskPage';
 
-export default NewTaskPage;
+export default withOnyx<NewTaskPageProps, NewTaskPageOnyxProps>({
+    task: {
+        key: ONYXKEYS.TASK,
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(NewTaskPage);

@@ -1,8 +1,8 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
@@ -19,7 +19,7 @@ type PersonalAddressPageOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type PersonalAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & PersonalAddressPageOnyxProps;
+type PersonalAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & PersonalAddressPageOnyxProps;
 
 /**
  * Submit form to update user's first and last legal name

@@ -1,8 +1,7 @@
-import type {ParamListBase} from '@react-navigation/native';
+import type {ParamListBase, RouteProp} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,10 +10,10 @@ import type {PriorityMode} from '@src/types/onyx';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
-    saveScrollOffset: (route: PlatformStackRouteProp<ParamListBase>, scrollOffset: number) => void;
+    saveScrollOffset: (route: RouteProp<ParamListBase>, scrollOffset: number) => void;
 
     /** Get scroll offset value for given screen */
-    getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
+    getScrollOffset: (route: RouteProp<ParamListBase>) => number | undefined;
 
     /** Clean scroll offsets of screen that aren't anymore in the state */
     cleanStaleScrollOffsets: (state: State) => void;
@@ -39,7 +38,7 @@ const defaultValue: ScrollOffsetContextValue = {
 const ScrollOffsetContext = createContext<ScrollOffsetContextValue>(defaultValue);
 
 /** This function is prepared to work with HOME screens. May need modification if we want to handle other types of screens. */
-function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartialRoute): string {
+function getKey(route: RouteProp<ParamListBase> | NavigationPartialRoute): string {
     if (route.params && 'policyID' in route.params && typeof route.params.policyID === 'string') {
         return `${route.name}-${route.params.policyID}`;
     }

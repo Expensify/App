@@ -353,7 +353,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
-                isError: true,
             });
         });
 
@@ -365,7 +364,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
-                isError: true,
             });
         });
 
@@ -376,7 +374,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
-                isError: true,
             });
         });
 
@@ -388,7 +385,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
-                isError: true,
             });
         });
 
@@ -401,7 +397,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
-                isError: true,
             });
         });
 
@@ -414,7 +409,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
-                isError: true,
             });
         });
 
@@ -425,7 +419,6 @@ describe('SubscriptionUtils', () => {
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
-                isError: true,
             });
         });
 

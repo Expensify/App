@@ -19,8 +19,4 @@ function flushQueue(): Promise<void> {
     });
 }
 
-function isEmpty() {
-    return queuedOnyxUpdates.length === 0;
-}
-
-export {queueOnyxUpdates, flushQueue, isEmpty};
+export {queueOnyxUpdates, flushQueue};

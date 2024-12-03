@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNativeEvent} from 'react-native-webview/lib/WebViewTypes';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -13,10 +13,9 @@ import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
-function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
     const samlLoginURL = `${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}&platform=${getPlatform()}`;
     const [showNavigation, shouldShowNavigation] = useState(true);
 
@@ -35,7 +34,7 @@ function SAMLSignInPage() {
             const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                Session.signInWithShortLivedAuthToken(shortLivedAuthToken);
+                Session.signInWithShortLivedAuthToken(credentials.login, shortLivedAuthToken);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
@@ -81,4 +80,7 @@ function SAMLSignInPage() {
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default SAMLSignInPage;
+export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    account: {key: ONYXKEYS.ACCOUNT},
+})(SAMLSignInPage);

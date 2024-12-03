@@ -1,13 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
@@ -16,8 +14,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -36,13 +32,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        if (hasError) {
-            if (Linking.openSettings) {
-                Linking.openSettings();
-            } else {
-                onDeny?.();
-            }
+        if (hasError && Linking.openSettings) {
+            Linking.openSettings();
             setShowModal(false);
+            setHasError(false);
+            resetPermissionFlow();
             return;
         }
         cb();
@@ -54,7 +48,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
                 } else {
-                    onDeny();
+                    onDeny(status);
                 }
             })
             .finally(() => {
@@ -64,39 +58,19 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny();
+        onDeny(RESULTS.DENIED);
         setShowModal(false);
         setHasError(false);
     };
 
-    const getConfirmText = (): string => {
-        if (!hasError) {
-            return translate('common.continue');
-        }
-
-        return isWeb ? translate('common.buttonConfirm') : translate('common.settings');
-    };
-
-    const closeModal = () => {
-        setShowModal(false);
-        resetPermissionFlow();
-    };
-
-    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
-
     return (
         <ConfirmModal
-            shouldShowCancelButton={!(isWeb && hasError)}
-            onModalHide={() => {
-                setHasError(false);
-                resetPermissionFlow();
-            }}
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
-            onBackdropPress={closeModal}
-            confirmText={getConfirmText()}
+            confirmText={hasError ? translate('common.settings') : translate('common.continue')}
             cancelText={translate('common.notNow')}
+            prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
@@ -107,7 +81,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
-            prompt={translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage')}
         />
     );
 }

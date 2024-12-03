@@ -3,8 +3,6 @@ type AddMembersToWorkspaceParams = {
     welcomeNote: string;
     policyID: string;
     reportCreationData?: string;
-    announceChatReportID?: string;
-    announceCreatedReportActionID?: string;
 };
 
 export default AddMembersToWorkspaceParams;

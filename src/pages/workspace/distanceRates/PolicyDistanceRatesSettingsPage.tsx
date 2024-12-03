@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import CategorySelector from '@components/CategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,9 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
@@ -28,44 +27,51 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
-type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
+type PolicyDistanceRatesSettingsPageOnyxProps = {
+    /** Policy details */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
-function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPageProps) {
-    const policyID = route.params.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    /** Policy categories */
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
 
+type PolicyDistanceRatesSettingsPageProps = PolicyDistanceRatesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
+
+function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: PolicyDistanceRatesSettingsPageProps) {
     const styles = useThemeStyles();
-    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const policyID = route.params.policyID;
+    const customUnits = policy?.customUnits ?? {};
+    const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
-    const defaultCategory = customUnit?.defaultCategory;
-    const defaultUnit = customUnit?.attributes?.unit;
-    const errorFields = customUnit?.errorFields;
+    const defaultCategory = customUnits[customUnitID]?.defaultCategory;
+    const defaultUnit = customUnits[customUnitID]?.attributes?.unit;
+    const errorFields = customUnits[customUnitID]?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewUnit = (unit: UnitItemType) => {
-        if (!customUnit) {
-            return;
-        }
-        const attributes = {...customUnit?.attributes, unit: unit.value};
+        const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
         DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
+        if (!category.searchText) {
             return;
         }
 
-        Category.setPolicyCustomUnitDefaultCategory(policyID, customUnitID, customUnit.defaultCategory, category.searchText);
+        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
+            ...customUnit,
+            defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
+        });
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
@@ -73,10 +79,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!customUnit || !customUnit.attributes) {
-            return;
-        }
-        const attributes = {...customUnit?.attributes, taxEnabled: isOn};
+        const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
         Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
 
@@ -93,15 +96,12 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
-                    <ScrollView
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="always"
-                    >
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <View>
-                            {!!defaultUnit && (
+                            {defaultUnit && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'attributes')}
-                                    pendingAction={customUnit?.pendingFields?.attributes}
+                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
+                                    pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('attributes')}
                                 >
@@ -113,35 +113,32 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            {!!policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
-                                    pendingAction={customUnit?.pendingFields?.defaultCategory}
+                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
+                                    pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('defaultCategory')}
                                 >
                                     <CategorySelector
                                         policyID={policyID}
-                                        label={translate('workspace.common.defaultCategory')}
+                                        label={translate('workspace.distanceRates.defaultCategory')}
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
                                         setNewCategory={setNewCategory}
-                                        isPickerVisible={isCategoryPickerVisible}
-                                        showPickerModal={() => setIsCategoryPickerVisible(true)}
-                                        hidePickerModal={() => setIsCategoryPickerVisible(false)}
                                     />
                                 </OfflineWithFeedback>
                             )}
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnit ?? {}, 'taxEnabled')}
+                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
                                 errorRowStyles={styles.mh5}
-                                pendingAction={customUnit?.pendingFields?.taxEnabled}
+                                pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                         <Switch
-                                            isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
+                                            isOn={isDistanceTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
                                             disabled={!isPolicyTrackTaxEnabled}
@@ -175,4 +172,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
 PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 
-export default PolicyDistanceRatesSettingsPage;
+export default withOnyx<PolicyDistanceRatesSettingsPageProps, PolicyDistanceRatesSettingsPageOnyxProps>({
+    policy: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+    },
+    policyCategories: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
+    },
+})(PolicyDistanceRatesSettingsPage);

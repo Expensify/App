@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import PDFInfoMessage from './PDFInfoMessage';
 
 type PDFPasswordFormProps = {
@@ -40,7 +39,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     const {translate} = useLocalize();
 
     const [password, setPassword] = useState('');
-    const [validationErrorText, setValidationErrorText] = useState<TranslationPaths | null | ''>('');
+    const [validationErrorText, setValidationErrorText] = useState('');
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef<BaseTextInputRef>(null);
 
@@ -51,7 +50,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return translate('attachmentView.passwordIncorrect');
         }
         if (validationErrorText) {
-            return translate(validationErrorText);
+            return validationErrorText;
         }
         return '';
     }, [isPasswordInvalid, validationErrorText, translate]);
@@ -91,7 +90,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return true;
         }
         if (!password) {
-            setValidationErrorText('attachmentView.passwordRequired');
+            setValidationErrorText(translate('attachmentView.passwordRequired'));
         }
         return false;
     };

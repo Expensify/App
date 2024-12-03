@@ -4,7 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -97,16 +97,16 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     // Changes the modal state values to initial
     const resetState = useCallback(() => {
-        originalImageWidth.set(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-        originalImageHeight.set(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-        translateY.set(0);
-        translateX.set(0);
-        scale.set(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
-        rotation.set(0);
-        translateSlider.set(0);
-        prevMaxOffsetX.set(0);
-        prevMaxOffsetY.set(0);
-        isLoading.set(false);
+        originalImageWidth.value = CONST.AVATAR_CROP_MODAL.INITIAL_SIZE;
+        originalImageHeight.value = CONST.AVATAR_CROP_MODAL.INITIAL_SIZE;
+        translateY.value = 0;
+        translateX.value = 0;
+        scale.value = CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+        rotation.value = 0;
+        translateSlider.value = 0;
+        prevMaxOffsetX.value = 0;
+        prevMaxOffsetY.value = 0;
+        isLoading.value = false;
         setImageContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setSliderContainerSize(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setIsImageContainerInitialized(false);
@@ -123,11 +123,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
             // On Android devices ImageSize library returns also rotation parameter.
             if (orginalRotation === 90 || orginalRotation === 270) {
-                originalImageHeight.set(width);
-                originalImageWidth.set(height);
+                // eslint-disable-next-line react-compiler/react-compiler
+                originalImageHeight.value = width;
+                originalImageWidth.value = height;
             } else {
-                originalImageHeight.set(height);
-                originalImageWidth.set(width);
+                originalImageHeight.value = height;
+                originalImageWidth.value = width;
             }
 
             setIsImageInitialized(true);
@@ -135,72 +136,62 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             // Because the reanimated library has some internal optimizations,
             // sometimes when the modal is hidden styles of the image and slider might not be updated.
             // To trigger the update we need to slightly change the following values:
-            translateSlider.set((value) => value + 0.01);
-            rotation.set((value) => value + 360);
+            translateSlider.value += 0.01;
+            rotation.value += 360;
         });
     }, [imageUri, originalImageHeight, originalImageWidth, rotation, translateSlider]);
 
     /**
      * Validates that value is within the provided mix/max range.
      */
-    const clamp = useCallback((value: number, [min, max]: [number, number]) => {
-        'worklet';
-
-        return interpolate(value, [min, max], [min, max], 'clamp');
-    }, []);
+    const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
 
     /**
      * Returns current image size taking into account scale and rotation.
      */
-    const getDisplayedImageSize = useCallback(() => {
-        'worklet';
-
-        let height = imageContainerSize * scale.get();
-        let width = imageContainerSize * scale.get();
+    const getDisplayedImageSize = useWorkletCallback(() => {
+        let height = imageContainerSize * scale.value;
+        let width = imageContainerSize * scale.value;
 
         // Since the smaller side will be always equal to the imageContainerSize multiplied by scale,
         // another side can be calculated with aspect ratio.
-        if (originalImageWidth.get() > originalImageHeight.get()) {
-            width *= originalImageWidth.get() / originalImageHeight.get();
+        if (originalImageWidth.value > originalImageHeight.value) {
+            width *= originalImageWidth.value / originalImageHeight.value;
         } else {
-            height *= originalImageHeight.get() / originalImageWidth.get();
+            height *= originalImageHeight.value / originalImageWidth.value;
         }
 
         return {height, width};
-    }, [imageContainerSize, originalImageHeight, originalImageWidth, scale]);
+    }, [imageContainerSize, scale]);
 
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
      */
-    const updateImageOffset = useCallback(
+    const updateImageOffset = useWorkletCallback(
         (offsetX: number, offsetY: number) => {
-            'worklet';
-
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
-            translateX.set(clamp(offsetX, [maxOffsetX * -1, maxOffsetX]));
-            translateY.set(clamp(offsetY, [maxOffsetY * -1, maxOffsetY]));
-            prevMaxOffsetX.set(maxOffsetX);
-            prevMaxOffsetY.set(maxOffsetY);
+            translateX.value = clamp(offsetX, [maxOffsetX * -1, maxOffsetX]);
+            translateY.value = clamp(offsetY, [maxOffsetY * -1, maxOffsetY]);
+            prevMaxOffsetX.value = maxOffsetX;
+            prevMaxOffsetY.value = maxOffsetY;
         },
-        [getDisplayedImageSize, imageContainerSize, translateX, clamp, translateY, prevMaxOffsetX, prevMaxOffsetY],
+        [imageContainerSize, scale, clamp],
     );
 
-    const newScaleValue = useCallback((newSliderValue: number, containerSize: number) => {
-        'worklet';
-
+    const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
-    }, []);
+    });
 
     /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
     const panGesture = Gesture.Pan().onChange((event) => {
-        const newX = translateX.get() + event.changeX;
-        const newY = translateY.get() + event.changeY;
+        const newX = translateX.value + event.changeX;
+        const newY = translateY.value + event.changeY;
 
         updateImageOffset(newX, newY);
     });
@@ -209,7 +200,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     // when the browser window is resized.
     useEffect(() => {
         // If no panning has happened and the value is 0, do an early return.
-        if (!prevMaxOffsetX.get() && !prevMaxOffsetY.get()) {
+        if (!prevMaxOffsetX.value && !prevMaxOffsetY.value) {
             return;
         }
         const {height, width} = getDisplayedImageSize();
@@ -219,14 +210,14 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         // Since interpolation is expensive, we only want to do it if
         // image has been panned across X or Y axis by the user.
         if (prevMaxOffsetX) {
-            translateX.set(interpolate(translateX.get(), [prevMaxOffsetX.get() * -1, prevMaxOffsetX.get()], [maxOffsetX * -1, maxOffsetX]));
+            translateX.value = interpolate(translateX.value, [prevMaxOffsetX.value * -1, prevMaxOffsetX.value], [maxOffsetX * -1, maxOffsetX]);
         }
 
         if (prevMaxOffsetY) {
-            translateY.set(interpolate(translateY.get(), [prevMaxOffsetY.get() * -1, prevMaxOffsetY.get()], [maxOffsetY * -1, maxOffsetY]));
+            translateY.value = interpolate(translateY.value, [prevMaxOffsetY.value * -1, prevMaxOffsetY.value], [maxOffsetY * -1, maxOffsetY]);
         }
-        prevMaxOffsetX.set(maxOffsetX);
-        prevMaxOffsetY.set(maxOffsetY);
+        prevMaxOffsetX.value = maxOffsetX;
+        prevMaxOffsetY.value = maxOffsetY;
     }, [getDisplayedImageSize, imageContainerSize, prevMaxOffsetX, prevMaxOffsetY, translateX, translateY]);
 
     /**
@@ -237,69 +228,65 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         onBegin: () => {
             'worklet';
 
-            isPressableEnabled.set(false);
+            isPressableEnabled.value = false;
         },
         onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             'worklet';
 
-            const newSliderValue = clamp(translateSlider.get() + event.changeX, [0, sliderContainerSize]);
+            const newSliderValue = clamp(translateSlider.value + event.changeX, [0, sliderContainerSize]);
             const newScale = newScaleValue(newSliderValue, sliderContainerSize);
 
-            const differential = newScale / scale.get();
+            const differential = newScale / scale.value;
 
-            scale.set(newScale);
-            translateSlider.set(newSliderValue);
+            scale.value = newScale;
+            translateSlider.value = newSliderValue;
 
-            const newX = translateX.get() * differential;
-            const newY = translateY.get() * differential;
+            const newX = translateX.value * differential;
+            const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
         onFinalize: () => {
             'worklet';
 
-            isPressableEnabled.set(true);
+            isPressableEnabled.value = true;
         },
     };
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
     useEffect(() => {
-        translateSlider.set(interpolate(scale.get(), [CONST.AVATAR_CROP_MODAL.MIN_SCALE, CONST.AVATAR_CROP_MODAL.MAX_SCALE], [0, sliderContainerSize]));
-    }, [scale, sliderContainerSize, translateSlider]);
+        translateSlider.value = interpolate(scale.value, [CONST.AVATAR_CROP_MODAL.MIN_SCALE, CONST.AVATAR_CROP_MODAL.MAX_SCALE], [0, sliderContainerSize]);
+    }, [scale.value, sliderContainerSize, translateSlider]);
 
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
-        runOnUI(() => {
-            rotation.set((value) => value - 90);
+        rotation.value -= 90;
 
-            const oldTranslateX = translateX.get();
-            translateX.set(translateY.get());
-            translateY.set(oldTranslateX * -1);
+        // Rotating 2d coordinates by applying the formula (x, y) → (-y, x).
+        [translateX.value, translateY.value] = [translateY.value, translateX.value * -1];
 
-            const oldOriginalImageHeight = originalImageHeight.get();
-            originalImageHeight.set(originalImageWidth.get());
-            originalImageWidth.set(oldOriginalImageHeight);
-        })();
-    }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY]);
+        // Since we rotated the image by 90 degrees, now width becomes height and vice versa.
+        [originalImageHeight.value, originalImageWidth.value] = [originalImageWidth.value, originalImageHeight.value];
+    }, [originalImageHeight.value, originalImageWidth.value, rotation, translateX.value, translateY.value]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave and onClose callbacks
     const cropAndSaveImage = useCallback(() => {
-        if (isLoading.get()) {
+        if (isLoading.value) {
             return;
         }
-        isLoading.set(true);
-        const smallerSize = Math.min(originalImageHeight.get(), originalImageWidth.get());
-        const size = smallerSize / scale.get();
-        const imageCenterX = originalImageWidth.get() / 2;
-        const imageCenterY = originalImageHeight.get() / 2;
+        isLoading.value = true;
+        const smallerSize = Math.min(originalImageHeight.value, originalImageWidth.value);
+        const size = smallerSize / scale.value;
+        const imageCenterX = originalImageWidth.value / 2;
+        const imageCenterY = originalImageHeight.value / 2;
         const apothem = size / 2; // apothem for squares is equals to half of it size
 
         // Since the translate value is only a distance from the image center, we are able to calculate
         // the originX and the originY - start coordinates of cropping view.
-        const originX = imageCenterX - apothem - (translateX.get() / imageContainerSize / scale.get()) * smallerSize;
-        const originY = imageCenterY - apothem - (translateY.get() / imageContainerSize / scale.get()) * smallerSize;
+        const originX = imageCenterX - apothem - (translateX.value / imageContainerSize / scale.value) * smallerSize;
+        const originY = imageCenterY - apothem - (translateY.value / imageContainerSize / scale.value) * smallerSize;
 
         const crop = {
             height: size,
@@ -314,15 +301,29 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         const name = isSvg ? 'fileName.png' : imageName;
         const type = isSvg ? 'image/png' : imageType;
 
-        cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
+        cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
                 onClose?.();
                 onSave?.(newImage);
             })
             .catch(() => {
-                isLoading.set(false);
+                isLoading.value = false;
             });
-    }, [isLoading, originalImageHeight, originalImageWidth, scale, translateX, imageContainerSize, translateY, imageType, imageName, imageUri, rotation, onClose, onSave]);
+    }, [
+        imageUri,
+        imageName,
+        imageType,
+        onClose,
+        onSave,
+        originalImageHeight.value,
+        originalImageWidth.value,
+        scale.value,
+        translateX.value,
+        imageContainerSize,
+        translateY.value,
+        rotation.value,
+        isLoading,
+    ]);
 
     const sliderOnPress = (locationX: number) => {
         // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
@@ -330,16 +331,16 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         'worklet';
 
-        if (!locationX || !isPressableEnabled.get()) {
+        if (!locationX || !isPressableEnabled.value) {
             return;
         }
         const newSliderValue = clamp(locationX, [0, sliderContainerSize]);
         const newScale = newScaleValue(newSliderValue, sliderContainerSize);
-        translateSlider.set(newSliderValue);
-        const differential = newScale / scale.get();
-        scale.set(newScale);
-        const newX = translateX.get() * differential;
-        const newY = translateY.get() * differential;
+        translateSlider.value = newSliderValue;
+        const differential = newScale / scale.value;
+        scale.value = newScale;
+        const newX = translateX.value * differential;
+        const newY = translateY.value * differential;
         updateImageOffset(newX, newY);
     };
 

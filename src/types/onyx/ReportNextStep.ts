@@ -11,9 +11,6 @@ type Message = {
 
     /** Action for the user to take */
     action?: string;
-
-    /** The text to be copied when the user clicks this section */
-    clickToCopyText?: string;
 };
 
 /** Model of report next step button data */

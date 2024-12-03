@@ -1,6 +1,5 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -23,15 +22,14 @@ const rightButtonWidth = 20;
 
 function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: CardRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
             gradientOpacityEnabled={gradientOpacityEnabled}
-            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.ml5]}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
             renderSkeletonItem={() => (
                 <>
                     <Circle
@@ -53,7 +51,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         height={barHeight}
                     />
 
-                    {!shouldUseNarrowLayout && (
+                    {!isSmallScreenWidth && (
                         <>
                             <Rect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.

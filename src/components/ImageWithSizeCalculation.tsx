@@ -25,9 +25,6 @@ type ImageWithSizeCalculationProps = {
     /** Url for image to display */
     url: string | ImageSourcePropType;
 
-    /** alt text for the image */
-    altText?: string;
-
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
@@ -49,7 +46,7 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
@@ -100,7 +97,6 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
             <Image
                 style={[styles.w100, styles.h100]}
                 source={source}
-                aria-label={altText}
                 isAuthTokenRequired={isAuthTokenRequired}
                 resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {

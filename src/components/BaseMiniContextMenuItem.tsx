@@ -79,7 +79,7 @@ function BaseMiniContextMenuItem(
                 role={CONST.ROLE.BUTTON}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete)),
                     isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

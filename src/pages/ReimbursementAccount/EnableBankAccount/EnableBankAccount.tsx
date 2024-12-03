@@ -1,5 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,12 +15,19 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type EnableBankAccountProps = {
+type EnableBankAccountOnyxProps = {
+    /** Object with various information about the user */
+    user: OnyxEntry<User>;
+};
+
+type EnableBankAccountProps = EnableBankAccountOnyxProps & {
     /** Bank account currently in setup */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
@@ -26,14 +35,14 @@ type EnableBankAccountProps = {
     onBackButtonPress: () => void;
 };
 
-function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBankAccountProps) {
+function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: EnableBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const achData = reimbursementAccount?.achData ?? {};
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName: achData.bankName, styles});
-
-    const formattedBankAccountNumber = achData.accountNumber ? `${translate('bankAccount.accountEnding')} ${achData.accountNumber.slice(-4)}` : '';
+    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
+    const isUsingExpensifyCard = user?.isUsingExpensifyCard;
+    const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankAccountOwnerName = achData.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
@@ -54,8 +63,8 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
-                    title={translate('workspace.bankAccount.allSet')}
-                    icon={Illustrations.ThumbsUpStars}
+                    title={!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
+                    icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                 >
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -67,14 +76,28 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
                             title={bankAccountOwnerName}
                             description={formattedBankAccountNumber}
                             icon={icon}
-                            iconStyles={iconStyles}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}
                             displayInDefaultIconColor
-                            wrapperStyle={[styles.ph0, styles.mv3, styles.h13]}
+                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                         />
-                        <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
+                        <Text style={[styles.mv3]}>
+                            {!isUsingExpensifyCard ? translate('workspace.bankAccount.accountDescriptionNoCards') : translate('workspace.bankAccount.accountDescriptionWithCards')}
+                        </Text>
+                        {!isUsingExpensifyCard && (
+                            <Button
+                                text={translate('workspace.bankAccount.addWorkEmail')}
+                                onPress={() => {
+                                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                                }}
+                                icon={Expensicons.Mail}
+                                style={[styles.mt4]}
+                                shouldShowRightIcon
+                                large
+                                success
+                            />
+                        )}
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Expensicons.Close}
@@ -84,6 +107,7 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
                         />
                     </OfflineWithFeedback>
                 </Section>
+                {user?.isCheckingDomain && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
             {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>
@@ -92,4 +116,8 @@ function EnableBankAccount({reimbursementAccount, onBackButtonPress}: EnableBank
 
 EnableBankAccount.displayName = 'EnableStep';
 
-export default EnableBankAccount;
+export default withOnyx<EnableBankAccountProps, EnableBankAccountOnyxProps>({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(EnableBankAccount);

@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
@@ -10,8 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import localeCompare from '@libs/LocaleCompare';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportFieldOptionsListUtils from '@libs/ReportFieldOptionsListUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {RecentlyUsedReportFields} from '@src/types/onyx';
 
 type EditReportFieldDropdownPageComponentProps = {
     /** Value of the policy report field */
@@ -31,10 +33,13 @@ type EditReportFieldDropdownPageComponentProps = {
     onSubmit: (form: Record<string, string>) => void;
 };
 
-type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps;
+type EditReportFieldDropdownPageOnyxProps = {
+    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
+};
 
-function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
-    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
+
+function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -59,26 +64,45 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const [sections, headerMessage] = useMemo(() => {
         const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-        const policyReportFieldOptions = ReportFieldOptionsListUtils.getReportFieldOptionsSection({
-            searchValue: debouncedSearchValue,
-            selectedOptions: [
+        const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
+            [],
+            [],
+            [],
+            debouncedSearchValue,
+            [
                 {
                     keyForList: fieldValue,
                     searchText: fieldValue,
                     text: fieldValue,
                 },
             ],
-            options: validFieldOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            undefined,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            undefined,
+            undefined,
+            true,
+            validFieldOptions,
             recentlyUsedOptions,
-        });
+        );
 
-        const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
+        const policyReportFieldData = policyReportFieldOptions?.[0]?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
 
         return [policyReportFieldOptions, header];
     }, [recentlyUsedOptions, debouncedSearchValue, fieldValue, fieldOptions]);
 
-    const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((option) => option.searchText === fieldValue)?.[0]?.keyForList, [sections, fieldValue]);
     return (
         <SelectionList
             textInputValue={searchValue}
@@ -97,4 +121,8 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
 
 EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
 
-export default EditReportFieldDropdownPage;
+export default withOnyx<EditReportFieldDropdownPageProps, EditReportFieldDropdownPageOnyxProps>({
+    recentlyUsedReportFields: {
+        key: () => ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
+    },
+})(EditReportFieldDropdownPage);

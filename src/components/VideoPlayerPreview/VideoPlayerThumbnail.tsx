@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import AttachmentDeletedIndicator from '@components/AttachmentDeletedIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -23,17 +22,14 @@ type VideoPlayerThumbnailProps = {
 
     /** Accessibility label for the thumbnail. */
     accessibilityLabel: string;
-
-    /** Whether the video is deleted */
-    isDeleted?: boolean;
 };
 
-function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
+function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={styles.flex1}>
-            {!!thumbnailUrl && (
+            {thumbnailUrl && (
                 <View style={[styles.flex1, {borderRadius: variables.componentBorderRadiusNormal}, styles.overflowHidden]}>
                     <Image
                         source={{uri: thumbnailUrl}}
@@ -43,39 +39,32 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                     />
                 </View>
             )}
-            {!isDeleted ? (
-                <ShowContextMenuContext.Consumer>
-                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
-                        <PressableWithoutFeedback
-                            style={[styles.videoThumbnailContainer]}
-                            accessibilityLabel={accessibilityLabel}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            onPress={onPress}
-                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={(event) => {
-                                if (isDisabled) {
-                                    return;
-                                }
-                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
-                            }}
-                            shouldUseHapticsOnLongPress
-                        >
-                            <View style={[styles.videoThumbnailPlayButton]}>
-                                <Icon
-                                    src={Expensicons.Play}
-                                    fill="white"
-                                    width={variables.iconSizeXLarge}
-                                    height={variables.iconSizeXLarge}
-                                    additionalStyles={[styles.ml1]}
-                                />
-                            </View>
-                        </PressableWithoutFeedback>
-                    )}
-                </ShowContextMenuContext.Consumer>
-            ) : (
-                <AttachmentDeletedIndicator containerStyles={{borderRadius: variables.componentBorderRadiusNormal}} />
-            )}
+            <ShowContextMenuContext.Consumer>
+                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive}) => (
+                    <PressableWithoutFeedback
+                        style={[styles.videoThumbnailContainer]}
+                        accessibilityLabel={accessibilityLabel}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        onPress={onPress}
+                        onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
+                        onLongPress={(event) =>
+                            showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs))
+                        }
+                        shouldUseHapticsOnLongPress
+                    >
+                        <View style={[styles.videoThumbnailPlayButton]}>
+                            <Icon
+                                src={Expensicons.Play}
+                                fill="white"
+                                width={variables.iconSizeXLarge}
+                                height={variables.iconSizeXLarge}
+                                additionalStyles={[styles.ml1]}
+                            />
+                        </View>
+                    </PressableWithoutFeedback>
+                )}
+            </ShowContextMenuContext.Consumer>
         </View>
     );
 }

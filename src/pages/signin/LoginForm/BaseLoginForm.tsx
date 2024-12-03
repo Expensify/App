@@ -3,7 +3,8 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -33,16 +34,24 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CloseAccountForm} from '@src/types/form';
+import type {Account} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
-type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
+type BaseLoginFormOnyxProps = {
+    /** The details about the account that the user is signing in with */
+    account: OnyxEntry<Account>;
 
-function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+    /** Message to display when user successfully closed their account */
+    closeAccount: OnyxEntry<CloseAccountForm>;
+};
+
+type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
+
+function BaseLoginForm({account, login, onLoginChanged, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -53,7 +62,6 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const accountMessage = account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account.message) : account?.message ?? '';
 
     /**
      * Validate the input value and set the error for formError
@@ -220,8 +228,6 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
         });
     }, []);
 
-    const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
-
     return (
         <>
             <View
@@ -270,7 +276,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : account?.message || ''}}
                 />
             )}
             {
@@ -307,16 +313,10 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn
-                                                onPress={handleSignIn}
-                                                onPointerDown={handleSignIn}
-                                            />
+                                            <AppleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                         <View>
-                                            <GoogleSignIn
-                                                onPress={handleSignIn}
-                                                onPointerDown={handleSignIn}
-                                            />
+                                            <GoogleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                     </View>
                                 </View>
@@ -331,4 +331,9 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(forwardRef(BaseLoginForm));
+export default withToggleVisibilityView(
+    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
+        account: {key: ONYXKEYS.ACCOUNT},
+        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
+    })(forwardRef(BaseLoginForm)),
+);

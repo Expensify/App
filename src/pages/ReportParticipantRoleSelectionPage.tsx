@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -9,7 +10,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
-type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 
 type ListItemType = ListItem & {
     value: ValueOf<typeof CONST.REPORT.ROLE>;
@@ -30,7 +30,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? -1;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID, route.params.backTo);
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID);
     const member = report.participants?.[accountID];
 
     if (!member) {

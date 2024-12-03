@@ -48,7 +48,6 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
             key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
             value: {
                 ...optimisticPublicRoom,
-                isOptimisticReport: false,
                 reportID: publicRoomReportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
@@ -137,7 +136,6 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
-                isOptimisticReport: false,
                 pendingAction: null,
             },
         },
@@ -145,7 +143,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {
-                [Object.keys(expenseChatData).at(0) ?? '']: {
+                [Object.keys(expenseChatData)[0]]: {
                     pendingAction: null,
                 },
             },

@@ -2,8 +2,8 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
 import type {ForwardedRef} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {Emoji} from '@assets/emojis/types';
+import {View} from 'react-native';
+import {runOnUI, scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -44,33 +44,34 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
 
-    const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
-        setFilteredEmojis(emojiData);
-        setHeaderIndices(headerData);
-
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
-            });
-        });
-    };
-
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
-        if (normalizedSearchTerm === '') {
-            updateEmojiList(allEmojis, headerRowIndices);
-        } else {
-            updateEmojiList(newFilteredEmojiList ?? [], []);
+        if (emojiListRef.current) {
+            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
         }
+
+        if (normalizedSearchTerm === '') {
+            setFilteredEmojis(allEmojis);
+            setHeaderIndices(headerRowIndices);
+
+            return;
+        }
+
+        setFilteredEmojis(newFilteredEmojiList ?? []);
+        setHeaderIndices([]);
     }, 300);
 
     const scrollToHeader = (headerIndex: number) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+        runOnUI(() => {
+            'worklet';
+
+            scrollTo(emojiListRef, 0, calculatedOffset, true);
+        })();
     };
 
     /**
@@ -95,7 +96,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && types?.at(preferredSkinTone) ? types.at(preferredSkinTone) : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types?.[preferredSkinTone] : code;
             const shouldEmojiBeHighlighted = !!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
@@ -106,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         }
                         onEmojiSelected(emoji, item);
                     })}
-                    emoji={emojiCode ?? ''}
+                    emoji={emojiCode}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
             );

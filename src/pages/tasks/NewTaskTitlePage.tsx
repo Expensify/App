@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -27,15 +27,14 @@ type NewTaskTitlePageOnyxProps = {
     /** Task Creation Data */
     task: OnyxEntry<Task>;
 };
-type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
+type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
-function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
+function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const {translate} = useLocalize();
 
-    const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
@@ -53,19 +52,20 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setTitleValue(values.taskTitle);
-        goBack();
+        Navigation.goBack(ROUTES.NEW_TASK);
     };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={NewTaskTitlePage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('task.title')}
+                onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

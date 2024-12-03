@@ -3,7 +3,7 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
@@ -18,14 +18,14 @@ import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>(
-    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
-        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+const MapView = forwardRef<MapViewHandle, ComponentProps>(
+    ({accessToken, style, mapPadding, userLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -119,7 +119,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                     cameraRef.current?.setCamera({
                         zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                         animationDuration: 1500,
-                        centerCoordinate: waypoints.at(0)?.coordinate,
+                        centerCoordinate: waypoints[0].coordinate,
                     });
                 } else {
                     const {southWest, northEast} = utils.getBounds(
@@ -275,13 +275,15 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                         );
                     })}
 
-                    {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
                         <Button
                             onPress={centerMap}
                             iconFill={theme.icon}
+                            iconStyles={styles.ml1}
+                            medium
                             icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
                         />
@@ -298,4 +300,8 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
     },
 );
 
-export default memo(MapView);
+export default withOnyx<ComponentProps, MapViewOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+})(memo(MapView));

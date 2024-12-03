@@ -1,6 +1,5 @@
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -10,12 +9,8 @@ import type {
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import fileDownload from '@libs/fileDownload';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -27,7 +22,6 @@ import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmplo
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
 
@@ -47,7 +41,7 @@ type NewCustomUnit = {
 type WorkspaceMembersRoleData = {
     accountID: number;
     email: string;
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -159,10 +153,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
-            participants: accountIDs.reduce((acc, curr) => {
-                Object.assign(acc, {[curr]: null});
-                return acc;
-            }, {}),
+            participants: announceReport?.participants ?? null,
             pendingChatMembers: announceReport?.pendingChatMembers ?? null,
         },
     });
@@ -174,39 +165,6 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         },
     });
     return announceRoomMembers;
-}
-/**
- * Updates the import spreadsheet data according to the result of the import
- */
-function updateImportSpreadsheetData(membersLength: number): OnyxData {
-    const onyxData: OnyxData = {
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {members: membersLength}),
-                    },
-                },
-            },
-        ],
-
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
-                },
-            },
-        ],
-    };
-
-    return onyxData;
 }
 
 /**
@@ -436,7 +394,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     optimisticClosedReportActions.forEach((reportAction, index) => {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.at(index)?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
             value: {[reportAction.reportActionID]: null},
         });
     });
@@ -449,7 +407,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
     const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {
@@ -525,7 +483,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
     const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
     if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-        const currentError = changeOwnerErrors.at(0);
+        const currentError = changeOwnerErrors[0];
         if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
             ownershipChecks.shouldClearOutstandingBalance = true;
         }
@@ -608,7 +566,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
  * Adds members to the specified workspace/policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[]) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
@@ -617,8 +575,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
-    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs]);
-    const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
@@ -645,7 +601,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomChat.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData);
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -656,7 +612,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-    successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomChat.onyxSuccessData, ...announceRoomMembers.onyxSuccessData);
+    successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -670,12 +626,10 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-    failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...announceRoomMembers.onyxFailureData);
+    failureData.push(...membersChats.onyxFailureData, ...announceRoomMembers.onyxFailureData);
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
-        ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
-        ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote),
         policyID,
     };
@@ -683,22 +637,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
     }
     API.write(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, params, {optimisticData, successData, failureData});
-}
-
-type PolicyMember = {
-    email: string;
-    role: string;
-};
-
-function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    const onyxData = updateImportSpreadsheetData(members.length);
-
-    const parameters = {
-        policyID,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role}))),
-    };
-
-    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
 }
 
 /**
@@ -897,21 +835,6 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
-function downloadMembersCSV(policyID: string, onDownloadFailed: () => void) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {
-        policyID,
-    });
-
-    const fileName = 'Members.csv';
-
-    const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
-        formData.append(key, String(value));
-    });
-
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
-}
-
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -926,8 +849,6 @@ export {
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
-    importPolicyMembers,
-    downloadMembersCSV,
 };
 
 export type {NewCustomUnit};

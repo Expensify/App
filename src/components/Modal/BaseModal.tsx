@@ -6,7 +6,6 @@ import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +42,6 @@ function BaseModal(
         animationInTiming,
         animationOutTiming,
         statusBarTranslucent = true,
-        navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
@@ -60,10 +58,7 @@ function BaseModal(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, windowWidth, windowHeight} = useWindowDimensions();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -194,7 +189,7 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -257,15 +252,11 @@ function BaseModal(
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
-                    navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <ModalContent
-                        onModalWillShow={saveFocusState}
-                        onDismiss={handleDismissModal}
-                    >
+                    <ModalContent onDismiss={handleDismissModal}>
                         <PortalHost name="modal" />
                         <FocusTrapForModal
                             active={isVisible}

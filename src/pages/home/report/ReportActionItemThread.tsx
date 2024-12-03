@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Timing from '@libs/actions/Timing';
-import Performance from '@libs/Performance';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -46,9 +45,8 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
-                    Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
                     Report.navigateToAndOpenChildReport(childReportID);
+                    Timing.start(CONST.TIMING.SWITCH_REPORT_THREAD);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

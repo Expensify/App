@@ -23,7 +23,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, PendingContactAction} from '@src/types/onyx';
+import type {Account, LoginList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
@@ -45,36 +45,21 @@ type ValidateCodeFormProps = {
     contactMethod: string;
 
     /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
+    hasMagicCodeBeenSent: boolean;
 
     /** Login list for the user that is signed in */
-    loginList?: LoginList;
+    loginList: LoginList;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete?: AutoCompleteVariant;
 
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
-
-    /** Whether we are validating the action taken to add the magic code */
-    isValidatingAction?: boolean;
-
-    /** The contact that's going to be added after successful validation */
-    pendingContact?: PendingContactAction;
 };
 
 type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
 
-function BaseValidateCodeForm({
-    account = {},
-    contactMethod,
-    hasMagicCodeBeenSent,
-    loginList,
-    autoComplete = 'one-time-code',
-    innerRef = () => {},
-    isValidatingAction = false,
-    pendingContact,
-}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent, loginList, autoComplete = 'one-time-code', innerRef = () => {}}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -82,14 +67,12 @@ function BaseValidateCodeForm({
     const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
-    const loginData = loginList?.[pendingContact?.contactMethod ?? contactMethod];
+    const loginData = loginList[contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const validateCodeSentIsPressedRef = useRef(false);
-    const [showDotIndicator, setShowDotIndicator] = useState(false);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -145,31 +128,14 @@ function BaseValidateCodeForm({
         inputValidateCodeRef.current?.clear();
     }, [hasMagicCodeBeenSent]);
 
-    useEffect(() => {
-        // `validateCodeSent` is updated asynchronously,
-        // and `validateCodeSentIsPressedRef.current` is updated faster than `hasMagicCodeBeenSent`.
-        // This can cause the component to hide and show the `DotIndicatorMessage` multiple times
-        // in quick succession, leading to a flickering effect.
-        if ((hasMagicCodeBeenSent ?? !!pendingContact?.validateCodeSent) && validateCodeSentIsPressedRef.current) {
-            setShowDotIndicator(true);
-        } else {
-            setShowDotIndicator(false);
-        }
-    }, [hasMagicCodeBeenSent, pendingContact, validateCodeSentIsPressedRef]);
-
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
     const resendValidateCode = () => {
-        if (!!pendingContact?.contactMethod && isValidatingAction) {
-            User.saveNewContactMethodAndRequestValidationCode(pendingContact?.contactMethod);
-        } else {
-            User.requestContactMethodValidateCode(contactMethod);
-        }
-
+        User.requestContactMethodValidateCode(contactMethod);
         inputValidateCodeRef.current?.clear();
-        validateCodeSentIsPressedRef.current = true;
     };
+
     /**
      * Handle text input and clear formError upon text change
      */
@@ -200,14 +166,8 @@ function BaseValidateCodeForm({
         }
 
         setFormError({});
-
-        if (!!pendingContact?.contactMethod && isValidatingAction) {
-            User.addNewContactMethod(pendingContact?.contactMethod, validateCode);
-            return;
-        }
-
         User.validateSecondaryLogin(loginList, contactMethod, validateCode);
-    }, [loginList, validateCode, contactMethod, isValidatingAction, pendingContact?.contactMethod]);
+    }, [loginList, validateCode, contactMethod]);
 
     return (
         <>
@@ -223,8 +183,8 @@ function BaseValidateCodeForm({
                 autoFocus={false}
             />
             <OfflineWithFeedback
-                pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
+                pendingAction={loginData.pendingFields?.validateCodeSent}
+                errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
             >
@@ -241,18 +201,18 @@ function BaseValidateCodeForm({
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
-                    {showDotIndicator && (
+                    {hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: pendingContact?.validateCodeSent ? translate('validateCodeModal.successfulNewCodeRequest') : translate('resendValidationForm.linkHasBeenResent')}}
+                            messages={{0: translate('resendValidationForm.linkHasBeenResent')}}
                         />
                     )}
                 </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
-                pendingAction={loginData?.pendingFields?.validateLogin}
+                pendingAction={loginData.pendingFields?.validateLogin}
                 errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}

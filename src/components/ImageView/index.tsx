@@ -196,12 +196,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
-    // isLocalToUserDeviceFile means the file is located on the user device,
-    // not loaded on the server yet (the user is offline when loading this file in fact)
-    let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
-    if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
-        isLocalToUserDeviceFile = false;
-    }
+
+    const isLocalFile = FileUtils.isLocalFile(url);
 
     if (canUseTouchScreen) {
         return (
@@ -214,7 +210,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
     return (
         <View
-            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(scrollableRef)}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
@@ -242,8 +237,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && (!isOffline || isLocalToUserDeviceFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isLocalToUserDeviceFile && <AttachmentOfflineIndicator />}
+            {isLoading && (!isOffline || isLocalFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
         </View>
     );
 }

@@ -9,11 +9,11 @@ function setDownload(sourceID: string, isDownloading: boolean): Promise<void | v
 }
 
 function clearDownloads() {
-    const connection = Onyx.connect({
+    const connectionID = Onyx.connect({
         key: ONYXKEYS.COLLECTION.DOWNLOAD,
         waitForCollectionCallback: true,
         callback: (records) => {
-            Onyx.disconnect(connection);
+            Onyx.disconnect(connectionID);
             const downloadsToDelete: Record<string, null> = {};
             Object.keys(records ?? {}).forEach((recordKey) => {
                 downloadsToDelete[recordKey] = null;

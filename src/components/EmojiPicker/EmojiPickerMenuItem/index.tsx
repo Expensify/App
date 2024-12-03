@@ -68,7 +68,8 @@ function EmojiPickerMenuItem({
                 ref.current = el ?? null;
             }}
             style={({pressed}) => [
-                isFocused || isHovered || isHighlighted ? themeStyles.emojiItemHighlighted : {},
+                isFocused ? themeStyles.emojiItemKeyboardHighlighted : {},
+                isHovered || isHighlighted ? themeStyles.emojiItemHighlighted : {},
                 Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                 themeStyles.emojiItem,
             ]}

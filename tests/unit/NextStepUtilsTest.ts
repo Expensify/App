@@ -17,13 +17,11 @@ describe('libs/NextStepUtils', () => {
         const currentUserAccountID = 37;
         const strangeEmail = 'stranger@expensify.com';
         const strangeAccountID = 50;
-        const ownerEmail = 'owner@expensify.com';
-        const ownerAccountID = 99;
         const policyID = '1';
         const policy: Policy = {
             // Important props
             id: policyID,
-            owner: ownerEmail,
+            owner: currentUserEmail,
             harvesting: {
                 enabled: false,
             },
@@ -56,11 +54,6 @@ describe('libs/NextStepUtils', () => {
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
-                        avatar: '',
-                    },
-                    [ownerAccountID]: {
-                        accountID: ownerAccountID,
-                        login: ownerEmail,
                         avatar: '',
                     },
                 },
@@ -120,12 +113,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -155,12 +143,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -190,12 +173,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -225,12 +203,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -261,12 +234,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -299,12 +267,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -335,12 +298,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'Waiting for ',
                         },
                         {
-                            text: `${currentUserEmail}`,
-                            clickToCopyText: `${currentUserEmail}`,
-                            type: 'strong',
-                        },
-                        {
-                            text: "'s",
+                            text: `${currentUserEmail}'s`,
                             type: 'strong',
                         },
                         {
@@ -402,40 +360,14 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for userAdmin to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'finish setting up',
-                    },
-                    {
-                        text: ' a business bank account.',
-                    },
-                ];
-
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
-
-                expect(result).toMatchObject(optimisticNextStep);
-            });
-
-            test('self review with bank account setup', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for an admin to pay expense(s)
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `an admin`,
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
                     },
                     {
                         text: ' to ',
@@ -448,20 +380,9 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    achAccount: {
-                        accountNumber: '123456789',
-                    },
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                    expect(result).toMatchObject(optimisticNextStep);
-
-                    // restore to previous state
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                        achAccount: null,
-                    });
-                });
+                expect(result).toMatchObject(optimisticNextStep);
             });
 
             test('another reviewer', () => {
@@ -574,22 +495,23 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for userAdmin to pay expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'an admin',
+                        text: currentUserEmail,
+                        type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // mock the report as approved
@@ -605,53 +527,20 @@ describe('libs/NextStepUtils', () => {
                 report.stateNum = originalState.stateNum;
                 report.statusNum = originalState.statusNum;
             });
+        });
 
-            test('payer with bank account setup', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-
-                // Waiting for an admin to pay expense(s)
+        describe('it generates an optimistic nextStep once a report has been paid', () => {
+            test('paid with wallet / outside of Expensify', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'an admin',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                    },
-                    {
-                        text: ' %expenses.',
+                        text: 'No further action required!',
                     },
                 ];
 
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    achAccount: {
-                        accountNumber: '123456789',
-                    },
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
 
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
-            });
-
-            describe('it generates an optimistic nextStep once a report has been paid', () => {
-                test('paid with wallet / outside of Expensify', () => {
-                    optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                    optimisticNextStep.message = [
-                        {
-                            text: 'No further action required!',
-                        },
-                    ];
-
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
-
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
+                expect(result).toMatchObject(optimisticNextStep);
             });
         });
     });

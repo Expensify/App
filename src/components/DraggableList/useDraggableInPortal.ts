@@ -7,7 +7,6 @@ type DraggableInPortal = {
 };
 
 export default function useDraggableInPortal({shouldUsePortal}: DraggableInPortal): (render: DraggableChildrenFn) => DraggableChildrenFn {
-    // eslint-disable-next-line react-compiler/react-compiler
     const element = useRef<HTMLDivElement>(document.createElement('div')).current;
 
     useEffect(() => {

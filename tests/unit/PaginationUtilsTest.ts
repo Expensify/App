@@ -59,9 +59,7 @@ describe('PaginationUtils', () => {
             ];
             for (const targetID of targetIDs) {
                 const result = PaginationUtils.getContinuousChain(input, pages, getID, targetID);
-                expect(result.data).toStrictEqual(expectedOutput);
-                expect(result.hasPreviousPage).toBe(true);
-                expect(result.hasNextPage).toBe(true);
+                expect(result).toStrictEqual(expectedOutput);
             }
         });
 
@@ -97,9 +95,7 @@ describe('PaginationUtils', () => {
             // Expect these sortedItems
             const expectedResult: Item[] = [];
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(false);
-            expect(result.hasNextPage).toBe(false);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('given an input ID of an action in a gap it will return only that action', () => {
@@ -136,9 +132,7 @@ describe('PaginationUtils', () => {
                 '8',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(false);
-            expect(result.hasNextPage).toBe(false);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('given an empty input ID and the report only contains pending actions, it will return all actions', () => {
@@ -158,9 +152,7 @@ describe('PaginationUtils', () => {
             // Expect these sortedItems
             const expectedResult = [...input];
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(false);
-            expect(result.hasNextPage).toBe(false);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('given an input ID and the report only contains pending actions, it will return an empty array', () => {
@@ -180,9 +172,7 @@ describe('PaginationUtils', () => {
             // Expect these sortedItems
             const expectedResult: Item[] = [];
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(false);
-            expect(result.hasNextPage).toBe(false);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('does not include actions outside of pages', () => {
@@ -222,9 +212,7 @@ describe('PaginationUtils', () => {
                 '9',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '10');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(true);
-            expect(result.hasNextPage).toBe(true);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('given a page with an empty firstItemID include actions until the start', () => {
@@ -249,9 +237,7 @@ describe('PaginationUtils', () => {
                 '14',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(false);
-            expect(result.hasNextPage).toBe(true);
+            expect(result).toStrictEqual(expectedResult);
         });
 
         it('given a page with null lastItemID include actions to the end', () => {
@@ -276,9 +262,7 @@ describe('PaginationUtils', () => {
                 '14',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result.data).toStrictEqual(expectedResult);
-            expect(result.hasPreviousPage).toBe(true);
-            expect(result.hasNextPage).toBe(false);
+            expect(result).toStrictEqual(expectedResult);
         });
     });
 

@@ -67,7 +67,7 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: Data, skippedTests: string[]) => {
+const buildMarkdown = (data: Data) => {
     let result = '## Performance Comparison Report 📊';
 
     if (data.errors?.length) {
@@ -92,10 +92,6 @@ const buildMarkdown = (data: Data, skippedTests: string[]) => {
     result += `\n${buildDetailsTable(data.meaningless)}`;
     result += '\n';
 
-    if (skippedTests.length > 0) {
-        result += `⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
-    }
-
     return result;
 };
 
@@ -113,9 +109,8 @@ const writeToFile = (filePath: string, content: string) =>
             throw error;
         });
 
-const writeToMarkdown = (filePath: string, data: Data, skippedTests: string[]) => {
-    const markdown = buildMarkdown(data, skippedTests);
-    Logger.info('Markdown was built successfully, writing to file...', markdown);
+const writeToMarkdown = (filePath: string, data: Data) => {
+    const markdown = buildMarkdown(data);
     return writeToFile(filePath, markdown).catch((error) => {
         console.error(error);
         throw error;

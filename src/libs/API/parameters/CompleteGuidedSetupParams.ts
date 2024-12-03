@@ -1,16 +1,11 @@
-import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
-import type {OnboardingPurpose} from '@src/types/onyx';
+import type {OnboardingPurposeType} from '@src/CONST';
 
 type CompleteGuidedSetupParams = {
     firstName: string;
     lastName: string;
     actorAccountID: number;
     guidedSetupData: string;
-    engagementChoice: OnboardingPurpose;
-    paymentSelected?: string;
-    companySize?: OnboardingCompanySize;
-    userReportedIntegration?: OnboardingAccounting;
-    policyID?: string;
+    engagementChoice: OnboardingPurposeType;
 };
 
 export default CompleteGuidedSetupParams;

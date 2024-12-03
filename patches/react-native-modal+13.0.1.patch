@@ -1,0 +1,69 @@
+diff --git a/node_modules/react-native-modal/dist/modal.d.ts b/node_modules/react-native-modal/dist/modal.d.ts
+index b63bcfc..bd6419e 100644
+--- a/node_modules/react-native-modal/dist/modal.d.ts
++++ b/node_modules/react-native-modal/dist/modal.d.ts
+@@ -161,6 +161,7 @@ export declare class ReactNativeModal extends React.Component<ModalProps, State>
+     getDeviceHeight: () => number;
+     getDeviceWidth: () => number;
+     onBackButtonPress: () => boolean;
++    handleEscape: (e: KeyboardEvent) => void;
+     shouldPropagateSwipe: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => boolean;
+     buildPanResponder: () => void;
+     getAccDistancePerDirection: (gestureState: PanResponderGestureState) => number;
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 80f4e75..5a58eae 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -75,6 +75,13 @@ export class ReactNativeModal extends React.Component {
+             }
+             return false;
+         };
++        this.handleEscape = (e) => {
++            if (e.key === 'Escape') {
++                if (this.onBackButtonPress() === true) {
++                    e.stopImmediatePropagation();
++                }
++            }
++        };
+         this.shouldPropagateSwipe = (evt, gestureState) => {
+             return typeof this.props.propagateSwipe === 'function'
+                 ? this.props.propagateSwipe(evt, gestureState)
+@@ -453,10 +460,18 @@ export class ReactNativeModal extends React.Component {
+         if (this.state.isVisible) {
+             this.open();
+         }
++        if (Platform.OS === 'web') {
++            document?.body?.addEventListener?.('keyup', this.handleEscape, true);
++            return;
++        }
+         BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPress);
+     }
+     componentWillUnmount() {
+-        BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
++        if (Platform.OS === 'web') {
++            document?.body?.removeEventListener?.('keyup', this.handleEscape, true);
++        } else {
++            BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPress);
++        }
+         if (this.didUpdateDimensionsEmitter) {
+             this.didUpdateDimensionsEmitter.remove();
+         }
+@@ -464,6 +479,9 @@ export class ReactNativeModal extends React.Component {
+             InteractionManager.clearInteractionHandle(this.interactionHandle);
+             this.interactionHandle = null;
+         }
++        if (this.state.isVisible) {
++            this.props.onModalHide();
++        }
+     }
+     componentDidUpdate(prevProps) {
+         // If the animations have been changed then rebuild them to make sure we're
+@@ -525,7 +543,7 @@ export class ReactNativeModal extends React.Component {
+         }
+         return (React.createElement(Modal, Object.assign({ transparent: true, animationType: 'none', visible: this.state.isVisible, onRequestClose: onBackButtonPress }, otherProps),
+             this.makeBackdrop(),
+-            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: Platform.OS === 'ios' ? 'padding' : undefined, pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
++            avoidKeyboard ? (React.createElement(KeyboardAvoidingView, { behavior: 'padding', pointerEvents: "box-none", style: computedStyle.concat([{ margin: 0 }]) }, containerView)) : (containerView)));
+     }
+ }
+ ReactNativeModal.propTypes = {

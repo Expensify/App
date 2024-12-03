@@ -1,43 +1,38 @@
-import type {ViewStyle} from 'react-native';
 import type CursorStyles from './types';
 
-/**
- * Web-only style.
- * NOTE: We are asserting "cursor" to valid react-native types, because it isn't possible to augment "cursor".
- */
 const cursor: CursorStyles = {
     cursorDefault: {
-        cursor: 'default' as ViewStyle['cursor'],
+        cursor: 'default',
     },
     cursorDisabled: {
-        cursor: 'not-allowed' as ViewStyle['cursor'],
+        cursor: 'not-allowed',
     },
     cursorPointer: {
         cursor: 'pointer',
     },
     cursorMove: {
-        cursor: 'move' as ViewStyle['cursor'],
+        cursor: 'move',
     },
     cursorUnset: {
-        cursor: 'unset' as ViewStyle['cursor'],
+        cursor: 'unset',
     },
     cursorAuto: {
         cursor: 'auto',
     },
     cursorZoomIn: {
-        cursor: 'zoom-in' as ViewStyle['cursor'],
+        cursor: 'zoom-in',
     },
     cursorGrabbing: {
-        cursor: 'grabbing' as ViewStyle['cursor'],
+        cursor: 'grabbing',
     },
     cursorZoomOut: {
-        cursor: 'zoom-out' as ViewStyle['cursor'],
+        cursor: 'zoom-out',
     },
     cursorInitial: {
-        cursor: 'initial' as ViewStyle['cursor'],
+        cursor: 'initial',
     },
     cursorText: {
-        cursor: 'text' as ViewStyle['cursor'],
+        cursor: 'text',
     },
 };
 

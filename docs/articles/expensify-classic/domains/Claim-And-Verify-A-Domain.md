@@ -37,7 +37,7 @@ To complete this step, you must have a Control workspace, and you’ll need acce
 <ol type="a">
    <li>Log in to your DNS service provider (which may be the website you purchased the domain from or that currently hosts the domain, like NameCheap, GoDaddy, DNSMadeEasy, or Amazon Route53. You may need to contact your company’s IT department if your domain is managed internally).</li>
    <li>Find the page for DNS records, which might be labeled as DNS Management or Zone File Editor.</li>  
-   <li>Add a new TXT record with the value assigned to you in the domain verification settings.</li>
+   <li>Add a new TXT record  and set the value as 532F6180D8.</li>
    <li>Save your changes.</li>
    <li>In Expensify, click the Domain Members tab and click <b>Verify</b>.</li>
 </ol>
@@ -46,6 +46,6 @@ After successful verification, an email will be sent to all members of the Expen
 
 # Add another domain
 
-To add an additional domain, you’ll have to first add your email address that is connected with your domain as your [primary or secondary email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address) (for example, if your domain is yourcompany.com, then you want to add and verify your email address @yourcompany.com as your primary or secondary email address). Then you can complete the steps above to add the domain. 
+To add an additional domain, you’ll have to first add your email address that is connected with your domain as your [primary or secondary email] (https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address) (for example, if your domain is yourcompany.com, then you want to add and verify your email address @yourcompany.com as your primary or secondary email address). Then you can complete the steps above to add the domain. 
 
 </div>

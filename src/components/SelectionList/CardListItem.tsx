@@ -5,14 +5,13 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import BaseListItem from './BaseListItem';
 import type {BaseListItemProps, ListItem} from './types';
 
-type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean}>;
+type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & {bankIcon?: BankIcon}>;
 
 function CardListItem<TItem extends ListItem>({
     item,
@@ -28,7 +27,6 @@ function CardListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: CardListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -38,15 +36,10 @@ function CardListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
-    const subtitleText =
-        `${item.lastFourPAN ? `${translate('paymentMethodList.accountLastFour')} ${item.lastFourPAN}` : ''}` +
-        `${item.lastFourPAN && item.isVirtual ? ` ${CONST.DOT_SEPARATOR} ` : ''}` +
-        `${item.isVirtual ? translate('workspace.expensifyCard.virtual') : ''}`;
-
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -61,7 +54,7 @@ function CardListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
         >
             <>
-                {!!item.bankIcon && (
+                {item.bankIcon && (
                     <View style={[styles.mr3]}>
                         <Icon
                             src={item.bankIcon.icon}
@@ -72,7 +65,7 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={Str.removeSMSDomain(item.text ?? '')}
@@ -84,16 +77,9 @@ function CardListItem<TItem extends ListItem>({
                                 item.alternateText ? styles.mb1 : null,
                             ]}
                         />
-                        {!!subtitleText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={subtitleText}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        )}
                     </View>
                 </View>
-                {!!canSelectMultiple && !item.isDisabled && (
+                {canSelectMultiple && !item.isDisabled && (
                     <PressableWithFeedback
                         onPress={handleCheckboxPress}
                         disabled={isDisabled}

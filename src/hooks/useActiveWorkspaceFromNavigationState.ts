@@ -12,20 +12,22 @@ import SCREENS from '@src/SCREENS';
  */
 function useActiveWorkspaceFromNavigationState() {
     // The last policyID value is always stored in the last route in BottomTabNavigator.
-    const activeWorkspaceID = useNavigationState<BottomTabNavigatorParamList, string | undefined>((state) => {
+    const activeWorkpsaceID = useNavigationState<BottomTabNavigatorParamList, string | undefined>((state) => {
         // SCREENS.HOME is a screen located in the BottomTabNavigator, if it's not in state.routeNames it means that this hook was called from a screen in another navigator.
         if (!state.routeNames.includes(SCREENS.HOME)) {
             Log.warn('useActiveWorkspaceFromNavigationState should be called only from BottomTab screens');
         }
 
-        const params = state.routes.at(-1)?.params ?? {};
+        const policyID = state.routes.at(-1)?.params?.policyID;
 
-        if ('policyID' in params) {
-            return params?.policyID;
+        if (!policyID) {
+            return undefined;
         }
+
+        return policyID;
     });
 
-    return activeWorkspaceID;
+    return activeWorkpsaceID;
 }
 
 export default useActiveWorkspaceFromNavigationState;

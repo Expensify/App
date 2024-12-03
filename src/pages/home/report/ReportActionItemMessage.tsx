@@ -2,22 +2,25 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemMessageProps = {
+type ReportActionItemMessageOnyxProps = {
+    /** The transaction linked to the report action. */
+    transaction: OnyxEntry<Transaction>;
+};
+
+type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
     /** The report action */
     action: ReportAction;
 
@@ -34,10 +37,9 @@ type ReportActionItemMessageProps = {
     reportID: string;
 };
 
-function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
+function ReportActionItemMessage({action, transaction, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`);
 
     const fragments = ReportActionsUtils.getReportActionMessageFragments(action);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
@@ -118,33 +120,14 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
         // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
         // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
+
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
-    };
-
-    const openWorkspaceInvoicesPage = () => {
-        const policyID = ReportUtils.getReport(reportID)?.policyID;
-
-        if (!policyID) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
-                <>
-                    {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
-                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
-                        <Button
-                            style={[styles.mt2, styles.alignSelfStart]}
-                            success
-                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
-                            onPress={openWorkspaceInvoicesPage}
-                        />
-                    )}
-                </>
+                renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
             )}
@@ -154,4 +137,8 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default ReportActionItemMessage;
+export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
+    transaction: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
+    },
+})(ReportActionItemMessage);

@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,14 +21,20 @@ import INPUT_IDS from '@src/types/form/LegalNameForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+type LegalNamePageOnyxProps = {
+    /** User's private personal details */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
+};
+
+type LegalNamePageProps = LegalNamePageOnyxProps;
+
 const updateLegalName = (values: PrivatePersonalDetails) => {
     PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
 
-function LegalNamePage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-
+function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
@@ -78,7 +85,7 @@ function LegalNamePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={LegalNamePage.displayName}
         >
@@ -129,4 +136,11 @@ function LegalNamePage() {
 
 LegalNamePage.displayName = 'LegalNamePage';
 
-export default LegalNamePage;
+export default withOnyx<LegalNamePageProps, LegalNamePageOnyxProps>({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+})(LegalNamePage);

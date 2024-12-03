@@ -39,19 +39,19 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const didForceUpdateStatusBarRef = useRef(false);
     const prevIsRootStatusBarEnabled = usePrevious(isRootStatusBarEnabled);
     // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
-    const prevStatusBarBackgroundColor = useSharedValue(theme.splashBG);
-    const statusBarBackgroundColor = useSharedValue(theme.splashBG);
+    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
+    const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
-        () => statusBarAnimation.get(),
+        () => statusBarAnimation.value,
         (current, previous) => {
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
             if (previous === null || current === null || current <= previous) {
                 return;
             }
-            const backgroundColor = interpolateColor(statusBarAnimation.get(), [0, 1], [prevStatusBarBackgroundColor.get(), statusBarBackgroundColor.get()]);
+            const backgroundColor = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
             runOnJS(updateStatusBarAppearance)({backgroundColor});
         },
     );
@@ -92,8 +92,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 currentScreenBackgroundColor = backgroundColorFromRoute || pageTheme.backgroundColor;
             }
 
-            prevStatusBarBackgroundColor.set(statusBarBackgroundColor.get());
-            statusBarBackgroundColor.set(currentScreenBackgroundColor);
+            prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
+            statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
             const callUpdateStatusBarAppearance = () => {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
@@ -101,8 +101,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             };
 
             const callUpdateStatusBarBackgroundColor = () => {
-                statusBarAnimation.set(0);
-                statusBarAnimation.set(withDelay(300, withTiming(1)));
+                statusBarAnimation.value = 0;
+                statusBarAnimation.value = withDelay(300, withTiming(1));
             };
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
@@ -121,21 +121,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 callUpdateStatusBarAppearance();
             }
 
-            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.get() !== theme.appBG) {
+            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
                 callUpdateStatusBarBackgroundColor();
             }
         },
-        [
-            theme.statusBarStyle,
-            theme.appBG,
-            theme.PAGE_THEMES,
-            prevStatusBarBackgroundColor,
-            statusBarBackgroundColor,
-            prevIsRootStatusBarEnabled,
-            isRootStatusBarEnabled,
-            statusBarStyle,
-            statusBarAnimation,
-        ],
+        [prevIsRootStatusBarEnabled, isRootStatusBarEnabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
     useEffect(() => {

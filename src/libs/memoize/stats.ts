@@ -2,40 +2,26 @@ import Log from '@libs/Log';
 
 type MemoizeStatsEntry = {
     didHit: boolean;
-    processingTime: number;
+    cacheRetrievalTime: number;
+    fnTime?: number;
     cacheSize: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return entry.didHit !== undefined && entry.processingTime !== undefined;
+    return entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
 }
 
 class MemoizeStats {
-    /**
-     * Number of calls to the memoized function. Both cache hits and misses are counted.
-     */
     private calls = 0;
 
-    /**
-     * Number of cache hits. This is the number of times the cache returned a value instead of calling the original function.
-     */
     private hits = 0;
 
-    /**
-     * Average time of cache retrieval. This is the time it takes to retrieve a value from the cache, without calling the original function.
-     */
-    private avgCacheTime = 0;
+    private avgCacheRetrievalTime = 0;
 
-    /**
-     * Average time of original function execution. This is the time it takes to execute the original function when the cache does not have a value.
-     */
     private avgFnTime = 0;
 
-    /**
-     * Current cache size. This is the number of entries in the cache.
-     */
     private cacheSize = 0;
 
     isEnabled = false;
@@ -53,13 +39,14 @@ class MemoizeStats {
 
     private cumulateEntry(entry: MemoizeStatsEntry) {
         this.calls++;
+        this.hits += entry.didHit ? 1 : 0;
+
         this.cacheSize = entry.cacheSize;
 
-        if (entry.didHit) {
-            this.hits++;
-            this.avgCacheTime = this.calculateCumulativeAvg(this.avgCacheTime, this.hits, entry.processingTime);
-        } else {
-            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.processingTime);
+        this.avgCacheRetrievalTime = this.calculateCumulativeAvg(this.avgCacheRetrievalTime, this.hits, entry.cacheRetrievalTime);
+
+        if (entry.fnTime !== undefined) {
+            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.fnTime);
         }
     }
 
@@ -93,7 +80,7 @@ class MemoizeStats {
             track: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
             },
-            trackTime: <P extends keyof Pick<MemoizeStatsEntry, 'processingTime'>>(cacheProp: P, startTime: number, endTime = performance.now()) => {
+            trackTime: <P extends keyof Pick<MemoizeStatsEntry, 'cacheRetrievalTime' | 'fnTime'>>(cacheProp: P, startTime: number, endTime = performance.now()) => {
                 entry[cacheProp] = endTime - startTime;
             },
             get: <P extends keyof MemoizeStatsEntry>(cacheProp: P) => entry[cacheProp],
@@ -105,7 +92,7 @@ class MemoizeStats {
         this.isEnabled = true;
         this.calls = 0;
         this.hits = 0;
-        this.avgCacheTime = 0;
+        this.avgCacheRetrievalTime = 0;
         this.avgFnTime = 0;
         this.cacheSize = 0;
     }
@@ -116,7 +103,7 @@ class MemoizeStats {
         return {
             calls: this.calls,
             hits: this.hits,
-            avgCacheTime: this.avgCacheTime,
+            avgCacheRetrievalTime: this.avgCacheRetrievalTime,
             avgFnTime: this.avgFnTime,
             cacheSize: this.cacheSize,
         };

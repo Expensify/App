@@ -1,4 +1,3 @@
-import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -23,7 +22,7 @@ type ToggleSettingOptionRowProps = {
     customTitle?: React.ReactNode;
 
     /** Subtitle of the option */
-    subtitle?: string | ReactNode;
+    subtitle?: string;
 
     /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
@@ -100,7 +99,7 @@ function ToggleSettingOptionRow({
     const styles = useThemeStyles();
 
     const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
+        if (!subtitle || !shouldParseSubtitle) {
             return '';
         }
         return Parser.replace(subtitle, {shouldEscapeText});
@@ -117,18 +116,14 @@ function ToggleSettingOptionRow({
     }, [shouldParseSubtitle, subtitleHtml]);
 
     const subTitleView = useMemo(() => {
-        if (typeof subtitle === 'string') {
-            if (!!subtitle && shouldParseSubtitle) {
-                return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
-                        <RenderHTML html={processedSubtitle} />
-                    </View>
-                );
-            }
-            return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
+        if (!!subtitle && shouldParseSubtitle) {
+            return (
+                <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
+                    <RenderHTML html={processedSubtitle} />
+                </View>
+            );
         }
-
-        return subtitle;
+        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
     }, [
         subtitle,
         shouldParseSubtitle,

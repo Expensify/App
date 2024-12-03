@@ -172,7 +172,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             onPress={onPress}
             fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
-            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >

@@ -74,8 +74,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         [shouldHideThreadDividerLine, report.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
-
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
 
@@ -106,17 +104,15 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         }
 
         return (
-            <OfflineWithFeedback pendingAction={action.pendingAction}>
-                <ShowContextMenuContext.Provider value={contextMenuValue}>
-                    <View>
-                        <MoneyRequestView
-                            report={report}
-                            shouldShowAnimatedBackground
-                        />
-                        {renderThreadDivider}
-                    </View>
-                </ShowContextMenuContext.Provider>
-            </OfflineWithFeedback>
+            <ShowContextMenuContext.Provider value={contextValue}>
+                <View>
+                    <MoneyRequestView
+                        report={report}
+                        shouldShowAnimatedBackground
+                    />
+                    {renderThreadDivider}
+                </View>
+            </ShowContextMenuContext.Provider>
         );
     }
 
@@ -153,17 +149,16 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
         return (
             <OfflineWithFeedback pendingAction={action.pendingAction}>
-                {!isEmptyObject(transactionThreadReport?.reportID) ? (
+                {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                     <>
                         <MoneyReportView
                             report={report}
                             policy={policy}
                             isCombinedReport
-                            pendingAction={action.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report.currency : false}
                             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         />
-                        <ShowContextMenuContext.Provider value={contextMenuValue}>
+                        <ShowContextMenuContext.Provider value={contextValue}>
                             <View>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
@@ -177,7 +172,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                     <MoneyReportView
                         report={report}
                         policy={policy}
-                        pendingAction={action.pendingAction}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     />
                 )}

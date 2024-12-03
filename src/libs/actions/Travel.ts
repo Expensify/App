@@ -15,27 +15,15 @@ function acceptSpotnanaTerms() {
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
                 hasAcceptedTerms: true,
-                isLoading: true,
             },
         },
     ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: 'merge',
-            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
     const error = new Error('Failed to generate spotnana token.');
 
-    return new Promise((resolve, reject) => {
+    return new Promise((_, reject) => {
         asyncOpenURL(
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
-            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData, finallyData})
+            API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
                 .then((response) => {
                     if (!response?.spotnanaToken) {
                         reject(error);
@@ -47,10 +35,7 @@ function acceptSpotnanaTerms() {
                     reject(error);
                     throw error;
                 }),
-            (travelDotURL) => {
-                resolve(travelDotURL);
-                return travelDotURL ?? '';
-            },
+            (travelDotURL) => travelDotURL ?? '',
         );
     });
 }

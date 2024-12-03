@@ -5,9 +5,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
-import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
-import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -64,13 +62,6 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
 
     /** Callback to update the current segment type of the record  */
     setCustomSegmentType?: (segmentType: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>) => void;
-
-    /** NetSuiteCustFieldForm values */
-    netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
-
-    customSegments?: NetSuiteCustomSegment[];
-
-    customLists?: NetSuiteCustomList[];
 };
 
 type CustomListSelectorType = SelectorType & {

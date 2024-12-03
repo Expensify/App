@@ -9,12 +9,9 @@ import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -24,23 +21,19 @@ type Props = {
     loading?: boolean;
     feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
-    isCategorizing?: boolean;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
-    const {isExtraSmallScreenWidth} = useResponsiveLayout();
+    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
-    const subscriptionPlan = useSubscriptionPlan();
-
     const isIllustration = feature.icon in Illustrations;
     const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
     return (
         <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
+            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!isIllustration ? (
                         <Avatar
@@ -66,9 +59,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>
-                            {isCategorizing ? translate(`workspace.upgrade.pricing.collect`) : translate(`workspace.upgrade.pricing.amount`)}
-                        </Text>
+                        <Text style={[styles.textSupporting, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
                         {translate(`workspace.upgrade.pricing.perActiveMember`)}
                     </Text>
                 </View>
@@ -86,13 +77,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     {translate('workspace.upgrade.note.upgradeWorkspace')}{' '}
                     <TextLink
                         style={[styles.link]}
-                        onPress={() => {
-                            if (!subscriptionPlan) {
-                                openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-                        }}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
                     >
                         {translate('workspace.upgrade.note.learnMore')}
                     </TextLink>{' '}

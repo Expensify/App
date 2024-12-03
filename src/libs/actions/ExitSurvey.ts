@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
@@ -33,6 +33,19 @@ function switchToOldDot() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
+            value: true,
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
             value: null,
         },
@@ -54,26 +67,14 @@ function switchToOldDot() {
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.write(
-        WRITE_COMMANDS.SWITCH_TO_OLD_DOT,
+    return API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.SWITCH_TO_OLD_DOT,
         {
             reason: exitReason,
             surveyResponse: exitSurveyResponse,
         },
-        {optimisticData},
+        {optimisticData, finallyData},
     );
 }
 
-/**
- * Clear the exit survey form data.
- */
-function resetExitSurveyForm(callback: () => void) {
-    Onyx.multiSet({
-        [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: null,
-        [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT]: null,
-        [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: null,
-        [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: null,
-    }).then(callback);
-}
-
-export {saveExitReason, saveResponse, switchToOldDot, resetExitSurveyForm};
+export {saveExitReason, saveResponse, switchToOldDot};

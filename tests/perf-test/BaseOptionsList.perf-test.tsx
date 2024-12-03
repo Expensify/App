@@ -1,11 +1,10 @@
 import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
-import {measureRenders} from 'reassure';
+import {measurePerformance} from 'reassure';
 import BaseOptionsList from '@components/OptionsList/BaseOptionsList';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import wrapInAct from '../utils/wrapInActHelper';
 
 type BaseOptionsListWrapperProps = {
     /** Whether this is a multi-select list */
@@ -67,41 +66,32 @@ describe('[BaseOptionsList]', () => {
         );
     }
 
-    test('Should render 1 section and a thousand items', async () => {
-        await measureRenders(<BaseOptionsListWrapper />);
+    test('Should render 1 section and a thousand items', () => {
+        measurePerformance(<BaseOptionsListWrapper />);
     });
 
-    test('Should press a list item', async () => {
+    test('Should press a list item', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         const scenario = async (screen: RenderResult) => {
-            // use act to ensure that any state updates caused by interactions are processed correctly before we proceed with any further logic,
-            // otherwise the error "An update to BaseOptionsList inside a test was not wrapped in act(...)" will be thrown
-            // eslint-disable-next-line testing-library/no-unnecessary-act
-            await wrapInAct(async () => {
-                fireEvent.press(await screen.findByText('Item 5'));
-            });
+            fireEvent.press(screen.getByText('Item 5'));
         };
 
-        await measureRenders(<BaseOptionsListWrapper />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper />, {scenario});
     });
 
-    test('Should render multiple selection and select 4 items', async () => {
+    test('Should render multiple selection and select 4 items', () => {
         // eslint-disable-next-line @typescript-eslint/require-await
         const scenario = async (screen: RenderResult) => {
-            // use act to ensure that any state updates caused by interactions are processed correctly before we proceed with any further logic,
-            // otherwise the error "An update to BaseOptionsList inside a test was not wrapped in act(...)" will be thrown
-            await wrapInAct(async () => {
-                fireEvent.press(await screen.findByText('Item 1'));
-                fireEvent.press(screen.getByText('Item 2'));
-                fireEvent.press(screen.getByText('Item 3'));
-                fireEvent.press(screen.getByText('Item 4'));
-            });
+            fireEvent.press(screen.getByText('Item 1'));
+            fireEvent.press(screen.getByText('Item 2'));
+            fireEvent.press(screen.getByText('Item 3'));
+            fireEvent.press(screen.getByText('Item 4'));
         };
 
-        await measureRenders(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 
-    test('Should scroll and select a few items', async () => {
+    test('Should scroll and select a few items', () => {
         const eventData = {
             nativeEvent: {
                 contentOffset: {
@@ -122,18 +112,14 @@ describe('[BaseOptionsList]', () => {
 
         // eslint-disable-next-line @typescript-eslint/require-await
         const scenario = async (screen: RenderResult) => {
-            // use act to ensure that any state updates caused by interactions are processed correctly before we proceed with any further logic,
-            // otherwise the error "An update to BaseOptionsList inside a test was not wrapped in act(...)" will be thrown
-            await wrapInAct(async () => {
-                fireEvent.press(await screen.findByText('Item 1'));
-                // see https://github.com/callstack/react-native-testing-library/issues/1540
-                fireEvent(await screen.findByTestId('options-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
-                fireEvent.scroll(await screen.findByTestId('options-list'), eventData);
-                fireEvent.press(await screen.findByText('Item 7'));
-                fireEvent.press(await screen.findByText('Item 15'));
-            });
+            fireEvent.press(screen.getByText('Item 1'));
+            // see https://github.com/callstack/react-native-testing-library/issues/1540
+            fireEvent(screen.getByTestId('options-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
+            fireEvent.scroll(screen.getByTestId('options-list'), eventData);
+            fireEvent.press(screen.getByText('Item 7'));
+            fireEvent.press(screen.getByText('Item 15'));
         };
 
-        await measureRenders(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
+        measurePerformance(<BaseOptionsListWrapper canSelectMultipleOptions />, {scenario});
     });
 });

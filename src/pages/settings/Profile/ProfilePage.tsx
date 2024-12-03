@@ -1,22 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/Button';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,34 +21,52 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
-function ProfilePage() {
+type ProfilePageOnyxProps = {
+    loginList: OnyxEntry<LoginList>;
+    /** User's private personal details */
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
+};
+
+type ProfilePageProps = ProfilePageOnyxProps & WithCurrentUserPersonalDetailsProps;
+
+function ProfilePage({
+    loginList,
+    privatePersonalDetails = {
+        legalFirstName: '',
+        legalLastName: '',
+        dob: '',
+        addresses: [
+            {
+                street: '',
+                street2: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: '',
+            },
+        ],
+    },
+    currentUserPersonalDetails,
+    isLoadingApp,
+}: ProfilePageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
-
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
-
-    const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -99,12 +114,6 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
-            description: translate('common.phoneNumber'),
-            title: privateDetails.phoneNumber ?? '',
-            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
-            brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,
@@ -121,13 +130,9 @@ function ProfilePage() {
                 title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
-            <ScrollView
-                style={styles.pt3}
-                contentContainerStyle={safeAreaPaddingBottomStyle}
-            >
+            <ScrollView style={styles.pt3}>
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
@@ -138,33 +143,6 @@ function ProfilePage() {
                             childrenStyles={styles.pt5}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
-                                {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
-                                ) : (
-                                    <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={PersonalDetails.updateAvatar}
-                                            onImageRemoved={PersonalDetails.deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={PersonalDetails.clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
-                                    </MenuItemGroup>
-                                )}
-                            </View>
                             {publicOptions.map((detail, index) => (
                                 <MenuItemWithTopDescription
                                     // eslint-disable-next-line react/no-array-index-key
@@ -177,13 +155,6 @@ function ProfilePage() {
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
-                            <Button
-                                accessibilityLabel={translate('common.shareCode')}
-                                text={translate('common.share')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
-                                style={[styles.alignSelfStart, styles.mt6]}
-                            />
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}
@@ -206,7 +177,6 @@ function ProfilePage() {
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={() => Navigation.navigate(detail.pageRoute)}
-                                            brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
                                 </>
@@ -221,4 +191,16 @@ function ProfilePage() {
 
 ProfilePage.displayName = 'ProfilePage';
 
-export default ProfilePage;
+export default withCurrentUserPersonalDetails(
+    withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
+        },
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    })(ProfilePage),
+);

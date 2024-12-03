@@ -1,5 +1,6 @@
 import React, {memo, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import useLocalize from '@hooks/useLocalize';
@@ -7,19 +8,25 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportUserIsTyping} from '@src/types/onyx';
 
-type ReportTypingIndicatorProps = {
+type ReportTypingIndicatorOnyxProps = {
+    /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
+    userTypingStatuses: OnyxEntry<ReportUserIsTyping>;
+};
+
+type ReportTypingIndicatorProps = ReportTypingIndicatorOnyxProps & {
+    // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
     reportID: string;
 };
 
-function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
+function ReportTypingIndicator({userTypingStatuses}: ReportTypingIndicatorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
-    const firstUserTyping = usersTyping.at(0);
+    const firstUserTyping = usersTyping[0];
 
     const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 
@@ -48,7 +55,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
             style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
             numberOfLines={1}
         >
-            {translate('reportTypingIndicator.multipleMembers')}
+            {translate('reportTypingIndicator.multipleUsers')}
             {` ${translate('reportTypingIndicator.areTyping')}`}
         </Text>
     );
@@ -56,4 +63,8 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
 
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
-export default memo(ReportTypingIndicator);
+export default withOnyx<ReportTypingIndicatorProps, ReportTypingIndicatorOnyxProps>({
+    userTypingStatuses: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
+    },
+})(memo(ReportTypingIndicator));

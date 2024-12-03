@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
@@ -59,7 +58,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                accessibilityRole={CONST.ROLE.BUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
             >
@@ -84,11 +83,11 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
-                    fallbackSource={Expensicons.AttachmentNotFound}
+                    isUsedInCarousel
                 />
             </View>
 
-            {!!item.hasBeenFlagged && (
+            {item.hasBeenFlagged && (
                 <SafeAreaConsumer>
                     {({safeAreaPaddingBottomStyle}) => <View style={[styles.appBG, safeAreaPaddingBottomStyle]}>{renderButton([styles.m4, styles.alignSelfCenter])}</View>}
                 </SafeAreaConsumer>

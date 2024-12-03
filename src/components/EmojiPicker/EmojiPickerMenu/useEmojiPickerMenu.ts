@@ -1,5 +1,6 @@
 import type {FlashList} from '@shopify/flash-list';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useAnimatedRef} from 'react-native-reanimated';
 import emojis from '@assets/emojis';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useRef<FlashList<EmojiUtils.EmojiPickerListItem>>(null);
+    const emojiListRef = useAnimatedRef<FlashList<EmojiUtils.EmojiPickerListItem>>();
     const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);

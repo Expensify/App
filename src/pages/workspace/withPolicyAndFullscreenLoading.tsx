@@ -2,7 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -27,18 +27,10 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
     function WithPolicyAndFullscreenLoading(
-        {
-            policy = policyDefaultProps.policy,
-            policyDraft = policyDefaultProps.policyDraft,
-            isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
-            ...rest
-        }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
+        {isLoadingReportData = true, policy = policyDefaultProps.policy, policyDraft = policyDefaultProps.policyDraft, ...rest}: TProps,
         ref: ForwardedRef<TRef>,
     ) {
-        const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-        const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
-        if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
+        if (isLoadingReportData && isEmpty(policy) && isEmpty(policyDraft)) {
             return <FullscreenLoadingIndicator />;
         }
 
@@ -47,7 +39,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(rest as TProps)}
                 isLoadingReportData={isLoadingReportData}
-                personalDetails={personalDetails}
                 policy={policy}
                 policyDraft={policyDraft}
                 ref={ref}
@@ -57,7 +48,16 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
 
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading`;
 
-    return withPolicy(forwardRef(WithPolicyAndFullscreenLoading));
+    return withPolicy(
+        withOnyx<TProps & RefAttributes<TRef>, WithPolicyAndFullscreenLoadingOnyxProps>({
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            },
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+        })(forwardRef(WithPolicyAndFullscreenLoading)),
+    );
 }
 
 export type {WithPolicyAndFullscreenLoadingProps};

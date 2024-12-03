@@ -1,13 +1,14 @@
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -69,10 +71,26 @@ function IOURequestStepDescription({
 }: IOURequestStepDescriptionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput(true);
+    const inputRef = useRef<AnimatedTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
     const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
 
     /**
      * @returns - An object containing the errors for each inputID
@@ -113,7 +131,7 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
 
         IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 
@@ -131,8 +149,6 @@ function IOURequestStepDescription({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
-    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -150,7 +166,7 @@ function IOURequestStepDescription({
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <InputWrapper
+                    <InputWrapperWithRef
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
@@ -158,12 +174,19 @@ function IOURequestStepDescription({
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
+                        ref={(el) => {
+                            if (!el) {
+                                return;
+                            }
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(el);
+                            }
+                            inputRef.current = el;
+                        }}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
-                        excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
-                        ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>

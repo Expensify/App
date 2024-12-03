@@ -1,6 +1,5 @@
-import deburr from 'lodash/deburr';
+import _ from 'lodash';
 import CONST from '@src/CONST';
-import * as Browser from './Browser';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -8,7 +7,7 @@ import * as Browser from './Browser';
  * @returns The sanitized string
  */
 function sanitizeString(str: string): string {
-    return deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+    return _.deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
 }
 
 /**
@@ -35,21 +34,20 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove spaces:
     // - \u200B: zero-width space
+    // - \u00A0: non-breaking space
     // - \u2060: word joiner
-    result = result.replace(/[\u200B\u2060]/g, '');
+    result = result.replace(/[\u200B\u00A0\u2060]/g, '');
 
-    const invisibleCharacterRegex = Browser.isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
+    // Temporarily replace all newlines with non-breaking spaces
+    // It is necessary because the next step removes all newlines because they are in the (Cc) category
+    result = result.replace(/\n/g, '\u00A0');
 
-    // The control unicode (Cc) regex removes all newlines,
-    // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
-    result = result
-        .split('\n')
-        .map((part) =>
-            // Remove all characters from the 'Other' (C) category except for format characters (Cf)
-            // because some of them are used for emojis
-            part.replace(invisibleCharacterRegex, ''),
-        )
-        .join('\n');
+    // Remove all characters from the 'Other' (C) category except for format characters (Cf)
+    // because some of them are used for emojis
+    result = result.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, '');
+
+    // Replace all non-breaking spaces with newlines
+    result = result.replace(/\u00A0/g, '\n');
 
     // Remove characters from the (Cf) category that are not used for emojis
     result = result.replace(/[\u200E-\u200F]/g, '');
@@ -96,7 +94,7 @@ function lineBreaksToSpaces(text = '') {
 function getFirstLine(text = '') {
     // Split the input string by newline characters and return the first element of the resulting array
     const lines = text.split('\n');
-    return lines.at(0);
+    return lines[0];
 }
 
 export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine};

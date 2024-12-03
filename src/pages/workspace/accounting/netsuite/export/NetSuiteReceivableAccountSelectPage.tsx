@@ -7,13 +7,11 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteReceivableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteReceivableAccountOptions} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -69,10 +67,6 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             title="workspace.netsuite.exportInvoices"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT)}
         />
     );
 }

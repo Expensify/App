@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import isBoolean from 'lodash/isBoolean';
+import {isBoolean} from 'lodash';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

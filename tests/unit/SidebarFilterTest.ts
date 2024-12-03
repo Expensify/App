@@ -322,7 +322,7 @@ xdescribe('Sidebar', () => {
             const policy = {
                 name: 'Policy One',
                 policyID: '1',
-                type: CONST.POLICY.TYPE.TEAM,
+                type: CONST.POLICY.TYPE.FREE,
             };
 
             // Given the user is in all betas
@@ -668,7 +668,7 @@ xdescribe('Sidebar', () => {
         const policy = {
             name: 'Policy One',
             policyID: '1',
-            type: CONST.POLICY.TYPE.TEAM,
+            type: CONST.POLICY.TYPE.FREE,
         };
 
         // Given the user is in all betas

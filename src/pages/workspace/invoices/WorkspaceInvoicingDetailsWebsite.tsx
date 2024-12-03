@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -10,19 +11,17 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as Url from '@libs/Url';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyWebsiteForm';
 
-type WorkspaceInvoicingDetailsWebsiteProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
+type WorkspaceInvoicingDetailsWebsiteProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
 
 function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebsiteProps) {
     const {policyID} = route.params;
@@ -34,8 +33,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
-        const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        Policy.updateInvoiceCompanyWebsite(policyID, companyWebsite);
+        // TODO: implement UpdateInvoiceCompanyWebsite API call when it's supported
         Navigation.goBack();
     };
 
@@ -45,11 +43,10 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
 
         if (values.companyWebsite) {
-            const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            if (!ValidationUtils.isValidWebsite(companyWebsite)) {
+            if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
                 errors.companyWebsite = translate('bankAccount.error.website');
             } else {
-                const domain = Url.extractUrlDomain(companyWebsite);
+                const domain = Url.extractUrlDomain(values.companyWebsite);
 
                 if (!domain || !Str.isValidDomainName(domain)) {
                     errors.companyWebsite = translate('iou.invalidDomainError');
@@ -66,7 +63,8 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
+            // TODO: uncomment when CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED is supported
+            // featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
                 testID={WorkspaceInvoicingDetailsWebsite.displayName}

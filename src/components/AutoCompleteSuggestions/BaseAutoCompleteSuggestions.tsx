@@ -50,27 +50,24 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
 
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: fadeInOpacity.get(),
-        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.get()),
+        opacity: fadeInOpacity.value,
+        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value),
     }));
 
     useEffect(() => {
         if (measuredHeightOfSuggestionRows === prevRowHeightRef.current) {
-            fadeInOpacity.set(
-                withTiming(1, {
-                    duration: 70,
-                    easing: Easing.inOut(Easing.ease),
-                }),
-            );
-            rowHeight.set(measuredHeightOfSuggestionRows);
+            // eslint-disable-next-line react-compiler/react-compiler
+            fadeInOpacity.value = withTiming(1, {
+                duration: 70,
+                easing: Easing.inOut(Easing.ease),
+            });
+            rowHeight.value = measuredHeightOfSuggestionRows;
         } else {
-            fadeInOpacity.set(1);
-            rowHeight.set(
-                withTiming(measuredHeightOfSuggestionRows, {
-                    duration: 100,
-                    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-                }),
-            );
+            fadeInOpacity.value = 1;
+            rowHeight.value = withTiming(measuredHeightOfSuggestionRows, {
+                duration: 100,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            });
         }
 
         prevRowHeightRef.current = measuredHeightOfSuggestionRows;
@@ -106,7 +103,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
-                    showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
+                    showsVerticalScrollIndicator={innerHeight > rowHeight.value}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
                 />
             </ColorSchemeWrapper>

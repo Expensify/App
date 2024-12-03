@@ -1,4 +1,4 @@
-import clone from 'lodash/clone';
+import _ from 'lodash';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -34,21 +34,14 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 return;
             }
             const oldReportID = request.data?.reportID;
-
-            if (isFromSequentialQueue) {
-                const ongoingRequest = PersistedRequests.getOngoingRequest();
-                if (ongoingRequest && ongoingRequest.data?.reportID === oldReportID) {
-                    const ongoingRequestClone = clone(ongoingRequest);
-                    ongoingRequestClone.data = deepReplaceKeysAndValues(ongoingRequest.data, oldReportID as string, preexistingReportID);
-                    PersistedRequests.updateOngoingRequest(ongoingRequestClone);
-                }
-            }
-
-            PersistedRequests.getAll().forEach((persistedRequest, index) => {
-                const persistedRequestClone = clone(persistedRequest);
-                persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
-                PersistedRequests.update(index, persistedRequestClone);
-            });
+            const offset = isFromSequentialQueue ? 1 : 0;
+            PersistedRequests.getAll()
+                .slice(offset)
+                .forEach((persistedRequest, index) => {
+                    const persistedRequestClone = _.clone(persistedRequest);
+                    persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
+                    PersistedRequests.update(index + offset, persistedRequestClone);
+                });
         });
         return response;
     });

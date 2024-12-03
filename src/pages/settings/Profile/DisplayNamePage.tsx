@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -21,7 +22,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
-type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
+type DisplayNamePageOnyxProps = {
+    isLoadingApp: OnyxEntry<boolean>;
+};
+
+type DisplayNamePageProps = DisplayNamePageOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 /**
  * Submit form to update user's first and last name (and display name)
@@ -31,10 +36,9 @@ const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_
     Navigation.goBack();
 };
 
-function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
+function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
@@ -66,7 +70,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     };
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={DisplayNamePage.displayName}
         >
@@ -98,7 +102,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                     <View>
@@ -111,7 +114,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
@@ -122,4 +124,10 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
 
 DisplayNamePage.displayName = 'DisplayNamePage';
 
-export default withCurrentUserPersonalDetails(DisplayNamePage);
+export default withCurrentUserPersonalDetails(
+    withOnyx<DisplayNamePageProps, DisplayNamePageOnyxProps>({
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
+        },
+    })(DisplayNamePage),
+);

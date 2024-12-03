@@ -15,8 +15,9 @@ type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourc
 type PaginationCommonConfig<TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = {
     resourceCollectionKey: TResourceKey;
     pageCollectionKey: TPageKey;
-    sortItems: (items: OnyxValues[TResourceKey], reportID: string) => Array<PagedResource<TResourceKey>>;
+    sortItems: (items: OnyxValues[TResourceKey]) => Array<PagedResource<TResourceKey>>;
     getItemID: (item: PagedResource<TResourceKey>) => string;
+    isLastItem: (item: PagedResource<TResourceKey>) => boolean;
 };
 
 type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = PaginationCommonConfig<TResourceKey, TPageKey> & {
@@ -84,7 +85,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
+    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, isLastItem, type} = paginationConfig;
     const {resourceID, cursorID} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
@@ -96,7 +97,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         // Create a new page based on the response
         const pageItems = (response.onyxData.find((data) => data.key === resourceKey)?.value ?? {}) as OnyxValues[typeof resourceCollectionKey];
-        const sortedPageItems = sortItems(pageItems, resourceID);
+        const sortedPageItems = sortItems(pageItems);
         if (sortedPageItems.length === 0) {
             // Must have at least 1 action to create a page.
             Log.hmmm(`[Pagination] Did not receive any items in the response to ${request.command}`);
@@ -105,17 +106,19 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        // Detect if we are at the start of the list. This will always be the case for the initial request with no cursor.
+        // For previous requests we check that no new data is returned. Ideally the server would return that info.
+        if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage[0] === cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
-        if (response.hasOlderActions === false) {
+        if (isLastItem(sortedPageItems[sortedPageItems.length - 1])) {
             newPage.push(CONST.PAGINATION_END_ID);
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
         const existingItems = resourceCollections[resourceKey] ?? {};
         const allItems = fastMerge(existingItems, pageItems, true);
-        const sortedAllItems = sortItems(allItems, resourceID);
+        const sortedAllItems = sortItems(allItems);
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];

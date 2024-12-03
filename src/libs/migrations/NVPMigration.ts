@@ -28,10 +28,10 @@ export default function () {
         const resolveWhenDone = after(Object.entries(migrations).length + 2, () => resolve());
 
         for (const [oldKey, newKey] of Object.entries(migrations)) {
-            const connection = Onyx.connect({
+            const connectionID = Onyx.connect({
                 key: oldKey as OnyxKey,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    Onyx.disconnect(connectionID);
                     if (value === undefined) {
                         resolveWhenDone();
                         return;
@@ -43,10 +43,10 @@ export default function () {
                 },
             });
         }
-        const accountConnection = Onyx.connect({
+        const connectionIDAccount = Onyx.connect({
             key: ONYXKEYS.ACCOUNT,
             callback: (value: OnyxEntry<Account & {activePolicyID?: string}>) => {
-                Onyx.disconnect(accountConnection);
+                Onyx.disconnect(connectionIDAccount);
                 if (!value?.activePolicyID) {
                     resolveWhenDone();
                     return;
@@ -60,11 +60,11 @@ export default function () {
                 }).then(resolveWhenDone);
             },
         });
-        const recentlyUsedTagsConnection = Onyx.connect({
+        const connectionIDRecentlyUsedTags = Onyx.connect({
             key: ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS,
             waitForCollectionCallback: true,
             callback: (value) => {
-                Onyx.disconnect(recentlyUsedTagsConnection);
+                Onyx.disconnect(connectionIDRecentlyUsedTags);
                 if (!value) {
                     resolveWhenDone();
                     return;

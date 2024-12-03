@@ -9,7 +9,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-} from '@src/languages/params';
+} from '@src/languages/types';
 
 /**
  *

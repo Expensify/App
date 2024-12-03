@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import {runOnJS, useAnimatedReaction, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 
@@ -61,16 +61,16 @@ const usePinchGesture = ({
             return;
         }
 
-        runOnJS(onScaleChanged)(zoomScale.get());
+        runOnJS(onScaleChanged)(zoomScale.value);
     };
 
     // Update the total (pinch) translation based on the regular pinch + bounce
     useAnimatedReaction(
-        () => [pinchTranslateX.get(), pinchTranslateY.get(), pinchBounceTranslateX.get(), pinchBounceTranslateY.get()],
+        () => [pinchTranslateX.value, pinchTranslateY.value, pinchBounceTranslateX.value, pinchBounceTranslateY.value],
         ([translateX, translateY, bounceX, bounceY]) => {
             // eslint-disable-next-line react-compiler/react-compiler
-            totalPinchTranslateX.set(translateX + bounceX);
-            totalPinchTranslateY.set(translateY + bounceY);
+            totalPinchTranslateX.value = translateX + bounceX;
+            totalPinchTranslateY.value = translateY + bounceY;
         },
     );
 
@@ -78,16 +78,12 @@ const usePinchGesture = ({
      * Calculates the adjusted focal point of the pinch gesture,
      * based on the canvas size and the current offset
      */
-    const getAdjustedFocal = useCallback(
-        (focalX: number, focalY: number) => {
-            'worklet';
-
-            return {
-                x: focalX - (canvasSize.width / 2 + offsetX.get()),
-                y: focalY - (canvasSize.height / 2 + offsetY.get()),
-            };
-        },
-        [canvasSize.width, canvasSize.height, offsetX, offsetY],
+    const getAdjustedFocal = useWorkletCallback(
+        (focalX: number, focalY: number) => ({
+            x: focalX - (canvasSize.width / 2 + offsetX.value),
+            y: focalY - (canvasSize.height / 2 + offsetY.value),
+        }),
+        [canvasSize.width, canvasSize.height],
     );
 
     // The pinch gesture is disabled when we release one of the fingers
@@ -105,7 +101,7 @@ const usePinchGesture = ({
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
-            if (!shouldDisableTransformationGestures.get()) {
+            if (!shouldDisableTransformationGestures.value) {
                 return;
             }
 
@@ -116,8 +112,8 @@ const usePinchGesture = ({
 
             // Set the origin focal point of the pinch gesture at the start of the gesture
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
-            pinchOrigin.x.set(adjustedFocal.x);
-            pinchOrigin.y.set(adjustedFocal.y);
+            pinchOrigin.x.value = adjustedFocal.x;
+            pinchOrigin.y.value = adjustedFocal.y;
         })
         .onChange((evt) => {
             // Disable the pinch gesture if one finger is released,
@@ -127,57 +123,58 @@ const usePinchGesture = ({
                 return;
             }
 
-            const newZoomScale = pinchScale.get() * evt.scale;
+            const newZoomScale = pinchScale.value * evt.scale;
+
             // Limit the zoom scale to zoom range including bounce range
-            if (zoomScale.get() >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScale.get() <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
-                zoomScale.set(newZoomScale);
-                currentPinchScale.set(evt.scale);
+            if (zoomScale.value >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScale.value <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
+                zoomScale.value = newZoomScale;
+                currentPinchScale.value = evt.scale;
 
                 triggerScaleChangedEvent();
             }
 
             // Calculate new pinch translation
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
-            const newPinchTranslateX = adjustedFocal.x + currentPinchScale.get() * pinchOrigin.x.get() * -1;
-            const newPinchTranslateY = adjustedFocal.y + currentPinchScale.get() * pinchOrigin.y.get() * -1;
+            const newPinchTranslateX = adjustedFocal.x + currentPinchScale.value * pinchOrigin.x.value * -1;
+            const newPinchTranslateY = adjustedFocal.y + currentPinchScale.value * pinchOrigin.y.value * -1;
 
             // If the zoom scale is within the zoom range, we perform the regular pinch translation
             // Otherwise it means that we are "overzoomed" or "underzoomed", so we need to bounce back
-            if (zoomScale.get() >= zoomRange.min && zoomScale.get() <= zoomRange.max) {
-                pinchTranslateX.set(newPinchTranslateX);
-                pinchTranslateY.set(newPinchTranslateY);
+            if (zoomScale.value >= zoomRange.min && zoomScale.value <= zoomRange.max) {
+                pinchTranslateX.value = newPinchTranslateX;
+                pinchTranslateY.value = newPinchTranslateY;
             } else {
                 // Store x and y translation that is produced while bouncing
                 // so we can revert the bounce once pinch gesture is released
-                pinchBounceTranslateX.set(newPinchTranslateX - pinchTranslateX.get());
-                pinchBounceTranslateY.set(newPinchTranslateY - pinchTranslateY.get());
+                pinchBounceTranslateX.value = newPinchTranslateX - pinchTranslateX.value;
+                pinchBounceTranslateY.value = newPinchTranslateY - pinchTranslateY.value;
             }
         })
         .onEnd(() => {
             // Add pinch translation to total offset and reset gesture variables
-            offsetX.set((value) => value + pinchTranslateX.get());
-            offsetY.set((value) => value + pinchTranslateY.get());
-            pinchTranslateX.set(0);
-            pinchTranslateY.set(0);
-            currentPinchScale.set(1);
+            offsetX.value += pinchTranslateX.value;
+            offsetY.value += pinchTranslateY.value;
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
+            currentPinchScale.value = 1;
 
             // If the content was "overzoomed" or "underzoomed", we need to bounce back with an animation
-            if (pinchBounceTranslateX.get() !== 0 || pinchBounceTranslateY.get() !== 0) {
-                pinchBounceTranslateX.set(withSpring(0, SPRING_CONFIG));
-                pinchBounceTranslateY.set(withSpring(0, SPRING_CONFIG));
+            if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
+                pinchBounceTranslateX.value = withSpring(0, SPRING_CONFIG);
+                pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
 
-            if (zoomScale.get() < zoomRange.min) {
+            if (zoomScale.value < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
-                pinchScale.set(zoomRange.min);
-                zoomScale.set(withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangedEvent));
-            } else if (zoomScale.get() > zoomRange.max) {
+                pinchScale.value = zoomRange.min;
+                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangedEvent);
+            } else if (zoomScale.value > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
-                pinchScale.set(zoomRange.max);
-                zoomScale.set(withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangedEvent));
+                pinchScale.value = zoomRange.max;
+                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangedEvent);
             } else {
                 // Otherwise, we just update the pinch scale offset
-                pinchScale.set(zoomScale.get());
+                pinchScale.value = zoomScale.value;
                 triggerScaleChangedEvent();
             }
         });

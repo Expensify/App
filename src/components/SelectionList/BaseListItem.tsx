@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMouseContext} from '@hooks/useMouseContext';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +16,6 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
-    pressableWrapperStyle,
     containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
@@ -32,14 +30,12 @@ function BaseListItem<TItem extends ListItem>({
     children,
     isFocused,
     shouldSyncFocus = true,
-    shouldDisplayRBR = true,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
@@ -58,7 +54,7 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item, isFocused);
+            return rightHandSideComponent(item);
         }
 
         return rightHandSideComponent;
@@ -95,27 +91,18 @@ function BaseListItem<TItem extends ListItem>({
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
-                style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                ]}
+                style={pressableStyle}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
-                wrapperStyle={pressableWrapperStyle}
             >
-                <View
-                    style={[
-                        wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                    ]}
-                >
+                <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -128,7 +115,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                    {!item.isSelected && !!item.brickRoadIndicator && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

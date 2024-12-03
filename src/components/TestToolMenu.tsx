@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -17,24 +17,19 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolMenuProps = {
+type TestToolMenuOnyxProps = {
+    /** User object in Onyx */
+    user: OnyxEntry<UserOnyx>;
+};
+
+type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
-const USER_DEFAULT: UserOnyx = {
-    shouldUseStagingServer: undefined,
-    isSubscribedToNewsletter: false,
-    validated: false,
-    isFromPublicDomain: false,
-    isUsingExpensifyCard: false,
-    isDebugModeEnabled: false,
-};
+const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function TestToolMenu({network}: TestToolMenuProps) {
-    const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
+function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
-    const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,15 +41,6 @@ function TestToolMenu({network}: TestToolMenuProps) {
             >
                 {translate('initialSettingsPage.troubleshoot.testingPreferences')}
             </Text>
-            {/* When toggled the app will be put into debug mode. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
-                <Switch
-                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
-                    isOn={isDebugModeEnabled}
-                    onToggle={() => User.setIsDebugModeEnabled(!isDebugModeEnabled)}
-                />
-            </TestToolRow>
-
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
@@ -74,7 +60,6 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
-                    disabled={isUsingImportedState}
                 />
             </TestToolRow>
 
@@ -112,4 +97,10 @@ function TestToolMenu({network}: TestToolMenuProps) {
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default withNetwork()(TestToolMenu);
+export default withNetwork()(
+    withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    })(TestToolMenu),
+);

@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -9,27 +10,25 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
-import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {RoomInviteNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,8 +38,9 @@ import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 function RoomInvitePage({
@@ -48,22 +48,25 @@ function RoomInvitePage({
     report,
     policies,
     route: {
-        params: {role, backTo},
+        params: {role},
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-
     const {options, areOptionsInitialized} = useOptionsList();
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && participant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+            .filter(([, participant]) => participant && !participant.hidden)
             .map(([accountID]) => Number(accountID));
         return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
             PhoneNumber.addSMSDomainIfPhoneNumber(participant),
@@ -72,10 +75,10 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
         }
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -95,6 +98,9 @@ function RoomInvitePage({
             selectedOptions: newSelectedOptions,
             recentReports: [],
             currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
         };
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 
@@ -180,8 +186,8 @@ function RoomInvitePage({
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
             return ROUTES.REPORT_WITH_ID.getRoute(reportID);
         }
-        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
-    }, [isPolicyEmployee, reportID, role, backTo]);
+        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+    }, [isPolicyEmployee, reportID, role]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -201,7 +207,7 @@ function RoomInvitePage({
         if (reportID) {
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
-        UserSearchPhraseActions.clearUserSearchPhrase();
+        SearchInputManager.searchInput = '';
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
@@ -233,7 +239,6 @@ function RoomInvitePage({
     }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, translate, reportName]);
 
     useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
         ReportActions.searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
@@ -241,7 +246,7 @@ function RoomInvitePage({
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report)}
@@ -256,10 +261,11 @@ function RoomInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    ListItem={InviteMemberListItem}
+                    ListItem={UserListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
+                        SearchInputManager.searchInput = value;
                         setSearchTerm(value);
                     }}
                     headerMessage={headerMessage}

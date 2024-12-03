@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -13,6 +14,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -23,19 +25,25 @@ type WorkspaceListItem = ListItem & {
     value: string;
 };
 
-type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
+type IOURequestStepSendFromOnyxProps = {
+    /** The list of all policies */
+    allPolicies: OnyxCollection<Policy>;
+};
+
+type IOURequestStepSendFromProps = IOURequestStepSendFromOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
-function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
+function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestStepSendFromProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
+        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+        // TODO: Uncomment the following line when the invoices screen is ready - https://github.com/Expensify/App/issues/45175.
+        // .filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 
         return availableWorkspaces
             .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
@@ -54,7 +62,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace]);
+    }, [allPolicies, selectedWorkspace]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -94,4 +102,12 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
 
 IOURequestStepSendFrom.displayName = 'IOURequestStepSendFrom';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSendFrom));
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepSendFromProps, IOURequestStepSendFromOnyxProps>({
+            allPolicies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        })(IOURequestStepSendFrom),
+    ),
+);

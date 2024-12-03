@@ -131,7 +131,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
         <PressableWithoutFeedback
             onPress={onPress}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >

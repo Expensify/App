@@ -24,10 +24,10 @@ export default function addUtilsToWindow() {
         window.Onyx.get = function (key) {
             return new Promise((resolve) => {
                 // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-                const connection = Onyx.connect({
+                const connectionID = Onyx.connect({
                     key,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        Onyx.disconnect(connectionID);
                         resolve(value);
                     },
                     waitForCollectionCallback: true,

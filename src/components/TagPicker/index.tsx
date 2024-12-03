@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -7,13 +8,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
-import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import * as TagOptionListUtils from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-type TagPickerProps = {
+type SelectedTagOption = {
+    name: string;
+    enabled: boolean;
+    isSelected?: boolean;
+    accountID: number | undefined;
+    pendingAction?: PendingAction;
+};
+
+type TagPickerOnyxProps = {
+    /** Collection of tag list on a policy */
+    policyTags: OnyxEntry<PolicyTagLists>;
+
+    /** List of recently used tags */
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
+};
+
+type TagPickerProps = TagPickerOnyxProps & {
     /** The policyID we are getting tags for */
     // It's used in withOnyx HOC.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -31,16 +47,11 @@ type TagPickerProps = {
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
-    /** Whether the list should be sorted by tag name. default is false */
-    shouldOrderListByTagName?: boolean;
-
     /** Indicates which tag list index was selected */
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
@@ -48,7 +59,7 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagListIndex);
     const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+    const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
 
@@ -75,24 +86,14 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
-    const sections = useMemo(() => {
-        const tagSections = TagOptionListUtils.getTagListSections({
-            searchValue,
-            selectedOptions,
-            tags: enabledTags,
-            recentlyUsedTags: policyRecentlyUsedTagsList,
-        });
-        return shouldOrderListByTagName
-            ? tagSections.map((option) => ({
-                  ...option,
-                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
-              }))
-            : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
+    const sections = useMemo(
+        () => OptionsListUtils.getFilteredOptions([], [], [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
+    );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.[0]?.data?.length ?? 0) > 0, searchValue);
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const selectedOptionKey = sections[0]?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
 
     return (
         <SelectionList
@@ -112,6 +113,13 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
 
 TagPicker.displayName = 'TagPicker';
 
-export default TagPicker;
+export default withOnyx<TagPickerProps, TagPickerOnyxProps>({
+    policyTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+    },
+    policyRecentlyUsedTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
+    },
+})(TagPicker);
 
 export type {SelectedTagOption};

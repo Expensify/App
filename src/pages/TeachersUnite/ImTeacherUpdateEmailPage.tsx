@@ -14,6 +14,7 @@ import ROUTES from '@src/ROUTES';
 function ImTeacherUpdateEmailPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
 
     return (
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
@@ -28,7 +29,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"
-                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
+                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.signInLogoHeightLargeScreen}
             />
@@ -38,7 +39,7 @@ function ImTeacherUpdateEmailPage() {
                     large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 />
             </FixedFooter>
         </ScreenWrapper>

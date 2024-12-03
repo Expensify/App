@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +11,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -21,10 +21,9 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
+type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
-    const backTo = route.params.backTo;
+function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,10 +33,9 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
-    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
-        notificationPreferenceValue && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
-            ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
+        report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
             : '';
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -45,7 +43,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
     const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -54,7 +52,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -62,7 +60,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID, backTo))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
                         />
                     )}
                     {shouldShowWriteCapability &&
@@ -71,7 +69,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID, backTo))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -96,7 +94,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
                                 shouldShowRightIcon
                                 title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 description={translate('newRoomPage.visibility')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID, backTo))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

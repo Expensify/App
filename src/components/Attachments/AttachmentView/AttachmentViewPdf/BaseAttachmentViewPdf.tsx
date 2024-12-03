@@ -8,6 +8,7 @@ function BaseAttachmentViewPdf({
     file,
     encryptedSourceUrl,
     isFocused,
+    isUsedInCarousel,
     onPress: onPressProp,
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
@@ -39,11 +40,11 @@ function BaseAttachmentViewPdf({
             }
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (attachmentCarouselPagerContext?.pagerRef) {
+            if (isUsedInCarousel && attachmentCarouselPagerContext) {
                 attachmentCarouselPagerContext.onScaleChanged(newScale);
             }
         },
-        [attachmentCarouselPagerContext, onScaleChangedProp],
+        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
     );
 
     /**
@@ -58,7 +59,7 @@ function BaseAttachmentViewPdf({
                 onPressProp(event);
             }
 
-            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.get()) {
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.value) {
                 attachmentCarouselPagerContext.onTap();
             }
         },

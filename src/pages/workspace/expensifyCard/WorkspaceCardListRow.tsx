@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import Badge from '@components/Badge';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -26,28 +26,24 @@ type WorkspacesListRowProps = {
 
     /** Policy currency */
     currency: string;
-
-    /** Type of card */
-    isVirtual: boolean;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
-    const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
+
     return (
-        <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
-            <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.gap5, styles.br3, styles.p4]}>
+            <View style={[styles.flexRow, styles.flex5, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={cardholder?.avatar ?? FallbackAvatar}
+                    source={getDefaultAvatarURL(cardholder?.accountID)}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />
-                <View style={[styles.flex1, styles.h100]}>
+                <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
@@ -62,55 +58,16 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     </Text>
                 </View>
             </View>
-            {!shouldUseNarrowLayout && (
-                <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textNormalThemeText, styles.lh16]}
-                    >
-                        {cardType}
-                    </Text>
-                </View>
-            )}
-            <View
-                style={[
-                    styles.flexRow,
-                    styles.gap2,
-                    shouldUseNarrowLayout ? styles.flex2 : styles.flex1,
-                    shouldUseNarrowLayout ? styles.alignItemsStart : styles.alignItemsCenter,
-                    shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentStart,
-                ]}
-            >
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textNormalThemeText]}
+                    style={[styles.textLabelSupporting, styles.lh16]}
                 >
                     {lastFourPAN}
                 </Text>
             </View>
-            <View
-                style={[
-                    !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn,
-                    shouldUseNarrowLayout ? styles.flex3 : styles.flex1,
-                    !shouldUseNarrowLayout && styles.gap2,
-                    !shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsEnd,
-                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                ]}
-            >
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textNormalThemeText]}
-                >
-                    {CurrencyUtils.convertToShortDisplayString(limit, currency)}
-                </Text>
-                {shouldUseNarrowLayout && (
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
-                    >
-                        {cardType}
-                    </Text>
-                )}
+            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <Badge text={CurrencyUtils.convertToDisplayString(limit, currency)} />
             </View>
         </View>
     );

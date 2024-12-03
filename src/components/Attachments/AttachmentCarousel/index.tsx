@@ -3,16 +3,15 @@ import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
-import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
+import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -26,7 +25,7 @@ import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
 import extractAttachments from './extractAttachments';
 import AttachmentCarouselPagerContext from './Pager/AttachmentCarouselPagerContext';
-import type {AttachmentCarouselProps, UpdatePageProps} from './types';
+import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 import useCarouselContextEvents from './useCarouselContextEvents';
 
@@ -38,34 +37,19 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-type DeviceAwareGestureDetectorProps = {
-    canUseTouchScreen: boolean;
-    gesture: ComposedGesture | GestureType;
-    children: React.ReactNode;
-};
-
-function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: DeviceAwareGestureDetectorProps) {
-    // Don't render GestureDetector on non-touchable devices to prevent unexpected pointer event capture.
-    // This issue is left out on touchable devices since finger touch works fine.
-    // See: https://github.com/Expensify/App/issues/51246
-    return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
-}
-
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
-    const isPagerScrolling = useSharedValue(false);
+    const nope = useSharedValue(false);
     const pagerRef = useRef<GestureType>(null);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
+    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
     const cellWidth = useMemo(
         () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
         [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],
@@ -74,7 +58,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
+    const {handleTap, handleScaleChange, scale} = useCarouselContextEvents(setShouldShowArrows);
 
     useEffect(() => {
         if (!canUseTouchScreen) {
@@ -83,18 +67,18 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && (!attachmentLink || attachment.attachmentLink === attachmentLink), [attachmentLink, source]);
+    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        let newAttachments: Attachment[] = [];
+        let targetAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, reportID: report.reportID});
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID});
         } else {
-            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, reportID: report.reportID});
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
 
-        if (isEqual(attachments, newAttachments)) {
+        if (isEqual(attachments, targetAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
                 setDownloadButtonVisibility?.(false);
@@ -102,47 +86,26 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             return;
         }
 
-        let newIndex = newAttachments.findIndex(compareImage);
-        const index = attachments.findIndex(compareImage);
+        const initialPage = targetAttachments.findIndex(compareImage);
 
-        // If newAttachments includes an attachment with the same index, update newIndex to that index.
-        // Previously, uploading an attachment offline would dismiss the modal when the image was previewed and the connection was restored.
-        // Now, instead of dismissing the modal, we replace it with the new attachment that has the same index.
-        if (newIndex === -1 && index !== -1 && newAttachments.at(index)) {
-            newIndex = index;
-        }
-
-        // If no matching attachment with the same index, dismiss the modal
-        if (newIndex === -1 && index !== -1 && attachments.at(index)) {
+        // Dismiss the modal when deleting an attachment during its display in preview.
+        if (initialPage === -1 && attachments.find(compareImage)) {
             Navigation.dismissModal();
         } else {
-            setPage(newIndex);
-            setAttachments(newAttachments);
+            setPage(initialPage);
+            setAttachments(targetAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(newIndex !== -1);
+                setDownloadButtonVisibility(initialPage !== -1);
             }
 
-            const attachment = newAttachments.at(newIndex);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
-                onNavigate(attachment);
+            if (targetAttachments[initialPage] !== undefined && onNavigate) {
+                onNavigate(targetAttachments[initialPage]);
             }
         }
-    }, [
-        report.privateNotes,
-        reportActions,
-        parentReportActions,
-        compareImage,
-        report.parentReportActionID,
-        attachments,
-        setDownloadButtonVisibility,
-        onNavigate,
-        accountID,
-        type,
-        report.reportID,
-    ]);
+    }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
@@ -166,7 +129,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
-            const entry = viewableItems.at(0);
+            const entry = viewableItems[0];
             if (!entry) {
                 setActiveSource(null);
                 return;
@@ -193,9 +156,9 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             }
 
             const nextIndex = page + deltaSlide;
-            const nextItem = attachments.at(nextIndex);
+            const nextItem = attachments[nextIndex];
 
-            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
+            if (!nextItem || !scrollRef.current) {
                 return;
             }
 
@@ -205,7 +168,8 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
+        (item: Attachment, index: number) =>
+            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
         [],
     );
 
@@ -224,13 +188,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             pagerItems: [{source, index: 0, isActive: true}],
             activePage: 0,
             pagerRef,
-            isPagerScrolling,
-            isScrollEnabled,
+            isPagerScrolling: nope,
+            isScrollEnabled: nope,
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
         }),
-        [source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
+        [source, nope, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */
@@ -253,18 +217,14 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             Gesture.Pan()
                 .enabled(canUseTouchScreen)
                 .onUpdate(({translationX}) => {
-                    if (!isScrollEnabled.get()) {
+                    if (scale.current !== 1) {
                         return;
-                    }
-
-                    if (translationX !== 0) {
-                        isPagerScrolling.set(true);
                     }
 
                     scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
                 })
                 .onEnd(({translationX, velocityX}) => {
-                    if (!isScrollEnabled.get()) {
+                    if (scale.current !== 1) {
                         return;
                     }
 
@@ -281,12 +241,10 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
-                    isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
-                // eslint-disable-next-line react-compiler/react-compiler
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
-        [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
+        [attachments.length, canUseTouchScreen, cellWidth, page, scale, scrollRef],
     );
 
     return (
@@ -315,10 +273,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
                     <AttachmentCarouselPagerContext.Provider value={context}>
-                        <DeviceAwareGestureDetector
-                            canUseTouchScreen={canUseTouchScreen}
-                            gesture={pan}
-                        >
+                        <GestureDetector gesture={pan}>
                             <Animated.FlatList
                                 keyboardShouldPersistTaps="handled"
                                 horizontal
@@ -337,7 +292,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                                 viewabilityConfig={viewabilityConfig}
                                 onViewableItemsChanged={updatePage}
                             />
-                        </DeviceAwareGestureDetector>
+                        </GestureDetector>
                     </AttachmentCarouselPagerContext.Provider>
 
                     <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
@@ -349,4 +304,13 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default AttachmentCarousel;
+export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+        canEvict: false,
+    },
+    reportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+    },
+})(AttachmentCarousel);

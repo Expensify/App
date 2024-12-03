@@ -133,7 +133,7 @@ function ContextMenuItem(
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={[styles.pr8, wrapperStyle]}
+            wrapperStyle={[styles.pr9, wrapperStyle]}
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}

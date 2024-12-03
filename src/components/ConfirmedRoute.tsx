@@ -108,11 +108,11 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
         <DistanceMapView
             interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
-            mapPadding={CONST.MAPBOX.PADDING}
+            mapPadding={CONST.MAP_PADDING}
             pitchEnabled={false}
             initialState={{
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
+                location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
             }}
             directionCoordinates={coordinates as Array<[number, number]>}
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}

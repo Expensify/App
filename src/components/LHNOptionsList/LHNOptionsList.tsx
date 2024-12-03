@@ -19,13 +19,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
-import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
@@ -140,10 +137,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 : '-1';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
-
-            const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(itemFullReport);
-            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions, canUserPerformWriteAction);
-            const lastReportAction = sortedReportActions.at(0);
+            const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
+            const lastReportAction = sortedReportActions[0];
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -152,20 +147,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '-1';
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
-
-            // SidebarUtils.getOptionData in OptionRowLHNData does not get re-evaluated when the linked task report changes, so we have the lastMessageTextFromReport evaluation logic here
-            let lastActorDetails: Partial<PersonalDetails> | null =
-                itemFullReport?.lastActorAccountID && personalDetails?.[itemFullReport.lastActorAccountID] ? personalDetails[itemFullReport.lastActorAccountID] : null;
-            if (!lastActorDetails && lastReportAction) {
-                const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
-                lastActorDetails = lastActorDisplayName
-                    ? {
-                          displayName: lastActorDisplayName,
-                          accountID: itemFullReport?.lastActorAccountID,
-                      }
-                    : null;
-            }
-            const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy);
 
             return (
                 <OptionRowLHNData
@@ -182,7 +163,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions}
-                    lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
@@ -208,8 +188,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -271,7 +251,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     ref={flashListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
-                    CellRendererComponent={OptionRowRendererComponent}
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                     data={data}
                     testID="lhn-options-list"

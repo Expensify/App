@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
@@ -62,7 +61,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-    const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
@@ -80,7 +78,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
-    const onConfirmDeleteModal = useRef(() => {});
+    const onComfirmDeleteModal = useRef(() => {});
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
@@ -173,7 +171,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         shouldCloseOnTarget = false,
         setIsEmojiPickerActive = () => {},
         isOverflowMenu = false,
-        isThreadReportParentActionParam = false,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -183,6 +180,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         } else {
             anchorRef.current = null;
         }
+        setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
@@ -213,8 +211,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             typeRef.current = type;
             reportIDRef.current = reportID ?? '-1';
             reportActionIDRef.current = reportActionID ?? '-1';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            originalReportIDRef.current = originalReportID || '-1';
+            originalReportIDRef.current = originalReportID ?? '-1';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -222,14 +219,12 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChronosReportEnabled(isChronosReport);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
-            setIsThreadReportParentAction(isThreadReportParentActionParam);
             setShoudSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
-        setInstanceID(Math.random().toString(36).slice(2, 7));
         onPopoverShow.current();
 
         // After we have called the action, reset it.
@@ -247,7 +242,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportIDRef.current = '-1';
         reportActionIDRef.current = '-1';
         originalReportIDRef.current = '-1';
-        setInstanceID('');
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -268,7 +262,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     };
 
     const confirmDeleteAndHideModal = useCallback(() => {
-        callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
+        callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -298,8 +292,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     /** Opens the Confirm delete action modal */
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
+        onComfirmDeleteModal.current = onConfirm;
 
-        onConfirmDeleteModal.current = onConfirm;
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
 
@@ -340,7 +334,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
-                    isVisible={isPopoverVisible}
+                    isVisible
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
@@ -350,7 +344,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                     isChronosReport={isChronosReportEnabled}
                     isPinnedChat={isChatPinned}
                     isUnreadChat={hasUnreadMessages}
-                    isThreadReportParentAction={isThreadReportParentAction}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}

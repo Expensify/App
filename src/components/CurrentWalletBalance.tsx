@@ -1,26 +1,32 @@
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Balance from './Balance';
+import type UserWallet from '@src/types/onyx/UserWallet';
+import Text from './Text';
 
-type CurrentWalletBalanceProps = {
+type CurrentWalletBalanceOnyxProps = {
+    /** The user's wallet account */
+    userWallet: OnyxEntry<UserWallet>;
+};
+
+type CurrentWalletBalanceProps = CurrentWalletBalanceOnyxProps & {
     balanceStyles?: StyleProp<TextStyle>;
 };
 
-function CurrentWalletBalance({balanceStyles}: CurrentWalletBalanceProps) {
+function CurrentWalletBalance({userWallet, balanceStyles}: CurrentWalletBalanceProps) {
     const styles = useThemeStyles();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-
-    return (
-        <Balance
-            textStyles={[styles.pv5, styles.alignSelfCenter, balanceStyles]}
-            balance={userWallet?.currentBalance ?? 0}
-        />
-    );
+    const formattedBalance = CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0);
+    return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, balanceStyles]}>{formattedBalance}</Text>;
 }
 
 CurrentWalletBalance.displayName = 'CurrentWalletBalance';
 
-export default CurrentWalletBalance;
+export default withOnyx<CurrentWalletBalanceProps, CurrentWalletBalanceOnyxProps>({
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
+    },
+})(CurrentWalletBalance);

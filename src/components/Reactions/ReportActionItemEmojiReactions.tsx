@@ -33,7 +33,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
-    toggleReaction: (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => void;
+    toggleReaction: (emoji: Emoji) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -88,6 +88,8 @@ function ReportActionItemEmojiReactions({
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
 
+    let totalReactionCount = 0;
+
     const reportActionID = reportAction.reportActionID;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -102,9 +104,10 @@ function ReportActionItemEmojiReactions({
             if (reactionCount === 0) {
                 return null;
             }
+            totalReactionCount += reactionCount;
 
             const onPress = () => {
-                toggleReaction(emoji, true);
+                toggleReaction(emoji);
             };
 
             const onReactionListOpen = (event: ReactionListEvent) => {
@@ -125,8 +128,6 @@ function ReportActionItemEmojiReactions({
         }),
         ['oldestTimestamp'],
     );
-
-    const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
     return (
         totalReactionCount > 0 && (

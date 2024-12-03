@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -48,11 +47,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
             ) : (
                 <PressableWithoutFeedback
                     onPress={() => {
-                        const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
-                            ancestor.reportAction,
-                            ancestor.reportAction.reportActionID ?? '-1',
-                            ReportUtils.canUserPerformWriteAction(ancestor.report),
-                        );
+                        const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                         // Pop the thread report screen before navigating to the chat report.
                         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
                         if (isVisibleAction && !isOffline) {

@@ -5,7 +5,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,13 +30,6 @@ function TableListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
-        shouldHighlight: !!item.shouldAnimateInHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
-
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
@@ -52,19 +44,9 @@ function TableListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[
-                [
-                    styles.selectionListPressableItemWrapper,
-                    styles.mh0,
-                    // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-                    item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
-                    item.isSelected && styles.activeComponentBG,
-                    item.cursorStyle,
-                ],
-            ]}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive, item.cursorStyle]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={styles.mb2}
+            containerStyle={styles.mb3}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -82,7 +64,7 @@ function TableListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <>
-                    {!!canSelectMultiple && (
+                    {canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -92,7 +74,7 @@ function TableListItem<TItem extends ListItem>({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3, item.cursorStyle]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}>
-                                {!!item.isSelected && (
+                                {item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}

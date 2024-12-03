@@ -15,6 +15,7 @@ function SaveWithExpensifyButton() {
         <Button
             text={translate('subscription.yourPlan.saveWithExpensifyButton')}
             onPress={onLinkPress}
+            medium
         />
     );
 }

@@ -21,9 +21,9 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Modal from '@userActions/Modal';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -113,13 +113,13 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, IOUUtils.shouldUseTransactionDraft(action));
+    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transaction, pageIndex, IOUUtils.shouldUseTransactionDraft(action));
+            Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -140,7 +140,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transaction, pageIndex, IOUUtils.shouldUseTransactionDraft(action));
+        Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         goBack();
@@ -155,13 +155,13 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, IOUUtils.shouldUseTransactionDraft(action));
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
         goBack();
     };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
@@ -179,10 +179,11 @@ function IOURequestStepWaypoint({
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
                             onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
+                                Modal.close(() => {
+                                    setRestoreFocusType(undefined);
+                                    setIsDeleteStopModalOpen(true);
+                                });
                             },
-                            shouldCallAfterModalHide: true,
                         },
                     ]}
                 />

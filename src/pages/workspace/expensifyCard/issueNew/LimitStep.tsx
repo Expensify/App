@@ -1,10 +1,13 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -48,14 +51,8 @@ function LimitStep() {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
-            if (!Number(values.limit)) {
+            if (!Number(values.limit) || !Number.isInteger(Number(values.limit))) {
                 errors.limit = translate('iou.error.invalidAmount');
-            } else if (!Number.isInteger(Number(values.limit))) {
-                errors.limit = translate('iou.error.invalidIntegerAmount');
-            }
-
-            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
-                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
             }
             return errors;
         },
@@ -63,15 +60,22 @@ function LimitStep() {
     );
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={LimitStep.displayName}
+        <ScreenWrapper
+            testID={LimitStep.displayName}
+            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            headerTitle={translate('workspace.card.issueCard')}
-            handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
         >
+            <HeaderWithBackButton
+                title={translate('workspace.card.issueCard')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubHeader
+                    startStepIndex={3}
+                    stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+                />
+            </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
@@ -93,7 +97,7 @@ function LimitStep() {
                     ref={inputCallbackRef}
                 />
             </FormProvider>
-        </InteractiveStepWrapper>
+        </ScreenWrapper>
     );
 }
 

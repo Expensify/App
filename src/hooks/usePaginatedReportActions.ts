@@ -2,7 +2,6 @@ import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import PaginationUtils from '@libs/PaginationUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -12,22 +11,16 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     // Use `||` instead of `??` to handle empty string.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportIDWithDefault = reportID || '-1';
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithDefault}`);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
         canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 
-    const {
-        data: reportActions,
-        hasNextPage,
-        hasPreviousPage,
-    } = useMemo(() => {
+    const reportActions = useMemo(() => {
         if (!sortedAllReportActions?.length) {
-            return {data: [], hasNextPage: false, hasPreviousPage: false};
+            return [];
         }
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionID);
     }, [reportActionID, reportActionPages, sortedAllReportActions]);
@@ -41,8 +34,6 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         reportActions,
         linkedAction,
         sortedAllReportActions,
-        hasOlderActions: hasNextPage,
-        hasNewerActions: hasPreviousPage,
     };
 }
 

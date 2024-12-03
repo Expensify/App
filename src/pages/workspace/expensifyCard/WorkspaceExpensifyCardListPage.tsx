@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
@@ -15,11 +16,8 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +30,7 @@ import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
-    route: PlatformStackRouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+    route: RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
     /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
@@ -45,31 +43,24 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
-
-    const isBankAccountVerified = !cardOnWaitlist;
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
     const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
 
-    const issueCard = () => {
-        const activeRoute = Navigation.getActiveRoute();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
-    };
-
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
             <Button
+                medium
                 success
-                onPress={issueCard}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldUseNarrowLayout && styles.flex1}
             />
             <Button
+                medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
@@ -82,10 +73,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
         ({item, index}: ListRenderItemInfo<Card>) => (
             <OfflineWithFeedback
                 key={`${item.nameValuePairs?.cardTitle}_${index}`}
-                pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
-                onClose={() => PaymentMethods.clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
             >
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
@@ -100,12 +89,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
                         currency={policyCurrency}
-                        isVirtual={!!item.nameValuePairs?.isVirtual}
                     />
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
+        [personalDetails, policyCurrency, policyID, styles],
     );
 
     const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} />, [policyID]);
@@ -123,11 +111,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack()}
             >
-                {!shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
+                {!shouldUseNarrowLayout && getHeaderButtons()}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && isBankAccountVerified && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
+                <EmptyCardView />
             ) : (
                 <FlatList
                     data={sortedCards}

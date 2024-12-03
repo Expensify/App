@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,15 +22,14 @@ type AddressPageProps = {
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
     /** Title of address page */
     title: string;
-} & BackToParams;
+};
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Check if country is valid
-    const {street} = address ?? {};
-    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const {street, street2} = address ?? {};
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -78,13 +76,13 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
                 title={title}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -97,7 +95,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     country={currentCountry}
                     onAddressChanged={handleAddressChange}
                     state={state}
-                    street1={street1}
+                    street1={street}
                     street2={street2}
                     zip={zipcode}
                 />

@@ -1,15 +1,12 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams} from '@src/languages/params';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {ParentNavigationSummaryParams} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -32,8 +29,6 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -44,7 +39,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
         <PressableWithoutFeedback
             onPress={() => {
                 const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
-                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1', canUserPerformWriteAction);
+                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1');
                 // Pop the thread report screen before navigating to the chat report.
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction && !isOffline) {
@@ -57,7 +52,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
             style={pressableStyles}
         >
             <Text
-                style={[styles.optionAlternateText, styles.textLabelSupporting]}
+                style={[styles.optionAlternateText]}
                 numberOfLines={1}
             >
                 {!!reportName && (

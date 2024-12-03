@@ -2,19 +2,17 @@ import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as Request from '@libs/Request';
-import RequestThrottle from '@libs/RequestThrottle';
+import * as RequestThrottle from '@libs/RequestThrottle';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictData} from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 type RequestError = Error & {
     name?: string;
     message?: string;
-    status?: string;
 };
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
@@ -26,9 +24,8 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
-let currentRequestPromise: Promise<void> | null = null;
+let currentRequest: Promise<void> | null = null;
 let isQueuePaused = false;
-const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -82,14 +79,10 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
-    const requestToProcess = PersistedRequests.processNextRequest();
-    if (!requestToProcess) {
-        Log.info('[SequentialQueue] Unable to process. No next request to handle.');
-        return Promise.resolve();
-    }
+    const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
+    currentRequest = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
@@ -97,35 +90,29 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Handled 'shouldPauseQueue' in response. Pausing the queue.");
                 pause();
             }
-
-            Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
-            PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-            sequentialQueueRequestThrottle.clear();
+            PersistedRequests.remove(requestToProcess);
+            RequestThrottle.clear();
             return process();
         })
         .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
-                Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
-                PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                sequentialQueueRequestThrottle.clear();
+                PersistedRequests.remove(requestToProcess);
+                RequestThrottle.clear();
                 return process();
             }
-            PersistedRequests.rollbackOngoingRequest();
-            return sequentialQueueRequestThrottle
-                .sleep(error, requestToProcess.command)
+            return RequestThrottle.sleep()
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);
-                    Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
-                    PersistedRequests.endRequestAndRemoveFromQueue(requestToProcess);
-                    sequentialQueueRequestThrottle.clear();
+                    PersistedRequests.remove(requestToProcess);
+                    RequestThrottle.clear();
                     return process();
                 });
         });
 
-    return currentRequestPromise;
+    return currentRequest;
 }
 
 function flush() {
@@ -140,8 +127,8 @@ function flush() {
         return;
     }
 
-    if (PersistedRequests.getAll().length === 0 && QueuedOnyxUpdates.isEmpty()) {
-        Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
+    if (PersistedRequests.getAll().length === 0) {
+        Log.info('[SequentialQueue] Unable to flush. No requests to process.');
         return;
     }
 
@@ -160,25 +147,18 @@ function flush() {
     });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connection = Onyx.connect({
+    const connectionID = Onyx.connect({
         key: ONYXKEYS.PERSISTED_REQUESTS,
-        // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
-        // an existing connection already made in PersistedRequests.ts.
-        reuseConnection: false,
         callback: () => {
-            Onyx.disconnect(connection);
+            Onyx.disconnect(connectionID);
             process().finally(() => {
                 Log.info('[SequentialQueue] Finished processing queue.');
                 isSequentialQueueRunning = false;
                 if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
                     resolveIsReadyPromise?.();
                 }
-                currentRequestPromise = null;
-
-                // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
-                if (PersistedRequests.getAll().length === 0) {
-                    flushOnyxUpdatesQueue();
-                }
+                currentRequest = null;
+                flushOnyxUpdatesQueue();
             });
         },
     });
@@ -194,8 +174,9 @@ function unpause() {
     }
 
     const numberOfPersistedRequests = PersistedRequests.getAll().length || 0;
-    Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
+    console.debug(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
+    flushOnyxUpdatesQueue();
     flush();
 }
 
@@ -210,40 +191,9 @@ function isPaused(): boolean {
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
-    if (conflictAction.type === 'push') {
-        PersistedRequests.save(newRequest);
-    } else if (conflictAction.type === 'replace') {
-        PersistedRequests.update(conflictAction.index, conflictAction.request ?? newRequest);
-    } else if (conflictAction.type === 'delete') {
-        PersistedRequests.deleteRequestsByIndices(conflictAction.indices);
-        if (conflictAction.pushNewRequest) {
-            PersistedRequests.save(newRequest);
-        }
-        if (conflictAction.nextAction) {
-            handleConflictActions(conflictAction.nextAction, newRequest);
-        }
-    } else {
-        Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
-    }
-}
-
-function push(newRequest: OnyxRequest) {
-    const {checkAndFixConflictingRequest} = newRequest;
-
-    if (checkAndFixConflictingRequest) {
-        const requests = PersistedRequests.getAll();
-        const {conflictAction} = checkAndFixConflictingRequest(requests);
-        Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
-
-        // don't try to serialize a function.
-        // eslint-disable-next-line no-param-reassign
-        delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
-    } else {
-        // Add request to Persisted Requests so that it can be retried if it fails
-        PersistedRequests.save(newRequest);
-    }
+function push(request: OnyxRequest) {
+    // Add request to Persisted Requests so that it can be retried if it fails
+    PersistedRequests.save(request);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
@@ -260,10 +210,10 @@ function push(newRequest: OnyxRequest) {
 }
 
 function getCurrentRequest(): Promise<void> {
-    if (currentRequestPromise === null) {
+    if (currentRequest === null) {
         return Promise.resolve();
     }
-    return currentRequestPromise;
+    return currentRequest;
 }
 
 /**
@@ -273,19 +223,4 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-/**
- * Clear any pending requests during test runs
- * This is to prevent previous requests interfering with other tests
- */
-function resetQueue(): void {
-    isSequentialQueueRunning = false;
-    currentRequestPromise = null;
-    isQueuePaused = false;
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
-    resolveIsReadyPromise?.();
-}
-
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
-export type {RequestError};
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause};

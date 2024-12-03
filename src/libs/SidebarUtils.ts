@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {PolicySelector} from '@hooks/useReportIDs';
+import type {PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -41,23 +40,16 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        const report = ReportUtils.getReport(reportID);
-        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = actionsArray.filter(
-            (reportAction) =>
-                ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
-        const reportAction = reportActionsForDisplay.at(-1);
-        if (!reportAction) {
-            delete visibleReportActionItems[reportID];
-            return;
-        }
-        visibleReportActionItems[reportID] = reportAction;
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -81,10 +73,6 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
-function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
-}
-
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -94,6 +82,7 @@ function getOrderedReportIDs(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
+    allReportActions: OnyxCollection<ReportActionsSelector>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
@@ -111,11 +100,23 @@ function getOrderedReportIDs(
         if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
             return;
         }
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-        const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, transactionViolations);
+        const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
-        const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
+        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
+        const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
+        let doesTransactionThreadReportHasViolations = false;
+        if (oneTransactionThreadReportID) {
+            const transactionReport = ReportUtils.getReport(oneTransactionThreadReportID);
+            doesTransactionThreadReportHasViolations = !!transactionReport && OptionsListUtils.shouldShowViolations(transactionReport, transactionViolations);
+        }
+        const hasErrorsOtherThanFailedReceipt =
+            doesTransactionThreadReportHasViolations ||
+            doesReportHaveViolations ||
+            Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
         const isReportInAccessible = report?.errorFields?.notFound;
         if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0', parentReportAction)) {
             return;
@@ -128,14 +129,7 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const shouldOverrideHidden =
-            hasValidDraftComment(report.reportID) ||
-            hasErrorsOtherThanFailedReceipt ||
-            isFocused ||
-            isSystemChat ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            report.isPinned ||
-            ReportUtils.requiresAttentionFromCurrentUser(report, parentReportAction);
+        const shouldOverrideHidden = hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -232,46 +226,6 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type ReasonAndReportActionThatHasRedBrickRoad = {
-    reason: ValueOf<typeof CONST.RBR_REASONS>;
-    reportAction?: OnyxEntry<ReportAction>;
-};
-
-function getReasonAndReportActionThatHasRedBrickRoad(
-    report: Report,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
-): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {errors, reportAction} = ReportUtils.getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
-    const hasErrors = Object.keys(errors).length !== 0;
-
-    if (ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
-        };
-    }
-
-    if (hasErrors) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_ERRORS,
-            reportAction,
-        };
-    }
-
-    if (hasViolations) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
-        };
-    }
-
-    return null;
-}
-
-function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
-}
-
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -283,7 +237,6 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
-    lastMessageTextFromReport: lastMessageTextFromReportProp,
     transactionViolations,
     invoiceReceiverPolicy,
 }: {
@@ -294,7 +247,6 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
-    lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
@@ -308,7 +260,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: undefined,
-        allReportErrors: ReportUtils.getAllReportErrors(report, reportActions),
+        allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: undefined,
@@ -327,8 +279,7 @@ function getOptionData({
         hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        private_isArchived: undefined,
+        isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
@@ -342,22 +293,37 @@ function getOptionData({
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
-    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
-    const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
+    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
+    const personalDetail = participantPersonalDetailList[0] ?? {};
+    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    result.private_isArchived = report?.private_isArchived;
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    result.isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+    if (oneTransactionThreadReportID) {
+        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+
+        if (
+            ReportUtils.shouldDisplayTransactionThreadViolations(
+                oneTransactionThreadReport,
+                transactionViolations,
+                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+            )
+        ) {
+            result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+    }
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -374,7 +340,7 @@ function getOptionData({
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '-1';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
+    result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
@@ -383,7 +349,6 @@ function getOptionData({
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = ReportUtils.isConciergeChatReport(report);
-    result.participants = report.participants;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -416,11 +381,7 @@ function getOptionData({
     }
 
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-
-    let lastMessageTextFromReport = lastMessageTextFromReportProp;
-    if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
-    }
+    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
@@ -429,11 +390,13 @@ function getOptionData({
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.private_isArchived) {
+
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
-            result.alternateText = ReportActionsUtils.getRenamedAction(lastAction);
+            const newName = ReportActionsUtils.getOriginalMessage(lastAction)?.newName ?? '';
+            result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
         } else if (ReportActionsUtils.isInviteOrRemovedAction(lastAction)) {
@@ -457,33 +420,17 @@ function getOptionData({
             }
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
             result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
-        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
-            result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
-        } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
-            result.alternateText = ReportActionsUtils.getCardIssuedMessage(lastAction);
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
-        } else if (ReportActionsUtils.isTagModificationAction(lastAction?.actionName)) {
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
             result.alternateText = PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(lastAction)?.text ?? '');
-        } else if (lastAction && ReportActionsUtils.isOldDotReportAction(lastAction)) {
-            result.alternateText = ReportActionsUtils.getMessageOfOldDotReportAction(lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-            result.alternateText = ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            result.alternateText = ReportActionsUtils.getPolicyChangeLogChangeRoleMessage(lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
-            result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
-            result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
-            result.alternateText = ReportActionsUtils.getRemovedConnectionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : ReportActionsUtils.getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+                    : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
                 result.alternateText = ReportUtils.formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? Localize.translateLocal('report.noActivityYet'));
             }
@@ -507,9 +454,9 @@ function getOptionData({
     }
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail?.accountID ?? -1;
-        result.login = personalDetail?.login ?? '';
-        result.phoneNumber = personalDetail?.phoneNumber ?? '';
+        result.accountID = personalDetail?.accountID;
+        result.login = personalDetail?.login;
+        result.phoneNumber = personalDetail?.phoneNumber;
     }
 
     const reportName = ReportUtils.getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
@@ -518,7 +465,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID ?? -1, policy, invoiceReceiverPolicy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy, invoiceReceiverPolicy);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
@@ -547,11 +494,9 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
             welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
-            welcomeMessage.messageText = ensureSingleSpacing(
-                `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${
-                    welcomeMessage.phrase3
-                }`,
-            );
+            welcomeMessage.messageText = `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(
+                report,
+            )} ${welcomeMessage.phrase3}`;
         }
         return welcomeMessage;
     }
@@ -569,7 +514,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
     }
 
     welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
-    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails),
@@ -593,7 +538,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
         })
         .join(' ');
 
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
+    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
     return welcomeMessage;
 }
 
@@ -605,43 +550,33 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const workspaceName = ReportUtils.getPolicyName(report);
 
     if (report?.description) {
-        welcomeMessage.messageHtml = ReportUtils.getReportDescription(report);
+        welcomeMessage.messageHtml = report.description;
         welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         return welcomeMessage;
     }
 
-    if (report?.private_isArchived) {
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report?.reportID);
+    if (ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {
-        welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (ReportUtils.isAdminRoom(report)) {
-        welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (ReportUtils.isAnnounceRoom(report)) {
-        welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
     } else if (ReportUtils.isInvoiceRoom(report)) {
         welcomeMessage.showReportName = false;
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
-        const payer =
-            report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? ReportUtils.getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)
-                : PolicyUtils.getPolicy(report?.invoiceReceiver?.policyID)?.name;
-        const receiver = ReportUtils.getPolicyName(report);
-        welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${Localize.translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
-        return welcomeMessage;
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom');
     } else {
         // Message for user created rooms or other room types.
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
-    welcomeMessage.messageText = ensureSingleSpacing(`${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`);
+    welcomeMessage.messageText = `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
 
     return welcomeMessage;
 }
@@ -650,6 +585,4 @@ export default {
     getOptionData,
     getOrderedReportIDs,
     getWelcomeMessage,
-    getReasonAndReportActionThatHasRedBrickRoad,
-    shouldShowRedBrickRoad,
 };

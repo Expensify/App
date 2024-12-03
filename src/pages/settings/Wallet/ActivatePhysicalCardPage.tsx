@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as CardSettings from '@userActions/Card';
@@ -33,7 +33,7 @@ type ActivatePhysicalCardPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
+type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;

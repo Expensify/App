@@ -1,6 +1,5 @@
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type WillBlurTextInputOnTapOutside from './types';
 
-const willBlurTextInputOnTapOutside: WillBlurTextInputOnTapOutside = () => !getIsNarrowLayout();
+const willBlurTextInputOnTapOutside: WillBlurTextInputOnTapOutside = () => true;
 
 export default willBlurTextInputOnTapOutside;

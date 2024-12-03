@@ -54,7 +54,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
             accessibilityLabel="referral"
-            role={CONST.ROLE.BUTTON}
+            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}
@@ -72,7 +72,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                         e.preventDefault();
                     }}
                     style={[styles.touchableButtonImage]}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                 >
                     <Icon

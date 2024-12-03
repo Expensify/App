@@ -39,15 +39,8 @@ Onyx.connect({
 });
 
 function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
-    const hashIndex = url.lastIndexOf('#');
-    const hasHashParams = hashIndex !== -1;
+    const hasHashParams = url.indexOf('#') !== -1;
     const hasURLParams = url.indexOf('?') !== -1;
-    let originURL = url;
-    let hashParams = '';
-    if (hasHashParams) {
-        originURL = url.substring(0, hashIndex);
-        hashParams = url.substring(hashIndex);
-    }
 
     const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
@@ -58,20 +51,20 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
         const oldDotDomain = Url.addTrailingForwardSlash(environmentURL);
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
+        return `${oldDotDomain}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
     });
 }
 
 /**
  * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
+function openExternalLink(url: string, shouldSkipCustomSafariLogic = false) {
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
-function openOldDotLink(url: string, shouldOpenInSameTab = false) {
+function openOldDotLink(url: string) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
+        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
         return;
     }
 
@@ -82,8 +75,6 @@ function openOldDotLink(url: string, shouldOpenInSameTab = false) {
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
-        undefined,
-        shouldOpenInSameTab,
     );
 }
 
@@ -113,7 +104,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
         policyID,
     };
 
-    return new Promise((resolve, reject) => {
+    return new Promise((_, reject) => {
         const error = new Error('Failed to generate spotnana token.');
 
         asyncOpenURL(
@@ -124,9 +115,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
-                    resolve(undefined);
-                    return travelURL;
+                    return buildTravelDotURL(response.spotnanaToken, postLoginPath);
                 })
                 .catch(() => {
                     reject(error);
@@ -199,8 +188,7 @@ function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
     const exitTo = `exitTo=${url}`;
     const accountID = `accountID=${currentUserAccountID}`;
-    const referrer = 'referrer=desktop';
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
+    const paramsArray = [accountID, emailParam, authTokenParam, exitTo];
     const params = paramsArray.filter(Boolean).join('&');
 
     return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;

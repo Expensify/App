@@ -1,13 +1,8 @@
 import React from 'react';
-import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
-import variables from '@styles/variables';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -22,24 +17,13 @@ function TransactionListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    isLoading,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
-    const theme = useTheme();
 
-    const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {isLargeScreenWidth} = useWindowDimensions();
 
-    const listItemPressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.pv3,
-        styles.ph3,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
-        styles.mh0,
-    ];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, styles.ph3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -47,19 +31,12 @@ function TransactionListItem<TItem extends ListItem>({
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
-
     return (
         <BaseListItem
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={[styles.mb3]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -73,20 +50,18 @@ function TransactionListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <TransactionListItemRow
                 item={transactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                    onSelectRow(item);
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
-                isLoading={isLoading ?? transactionItem.isActionLoading}
             />
         </BaseListItem>
     );

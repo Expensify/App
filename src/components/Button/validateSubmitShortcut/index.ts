@@ -11,7 +11,7 @@ import type ValidateSubmitShortcut from './types';
 
 const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, event) => {
     const eventTarget = event?.target as HTMLElement;
-    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA' || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
+    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA') {
         return false;
     }
 

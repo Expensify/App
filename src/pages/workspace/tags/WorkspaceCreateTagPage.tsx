@@ -1,6 +1,8 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -20,19 +21,21 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+import type {PolicyTagLists} from '@src/types/onyx';
 
-type CreateTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type WorkspaceCreateTagPageOnyxProps = {
+    /** All policy tags */
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
 
-function CreateTagPage({route}: CreateTagPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
+type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+
+function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !!backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -42,8 +45,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
 
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (tagName === '0') {
-                errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[tagName]) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
@@ -60,9 +61,9 @@ function CreateTagPage({route}: CreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined);
+            Navigation.goBack();
         },
-        [route.params.policyID, isQuickSettingsFlow, backTo],
+        [route.params.policyID],
     );
 
     return (
@@ -72,14 +73,14 @@ function CreateTagPage({route}: CreateTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={CreateTagPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -106,4 +107,8 @@ function CreateTagPage({route}: CreateTagPageProps) {
 
 CreateTagPage.displayName = 'CreateTagPage';
 
-export default CreateTagPage;
+export default withOnyx<CreateTagPageProps, WorkspaceCreateTagPageOnyxProps>({
+    policyTags: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
+    },
+})(CreateTagPage);

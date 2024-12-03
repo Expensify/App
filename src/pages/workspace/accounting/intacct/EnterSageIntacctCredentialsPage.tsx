@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,14 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
 function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
@@ -51,13 +52,13 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     );
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
@@ -83,7 +84,6 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
                             secureTextEntry={formItem === INPUT_IDS.PASSWORD}
-                            autoCorrect={false}
                         />
                     </View>
                 ))}

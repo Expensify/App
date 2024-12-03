@@ -24,10 +24,10 @@ OnyxUpdateManager();
 describe('actions/ReportField', () => {
     function connectToFetchPolicy(policyID: string): Promise<OnyxEntry<PolicyType>> {
         return new Promise((resolve) => {
-            const connection = Onyx.connect({
+            const connectionID = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (workspace) => {
-                    Onyx.disconnect(connection);
+                    Onyx.disconnect(connectionID);
                     resolve(workspace);
                 },
             });

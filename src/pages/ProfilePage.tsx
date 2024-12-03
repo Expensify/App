@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -23,7 +24,6 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -41,9 +41,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
+type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins
@@ -73,14 +72,14 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         parentReportActionID: report.parentReportActionID,
         type: report.type,
         chatType: report.chatType,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
     });
@@ -156,11 +155,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const navigateBackTo = route?.params?.backTo;
 
-    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
-
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference =
+        !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
-        ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
+        ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -199,7 +197,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
-                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 disabled={!hasAvatar}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
@@ -277,21 +275,21 @@ function ProfilePage({route}: ProfilePageProps) {
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
                             />
                         )}
-                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
+                        {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {isConcierge && !!guideCalendarLink && (
+                        {isConcierge && guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
@@ -299,14 +297,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={SessionActions.checkIfActionIsAllowed(() => {
                                     LinkActions.openExternalLink(guideCalendarLink);
                                 })}
-                            />
-                        )}
-                        {!!report?.reportID && !!isDebugModeEnabled && (
-                            <MenuItem
-                                title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
                     </ScrollView>

@@ -1,3 +1,3 @@
-type RevealExpensifyCardDetailsParams = {cardID: number; validateCode: string};
+type RevealExpensifyCardDetailsParams = {cardID: number};
 
 export default RevealExpensifyCardDetailsParams;

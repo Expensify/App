@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
-import {addSeconds, format, subMinutes} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import type {Mock} from 'jest-mock';
+import {utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {WRITE_COMMANDS} from '@libs/API/types';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import HttpUtils from '@libs/HttpUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -35,12 +30,6 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 
-jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    default: () => ({
-        didScreenTransitionEnd: true,
-    }),
-}));
-const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -51,24 +40,16 @@ describe('actions/Report', () => {
     });
 
     beforeEach(() => {
-        HttpUtils.xhr = originalXHR;
         const promise = Onyx.clear().then(jest.useRealTimers);
         if (getIsUsingFakeTimers()) {
             // flushing pending timers
-            // Onyx.clear() promise is resolved in batch which happens after the current microtasks cycle
+            // Onyx.clear() promise is resolved in batch which happends after the current microtasks cycle
             setImmediate(jest.runOnlyPendingTimers);
         }
-
-        // Clear the queue before each test to avoid test pollution
-        SequentialQueue.resetQueue();
-
         return promise;
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-        PusherHelper.teardown();
-    });
+    afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
@@ -107,12 +88,12 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {}).at(0);
-                reportActionID = resultAction?.reportActionID ?? '-1';
+                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {})[0];
+                reportActionID = resultAction.reportActionID;
 
-                expect(resultAction?.message).toEqual(REPORT_ACTION.message);
-                expect(resultAction?.person).toEqual(REPORT_ACTION.person);
-                expect(resultAction?.pendingAction).toBeUndefined();
+                expect(resultAction.message).toEqual(REPORT_ACTION.message);
+                expect(resultAction.person).toEqual(REPORT_ACTION.person);
+                expect(resultAction.pendingAction).toBeUndefined();
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
@@ -122,11 +103,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            participants: {
-                                [TEST_USER_ACCOUNT_ID]: {
-                                    notificationPreference: 'always',
-                                },
-                            },
+                            notificationPreference: 'always',
                             lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
                             lastActorAccountID: TEST_USER_ACCOUNT_ID,
@@ -209,7 +186,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments.at(URL_ARGUMENT_INDEX)?.includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
@@ -253,11 +230,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            participants: {
-                                [USER_1_ACCOUNT_ID]: {
-                                    notificationPreference: 'always',
-                                },
-                            },
+                            notificationPreference: 'always',
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_2_ACCOUNT_ID,
                             lastVisibleActionCreated: reportActionCreatedDate,
@@ -303,7 +276,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
@@ -329,7 +302,7 @@ describe('actions/Report', () => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
-                expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
@@ -341,7 +314,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
@@ -353,7 +326,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
@@ -396,10 +369,8 @@ describe('actions/Report', () => {
                 jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
 
-                const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
-
-                if (optimisticReportActionsValue?.[400]) {
-                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
+                if (optimisticReportActions.value?.[400]) {
+                    optimisticReportActions.value[400].created = reportActionCreatedDate;
                 }
 
                 // When we emit the events for these pending created actions to update them to not pending
@@ -409,11 +380,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
-                            participants: {
-                                [USER_1_ACCOUNT_ID]: {
-                                    notificationPreference: 'always',
-                                },
-                            },
+                            notificationPreference: 'always',
                             lastMessageText: 'Current User Comment 3',
                             lastActorAccountID: 1,
                             lastVisibleActionCreated: reportActionCreatedDate,
@@ -600,7 +567,7 @@ describe('actions/Report', () => {
                 reportActionsReactions[key] = val ?? {};
             },
         });
-        let reportAction: OnyxTypes.ReportAction | undefined;
+        let reportAction: OnyxTypes.ReportAction;
         let reportActionID: string;
 
         // Set up Onyx with some test user data
@@ -617,17 +584,15 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
-                reportActionID = reportAction?.reportActionID ?? '-1';
+                reportAction = Object.values(reportActions)[0];
+                reportActionID = reportAction.reportActionID;
 
-                if (reportAction) {
-                    // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
-                }
+                // Add a reaction to the comment
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
+                reportAction = Object.values(reportActions)[0];
 
                 // Expect the reaction to exist in the reportActionsReactions collection
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -640,10 +605,8 @@ describe('actions/Report', () => {
                 const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                 expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                if (reportAction) {
-                    // Now we remove the reaction
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
-                }
+                // Now we remove the reaction
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -653,24 +616,20 @@ describe('actions/Report', () => {
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
-                reportAction = Object.values(reportActions).at(0);
+                reportAction = Object.values(reportActions)[0];
 
-                if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
-                }
+                // Add the same reaction to the same report action with a different skintone
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 return waitForBatchedUpdates()
                     .then(() => {
-                        reportAction = Object.values(reportActions).at(0);
+                        reportAction = Object.values(reportActions)[0];
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        if (reportAction) {
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
-                        }
+                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
-                        reportAction = Object.values(reportActions).at(0);
+                        reportAction = Object.values(reportActions)[0];
 
                         // Expect the reaction to exist in the reportActionsReactions collection
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -688,10 +647,8 @@ describe('actions/Report', () => {
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
 
-                        if (reportAction) {
-                            // Now we remove the reaction, and expect that both variations are removed
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
-                        }
+                        // Now we remove the reaction, and expect that both variations are removed
+                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
@@ -729,7 +686,7 @@ describe('actions/Report', () => {
             },
         });
 
-        let resultAction: OnyxTypes.ReportAction | undefined;
+        let resultAction: OnyxTypes.ReportAction;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -745,677 +702,27 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions).at(0);
+                resultAction = Object.values(reportActions)[0];
 
-                if (resultAction) {
-                    // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
-                }
+                // Add a reaction to the comment
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = Object.values(reportActions).at(0);
+                resultAction = Object.values(reportActions)[0];
 
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
-                if (resultAction) {
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
-                }
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
+                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, reportActionReaction, 2);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Expect the reaction to have null where the users reaction used to be
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`);
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
-    });
-
-    it('should send only one OpenReport, replacing any extra ones with same reportIDs', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const REPORT_ID = '1';
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await waitForBatchedUpdates();
-
-        for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
-                reportID: REPORT_ID,
-            });
-        }
-
-        expect(PersistedRequests.getAll().length).toBe(1);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-    });
-
-    it('should replace duplicate OpenReport commands with the same reportID', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const REPORT_ID = '1';
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await waitForBatchedUpdates();
-
-        for (let i = 0; i < 8; i++) {
-            let reportID = REPORT_ID;
-            if (i > 4) {
-                reportID = `${i}`;
-            }
-            Report.openReport(reportID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
-                reportID: REPORT_ID,
-            });
-        }
-
-        expect(PersistedRequests.getAll().length).toBe(4);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
-    });
-
-    it('should remove AddComment and UpdateComment without sending any request when DeleteComment is set', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
-
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBeUndefined();
-
-                    resolve();
-                },
-            });
-        });
-
-        // Checking the Report Action exists before deleting it
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                callback: (reportActions) => {
-                    Onyx.disconnect(connection);
-
-                    expect(reportActions?.[reportActionID]).not.toBeNull();
-                    expect(reportActions?.[reportActionID].reportActionID).toBe(reportActionID);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(0);
-
-        // Checking the Report Action doesn't exist after deleting it
-        const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (reportActions) => {
-                Onyx.disconnect(connection);
-                expect(reportActions?.[reportActionID]).toBeUndefined();
-            },
-        });
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
-    });
-
-    it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(1);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
-
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(1);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
-    });
-
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
-
-        const mockedXhr = jest.fn();
-        mockedXhr
-            .mockImplementationOnce(originalXHR)
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
-                }),
-            )
-            .mockImplementation(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                }),
-            );
-
-        HttpUtils.xhr = mockedXhr;
-        await waitForBatchedUpdates();
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-        await waitForNetworkPromises();
-
-        const newComment = PersistedRequests.getAll().at(1);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        await waitForBatchedUpdates();
-
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        jest.runOnlyPendingTimers();
-        await waitForBatchedUpdates();
-
-        const httpCalls = (HttpUtils.xhr as Mock).mock.calls;
-
-        const addCommentCalls = httpCalls.filter(([command]) => command === 'AddComment');
-        const deleteCommentCalls = httpCalls.filter(([command]) => command === 'DeleteComment');
-
-        if (httpCalls.length === 3) {
-            expect(addCommentCalls).toHaveLength(2);
-            expect(deleteCommentCalls).toHaveLength(1);
-        }
-    });
-
-    it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, file);
-
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
-                    resolve();
-                },
-            });
-        });
-
-        // Checking the Report Action exists before deleting it
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                callback: (reportActions) => {
-                    Onyx.disconnect(connection);
-                    expect(reportActions?.[reportActionID]).not.toBeNull();
-                    expect(reportActions?.[reportActionID].reportActionID).toBe(reportActionID);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(0);
-
-        // Checking the Report Action doesn't exist after deleting it
-        const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (reportActions) => {
-                Onyx.disconnect(connection);
-                expect(reportActions?.[reportActionID]).toBeUndefined();
-            },
-        });
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
-    });
-
-    it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-        const file = new File([''], 'test.txt', {type: 'text/plain'});
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        Report.addAttachment(REPORT_ID, file, 'Attachment with comment');
-
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
-                    resolve();
-                },
-            });
-        });
-
-        // Checking the Report Action exists before deleting it
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                callback: (reportActions) => {
-                    Onyx.disconnect(connection);
-                    expect(reportActions?.[reportActionID]).not.toBeNull();
-                    expect(reportActions?.[reportActionID].reportActionID).toBe(reportActionID);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(0);
-
-        // Checking the Report Action doesn't exist after deleting it
-        const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (reportActions) => {
-                Onyx.disconnect(connection);
-                expect(reportActions?.[reportActionID]).toBeUndefined();
-            },
-        });
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
-    });
-
-    it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        jest.spyOn(EmojiUtils, 'hasAccountIDEmojiReacted').mockImplementation(() => true);
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await Promise.resolve();
-
-        Report.addComment(REPORT_ID, 'reactions with comment');
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        await waitForBatchedUpdates();
-
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
-        Report.toggleEmojiReaction(
-            REPORT_ID,
-            reportAction,
-            {name: 'smile', code: '😄'},
-            {
-                smile: {
-                    createdAt: '2024-10-14 14:58:12',
-                    oldestTimestamp: '2024-10-14 14:58:12',
-                    users: {
-                        [`${TEST_USER_ACCOUNT_ID}`]: {
-                            id: `${TEST_USER_ACCOUNT_ID}`,
-                            oldestTimestamp: '2024-10-14 14:58:12',
-                            skinTones: {
-                                '-1': '2024-10-14 14:58:12',
-                            },
-                        },
-                    },
-                },
-            },
-        );
-
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
-                    expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
-                    resolve();
-                },
-            });
-        });
-
-        // Checking the Report Action exists before deleting it
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                callback: (reportActions) => {
-                    Onyx.disconnect(connection);
-                    expect(reportActions?.[reportActionID]).not.toBeNull();
-                    expect(reportActions?.[reportActionID].reportActionID).toBe(reportActionID);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(0);
-
-        // Checking the Report Action doesn't exist after deleting it
-        const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (reportActions) => {
-                Onyx.disconnect(connection);
-                expect(reportActions?.[reportActionID]).toBeUndefined();
-            },
-        });
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
-    });
-
-    it('should send DeleteComment request and remove any Reactions accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        jest.spyOn(EmojiUtils, 'hasAccountIDEmojiReacted').mockImplementation(() => true);
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        Report.addComment(REPORT_ID, 'Attachment with comment');
-
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        // wait for Onyx.connect execute the callback and start processing the queue
-        await Promise.resolve();
-
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
-        Report.toggleEmojiReaction(
-            REPORT_ID,
-            reportAction,
-            {name: 'smile', code: '😄'},
-            {
-                smile: {
-                    createdAt: '2024-10-14 14:58:12',
-                    oldestTimestamp: '2024-10-14 14:58:12',
-                    users: {
-                        [`${TEST_USER_ACCOUNT_ID}`]: {
-                            id: `${TEST_USER_ACCOUNT_ID}`,
-                            oldestTimestamp: '2024-10-14 14:58:12',
-                            skinTones: {
-                                '-1': '2024-10-14 14:58:12',
-                            },
-                        },
-                    },
-                },
-            },
-        );
-
-        await waitForBatchedUpdates();
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
-                    resolve();
-                },
-            });
-        });
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(1);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, 0);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
-    });
-
-    it('should create and delete thread processing all the requests', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await waitForBatchedUpdates();
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
-        Report.openReport(
-            REPORT_ID,
-            undefined,
-            ['test@user.com'],
-            {
-                isOptimisticReport: true,
-                parentReportID: REPORT_ID,
-                parentReportActionID: reportActionID,
-                reportID: '2',
-            },
-            reportActionID,
-        );
-
-        Report.deleteReportComment(REPORT_ID, reportAction);
-
-        expect(PersistedRequests.getAll().length).toBe(3);
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    if (persistedRequests?.length !== 3) {
-                        return;
-                    }
-                    Onyx.disconnect(connection);
-
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
-                    expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
-                    resolve();
-                },
-            });
-        });
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
-    });
-
-    it('should update AddComment text with the UpdateComment text, sending just an AddComment request', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-
-        const TEST_USER_ACCOUNT_ID = 1;
-        const REPORT_ID = '1';
-        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-        const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        Report.addComment(REPORT_ID, 'Testing a comment');
-        // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
-        const reportActionID = (newComment?.data?.reportActionID as string) ?? '-1';
-        const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
-
-        await waitForBatchedUpdates();
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-
-                    resolve();
-                },
-            });
-        });
-
-        await waitForBatchedUpdates();
-        expect(PersistedRequests.getAll().length).toBe(1);
-
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-        await waitForBatchedUpdates();
-
-        // Checking no requests were or will be made
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
-    });
-
-    it('it should only send the last sequential UpdateComment request to BE', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        const reportID = '123';
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
-        const action: OnyxEntry<OnyxTypes.ReportAction> = {
-            reportID,
-            reportActionID: '722',
-            actionName: 'ADDCOMMENT',
-            created: '2024-10-21 10:37:59.881',
-        };
-
-        Report.editReportComment(reportID, action, 'value1');
-        Report.editReportComment(reportID, action, 'value2');
-        Report.editReportComment(reportID, action, 'value3');
-
-        const requests = PersistedRequests?.getAll();
-
-        expect(requests.length).toBe(1);
-        expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-        expect(requests?.at(0)?.data?.reportComment).toBe('value3');
-
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-
-        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 });

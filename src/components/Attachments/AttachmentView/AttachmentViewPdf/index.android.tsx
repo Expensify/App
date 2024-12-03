@@ -32,32 +32,32 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.get() !== 0 && offsetY.get() !== 0 && isScrollEnabled && scale.get() === 1) {
-                const translateX = Math.abs((evt.allTouches.at(0)?.absoluteX ?? 0) - offsetX.get());
-                const translateY = Math.abs((evt.allTouches.at(0)?.absoluteY ?? 0) - offsetY.get());
-                const allowEnablingScroll = !isPanGestureActive.get() || isScrollEnabled.get();
+            if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
+                const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
+                const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
+                const allowEnablingScroll = !isPanGestureActive.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
-                if (translateX > translateY && translateX > SCROLL_THRESHOLD && allowEnablingScroll) {
+                if (translateX > translateY && translateX > SCROLL_THRESHOLD && scale.value === 1 && allowEnablingScroll) {
                     // eslint-disable-next-line react-compiler/react-compiler
-                    isScrollEnabled.set(true);
+                    isScrollEnabled.value = true;
                 } else if (translateY > SCROLL_THRESHOLD) {
-                    isScrollEnabled.set(false);
+                    isScrollEnabled.value = false;
                 }
             }
 
-            isPanGestureActive.set(true);
-            offsetX.set(evt.allTouches.at(0)?.absoluteX ?? 0);
-            offsetY.set(evt.allTouches.at(0)?.absoluteY ?? 0);
+            isPanGestureActive.value = true;
+            offsetX.value = evt.allTouches[0].absoluteX;
+            offsetY.value = evt.allTouches[0].absoluteY;
         })
         .onTouchesUp(() => {
-            isPanGestureActive.set(false);
+            isPanGestureActive.value = false;
             if (!isScrollEnabled) {
                 return;
             }
-            isScrollEnabled.set(scale.get() === 1);
+            isScrollEnabled.value = true;
         });
 
     const Content = useMemo(
@@ -69,7 +69,7 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
                     // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
                     // even though we're not pinching/zooming
                     // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
-                    scale.set(Math.round(newScale * 1e2) / 1e2);
+                    scale.value = Math.round(newScale * 1e2) / 1e2;
                 }}
             />
         ),

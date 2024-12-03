@@ -16,8 +16,7 @@ function ArrayCache<K, V>(config: CacheConfig<K>): Cache<K, V> {
      */
     function getKeyIndex(key: K): number {
         for (let i = cache.length - 1; i >= 0; i--) {
-            const cacheItem = cache.at(i)?.at(0);
-            if (cacheItem && keyComparator(cacheItem as K, key)) {
+            if (keyComparator(cache[i][0], key)) {
                 return i;
             }
         }

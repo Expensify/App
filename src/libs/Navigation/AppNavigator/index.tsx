@@ -1,4 +1,8 @@
-import React, {lazy, memo, Suspense} from 'react';
+import React, {lazy, memo, Suspense, useContext, useEffect} from 'react';
+import {NativeModules} from 'react-native';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import lazyRetry from '@src/utils/lazyRetry';
 
 const AuthScreens = lazy(() => lazyRetry(() => import('./AuthScreens')));
@@ -10,6 +14,18 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
+    const initUrl = useContext(InitialURLContext);
+
+    useEffect(() => {
+        if (!NativeModules.HybridAppModule || !initUrl || !initUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+            return;
+        }
+
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(initUrl);
+        });
+    }, [initUrl]);
+
     if (authenticated) {
         // These are the protected screens and only accessible when an authToken is present
         return (

@@ -1,5 +1,5 @@
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
-import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
+import type {BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
 import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
@@ -25,14 +25,6 @@ const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
 // Source: https://github.com/electron/electron/blob/98cd16d336f512406eee3565be1cead86514db7b/docs/api/environment-variables.md#google_api_key
 process.env.GOOGLE_API_KEY = CONFIG.GCP_GEOLOCATION_API_KEY;
-/**
- * Suppresses Content Security Policy (CSP) console warnings related to 'unsafe-eval'.
- * This is required because:
- * 1. Webpack utilizes eval() for module bundling
- * 2. The application requires 'unsafe-eval' in CSP to function properly
- * Note: CSP warnings are expected and unavoidable in this context
- */
-process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = CONFIG.ELECTRON_DISABLE_SECURITY_WARNINGS;
 
 app.setName('New Expensify');
 
@@ -55,8 +47,6 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
     const text = clipboard.readText();
 
     if ('webContents' in browserWindow) {
-        // https://github.com/sindresorhus/electron-context-menu is passing in deprecated `BrowserView` to this function
-        // eslint-disable-next-line deprecation/deprecation
         browserWindow.webContents.insertText(text);
     }
 }
@@ -117,7 +107,7 @@ process.argv.forEach((arg) => {
         return;
     }
 
-    expectedUpdateVersion = arg.slice(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
+    expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
 });
 
 // Add the listeners and variables required to ensure that auto-updating
@@ -142,7 +132,7 @@ const quitAndInstallWithUpdate = () => {
 };
 
 /** Menu Item callback to trigger an update check */
-const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
+const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
     if (menuItem) {
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
@@ -437,7 +427,7 @@ const mainWindow = (): Promise<void> => {
                                 id: 'back',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                                 click: () => {
-                                    browserWindow.webContents.navigationHistory.goBack();
+                                    browserWindow.webContents.goBack();
                                 },
                             },
                             {
@@ -445,14 +435,14 @@ const mainWindow = (): Promise<void> => {
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Left' : 'Shift+Left',
                                 click: () => {
-                                    browserWindow.webContents.navigationHistory.goBack();
+                                    browserWindow.webContents.goBack();
                                 },
                             },
                             {
                                 id: 'forward',
                                 accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
                                 click: () => {
-                                    browserWindow.webContents.navigationHistory.goForward();
+                                    browserWindow.webContents.goForward();
                                 },
                             },
                             {
@@ -460,7 +450,7 @@ const mainWindow = (): Promise<void> => {
                                 visible: false,
                                 accelerator: process.platform === 'darwin' ? 'Cmd+Right' : 'Shift+Right',
                                 click: () => {
-                                    browserWindow.webContents.navigationHistory.goForward();
+                                    browserWindow.webContents.goForward();
                                 },
                             },
                         ],
@@ -517,7 +507,7 @@ const mainWindow = (): Promise<void> => {
                     const denial = {action: 'deny'} as const;
 
                     // Make sure local urls stay in electron perimeter
-                    if (url.slice(0, 'file://'.length).toLowerCase() === 'file://') {
+                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
                         return denial;
                     }
 
@@ -549,19 +539,19 @@ const mainWindow = (): Promise<void> => {
                 // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
                 browserWindow.on('app-command', (e, cmd) => {
                     if (cmd === 'browser-backward') {
-                        browserWindow.webContents.navigationHistory.goBack();
+                        browserWindow.webContents.goBack();
                     }
                     if (cmd === 'browser-forward') {
-                        browserWindow.webContents.navigationHistory.goForward();
+                        browserWindow.webContents.goForward();
                     }
                 });
 
                 browserWindow.on('swipe', (e, direction) => {
                     if (direction === 'left') {
-                        browserWindow.webContents.navigationHistory.goBack();
+                        browserWindow.webContents.goBack();
                     }
                     if (direction === 'right') {
-                        browserWindow.webContents.navigationHistory.goForward();
+                        browserWindow.webContents.goForward();
                     }
                 });
 

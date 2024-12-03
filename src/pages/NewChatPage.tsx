@@ -3,7 +3,6 @@ import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -34,9 +33,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+type NewChatPageProps = {
+    isGroupChat?: boolean;
+};
 
-function useOptions() {
+const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+
+function useOptions({isGroupChat}: NewChatPageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -48,29 +51,40 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getOptions(
-            {
-                reports: listOptions.reports ?? [],
-                personalDetails: listOptions.personalDetails ?? [],
-            },
-            {
-                betas: betas ?? [],
-                selectedOptions,
-                maxRecentReportsToShow: 0,
-                includeSelfDM: true,
-            },
+        const filteredOptions = OptionsListUtils.getFilteredOptions(
+            listOptions.reports ?? [],
+            listOptions.personalDetails ?? [],
+            betas ?? [],
+            '',
+            selectedOptions,
+            isGroupChat ? excludedGroupEmails : [],
+            false,
+            true,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            true,
+            undefined,
+            undefined,
+            0,
+            undefined,
+            true,
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
+    }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             selectedOptions,
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, selectedOptions]);
+    }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return OptionsListUtils.getHeaderMessage(
@@ -127,23 +141,23 @@ function useOptions() {
     };
 }
 
-function NewChatPage() {
+function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const {insets, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+        useOptions({
+            isGroupChat,
+        });
 
     const [sections, firstKeyForList] = useMemo(() => {
-        const sectionsList: OptionsListUtils.Section[] = [];
+        const sectionsList: OptionsListUtils.CategorySection[] = [];
         let firstKey = '';
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
@@ -200,7 +214,7 @@ function NewChatPage() {
             if (option?.login) {
                 login = option.login;
             } else if (selectedOptions.length === 1) {
-                login = selectedOptions.at(0)?.login ?? '';
+                login = selectedOptions[0].login ?? '';
             }
             if (!login) {
                 Log.warn('Tried to create chat with empty login');
@@ -212,8 +226,8 @@ function NewChatPage() {
     );
 
     const itemRightSideComponent = useCallback(
-        (item: ListItem & OptionsListUtils.Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.includes(item.login))) {
+        (item: ListItem & OptionsListUtils.Option) => {
+            if (item.isSelfDM) {
                 return null;
             }
             /**
@@ -241,29 +255,25 @@ function NewChatPage() {
                     <PressableWithFeedback
                         onPress={() => toggleOption(item)}
                         disabled={item.isDisabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                     >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
+                        <SelectCircle isChecked={item.isSelected} />
                     </PressableWithFeedback>
                 );
             }
-            const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
+
             return (
                 <Button
                     onPress={() => toggleOption(item)}
                     style={[styles.pl2]}
                     text={translate('newChatPage.addToGroup')}
-                    innerStyles={buttonInnerStyles}
                     small
                 />
             );
         },
-        [selectedOptions, setSelectedOptions, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [selectedOptions, setSelectedOptions, styles, translate],
     );
 
     const createGroup = useCallback(() => {
@@ -301,7 +311,7 @@ function NewChatPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isOffline}
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -335,14 +345,8 @@ function NewChatPage() {
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
-                    confirmButtonStyles={insets.bottom ? [safeAreaPaddingBottomStyle, styles.mb5] : undefined}
                 />
-                {isSmallScreenWidth && (
-                    <>
-                        <OfflineIndicator />
-                        <ImportedStateIndicator />
-                    </>
-                )}
+                {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
         </ScreenWrapper>
     );

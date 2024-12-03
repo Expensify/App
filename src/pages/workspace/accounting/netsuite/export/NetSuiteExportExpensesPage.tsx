@@ -5,25 +5,17 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
+import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect} from '@libs/PolicyUtils';
 import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
-import {
-    exportExpensesDestinationSettingName,
-    shouldHideJournalPostingPreference,
-    shouldHideNonReimbursableJournalPostingAccount,
-    shouldHideReimbursableDefaultVendor,
-    shouldHideReimbursableJournalPostingAccount,
-} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
-    subscribedSettings?: string[];
-};
+type MenuItemWithoutType = Omit<MenuItem, 'type'>;
 
 function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -35,9 +27,11 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options.config;
 
-    const exportDestinationSettingName = exportExpensesDestinationSettingName(isReimbursable);
-    const exportDestination = config?.[exportDestinationSettingName];
+    const exportDestination = isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination;
+    const exportDestinationError = isReimbursable ? config?.errorFields?.reimbursableExpensesExportDestination : config?.errorFields?.nonreimbursableExpensesExportDestination;
+    const exportDestinationPending = isReimbursable ? config?.pendingFields?.reimbursableExpensesExportDestination : config?.pendingFields?.nonreimbursableExpensesExportDestination;
     const helperTextType = isReimbursable ? 'reimbursableDescription' : 'nonReimbursableDescription';
+    const configType = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
@@ -50,49 +44,59 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
         [payableList, config?.reimbursablePayableAccount],
     );
 
-    const menuItems: MenuItemWithSubscribedSettings[] = [
+    const menuItems: MenuItemWithoutType[] = [
         {
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType)),
+            brickRoadIndicator: exportDestinationError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
-            subscribedSettings: [exportDestinationSettingName],
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, exportDestinationSettingName),
+            pendingAction: exportDestinationPending,
+            errors: ErrorUtils.getLatestErrorField(config, configType),
+            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, configType),
             helperText: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`) : undefined,
             shouldParseHelperText: true,
         },
         {
             description: translate('workspace.accounting.defaultVendor'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.getRoute(policyID, params.expenseType)),
+            brickRoadIndicator: config?.errorFields?.defaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: defaultVendor ? defaultVendor.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR],
+            pendingAction: config?.pendingFields?.defaultVendor,
+            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
-            shouldHide: shouldHideReimbursableDefaultVendor(isReimbursable, config),
+            shouldHide: isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL,
         },
         {
             description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType)),
+            brickRoadIndicator: config?.errorFields?.payableAcct ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.PAYABLE_ACCT],
+            pendingAction: config?.pendingFields?.payableAcct,
+            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
-            shouldHide: shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config),
+            shouldHide: isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             description: translate('workspace.netsuite.reimbursableJournalPostingAccount'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType)),
+            brickRoadIndicator: config?.errorFields?.reimbursablePayableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT],
+            pendingAction: config?.pendingFields?.reimbursablePayableAccount,
+            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
-            shouldHide: shouldHideReimbursableJournalPostingAccount(isReimbursable, config),
+            shouldHide: !isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             description: translate('workspace.netsuite.journalPostingPreference.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType)),
+            brickRoadIndicator: config?.errorFields?.journalPostingPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.journalPostingPreference
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
                 : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE],
+            pendingAction: config?.pendingFields?.journalPostingPreference,
+            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
-            shouldHide: shouldHideJournalPostingPreference(isReimbursable, config),
+            shouldHide: exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
     ];
 
@@ -113,15 +117,19 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 .map((item) => (
                     <OfflineWithFeedback
                         key={item.description}
-                        pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                        pendingAction={item.pendingAction}
+                        errors={item.errors}
+                        onClose={item.onCloseError}
+                        errorRowStyles={[styles.ph5]}
                     >
                         <MenuItemWithTopDescription
                             title={item.title}
                             description={item.description}
                             shouldShowRightIcon
                             onPress={item?.onPress}
-                            brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={item?.brickRoadIndicator}
                             helperText={item?.helperText}
+                            errorText={item?.errorText}
                             shouldParseHelperText={item.shouldParseHelperText ?? false}
                         />
                     </OfflineWithFeedback>

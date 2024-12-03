@@ -8,8 +8,8 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
-import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
+import * as RequestThrottle from '@src/libs/RequestThrottle';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -43,11 +43,9 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
-
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
-    sequentialQueueRequestThrottle.clear();
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
@@ -150,11 +148,7 @@ describe('APITests', () => {
                 }),
             );
 
-            const promise = promises.slice(-1).at(0);
-            if (promise === undefined) {
-                throw new Error('Promise is undefined');
-            }
-            return promise;
+            return promises.slice(-1)[0];
         });
 
         // Given we have some requests made while we're offline
@@ -172,38 +166,36 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then requests should remain persisted until the xhr call is resolved
-                    expect(PersistedRequests.getAll().length).toEqual(1);
+                    expect(PersistedRequests.getAll().length).toEqual(2);
 
-                    xhrCalls.at(0)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+                    xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    expect(PersistedRequests.getAll().length).toEqual(0);
-                    expect(PersistedRequests.getOngoingRequest()).toEqual(expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}));
+                    expect(PersistedRequests.getAll().length).toEqual(1);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // When a request fails it should be retried
-                    xhrCalls.at(1)?.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
+                    xhrCalls[1].reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // The ongoingRequest it is moving back to the persistedRequests queue
                     expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
+
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
                     return new Promise((resolve) => {
                         setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
-                    // A new promise is created after the back off timer
                     // Finally, after it succeeds the queue should be empty
-                    xhrCalls.at(2)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+                    xhrCalls[2].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     expect(PersistedRequests.getAll().length).toEqual(0);
-                    expect(PersistedRequests.getOngoingRequest()).toBeNull();
                 })
         );
     });
@@ -243,7 +235,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, sequentialQueueRequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
                     });
                 })
                 .then(() => {
@@ -256,7 +248,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, sequentialQueueRequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
@@ -361,13 +353,13 @@ describe('APITests', () => {
                 // Then expect all 7 calls to have been made and for the Writes to be made in the order that we made them
                 // The read command would have been made first (and would have failed in real-life)
                 expect(xhr.mock.calls.length).toBe(7);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('not-persisted');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls[0][1].content).toBe('not-persisted');
+                expect(xhr.mock.calls[1][1].content).toBe('value1');
+                expect(xhr.mock.calls[2][1].content).toBe('value2');
+                expect(xhr.mock.calls[3][1].content).toBe('value3');
+                expect(xhr.mock.calls[4][1].content).toBe('value4');
+                expect(xhr.mock.calls[5][1].content).toBe('value5');
+                expect(xhr.mock.calls[6][1].content).toBe('value6');
             });
     });
 
@@ -395,18 +387,18 @@ describe('APITests', () => {
             .then(() => {
                 // Then expect only 8 calls to have been made total and for them to be made in the order that we made them despite requiring reauthentication
                 expect(xhr.mock.calls.length).toBe(8);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
+                expect(xhr.mock.calls[0][1].content).toBe('value1');
 
                 // Our call to Authenticate will not have a "content" field
-                expect(xhr.mock.calls.at(1)?.[1].content).not.toBeDefined();
+                expect(xhr.mock.calls[1][1].content).not.toBeDefined();
 
                 // Rest of the calls have the expected params and are called in sequence
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(7)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls[2][1].content).toBe('value1');
+                expect(xhr.mock.calls[3][1].content).toBe('value2');
+                expect(xhr.mock.calls[4][1].content).toBe('value3');
+                expect(xhr.mock.calls[5][1].content).toBe('value4');
+                expect(xhr.mock.calls[6][1].content).toBe('value5');
+                expect(xhr.mock.calls[7][1].content).toBe('value6');
             });
     });
 
@@ -471,18 +463,18 @@ describe('APITests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
-                const [firstCommand] = xhr.mock.calls.at(0) ?? [];
+                const [firstCommand] = xhr.mock.calls[0];
                 expect(firstCommand).toBe('AuthenticatePusher');
 
                 // Second call to xhr is the MockCommand that also failed with a 407
-                const [secondCommand] = xhr.mock.calls.at(1) ?? [];
+                const [secondCommand] = xhr.mock.calls[1];
                 expect(secondCommand).toBe('MockCommand');
 
                 // Third command should be the call to Authenticate
-                const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
+                const [thirdCommand] = xhr.mock.calls[2];
                 expect(thirdCommand).toBe('Authenticate');
 
-                const [fourthCommand] = xhr.mock.calls.at(3) ?? [];
+                const [fourthCommand] = xhr.mock.calls[3];
                 expect(fourthCommand).toBe('MockCommand');
 
                 // We are using the new authToken
@@ -559,13 +551,14 @@ describe('APITests', () => {
                 // THEN the queue should be stopped and there should be no more requests to run
                 expect(SequentialQueue.isRunning()).toBe(false);
                 expect(PersistedRequests.getAll().length).toBe(0);
+
                 // And our Write request should run before our non persistable one in a blocking way
-                const firstRequest = xhr.mock.calls.at(0);
-                const [firstRequestCommandName] = firstRequest ?? [];
+                const firstRequest = xhr.mock.calls[0];
+                const [firstRequestCommandName] = firstRequest;
                 expect(firstRequestCommandName).toBe('MockCommandOne');
 
-                const secondRequest = xhr.mock.calls.at(1);
-                const [secondRequestCommandName] = secondRequest ?? [];
+                const secondRequest = xhr.mock.calls[1];
+                const [secondRequestCommandName] = secondRequest;
                 expect(secondRequestCommandName).toBe('MockCommandThree');
 
                 // WHEN we advance the main queue timer and wait for promises
@@ -575,8 +568,8 @@ describe('APITests', () => {
             })
             .then(() => {
                 // THEN we should see that our third (non-persistable) request has run last
-                const thirdRequest = xhr.mock.calls.at(2);
-                const [thirdRequestCommandName] = thirdRequest ?? [];
+                const thirdRequest = xhr.mock.calls[2];
+                const [thirdRequestCommandName] = thirdRequest;
                 expect(thirdRequestCommandName).toBe('MockCommandTwo');
             });
     });
