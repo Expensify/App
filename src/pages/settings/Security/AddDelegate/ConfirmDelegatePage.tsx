@@ -59,6 +59,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             testID={ConfirmDelegatePage.displayName}
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
+            keyboardShouldPersistTaps="handled"
         >
             <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
             <MenuItem
