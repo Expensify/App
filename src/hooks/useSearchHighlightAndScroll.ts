@@ -140,35 +140,41 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
                 return;
             }
 
-            // Extract the transaction ID from the newSearchResultKey
-            const newTransactionID = newSearchResultKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
+            // Extract the transaction/report action ID from the newSearchResultKey
+            const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
 
-            // Find the index of the new transaction in the data array
-            const indexOfNewTransaction = data.findIndex((item) => {
-                // Handle TransactionListItemType
-                if ('transactionID' in item && item.transactionID === newTransactionID) {
-                    return true;
-                }
+            // Find the index of the new transaction/report action in the data array
+            const indexOfNewItem = data.findIndex((item) => {
+                if (isChat) {
+                    if ('reportActionID' in item && item.reportActionID === newID) {
+                        return true;
+                    }
+                } else {
+                    // Handle TransactionListItemType
+                    if ('transactionID' in item && item.transactionID === newID) {
+                        return true;
+                    }
 
-                // Handle ReportListItemType with transactions array
-                if ('transactions' in item && Array.isArray(item.transactions)) {
-                    return item.transactions.some((transaction) => transaction?.transactionID === newTransactionID);
+                    // Handle ReportListItemType with transactions array
+                    if ('transactions' in item && Array.isArray(item.transactions)) {
+                        return item.transactions.some((transaction) => transaction?.transactionID === newID);
+                    }
                 }
 
                 return false;
             });
 
-            // Early return if the transaction is not found in the data array
-            if (indexOfNewTransaction <= 0) {
+            // Early return if the new item is not found in the data array
+            if (indexOfNewItem <= 0) {
                 return;
             }
 
             // Perform the scrolling action
-            ref.scrollToIndex(indexOfNewTransaction);
+            ref.scrollToIndex(indexOfNewItem);
             // Reset the trigger flag to prevent unintended future scrolls and highlights
             triggeredByHookRef.current = false;
         },
-        [newSearchResultKey],
+        [newSearchResultKey, isChat],
     );
 
     return {newSearchResultKey, handleSelectionListScroll};
