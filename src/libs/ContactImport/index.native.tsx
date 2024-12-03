@@ -8,6 +8,7 @@ import type {ContactImportResult} from './types';
 
 function contactImport(): Promise<ContactImportResult> {
     let permissionStatus: PermissionStatus = RESULTS.UNAVAILABLE;
+
     return requestContactPermission()
         .then((response) => {
             permissionStatus = response;
@@ -20,7 +21,7 @@ function contactImport(): Promise<ContactImportResult> {
                     CONST.DEVICE_CONTACT.IMAGE_DATA,
                 ]);
             }
-            return [];
+            return [] as Contact[];
         })
         .then((deviceContacts: Contact[]) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
