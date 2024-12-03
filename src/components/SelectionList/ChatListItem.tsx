@@ -64,10 +64,18 @@ function ChatListItem<TItem extends ListItem>({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
+    const pressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.textAlignLeft,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
+        item.isSelected && styles.activeComponentBG,
+        item.cursorStyle,
+    ];
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, styles.textAlignLeft, styles.bgTransparent, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
+            pressableStyle={pressableStyle}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
