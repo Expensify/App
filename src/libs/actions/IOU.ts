@@ -54,7 +54,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {getCurrency, getTransaction} from '@libs/TransactionUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -2110,9 +2110,15 @@ function getMoneyRequestInformation(
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
-        if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-            iouReport.total -= amount;
+        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+        if (iouReport?.currency === currency) {
+            if (typeof iouReport.total === 'number') {
+                iouReport.total -= amount;
+            }
+
+            if (typeof iouReport.unheldTotal === 'number') {
+                iouReport.unheldTotal -= amount;
+            }
         }
     } else {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
@@ -2335,13 +2341,20 @@ function getTrackExpenseInformation(
 
         shouldCreateNewMoneyRequestReport = ReportUtils.shouldCreateNewMoneyRequestReport(iouReport, chatReport);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
-            iouReport = ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '-1', payeeAccountID, amount, currency, false);
+            iouReport = ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '-1', payeeAccountID, amount, currency, amount);
         } else {
             iouReport = {...iouReport};
-            if (iouReport?.currency === currency && typeof iouReport.total === 'number' && typeof iouReport.nonReimbursableTotal === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                iouReport.total -= amount;
-                iouReport.nonReimbursableTotal -= amount;
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            if (iouReport?.currency === currency) {
+                if (typeof iouReport.total === 'number' && typeof iouReport.nonReimbursableTotal === 'number') {
+                    iouReport.total -= amount;
+                    iouReport.nonReimbursableTotal -= amount;
+                }
+
+                if (typeof iouReport.unheldTotal === 'number' && typeof iouReport.unheldNonReimbursableTotal === 'number') {
+                    iouReport.unheldTotal -= amount;
+                    iouReport.unheldNonReimbursableTotal -= amount;
+                }
             }
         }
     }
@@ -2537,6 +2550,7 @@ function getUpdateMoneyRequestParams(
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isTransactionOnHold = TransactionUtils.isOnHold(transaction);
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -2654,8 +2668,24 @@ function getUpdateMoneyRequestParams(
         if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal -= diff;
         }
+        if (!isTransactionOnHold) {
+            if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
+                updatedMoneyRequestReport.unheldTotal -= diff;
+            }
+            if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldNonReimbursableTotal -= diff;
+            }
+        }
     } else {
-        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true);
+        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            updatedReportAction.actorAccountID ?? -1,
+            diff,
+            TransactionUtils.getCurrency(transaction),
+            false,
+            true,
+            isTransactionOnHold,
+        );
     }
 
     optimisticData.push(
@@ -4281,9 +4311,15 @@ function createSplitsAndOnyxData(
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '-1', currentUserAccountID, splitAmount, currency)
                 : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            if (oneOnOneIOUReport?.currency === currency) {
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
             }
         } else {
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
@@ -5405,6 +5441,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID ?? '-1', iouReport?.reportID ?? '-1')!;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isTransactionOnHold = TransactionUtils.isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
     let transactionThread = null;
@@ -5464,9 +5501,27 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             if (!transaction?.reimbursable && typeof updatedIOUReport.nonReimbursableTotal === 'number') {
                 updatedIOUReport.nonReimbursableTotal += amountDiff;
             }
+
+            if (!isTransactionOnHold) {
+                if (typeof updatedIOUReport.unheldTotal === 'number') {
+                    updatedIOUReport.unheldTotal += amountDiff;
+                }
+
+                if (!transaction?.reimbursable && typeof updatedIOUReport.unheldNonReimbursableTotal === 'number') {
+                    updatedIOUReport.unheldNonReimbursableTotal += amountDiff;
+                }
+            }
         }
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID ?? -1,
+            TransactionUtils.getAmount(transaction, false),
+            currency,
+            true,
+            false,
+            isTransactionOnHold,
+        );
     }
 
     if (updatedIOUReport) {
@@ -6230,9 +6285,11 @@ function getSendMoneyParams(
             },
         );
 
-        if (optimisticChatReportActionsData.value) {
+        const optimisticChatReportActionsValue = optimisticChatReportActionsData.value as Record<string, OnyxTypes.ReportAction>;
+
+        if (optimisticChatReportActionsValue) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
+            optimisticChatReportActionsValue[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
         }
     } else {
         failureData.push({
@@ -6313,30 +6370,33 @@ function getReportFromHoldRequestsOnyxData(
     optimisticHoldActionID: string;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID ?? '');
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = rand64();
 
+    const coefficient = ReportUtils.isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const holdTransactionAmount = holdTransactions.reduce((acc, transaction) => acc + TransactionUtils.getAmount(transaction), 0);
+    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
+    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
     const optimisticExpenseReport = isPolicyExpenseChat
         ? ReportUtils.buildOptimisticExpenseReport(
               chatReport.reportID,
               chatReport.policyID ?? iouReport?.policyID ?? '',
               recipient.accountID ?? 1,
-              holdTransactionAmount,
-              getCurrency(firstHoldTransaction),
-              false,
+              holdAmount,
+              iouReport?.currency ?? '',
+              holdNonReimbursableAmount,
               newParentReportActionID,
           )
         : ReportUtils.buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? -1,
               iouReport?.managerID ?? -1,
-              holdTransactionAmount,
+              holdAmount,
               chatReport.reportID,
-              getCurrency(firstHoldTransaction),
+              iouReport?.currency ?? '',
               false,
               newParentReportActionID,
           );
@@ -6352,6 +6412,7 @@ function getReportFromHoldRequestsOnyxData(
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
+    const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
@@ -6377,6 +6438,9 @@ function getReportFromHoldRequestsOnyxData(
                 IOUReportID: optimisticExpenseReport.reportID,
             },
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        addHoldReportActionsSuccess[reportActionID] = {
+            pendingAction: null,
         };
 
         const heldReport = ReportUtils.getReportOrDraftReport(holdReportAction.childReportID);
@@ -6413,6 +6477,7 @@ function getReportFromHoldRequestsOnyxData(
             value: {
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
+                unheldNonReimbursableTotal: 0,
             },
         },
         // add preview report action to main chat
@@ -6459,6 +6524,23 @@ function getReportFromHoldRequestsOnyxData(
         bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     });
 
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: addHoldReportActionsSuccess,
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         // remove added optimistic expense report
         {
@@ -6498,6 +6580,7 @@ function getReportFromHoldRequestsOnyxData(
         optimisticData,
         optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
         failureData,
+        successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
     };
@@ -6758,6 +6841,7 @@ function getPayMoneyRequestParams(
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient);
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
@@ -6812,7 +6896,6 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 function canApproveIOU(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
-    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
 ) {
     // Only expense reports can be approved
@@ -6833,8 +6916,6 @@ function canApproveIOU(
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(iouReport?.reportID);
     const isArchivedReport = ReportUtils.isArchivedRoom(iouReport, reportNameValuePairs);
-    const allViolations = violations ?? allTransactionViolations;
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
     let isTransactionBeingScanned = false;
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID);
     for (const transaction of reportTransactions) {
@@ -6847,7 +6928,7 @@ function canApproveIOU(
         }
     }
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned && !hasViolations;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport && !isTransactionBeingScanned;
 }
 
 function canIOUBePaid(
@@ -6855,7 +6936,6 @@ function canIOUBePaid(
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
-    violations?: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: SearchPolicy,
@@ -6902,9 +6982,7 @@ function canIOUBePaid(
 
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    const allViolations = violations ?? allTransactionViolations;
-    const shouldBeApproved = canApproveIOU(iouReport, policy, allViolations);
-    const hasViolations = ReportUtils.hasViolations(iouReport?.reportID ?? '-1', allViolations);
+    const shouldBeApproved = canApproveIOU(iouReport, policy);
 
     const isPayAtEndExpenseReport = ReportUtils.isPayAtEndExpenseReport(iouReport?.reportID, transactions);
     return (
@@ -6916,7 +6994,6 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !shouldBeApproved &&
-        !hasViolations &&
         !isPayAtEndExpenseReport
     );
 }
@@ -6927,7 +7004,7 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     return Object.values(chatReportActions).find((action) => {
         const iouReport = ReportUtils.getReportOrDraftReport(action.childReportID ?? '-1');
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined, allTransactionViolations) || canApproveIOU(iouReport, policy, allTransactionViolations);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
@@ -7104,6 +7181,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
@@ -7874,6 +7952,8 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
     const parentReportActionOptimistic = ReportUtils.getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -7900,6 +7980,20 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
             value: updatedViolations,
         },
     ];
+
+    if (iouReport && iouReport.currency === transaction?.currency) {
+        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const coefficient = isExpenseReport ? -1 : 1;
+        const transactionAmount = TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
+            },
+        });
+    }
 
     parentReportActionOptimistic.forEach((parentActionData) => {
         if (!parentActionData) {
@@ -7981,6 +8075,8 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
 function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -8006,6 +8102,20 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
             value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
         },
     ];
+
+    if (iouReport && iouReport.currency === transaction?.currency) {
+        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const coefficient = isExpenseReport ? -1 : 1;
+        const transactionAmount = TransactionUtils.getAmount(transaction, isExpenseReport) * coefficient;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+            },
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
