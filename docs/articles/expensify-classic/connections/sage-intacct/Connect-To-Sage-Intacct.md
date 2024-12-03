@@ -5,7 +5,7 @@ order: 1
 ---
 # Overview
 
-Expensify’s seamless integration with Sage Intacct allows you to connect using either Role-based permissions or User-based permissions. 
+Expensify’s seamless integration with Sage Intacct allows you to connect using either Role-based permissions or User-based permissions.
 
 Once connected to Intacct you’re able to automate report exports, customize your coding preferences, and utilize Sage Intacct’s advanced features. When you’ve configured these settings in Expensify correctly, you can use the integration's settings to automate many tasks, streamlining your workflow for increased efficiency.
 
@@ -56,7 +56,7 @@ Setup the user using these configurations:
 
 ![Image of Sage Intacct Web Services User setup]({{site.url}}/assets/images/SageConnectSettingUpWebServicesUser.png){:width="100%"}
 
-Once you've created the user, you'll need to set the correct permissions. To set those, go to the **subscription** link for this user in the user list, **click on the checkbox** next to the Application/Module and then click on the **Permissions** link to modify those. 
+Once you've created the user, you'll need to set the correct permissions. To set those, go to the **subscription** link for this user in the user list, **click on the checkbox** next to the Application/Module and then click on the **Permissions** link to modify those.
 
 ![Image showing the Application/Module checkbox to click]({{site.url}}/assets/images/SageConnectSubscriptionSettings.png){:width="100%"}
 
@@ -80,9 +80,9 @@ The Time & Expenses (T&E) module is often included in your Sage Intacct instance
        - **Expense Report:** EXP
        - **Employee:** EMP
        - **Duplicate Numbers:** Select “Do not allow creation”
-    
+
         ![Image of Sage Intacct Time and Expense Auto-numbering Sequences Settings]({{site.url}}/assets/images/SageConnectTimeandExpenseSequenceNumbers.png){:width="100%"}
- 
+
      - To create the EXP sequence, **click on the down arrow on the expense report line and select **Add**:
        - **Sequence ID:** EXP
        - **Print Title:** EXPENSE REPORT
@@ -105,7 +105,7 @@ To set up Employees in Sage Intacct, follow these steps:
    - **Primary contact name**
    - **Email address**
      - In the **Primary contact name** field, click the dropdown arrow.
-     - Select the employee if they've already been created. 
+     - Select the employee if they've already been created.
      - Otherwise, click **+ Add** to create a new employee.
      - Fill in their **Primary Email Address** along with any other required information.
 
@@ -133,12 +133,12 @@ To enable Customization Services go to **Company > Subscriptions > Customization
 Creating a test workspace in Expensify allows you to have a sandbox environment for testing before implementing the integration live. If you are already using Expensify, creating a test workspace ensures that your existing group workspace rules and approval workflows remain intact. Here's how to set it up:
 1. Go to **expensify.com > Settings > Workspaces > New Workspace**.
 
-![Image of creating a new Workspace in Expensify]({{site.url}}/assets/images/SageConnectCreatingWorkspace.png){:width="100%"}
+    ![Image of creating a new Workspace in Expensify]({{site.url}}/assets/images/SageConnectCreatingWorkspace.png){:width="100%"}
 
 2. Name the workspace something like "Sage Intacct Test Workspace."
 3. Go to **Connections > Sage Intacct > Connect to Sage Intacct**.
 
-![Image of selecting the Sage Intacct integration in Expensify]({{site.url}}/assets/images/SageConnectEnableSage.png){:width="100%"}
+    ![Image of selecting the Sage Intacct integration in Expensify]({{site.url}}/assets/images/SageConnectEnableSage.png){:width="100%"}
 
 4. Select **Download Package** (You only need to download the file; we'll upload it from your Downloads folder later).
 
