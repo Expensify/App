@@ -26,6 +26,9 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     icon,
     iconFill,
+    iconWidth,
+    iconHeight,
+    iconStyles,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -180,9 +183,10 @@ function HeaderWithBackButton({
                 {!!icon && (
                     <Icon
                         src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+                        width={iconWidth ?? variables.iconHeader}
+                        height={iconHeight ?? variables.iconHeader}
+                        additionalStyles={[styles.mr2, iconStyles]}
+                        fill={iconFill ?? theme.icon}
                     />
                 )}
                 {!!policyAvatar && (
