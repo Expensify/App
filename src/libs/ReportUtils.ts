@@ -4868,16 +4868,33 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
     });
 }
 
-function getWorkspaceAddCategoryMessage(action: ReportAction): string {
-    const {categoryName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
+    const {categoryName, oldValue} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (!categoryName) {
         return ReportActionsUtils.getReportActionText(action);
     }
 
-    return Localize.translateLocal('workspaceActions.addCategory', {
-        categoryName,
-    });
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) {
+        return Localize.translateLocal('workspaceActions.addCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) {
+        return Localize.translateLocal('workspaceActions.deleteCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) {
+        return Localize.translateLocal('workspaceActions.updateCategory', {
+            oldValue: !!oldValue,
+            categoryName,
+        });
+    }
+
+    return ReportActionsUtils.getReportActionText(action);
 }
 
 /**
@@ -8834,7 +8851,7 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
-    getWorkspaceAddCategoryMessage,
+    getWorkspaceCategoryUpdateMessage,
 };
 
 export type {

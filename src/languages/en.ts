@@ -168,6 +168,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatedWorkspaceCategoryParams,
     UpdatedWorkspaceCurrencyParams,
     UpdatedWorkspaceFrequencyParams,
     UpdateRoleParams,
@@ -4444,7 +4445,9 @@ const translations = {
         },
     },
     workspaceActions: {
-        addCategory: ({categoryName}: {categoryName: string}) => `added the category "${categoryName}"`,
+        addCategory: ({categoryName}: UpdatedWorkspaceCategoryParams) => `added the category "${categoryName}"`,
+        deleteCategory: ({categoryName}: UpdatedWorkspaceCategoryParams) => `removed the category "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedWorkspaceCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';

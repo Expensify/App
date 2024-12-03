@@ -465,8 +465,11 @@ function getOptionData({
             result.alternateText = ReportUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
             result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan');
-        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY)) {
-            result.alternateText = ReportUtils.getWorkspaceAddCategoryMessage(lastAction);
+        } else if (
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY)
+        ) {
+            result.alternateText = ReportUtils.getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {

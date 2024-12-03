@@ -295,6 +295,60 @@ type OriginalMessageChangeLog = {
     categoryName?: string;
 };
 
+/** Model of change log */
+type OriginalMessagePolicyChangeLog = {
+    /** Account IDs of users that either got invited or removed from the room */
+    targetAccountIDs?: number[];
+
+    /** Name of the chat room */
+    roomName?: string;
+
+    /** Description of the chat room */
+    description?: string;
+
+    /** ID of the report */
+    reportID?: number;
+
+    /** Old name of the workspace */
+    oldName?: string;
+
+    /** New name of the workspace */
+    newName?: string;
+
+    /** Email of user */
+    email?: string;
+
+    /** Role of user */
+    role?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
+
+    /** New Value */
+    newValue?: boolean;
+
+    /** Old Value */
+    oldValue?: boolean;
+
+    /** Old currency of the workspace */
+    oldCurrency?: string;
+
+    /** New currency of the workspace */
+    newCurrency?: string;
+
+    /** Old frequency of the workspace */
+    oldFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** New frequency of the workspace */
+    newFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** Name of connection */
+    connectionName?: AllConnectionName;
+
+    /** Name of the added category */
+    categoryName?: string;
+};
+
 /** Model of `join policy changelog` report action */
 type OriginalMessageJoinPolicyChangeLog = {
     /** What was the invited user decision */
@@ -652,7 +706,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
 } & OldDotOriginalMessageMap & {
-        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
+        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
     };

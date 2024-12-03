@@ -288,6 +288,8 @@ type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
 type UpdatedWorkspaceCurrencyParams = {oldCurrency: string; newCurrency: string};
 
+type UpdatedWorkspaceCategoryParams = {categoryName: string; oldValue?: boolean};
+
 type UpdatedWorkspaceFrequencyParams = {oldFrequency: string; newFrequency: string};
 
 type ChangeTypeParams = {oldType: string; newType: string};
@@ -782,4 +784,5 @@ export type {
     ChatWithAccountManagerParams,
     UpdatedWorkspaceCurrencyParams,
     UpdatedWorkspaceFrequencyParams,
+    UpdatedWorkspaceCategoryParams,
 };
