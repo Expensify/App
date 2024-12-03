@@ -2,12 +2,12 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
-import type {DismissModalActionType, PushActionType, SwitchPolicyIdActionType} from '@libs/Navigation/AppNavigator/createCustomStackNavigator/types';
 import getPolicyIDFromState from '@libs/Navigation/getPolicyIDFromState';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import type {DismissModalActionType, PushActionType, SwitchPolicyIdActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,

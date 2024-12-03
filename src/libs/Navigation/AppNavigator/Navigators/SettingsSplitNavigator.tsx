@@ -1,11 +1,9 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
+import {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -29,7 +27,6 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
 const Stack = createSplitStackNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
-    const screenOptions = useRootNavigatorOptions();
     const route = useRoute();
     const rootNavigatorOptions = useRootNavigatorOptions();
 
@@ -47,7 +44,7 @@ function SettingsSplitNavigator() {
                     options={rootNavigatorOptions.homeScreen}
                 />
                 {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
-                    const options = {...screenOptions.fullScreen};
+                    const options: PlatformStackNavigationOptions = {animation: undefined};
 
                     if (screenName === SCREENS.SETTINGS.WORKSPACES) {
                         options.animation = 'none';

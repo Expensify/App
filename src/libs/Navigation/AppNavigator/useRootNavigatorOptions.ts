@@ -18,6 +18,7 @@ type RootNavigatorOptions = {
     fullScreen: PlatformStackNavigationOptions;
     centralPaneNavigator: PlatformStackNavigationOptions;
     bottomTab: PlatformStackNavigationOptions;
+    searchPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -114,9 +115,6 @@ const useRootNavigatorOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-
-                    // This is necessary to cover whole screen. Including translated sidebar.
-                    // marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth,
                 },
             },
         },
