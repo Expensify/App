@@ -10,7 +10,7 @@ function contactImport(): Promise<ContactImportResult> {
     let permissionStatus: PermissionStatus = RESULTS.UNAVAILABLE;
 
     return requestContactPermission()
-        .then((response) => {
+        .then((response: PermissionStatus) => {
             permissionStatus = response;
             if (response === RESULTS.GRANTED) {
                 return ContactsNitroModule.getAll([
@@ -21,7 +21,7 @@ function contactImport(): Promise<ContactImportResult> {
                     CONST.DEVICE_CONTACT.IMAGE_DATA,
                 ]);
             }
-            return [] as Contact[];
+            return Promise.resolve([] as Contact[]);
         })
         .then((deviceContacts: Contact[]) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
