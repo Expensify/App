@@ -22,7 +22,6 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
     const {canUseSpotnanaTravel} = usePermissions();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
-    const reservationType = transaction?.receipt?.reservationList?.at(0)?.type;
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
 
     return (
@@ -38,7 +37,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                 shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}
             >
                 <HeaderWithBackButton
-                    title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
+                    title={translate(`travel.tripDetails`)}
                     shouldShowBackButton
                 />
                 <ScrollView>

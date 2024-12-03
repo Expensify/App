@@ -2501,6 +2501,7 @@ const translations = {
         viewTrip: 'Ver viaje',
         modifyTrip: 'Modificar viaje',
         tripSupport: 'Soporte de Viaje',
+        tripDetails: 'Detalles del viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
         trips: 'Viajes',

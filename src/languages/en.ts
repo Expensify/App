@@ -2477,6 +2477,7 @@ const translations = {
         viewTrip: 'View trip',
         modifyTrip: 'Modify trip',
         tripSupport: 'Trip support',
+        tripDetails: 'Trip details',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
         trips: 'Trips',
