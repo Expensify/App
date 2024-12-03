@@ -14,6 +14,9 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
+    /** Whether the transaction is currently held */
+    isHeld: boolean;
+
     /** If the transaction can be removed from hold */
     canUnhold: boolean;
 
