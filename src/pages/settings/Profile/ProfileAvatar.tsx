@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {AttachmentModalHandle} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -10,6 +9,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from '@src/types/onyx';
@@ -36,22 +36,23 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID, avatarURL]);
 
-    const attachmenModalRef = React.useRef<AttachmentModalHandle>(null);
-    useEffect(() => {
-        setTimeout(() => {
-            attachmenModalRef.current?.open();
-        }, 200);
-    }, []);
+    // const attachmenModalRef = React.useRef<AttachmentModalHandle>(null);
+    // useEffect(() => {
+    //     InteractionManager.runAfterInteractions(() => {
+    //         attachmenModalRef.current?.open();
+    //     });
+    // }, []);
 
     return (
         <AttachmentModal
-            ref={attachmenModalRef}
+            // ref={attachmenModalRef}
+            defaultOpen
             headerTitle={displayName}
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
                 setTimeout(() => {
                     Navigation.goBack();
-                }, 200);
+                }, CONST.ANIMATED_TRANSITION);
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}

@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -24,7 +24,7 @@ import type BaseModalProps from './types';
 
 function BaseModal(
     {
-        isVisible,
+        isVisible: isVisibleProp,
         onClose,
         shouldSetModalVisibility = true,
         onModalHide = () => {},
@@ -67,6 +67,18 @@ function BaseModal(
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
+
+    const [isVisible, setIsVisible] = useState(false);
+    useEffect(() => {
+        if (isVisibleProp) {
+            InteractionManager.runAfterInteractions(() => {
+                setIsVisible(true);
+            });
+            return;
+        }
+
+        setIsVisible(false);
+    }, [isVisibleProp]);
 
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
