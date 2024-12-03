@@ -257,16 +257,16 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const transaction = isTransaction ? data[key] : undefined;
     const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
 
+    if (transaction?.hasError || report.hasError) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
 
     if (ReportUtils.isClosedReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
-    }
-
-    if (transaction?.hasError ?? report.hasError) {
-        return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
