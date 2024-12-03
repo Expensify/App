@@ -281,6 +281,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
     const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
+    // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData}).then(
         (response) => {
