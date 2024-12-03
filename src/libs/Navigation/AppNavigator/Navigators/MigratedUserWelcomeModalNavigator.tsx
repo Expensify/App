@@ -13,7 +13,7 @@ function MigratedUserWelcomeModalNavigator() {
     return (
         <NoDropZone>
             <View>
-                <Stack.Navigator screenOptions={{headerShown: false, animation: Animations.MODAL}}>
+                <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen
                         name={SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT}
                         component={MigratedUserWelcomeModal}
