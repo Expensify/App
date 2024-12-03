@@ -86,6 +86,9 @@ type FeatureTrainingModalProps = {
 
     /** Styles for the content container */
     contentContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the modal inner container */
+    modalInnerContainerStyle?: ViewStyle;
 };
 
 function FeatureTrainingModal({
@@ -106,6 +109,7 @@ function FeatureTrainingModal({
     onHelp = () => {},
     children,
     contentContainerStyles,
+    modalInnerContainerStyle,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -154,7 +158,6 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    animationContainerStyle,
                     !shouldRenderAnimation && {aspectRatio},
                 ]}
             >
@@ -194,7 +197,6 @@ function FeatureTrainingModal({
         shouldRenderAnimation,
         videoStatus,
         videoURL,
-        animationContainerStyle,
         animationStyle,
         animation,
         shouldUseNarrowLayout,
@@ -236,10 +238,13 @@ function FeatureTrainingModal({
                                   width: 'auto',
                               }
                             : {}),
+                        ...modalInnerContainerStyle,
                     }}
                 >
                     <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationContainerStyle]}>
+                            {renderIllustration()}
+                        </View>
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
                                 <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentContainerStyles]}>

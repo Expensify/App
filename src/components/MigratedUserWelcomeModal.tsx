@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Welcome from '@libs/actions/Welcome';
 import variables from '@styles/variables';
@@ -33,7 +32,6 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
 
     return (
         <FeatureTrainingModal
@@ -47,12 +45,12 @@ function OnboardingWelcomeVideo() {
             shouldRenderAnimation
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationContainerStyle={[
-                StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor ?? theme.appBG),
-                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusLarge),
-                styles.pv4,
-                shouldUseNarrowLayout && styles.cardSectionIllustration,
+                StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor),
+                shouldUseNarrowLayout && styles.migratedUserModalIllustration,
+                styles.ph0,
             ]}
             contentContainerStyles={styles.mb4}
+            modalInnerContainerStyle={styles.pt0}
         >
             <View style={[styles.rowGap4, styles.pt4, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
