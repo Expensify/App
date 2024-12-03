@@ -134,7 +134,6 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -344,7 +343,7 @@ function ReportActionCompose({
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        const clearComposer = composerRefShared.value.clear;
+        const clearComposer = composerRefShared.get().clear;
         if (!clearComposer) {
             throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
@@ -454,7 +453,6 @@ function ReportActionCompose({
                                             reportID={reportID}
                                             report={report}
                                             reportParticipantIDs={reportParticipantIDs}
-                                            isFullComposerAvailable={isFullComposerAvailable}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
@@ -470,10 +468,9 @@ function ReportActionCompose({
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
                                                 composerRef.current = ref ?? undefined;
-                                                // eslint-disable-next-line react-compiler/react-compiler
-                                                composerRefShared.value = {
+                                                composerRefShared.set({
                                                     clear: ref?.clear,
-                                                };
+                                                });
                                             }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}
@@ -494,8 +491,6 @@ function ReportActionCompose({
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
-                                            isFullComposerAvailable={isFullComposerAvailable}
-                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
