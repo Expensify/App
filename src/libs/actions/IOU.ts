@@ -52,6 +52,7 @@ import * as ReportConnection from '@libs/ReportConnection';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getTransaction} from '@libs/TransactionUtils';
@@ -7622,6 +7623,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
+    playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
 }
 
@@ -7670,6 +7672,7 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         };
     }
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
 }
 
