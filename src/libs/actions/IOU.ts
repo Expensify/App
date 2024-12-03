@@ -205,7 +205,7 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
 };
 
-type GetMoneyRequestInformation = {
+type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -2053,7 +2053,7 @@ function getSendInvoiceInformation(
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getMoneyRequestInformation(moneyRequestInformation: GetMoneyRequestInformation): MoneyRequestInformation {
+function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = ''} = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
