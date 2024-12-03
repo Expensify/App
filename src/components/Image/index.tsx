@@ -42,19 +42,24 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
     const previousSessionAge = useRef<number | undefined>();
-    const validSessionAge: number | undefined = useMemo(
-        () =>
-            session?.creationDate
-                ? !!previousSessionAge.current
-                    ? Math.abs(previousSessionAge.current - session.creationDate) < 60000
-                        ? session.creationDate
-                        : previousSessionAge.current
-                    : Math.abs(new Date().getTime() - session.creationDate) >= CONST.SESSIONS_MAXIDLE_NB_HOURS * 3600000
-                    ? new Date().getTime()
-                    : session.creationDate
-                : undefined,
-        [session],
-    );
+    const validSessionAge: number | undefined = useMemo(() => {
+        if (session?.creationDate) {
+            if (previousSessionAge.current) {
+                if (Math.abs(previousSessionAge.current - session.creationDate) < 60000) {
+                    return session.creationDate;
+                }
+                return previousSessionAge.current;
+            } else {
+                if (Math.abs(new Date().getTime() - session.creationDate) >= CONST.SESSIONS_MAXIDLE_NB_HOURS * 3600000) {
+                    return new Date().getTime();
+                } else {
+                    return session.creationDate;
+                }
+            }
+        } else {
+            return undefined;
+        }
+    }, [session]);
     useEffect(() => {
         previousSessionAge.current = validSessionAge;
     });
@@ -63,6 +68,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
      */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const source = useMemo(() => {
         if (typeof propsSource === 'object' && 'uri' in propsSource) {
             if (typeof propsSource.uri === 'number') {
@@ -78,9 +84,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
                             [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
                         },
                     };
-                } else {
-                    return require('@assets/images/loadingspinner.gif'); // loading before session changes
                 }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return require('@assets/images/loadingspinner.gif'); // loading before session changes
             }
         }
         return propsSource;
@@ -99,6 +105,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             {...forwardedProps}
             onLoad={handleLoad}
             style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             source={source}
         />
     );
