@@ -2,17 +2,17 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import ConfirmModal from './ConfirmModal';
 
-type SupportalActionModalProps = {
-    isSupportalActionRestrictedModalOpen: boolean;
+type SupportalActionRestrictedModalProps = {
+    isModalOpen: boolean;
     hideSupportalModal: () => void;
 };
 
-function SupportalActionModal({isSupportalActionRestrictedModalOpen, hideSupportalModal}: SupportalActionModalProps) {
+function SupportalActionRestrictedModal({isModalOpen, hideSupportalModal}: SupportalActionRestrictedModalProps) {
     const {translate} = useLocalize();
     return (
         <ConfirmModal
             title={translate('supportalNoAccess.title')}
-            isVisible={isSupportalActionRestrictedModalOpen}
+            isVisible={isModalOpen}
             onConfirm={hideSupportalModal}
             prompt={translate('supportalNoAccess.description')}
             confirmText={translate('common.buttonConfirm')}
@@ -21,6 +21,6 @@ function SupportalActionModal({isSupportalActionRestrictedModalOpen, hideSupport
     );
 }
 
-SupportalActionModal.displayName = 'SupportalActionModal';
+SupportalActionRestrictedModal.displayName = 'SupportalActionRestrictedModal';
 
-export default SupportalActionModal;
+export default SupportalActionRestrictedModal;
