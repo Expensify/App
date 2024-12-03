@@ -165,7 +165,7 @@ type Account = {
     delegatedAccess?: DelegatedAccess;
 
     /** Indicates SMS delivery failure status and associated information */
-    SMSDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
 };
 
 export default Account;

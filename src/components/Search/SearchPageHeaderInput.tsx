@@ -124,6 +124,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 return;
             }
 
+            if (queryJSON.policyID) {
+                userQueryJSON.policyID = queryJSON.policyID;
+            }
+
             const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(userQueryJSON, SearchQueryUtils.getUpdatedAmountValue);
             const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
 
@@ -136,7 +140,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 setIsAutocompleteListVisible(false);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
     );
 
     const onListItemPress = (item: OptionData | SearchQueryItem) => {
