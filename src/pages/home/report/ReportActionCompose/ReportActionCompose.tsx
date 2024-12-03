@@ -410,7 +410,7 @@ function ReportActionCompose({
 
     const validateMaxLength = useCallback(
         (value: string) => {
-            const taskCommentMatch = value.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
             if (taskCommentMatch) {
                 const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
                 setHasExceededMaxCommentLength(false);
