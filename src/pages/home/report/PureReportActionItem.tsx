@@ -150,9 +150,6 @@ type PureReportActionItemProps = {
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
 
-    /** User's Expensify Wallet */
-    userWallet?: OnyxTypes.UserWallet;
-
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
@@ -214,10 +211,7 @@ type PureReportActionItemProps = {
     isClosedExpenseReportWithNoExpenses?: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
 
     /** What missing payment method does this report action indicate, if any? */
-    getIndicatedMissingPaymentMethod?: (userWallet: OnyxEntry<OnyxTypes.UserWallet>, reportId: string, reportAction: OnyxTypes.ReportAction) => MissingPaymentMethod | undefined;
-
-    /** Whether the provided report action is a reimbursement de-queued action */
-    isReimbursementDeQueuedAction?: (reportAction: OnyxEntry<OnyxTypes.ReportAction>) => reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>;
+    missingPaymentMethod?: MissingPaymentMethod | undefined;
 
     /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` action */
     getReimbursementDeQueuedActionMessage?: (
@@ -269,7 +263,6 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     emojiReactions,
-    userWallet,
     linkedTransactionRouteError,
     reportNameValuePairs,
     isUserValidated,
@@ -286,9 +279,7 @@ function PureReportActionItem({
     resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses = () => false,
     isCurrentUserTheOnlyParticipant = () => false,
-    getIndicatedMissingPaymentMethod = () => undefined,
-    isReimbursementDeQueuedAction = (reportAction: OnyxEntry<OnyxTypes.ReportAction>): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED> =>
-        false,
+    missingPaymentMethod,
     getReimbursementDeQueuedActionMessage = () => '',
     getForReportAction = () => '',
     getTransactionsWithReceipts = () => [],
@@ -725,7 +716,6 @@ function PureReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1] ?? {});
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod?.(userWallet, linkedReport?.reportID ?? '-1', action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
@@ -765,7 +755,7 @@ function PureReportActionItem({
                     </>
                 </ReportActionItemBasicMessage>
             );
-        } else if (isReimbursementDeQueuedAction(action)) {
+        } else if (ReportActionsUtils.isReimbursementDeQueuedAction(action)) {
             children = <ReportActionItemBasicMessage message={getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={getForReportAction(reportID, action)} />;
@@ -1207,7 +1197,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
-        lodashIsEqual(prevProps.userWallet, nextProps.userWallet) &&
         lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
         lodashIsEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&

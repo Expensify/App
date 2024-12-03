@@ -39,6 +39,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
+    const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod?.(userWallet, linkedReport?.reportID ?? '-1', action);
 
     return (
         <PureReportActionItem
@@ -66,8 +68,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             resolveActionableMentionWhisper={Report.resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses}
             isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
-            getIndicatedMissingPaymentMethod={ReportUtils.getIndicatedMissingPaymentMethod}
-            isReimbursementDeQueuedAction={ReportActionsUtils.isReimbursementDeQueuedAction}
+            missingPaymentMethod={missingPaymentMethod}
             getReimbursementDeQueuedActionMessage={ReportUtils.getReimbursementDeQueuedActionMessage}
             getForReportAction={ModifiedExpenseMessage.getForReportAction}
             getTransactionsWithReceipts={ReportUtils.getTransactionsWithReceipts}
