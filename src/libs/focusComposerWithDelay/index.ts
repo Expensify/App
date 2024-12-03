@@ -1,4 +1,3 @@
-import {InteractionManager} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
