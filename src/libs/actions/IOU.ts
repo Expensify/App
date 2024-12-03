@@ -166,7 +166,7 @@ type GPSPoint = {
 };
 
 type RequestMoneyTransactionParams = {
-    attendees: Attendee[] | undefined;
+    attendees?: Attendee[];
     amount: number;
     currency: string;
     comment?: string;
@@ -203,6 +203,16 @@ type RequestMoneyInformation = {
     action?: IOUAction;
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
+};
+
+type GetMoneyRequestInformation = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionParams: RequestMoneyTransactionParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
+    moneyRequestReportID?: string;
+    existingTransactionID?: string;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -2043,31 +2053,12 @@ function getSendInvoiceInformation(
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getMoneyRequestInformation(
-    parentChatReport: OnyxEntry<OnyxTypes.Report>,
-    participant: Participant,
-    comment: string,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    receipt: Receipt | undefined,
-    existingTransactionID: string | undefined,
-    category: string | undefined,
-    tag: string | undefined,
-    taxCode: string | undefined,
-    taxAmount: number | undefined,
-    billable: boolean | undefined,
-    policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists> | undefined,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
-    payeeAccountID = userAccountID,
-    payeeEmail = currentUserEmail,
-    moneyRequestReportID = '',
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    attendees?: Attendee[],
-    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
-): MoneyRequestInformation {
+function getMoneyRequestInformation(moneyRequestInformation: GetMoneyRequestInformation): MoneyRequestInformation {
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = ''} = moneyRequestInformation;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {attendees, amount, comment, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -3597,8 +3588,7 @@ function shareTrackedExpense(
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
-    const {participant, payeeAccountID, payeeEmail} = participantParams;
-    const {policy, policyCategories, policyTagList} = policyParams;
+    const {payeeAccountID} = participantParams;
     const {
         amount,
         currency,
@@ -3636,32 +3626,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
-    } = getMoneyRequestInformation(
-        isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        created,
-        merchant,
-        receipt,
-        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && ReportActionsUtils.isMoneyRequestAction(linkedTrackedExpenseReportAction)
-            ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-            : undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        payeeAccountID,
-        payeeEmail,
+    } = getMoneyRequestInformation({
+        parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
         moneyRequestReportID,
-        linkedTrackedExpenseReportAction,
-        attendees,
-    );
+        existingTransactionID:
+            isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && ReportActionsUtils.isMoneyRequestAction(linkedTrackedExpenseReportAction)
+                ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+                : undefined,
+    });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     switch (action) {
@@ -5318,31 +5293,35 @@ function createDistanceRequest(
             createdReportActionIDForThread,
             payerEmail,
             onyxData: moneyRequestOnyxData,
-        } = getMoneyRequestInformation(
-            currentChatReport,
-            participant,
-            comment,
-            amount,
-            currency,
-            created,
-            merchant,
-            optimisticReceipt,
-            undefined,
-            category,
-            tag,
-            taxCode,
-            taxAmount,
-            billable,
-            policy,
-            policyTagList,
-            policyCategories,
-            userAccountID,
-            currentUserEmail,
-            moneyRequestReportID,
-            undefined,
-            undefined,
+        } = getMoneyRequestInformation({
+            parentChatReport: currentChatReport,
             existingTransaction,
-        );
+            moneyRequestReportID,
+            participantParams: {
+                participant,
+                payeeAccountID: userAccountID,
+                payeeEmail: currentUserEmail,
+            },
+            policyParams: {
+                policy,
+                policyCategories,
+                policyTagList,
+            },
+            transactionParams: {
+                amount,
+                currency,
+                comment,
+                created,
+                merchant,
+                receipt: optimisticReceipt,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+            },
+        });
+
         onyxData = moneyRequestOnyxData;
 
         parameters = {
