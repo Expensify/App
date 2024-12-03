@@ -27,6 +27,7 @@
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](contributingGuides/CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
+* [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
 
 ----
 
@@ -174,6 +175,7 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
+* UI tests guidelines can be found [here](tests/ui/README.md)
 
 ## Performance tests
 We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):

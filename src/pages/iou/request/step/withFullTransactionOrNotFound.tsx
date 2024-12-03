@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
@@ -7,15 +6,20 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
+
+    /** Indicates whether the transaction data is loading */
+    isLoadingTransaction?: boolean;
 };
 
 type MoneyRequestRouteName =
@@ -38,11 +42,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
 
-type Route<TRouteName extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, TRouteName>;
-
-type WithFullTransactionOrNotFoundProps<TRouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
-    route: Route<TRouteName>;
-};
+type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
+    PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
@@ -54,8 +55,9 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);
-        const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-        const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+        const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
 
         const isFocused = useIsFocused();
 
@@ -70,6 +72,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft ? transactionDraft : transaction}
+                isLoadingTransaction={isLoadingTransaction}
                 ref={ref}
             />
         );

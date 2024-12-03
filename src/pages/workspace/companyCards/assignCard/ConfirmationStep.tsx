@@ -8,8 +8,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
@@ -33,7 +33,6 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const data = assignCard?.data;
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -75,22 +74,28 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={data?.cardName}
+                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.startTransactionDate')}
-                    title={data?.startDate}
+                    description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                    title={data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : data?.startDate}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
+                />
+                <MenuItemWithTopDescription
+                    description={translate('workspace.companyCards.cardName')}
+                    title={data?.cardName}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
                         isDisabled={isOffline}
                         success
                         large
-                        style={[styles.w100, safePaddingBottomStyle]}
+                        style={styles.w100}
                         onPress={submit}
                         text={translate('workspace.companyCards.assignCard')}
                     />
