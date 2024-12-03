@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
@@ -130,7 +131,28 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
+
+                    const activeRoute = Navigation.getActiveRoute();
                     const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+                    for (const item of items) {
+                        const policyID = item.policyID;
+                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+
+                        if (!lastPolicyPaymentMethod) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+
+                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
+
+                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
+                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            return;
+                        }
+                    }
+
                     const paymentData = (
                         selectedReports.length
                             ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
