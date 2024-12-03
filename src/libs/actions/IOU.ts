@@ -6900,7 +6900,7 @@ function canApproveIOU(
 ) {
     // Only expense reports can be approved
     const isPaidGroupPolicy = policy && PolicyUtils.isPaidGroupPolicy(policy);
-    if (!isPaidGroupPolicy) {
+    if (!ReportUtils.isExpenseReport(iouReport) || !isPaidGroupPolicy) {
         return false;
     }
 
