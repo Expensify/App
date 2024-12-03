@@ -10,7 +10,6 @@ import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
@@ -196,7 +195,7 @@ function SettlementButton({
 
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route);
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
                 return;
             }
             triggerKYCFlow(event, iouPaymentType);
@@ -213,9 +212,6 @@ function SettlementButton({
             return;
         }
 
-        if (!ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            playSound(SOUNDS.SUCCESS);
-        }
         onPress(iouPaymentType);
     };
 
@@ -238,7 +234,6 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
-                    success
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
