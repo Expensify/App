@@ -329,17 +329,16 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const ListItem = SearchUIUtils.getListItem(type, status);
     const sortedData = SearchUIUtils.getSortedSections(type, status, data, sortBy, sortOrder);
-
-    const isExpense = type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
-        const baseKey = isExpense
-            ? `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`
-            : `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`;
+        const baseKey = isChat
+            ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+            : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
         // Check if the base key matches the newSearchResultKey (TransactionListItemType)
         const isBaseKeyMatch = baseKey === newSearchResultKey;
         // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
         const isAnyTransactionMatch =
-            isExpense &&
+            !isChat &&
             (item as ReportListItemType)?.transactions?.some((transaction) => {
                 const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                 return transactionKey === newSearchResultKey;
