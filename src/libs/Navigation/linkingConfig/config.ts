@@ -347,9 +347,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ADDRESS]: {
                             path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
                         },
-                        [SCREENS.WORKSPACE.PLAN]: {
-                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
-                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -946,6 +943,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_IMPORTED]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_IMPORTED.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
