@@ -370,6 +370,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
+
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
