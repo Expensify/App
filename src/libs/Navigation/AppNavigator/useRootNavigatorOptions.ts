@@ -12,7 +12,7 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 type RootNavigatorOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
-    onboardingModalNavigator: PlatformStackNavigationOptions;
+    basicModalNavigator: PlatformStackNavigationOptions;
     leftModalNavigator: PlatformStackNavigationOptions;
     homeScreen: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
@@ -51,9 +51,9 @@ const useRootNavigatorOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
             },
         },
-        onboardingModalNavigator: {
+        basicModalNavigator: {
+            presentation: Presentation.TRANSPARENT_MODAL,
             web: {
-                presentation: Presentation.TRANSPARENT_MODAL,
                 cardOverlayEnabled: false,
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
