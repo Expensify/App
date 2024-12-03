@@ -21,6 +21,7 @@ import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getPlatform from '@libs/getPlatform';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -468,11 +469,17 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     return;
                                 }
                                 if (parentReportAction) {
+                                    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
                                     const {urlToNavigateBack} = IOU.prepareToCleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true, true);
-                                    Navigation.goBack(urlToNavigateBack);
+                                    if (isWeb) {
+                                        Navigation.goBack(urlToNavigateBack);
+                                    }
                                     InteractionManager.runAfterInteractions(() => {
-                                        IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                                        if (!isWeb) {
+                                            Navigation.goBack(urlToNavigateBack);
+                                        }
+                                        IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true, false);
                                     });
                                     return;
                                 }

@@ -5589,7 +5589,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions = false) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5720,9 +5720,14 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
-    Onyx.update(onyxUpdatesActions);
-    if (!onlyCleanupActions) {
-        Onyx.update(onyxUpdates);
+    if (onlyCleanupActions === undefined) {
+        Onyx.update([...onyxUpdates, ...onyxUpdatesActions]);
+    } else {
+        if (onlyCleanupActions === true) {
+            Onyx.update(onyxUpdatesActions);
+        } else {
+            Onyx.update(onyxUpdates);
+        }
     }
 
     return urlToNavigateBack;

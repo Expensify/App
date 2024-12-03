@@ -370,9 +370,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
         isLoading;
-        if(report?.reportID === '3167588647183926'){
-            console.log("3333333333333333", {shouldShowSkeleton, v1: isLinkingToMessage && !isLinkedMessagePageReady, v2: !isLinkingToMessage && !isInitialPageReady})
-        }
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
