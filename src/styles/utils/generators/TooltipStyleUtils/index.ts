@@ -265,6 +265,8 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
     /** Utility function to create and manage scale animations with React Native Reanimated */
     getTooltipAnimatedStyles: (props: TooltipAnimationProps) => {
+        'worklet';
+
         const tooltipHorizontalPadding = spacing.ph2.paddingHorizontal * 2;
         const tooltipWidth = props.tooltipContentWidth && props.tooltipContentWidth + tooltipHorizontalPadding + 1;
         const isTooltipSizeReady = tooltipWidth !== undefined && props.tooltipWrapperHeight !== undefined;
