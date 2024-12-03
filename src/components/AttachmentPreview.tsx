@@ -7,8 +7,6 @@ import variables from '@styles/variables';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
-import RESIZE_MODES from './Image/resizeModes';
 import ImageView from './ImageView';
 import {PressableWithFeedback} from './Pressable';
 
@@ -59,14 +57,7 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
     let previewComponent;
 
     if (isFilePdf) {
-        previewComponent = (
-            <Image
-                style={[styles.w100, styles.h100]}
-                source={{uri: source}}
-                aria-label="altText"
-                resizeMode={RESIZE_MODES.contain}
-            />
-        );
+        previewComponent = <DefaultAttachmentView fileName={file?.name} />;
     }
 
     if (isFileVideo) {
@@ -101,7 +92,7 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
-                style={[fillStyle, styles.br2, styles.overflowHidden, styles.alignItemsCenter, styles.alignSelfCenter, {aspectRatio, backgroundColor: 'red'}]}
+                style={[fillStyle, styles.br2, styles.overflowHidden, styles.alignItemsCenter, styles.alignSelfCenter, {aspectRatio}]}
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Attachment Thumbnail"
