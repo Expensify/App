@@ -5589,7 +5589,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions = false) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5606,27 +5606,28 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
+    const onyxUpdatesActions: OnyxUpdate[] = [];
     const onyxUpdates: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                      },
-            },
-        },
     ];
+    onyxUpdatesActions.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: {
+            [reportAction.reportActionID]: shouldDeleteIOUReport
+                ? null
+                : {
+                      pendingAction: null,
+                  },
+        },
+    });
 
     if (reportPreviewAction?.reportActionID) {
-        onyxUpdates.push({
+        onyxUpdatesActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
@@ -5663,12 +5664,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // added operations to update IOU report and chat report
+    onyxUpdatesActions.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: updatedReportAction,
+    });
     onyxUpdates.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: updatedReportAction,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -5719,7 +5720,10 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
-    Onyx.update(onyxUpdates);
+    Onyx.update(onyxUpdatesActions);
+    if (!onlyCleanupActions) {
+        Onyx.update(onyxUpdates);
+    }
 
     return urlToNavigateBack;
 }
