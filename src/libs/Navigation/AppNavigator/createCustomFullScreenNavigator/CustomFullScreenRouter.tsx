@@ -1,13 +1,13 @@
-import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, PartialState, RouterConfigOptions} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {FullScreenNavigatorRouterOptions} from './types';
 
-type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
+type StackState = PlatformStackNavigationState<ParamListBase> | PartialState<PlatformStackNavigationState<ParamListBase>>;
 
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
@@ -69,7 +69,7 @@ function adaptStateIfNecessary(state: StackState) {
     }
 }
 
-function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
+function CustomFullScreenRouter(options: PlatformStackRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
@@ -85,7 +85,7 @@ function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
 
             return initialState;
         },
-        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
+        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): PlatformStackNavigationState<ParamListBase> {
             adaptStateIfNecessary(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
