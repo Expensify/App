@@ -40,6 +40,7 @@ function ValidateCodeActionModal({
     const hide = useCallback(() => {
         clearError();
         onClose?.();
+        firstRenderRef.current = true;
     }, [onClose, clearError]);
 
     useEffect(() => {
