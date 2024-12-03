@@ -1,11 +1,13 @@
-import {useRoute} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import { default as React, useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
+
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring} from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +17,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+import PaymentCompleteAnimation from '@components/SettlementButton/PaymentCompleteAnimation';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -34,8 +37,8 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -77,6 +80,7 @@ function MoneyRequestPreviewContent({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+    const [isPaymentAnimationVisible, setIsPaymentAnimationVisible] = useState(false);
 
     const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
@@ -156,6 +160,40 @@ function MoneyRequestPreviewContent({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const shouldShowPaidIcon = ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit;
+
+    const checkMarkScale = useSharedValue(shouldShowPaidIcon ? 1 : 0);
+
+    const checkMarkStyle = useAnimatedStyle(() => ({
+        ...styles.defaultCheckmarkWrapper,
+        transform: [{scale: checkMarkScale.value}],
+    }));
+
+    const handleAnimationFinish = () => {
+        setIsPaymentAnimationVisible(false);
+    };
+
+    // Track previous shouldShowPaidIcon value
+    const prevIsSettledRef = useRef(shouldShowPaidIcon);
+
+    useEffect(() => {
+        if (shouldShowPaidIcon && !prevIsSettledRef.current) {
+            // Start the checkmark animation
+            checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
+
+            // Start the payment complete animation
+            setIsPaymentAnimationVisible(true);
+        } else if (shouldShowPaidIcon) {
+            // Ensure the checkmark is visible without animation if already settled
+            checkMarkScale.value = 1;
+        } else {
+            // Hide the checkmark if not settled
+            checkMarkScale.value = 0;
+        }
+
+        // Update the previous value
+        prevIsSettledRef.current = shouldShowPaidIcon;
+    }, [checkMarkScale, shouldShowPaidIcon]);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -387,13 +425,13 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
-                                                    <View style={styles.defaultCheckmarkWrapper}>
+                                                {shouldShowPaidIcon && (
+                                                    <Animated.View style={[checkMarkStyle, styles.defaultCheckmarkWrapper]}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
-                                                    </View>
+                                                    </Animated.View>
                                                 )}
                                             </View>
                                             {isBillSplit && (
@@ -433,6 +471,10 @@ function MoneyRequestPreviewContent({
                                                 <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
+                                        <PaymentCompleteAnimation
+                                            isVisible={isPaymentAnimationVisible}
+                                            onAnimationFinish={handleAnimationFinish}
+                                        />
                                     </View>
                                     {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
                                     {shouldShowCategoryOrTag && (
