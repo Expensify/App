@@ -219,6 +219,9 @@ type Reservation = {
     /** In flight and car reservations, this represents the number of passengers */
     numPassengers?: number;
 
+    /** In flight reservations, this represents the flight duration in seconds */
+    duration: number;
+
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
 

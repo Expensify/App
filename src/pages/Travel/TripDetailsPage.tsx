@@ -69,6 +69,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
+                            prevReservation={route.params.reservationIndex > 0 ? transaction?.receipt?.reservationList?.at(route.params.reservationIndex - 1) : undefined}
                             reservation={reservation}
                             personalDetails={personalDetails}
                         />
