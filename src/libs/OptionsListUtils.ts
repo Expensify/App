@@ -1340,13 +1340,13 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
-                name: LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? ''),
+                name: personalDetail?.login ?? '',
                 type: CONST.ICON_TYPE_AVATAR,
                 id: personalDetail?.accountID,
             },
         ],
         descriptiveText: amountText ?? '',
-        login: LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? ''),
+        login: personalDetail?.login ?? '',
         accountID: personalDetail?.accountID ?? -1,
         keyForList: String(personalDetail?.accountID ?? -1),
     };
