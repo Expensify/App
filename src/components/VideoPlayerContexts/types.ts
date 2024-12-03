@@ -23,8 +23,9 @@ type PlaybackContext = {
 };
 
 type VolumeContext = {
-    updateVolume: (newVolume: number) => void;
+    updateVolume: (newVolume: number | ((value: number) => number)) => void;
     volume: SharedValue<number>;
+    previousVolume: SharedValue<number>;
 };
 
 type VideoPopoverMenuContext = {

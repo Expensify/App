@@ -9,28 +9,46 @@ const Context = React.createContext<VolumeContext | null>(null);
 function VolumeContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
+    const previousVolume = useSharedValue(1);
 
     const updateVolume = useCallback(
-        (newVolume: number) => {
+        (newVolume: number | ((actualValue: number) => number)) => {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
-            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
-            volume.set(newVolume);
+            const volumeValue = typeof newVolume === 'function' ? newVolume(volume.get()) : newVolume;
+
+            currentVideoPlayerRef.current.setStatusAsync({
+                volume: volumeValue,
+                isMuted: volumeValue === 0,
+            });
+
+            volume.set((value: number) => {
+                if (value !== 0) {
+                    previousVolume.set(value);
+                }
+                return volumeValue;
+            });
         },
         [currentVideoPlayerRef, volume],
     );
 
-    // We want to update the volume when currently playing video changes.
-    // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
     useEffect(() => {
         if (!originalParent) {
             return;
         }
-        updateVolume(volume.get());
+        updateVolume(() => volume.get());
     }, [originalParent, updateVolume, volume]);
 
-    const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
+    const contextValue = useMemo(
+        () => ({
+            updateVolume,
+            volume,
+            previousVolume,
+        }),
+        [updateVolume, volume, previousVolume],
+    );
+
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
