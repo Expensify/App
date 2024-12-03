@@ -48,6 +48,7 @@ import type {
     ConnectionParams,
     CurrencyCodeParams,
     CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -697,6 +698,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        create: 'create',
         iouTypes: {
             pay: 'pay',
             split: 'split',
@@ -2603,6 +2605,9 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
+            },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
             },
             importPerDiemRates: 'Import per diem rates',
         },
