@@ -156,7 +156,11 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_VERIFY_ACCOUNT: {route: 'settings/wallet/verify', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/verify', backTo)},
+    SETTINGS_WALLET_VERIFY_ACCOUNT: {
+        route: 'settings/wallet/verify',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
+    },
     SETTINGS_WALLET_DOMAINCARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -1299,6 +1303,14 @@ const ROUTES = {
     WORKSPACE_PER_DIEM: {
         route: 'settings/workspaces/:policyID/per-diem',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORT: {
+        route: 'settings/workspaces/:policyID/per-diem/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/import` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORTED: {
+        route: 'settings/workspaces/:policyID/per-diem/imported',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/imported` as const,
     },
     WORKSPACE_PER_DIEM_SETTINGS: {
         route: 'settings/workspaces/:policyID/per-diem/settings',

@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
@@ -25,6 +26,7 @@ type SearchMultipleSelectionPickerProps = {
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -106,13 +108,14 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         () => (
             <Button
                 success
+                style={[styles.mt4]}
                 text={translate('common.save')}
                 pressOnEnter
                 onPress={handleConfirmSelection}
                 large
             />
         ),
-        [translate, handleConfirmSelection],
+        [translate, handleConfirmSelection, styles.mt4],
     );
     return (
         <SelectionList

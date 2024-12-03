@@ -121,24 +121,47 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const optionList = OptionsListUtils.getFilteredOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails.concat(contacts),
-            betas,
-            selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-            // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to submit an expense from their admin on their own Workspace Chat.
-            includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+// <<<<<<< HEAD
+//         const optionList = OptionsListUtils.getFilteredOptions({
+//             reports: options.reports,
+//             personalDetails: options.personalDetails.concat(contacts),
+//             betas,
+//             selectedOptions: participants as Participant[],
+//             excludeLogins: CONST.EXPENSIFY_EMAILS,
+//             // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+//             // sees the option to submit an expense from their admin on their own Workspace Chat.
+//             includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+// =======
+        const optionList = OptionsListUtils.getOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails.concat(contacts),
+            },
+            {
+                betas,
+                selectedOptions: participants as Participant[],
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
 
-            includeP2P: !isCategorizeOrShareAction,
-            canInviteUser: !isCategorizeOrShareAction,
-            includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
-            action,
-            sortByReportTypeInSearch: isPaidGroupPolicy,
-            searchValue: '',
-            maxRecentReportsToShow: 0,
-        });
+                // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to submit an expense from their admin on their own Workspace Chat.
+                includeOwnedWorkspaceChats:
+                    (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+// >>>>>>> 2c78c93d81316ddffc4673c78afd6afe4e2dd18f
+
+                includeP2P: !isCategorizeOrShareAction,
+                includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
+                action,
+                maxRecentReportsToShow: 0,
+            },
+        );
+
+        if (isPaidGroupPolicy) {
+            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, undefined, {
+                preferChatroomsOverThreads: true,
+                preferPolicyExpenseChat: !!action,
+                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            });
+        }
 
         return optionList;
     }, [
@@ -167,7 +190,6 @@ function MoneyRequestParticipantsSelector({
         }
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
