@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import MigratedUserWelcomeModal from '@components/MigratedUserWelcomeModal';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 

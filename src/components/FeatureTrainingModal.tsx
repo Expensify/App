@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
@@ -118,13 +118,17 @@ function FeatureTrainingModal({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => setIsModalVisible(true));
+    }, []);
 
     useEffect(() => {
         if (isVideoStatusLocked) {
@@ -215,8 +219,10 @@ function FeatureTrainingModal({
             User.dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
-        Navigation.goBack();
-        onClose?.();
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack();
+            onClose?.();
+        });
     }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
