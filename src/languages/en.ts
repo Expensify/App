@@ -48,6 +48,7 @@ import type {
     ConnectionParams,
     CurrencyCodeParams,
     CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -76,6 +77,7 @@ import type {
     ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -190,7 +192,6 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
-    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -693,6 +694,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        create: 'create',
         iouTypes: {
             pay: 'pay',
             split: 'split',
@@ -777,6 +779,8 @@ const translations = {
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
         importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
+        importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
+            rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -2536,7 +2540,6 @@ const translations = {
                         return 'Member';
                 }
             },
-            planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
@@ -2558,6 +2561,10 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
+            },
+            importPerDiemRates: 'Import per diem rates',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -4278,19 +4285,6 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
-            commonFeatures: {
-                title: 'Upgrade Workspace to Control',
-                note: 'Get access to all our most advanced functionality, including:',
-                benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
-                    learnMore: 'Learn more',
-                    pricing: 'about our plans and pricing.',
-                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct and more)',
-                    benefit2: 'Expense rules',
-                    benefit3: 'Multiple approval workflows',
-                    benefit4: 'Enhanced security controls',
-                },
-            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -4393,23 +4387,6 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
-        },
-        planTypePage: {
-            planTypes: {
-                team: {
-                    label: 'Collect',
-                    description: 'For teams looking to automate their processes.',
-                },
-                corporate: {
-                    label: 'Control',
-                    description: 'For organizations with advanced requirements.',
-                },
-            },
-            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
-            subscriptionLink: 'plan types and pricing help page',
-            lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
-                `You've committed to ${subscriptionUsersCount} active users on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
-            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {

@@ -48,14 +48,18 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getFilteredOptions({
-            reports: listOptions.reports ?? [],
-            personalDetails: listOptions.personalDetails ?? [],
-            betas: betas ?? [],
-            selectedOptions,
-            maxRecentReportsToShow: 0,
-            includeSelfDM: true,
-        });
+        const filteredOptions = OptionsListUtils.getOptions(
+            {
+                reports: listOptions.reports ?? [],
+                personalDetails: listOptions.personalDetails ?? [],
+            },
+            {
+                betas: betas ?? [],
+                selectedOptions,
+                maxRecentReportsToShow: 0,
+                includeSelfDM: true,
+            },
+        );
         return filteredOptions;
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
@@ -252,27 +256,14 @@ function NewChatPage() {
             return (
                 <Button
                     onPress={() => toggleOption(item)}
-                    style={[styles.pl2, insets.bottom ? styles.mb5 : undefined]}
+                    style={[styles.pl2]}
                     text={translate('newChatPage.addToGroup')}
                     innerStyles={buttonInnerStyles}
                     small
                 />
             );
         },
-        [
-            insets.bottom,
-            selectedOptions,
-            setSelectedOptions,
-            styles.alignItemsCenter,
-            styles.buttonDefaultHovered,
-            styles.flexRow,
-            styles.mb5,
-            styles.ml0,
-            styles.ml5,
-            styles.optionSelectCircle,
-            styles.pl2,
-            translate,
-        ],
+        [selectedOptions, setSelectedOptions, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
