@@ -343,6 +343,9 @@ type SearchTransaction = {
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
+
+    /** Whether the transaction has violations or errors */
+    hasError?: boolean;
 };
 
 /** Types of searchable transactions */

@@ -265,7 +265,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    if (report.hasError) {
+    if (transaction?.hasError ?? report.hasError) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
