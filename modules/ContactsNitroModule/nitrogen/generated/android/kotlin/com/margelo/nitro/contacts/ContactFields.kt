@@ -23,5 +23,9 @@ enum class ContactFields {
   EMAIL_ADDRESSES,
   IMAGE_DATA,
   THUMBNAIL_IMAGE_DATA,
-  GIVEN_NAME_KEY
+  GIVEN_NAME_KEY;
+
+  @DoNotStrip
+  @Keep
+  private val _ordinal = ordinal
 }

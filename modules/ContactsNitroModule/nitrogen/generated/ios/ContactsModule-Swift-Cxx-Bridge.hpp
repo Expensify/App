@@ -117,32 +117,32 @@ namespace margelo::nitro::contacts::bridge::swift {
     return std::make_shared<Func_void_std__vector_Contact__Wrapper>(value);
   }
   
-  // pragma MARK: std::function<void(const std::exception& /* error */)>
+  // pragma MARK: std::function<void(const std::exception_ptr& /* error */)>
   /**
-   * Specialized version of `std::function<void(const std::exception&)>`.
+   * Specialized version of `std::function<void(const std::exception_ptr&)>`.
    */
-  using Func_void_std__exception = std::function<void(const std::exception& /* error */)>;
+  using Func_void_std__exception_ptr = std::function<void(const std::exception_ptr& /* error */)>;
   /**
-   * Wrapper class for a `std::function<void(const std::exception& / * error * /)>`, this can be used from Swift.
+   * Wrapper class for a `std::function<void(const std::exception_ptr& / * error * /)>`, this can be used from Swift.
    */
-  class Func_void_std__exception_Wrapper final {
+  class Func_void_std__exception_ptr_Wrapper final {
   public:
-    explicit Func_void_std__exception_Wrapper(const std::function<void(const std::exception& /* error */)>& func): _function(func) {}
-    explicit Func_void_std__exception_Wrapper(std::function<void(const std::exception& /* error */)>&& func): _function(std::move(func)) {}
-    inline void call(std::exception error) const {
+    explicit Func_void_std__exception_ptr_Wrapper(const std::function<void(const std::exception_ptr& /* error */)>& func): _function(func) {}
+    explicit Func_void_std__exception_ptr_Wrapper(std::function<void(const std::exception_ptr& /* error */)>&& func): _function(std::move(func)) {}
+    inline void call(std::exception_ptr error) const {
       _function(error);
     }
   private:
-    std::function<void(const std::exception& /* error */)> _function;
+    std::function<void(const std::exception_ptr& /* error */)> _function;
   };
-  inline Func_void_std__exception create_Func_void_std__exception(void* _Nonnull closureHolder, void(* _Nonnull call)(void* _Nonnull /* closureHolder */, std::exception), void(* _Nonnull destroy)(void* _Nonnull)) {
+  inline Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull closureHolder, void(* _Nonnull call)(void* _Nonnull /* closureHolder */, std::exception_ptr), void(* _Nonnull destroy)(void* _Nonnull)) {
     std::shared_ptr<void> sharedClosureHolder(closureHolder, destroy);
-    return Func_void_std__exception([sharedClosureHolder, call](const std::exception& error) -> void {
+    return Func_void_std__exception_ptr([sharedClosureHolder, call](const std::exception_ptr& error) -> void {
       call(sharedClosureHolder.get(), error);
     });
   }
-  inline std::shared_ptr<Func_void_std__exception_Wrapper> share_Func_void_std__exception(const Func_void_std__exception& value) {
-    return std::make_shared<Func_void_std__exception_Wrapper>(value);
+  inline std::shared_ptr<Func_void_std__exception_ptr_Wrapper> share_Func_void_std__exception_ptr(const Func_void_std__exception_ptr& value) {
+    return std::make_shared<Func_void_std__exception_ptr_Wrapper>(value);
   }
   
   // pragma MARK: std::vector<ContactFields>
