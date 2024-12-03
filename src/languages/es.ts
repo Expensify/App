@@ -5827,8 +5827,9 @@ const translations = {
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
         noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        notAllowedMessageStart: `Como`,
         notAllowedMessageHyperLinked: ' copiloto',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
     },
     debug: {
         debug: 'Depuración',
