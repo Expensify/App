@@ -17,6 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -132,6 +133,12 @@ function WorkspacesListPage() {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
 
+    const isSupportalAction = Session.isSupportAuthToken();
+
+    const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
+    const hideSupportalModal = () => {
+        setIsSupportalActionRestrictedModalOpen(false);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -158,13 +165,23 @@ function WorkspacesListPage() {
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
-            const threeDotsMenuItems: PopoverMenuItem[] = [];
+            const threeDotsMenuItems: PopoverMenuItem[] = [
+                {
+                    icon: Expensicons.Building,
+                    text: translate('workspace.common.goToWorkspace'),
+                    onSelected: item.action,
+                },
+            ];
 
             if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
+                        if (isSupportalAction) {
+                            setIsSupportalActionRestrictedModalOpen(true);
+                            return;
+                        }
                         setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
@@ -253,6 +270,7 @@ function WorkspacesListPage() {
             session?.accountID,
             session?.email,
             activePolicyID,
+            isSupportalAction,
         ],
     );
 
@@ -360,12 +378,13 @@ function WorkspacesListPage() {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator:
-                        reimbursementAccountBrickRoadIndicator ??
-                        PolicyUtils.getPolicyBrickRoadIndicatorStatus(
-                            policy,
-                            isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                        ),
+                    brickRoadIndicator: !PolicyUtils.isPolicyAdmin(policy)
+                        ? undefined
+                        : reimbursementAccountBrickRoadIndicator ??
+                          PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                              policy,
+                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                          ),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -388,7 +407,6 @@ function WorkspacesListPage() {
     const getHeaderButton = () => (
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
-            success
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
             icon={Expensicons.Plus}
@@ -465,6 +483,10 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <SupportalActionRestrictedModal
+                isModalOpen={isSupportalActionRestrictedModalOpen}
+                hideSupportalModal={hideSupportalModal}
             />
         </ScreenWrapper>
     );

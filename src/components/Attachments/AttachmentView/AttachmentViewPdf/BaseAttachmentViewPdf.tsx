@@ -58,7 +58,7 @@ function BaseAttachmentViewPdf({
                 onPressProp(event);
             }
 
-            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.value) {
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.get()) {
                 attachmentCarouselPagerContext.onTap();
             }
         },
