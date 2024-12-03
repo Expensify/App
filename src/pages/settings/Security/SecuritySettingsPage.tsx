@@ -349,7 +349,10 @@ function SecuritySettingsPage() {
                         </View>
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                            onClose={() => {
+                                setIsNoDelegateAccessMenuVisible(false);
+                                setShouldShowDelegatePopoverMenu(false);
+                            }}
                             delegatorEmail={delegatorEmail ?? ''}
                         />
                     </ScrollView>
