@@ -2,6 +2,7 @@ package com.expensify.chat
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import com.expensify.chat.intentHandler.IntentHandlerConstants
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
@@ -40,26 +41,36 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
 
             val file = File(filePath)
             if (!file.exists()) {
-                if (!filePath.startsWith("/data/")&& mimeType=="text/plain") {
-                    val textObject = JSONObject().apply {
-                        put("id", "text")
-                        put("content", filePath)
-                        put("mimeType", "txt")
-                        put("processedAt", timestamp)
-                    }
-                    callback.invoke(textObject.toString())
-                    return
+                val textObject = JSONObject().apply {
+                    put("id", "text")
+                    put("content", filePath)
+                    put("mimeType", "txt")
+                    put("processedAt", timestamp)
                 }
-
-                callback.invoke("File does not exist", null)
+                callback.invoke(textObject.toString())
                 return
             }
 
             val identifier = file.name
+            var aspectRatio = 0.0f
 
-            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(filePath, options)
-            val aspectRatio = if (options.outHeight != 0) options.outWidth.toFloat() / options.outHeight else 0.0f
+            if (mimeType.startsWith("image/")) {
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(filePath, options)
+                aspectRatio = if (options.outHeight != 0) options.outWidth.toFloat() / options.outHeight else 1.0f
+            } else if (mimeType.startsWith("video/")) {
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(filePath)
+                    val videoWidth = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toFloatOrNull() ?: 1f
+                    val videoHeight = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toFloatOrNull() ?: 1f
+                    if (videoHeight != 0f) aspectRatio = videoWidth / videoHeight
+                } catch (e: Exception) {
+                    Log.e("ShareActionHandlerModule", "Error retrieving video metadata: ${e.message}")
+                } finally {
+                    retriever.release()
+                }
+            }
 
             val fileData = JSONObject().apply {
                 put("id", identifier)
@@ -70,7 +81,7 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             }
 
             callback.invoke(fileData.toString())
-
+            
         } catch (e: Exception) {
             callback.invoke(e.toString(), null)
         }
