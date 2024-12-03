@@ -471,6 +471,10 @@ const translations = {
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
     },
+    supportalNoAccess: {
+        title: 'No tan rápido',
+        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
+    },
     connectionComplete: {
         title: 'Conexión completa',
         supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
