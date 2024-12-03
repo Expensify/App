@@ -63,7 +63,6 @@ function ValidateCodeActionModal({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
                 includePaddingTop
-                ignoreInsetsConsumption
                 shouldEnableMaxHeight
                 testID={ValidateCodeActionModal.displayName}
                 offlineIndicatorStyle={themeStyles.mtAuto}
