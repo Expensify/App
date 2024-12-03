@@ -5587,9 +5587,10 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
  * @param isSingleTransactionView - whether we are in the transaction thread report
+ * @param onlyCleanupActions - whether we only clear the reportActions data
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions: boolean) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
