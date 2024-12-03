@@ -568,6 +568,10 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type CustomUnitRateParams = {
+    rate: number;
+};
+
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
@@ -776,5 +780,6 @@ export type {
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
+    CustomUnitRateParams,
     ChatWithAccountManagerParams,
 };

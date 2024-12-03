@@ -519,24 +519,24 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={ExplanationModalNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={FeatureTrainingModalNavigator}
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
                     {isOnboardingCompleted === false && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            options={{...rootNavigatorOptions.onboardingModalNavigator, gestureEnabled: false}}
+                            options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
                             component={OnboardingModalNavigator}
                             listeners={{
                                 focus: () => {
