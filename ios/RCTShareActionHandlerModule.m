@@ -1,5 +1,6 @@
 
 #import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 #import "RCTShareActionHandlerModule.h"
 #import <React/RCTLog.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
@@ -89,16 +90,26 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       NSString *fileUriPath = [@"file://" stringByAppendingString:filePath];
 
       CGFloat aspectRatio = 1.0;
-      UIImage *image = [UIImage imageWithContentsOfFile:filePath];
-      if (image) {
-          CGFloat width = image.size.width;
-          CGFloat height = image.size.height;
-          
-          if (height != 0) {
-              aspectRatio = width / height;
+      if ([mimeType hasPrefix:@"video/"]) {
+          AVURLAsset *asset = [AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:filePath] options:nil];
+          AVAssetTrack *track = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+          if (track) {
+              CGSize size = CGSizeApplyAffineTransform(track.naturalSize, track.preferredTransform);
+              if (size.height != 0) {
+                  aspectRatio = fabs(size.width / size.height);
+              }
           }
-      } else {
-          NSLog(@"Failed to load image from path: %@", filePath);
+      } else if ([mimeType hasPrefix:@"image/"]) {
+          UIImage *image = [UIImage imageWithContentsOfFile:filePath];
+          if (image) {
+              CGFloat width = image.size.width;
+              CGFloat height = image.size.height;
+              if (height != 0) {
+                  aspectRatio = width / height;
+              }
+          } else {
+              NSLog(@"Failed to load image from path: %@", filePath);
+          }
       }
 
     NSDictionary *dict = @{
