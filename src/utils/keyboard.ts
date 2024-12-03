@@ -1,16 +1,15 @@
-import {KeyboardController, KeyboardEvents} from 'react-native-keyboard-controller';
+import {Keyboard} from 'react-native';
 
 let isVisible = false;
 
-KeyboardEvents.addListener('keyboardDidHide', () => {
+Keyboard.addListener('keyboardDidHide', () => {
     isVisible = false;
 });
 
-KeyboardEvents.addListener('keyboardDidShow', () => {
+Keyboard.addListener('keyboardDidShow', () => {
     isVisible = true;
 });
 
-// starting from react-native-keyboard-controller@1.15+ we can use `KeyboardController.dismiss()` directly
 const dismiss = (): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
@@ -19,12 +18,12 @@ const dismiss = (): Promise<void> => {
             return;
         }
 
-        const subscription = KeyboardEvents.addListener('keyboardDidHide', () => {
+        const subscription = Keyboard.addListener('keyboardDidHide', () => {
             resolve(undefined);
             subscription.remove();
         });
 
-        KeyboardController.dismiss();
+        Keyboard.dismiss();
     });
 };
 

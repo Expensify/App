@@ -624,6 +624,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
+
+    /** Called when scrollable content view of the ScrollView changes */
+    onContentSizeChange?: (w: number, h: number) => void;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

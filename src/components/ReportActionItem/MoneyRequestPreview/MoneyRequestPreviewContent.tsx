@@ -465,7 +465,7 @@ function MoneyRequestPreviewContent({
                                                         numberOfLines={1}
                                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {tag}
+                                                        {PolicyUtils.getCleanedTagName(tag)}
                                                     </Text>
                                                 </View>
                                             )}

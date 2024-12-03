@@ -86,6 +86,22 @@ platform :android do
       setGradleOutputsInEnv()
     end
 
+  desc "Generate AdHoc HybridApp apk"
+    lane :build_adhoc_hybrid do
+      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+      gradle(
+        project_dir: '../Android',
+        task: 'assembleAdhoc',
+        properties: {
+            "android.injected.signing.store.file" => './upload-key.keystore',
+            "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
+            "android.injected.signing.key.alias" => ENV["ANDROID_UPLOAD_KEYSTORE_ALIAS"],
+            "android.injected.signing.key.password" => ENV["ANDROID_UPLOAD_KEY_PASSWORD"],
+        }
+      )
+      setGradleOutputsInEnv()
+    end
+
   desc "Generate a new local APK"
   lane :build_local do
     ENV["ENVFILE"]=".env.production"
