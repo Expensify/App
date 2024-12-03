@@ -6,6 +6,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -183,7 +184,14 @@ function signOut() {
         shouldRetry: false,
     };
 
-    API.write(WRITE_COMMANDS.LOG_OUT, params);
+    API.write(
+        WRITE_COMMANDS.LOG_OUT,
+        params,
+        {},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.LOG_OUT),
+        },
+    );
 }
 
 /**
@@ -481,6 +489,15 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
 function signInAfterTransitionFromOldDot(transitionURL: string) {
     const [route, queryParams] = transitionURL.split('?');
 
@@ -528,7 +545,14 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                     [ONYXKEYS.NVP_TRYNEWDOT]: {classicRedirect: {completedHybridAppOnboarding: completedHybridAppOnboarding === 'true'}},
                 }),
             )
-            .then(App.openApp)
+            .then(() => {
+                if (clearOnyxOnStart === 'true') {
+                    return App.openApp();
+                }
+                return getLastUpdateIDAppliedToClient().then((lastUpdateId) => {
+                    return App.reconnectApp(lastUpdateId);
+                });
+            })
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
