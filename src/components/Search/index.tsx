@@ -1,5 +1,4 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -21,9 +20,11 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -49,7 +50,20 @@ const searchHeaderHeight = 54;
 const sortableSearchStatuses: SearchStatus[] = [CONST.SEARCH.STATUS.EXPENSE.ALL];
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
-    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}];
+    return [
+        item.keyForList,
+        {
+            isSelected: true,
+            canDelete: item.canDelete,
+            canHold: item.canHold,
+            isHeld: TransactionUtils.isOnHold(item),
+            canUnhold: item.canUnhold,
+            action: item.action,
+            reportID: item.reportID,
+            policyID: item.policyID,
+            amount: item.modifiedAmount ?? item.amount,
+        },
+    ];
 }
 
 function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
@@ -86,7 +100,20 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         return transactions;
     }
 
-    return {...selectedTransactions, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, canHold: item.canHold, canUnhold: item.canUnhold, action: item.action}};
+    return {
+        ...selectedTransactions,
+        [item.keyForList]: {
+            isSelected: true,
+            canDelete: item.canDelete,
+            canHold: item.canHold,
+            isHeld: TransactionUtils.isOnHold(item),
+            canUnhold: item.canUnhold,
+            action: item.action,
+            reportID: item.reportID,
+            policyID: item.policyID,
+            amount: Math.abs(item.modifiedAmount || item.amount),
+        },
+    };
 }
 
 function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle}: SearchProps) {
@@ -96,7 +123,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
+    const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const isFocused = useIsFocused();
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
@@ -232,9 +259,13 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                 newTransactionList[transaction.transactionID] = {
                     action: transaction.action,
                     canHold: transaction.canHold,
+                    isHeld: TransactionUtils.isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
                     isSelected: selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
+                    reportID: transaction.reportID,
+                    policyID: transaction.policyID,
+                    amount: transaction.modifiedAmount ?? transaction.amount,
                 };
             });
         } else {
@@ -249,9 +280,13 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                     newTransactionList[transaction.transactionID] = {
                         action: transaction.action,
                         canHold: transaction.canHold,
+                        isHeld: TransactionUtils.isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
                         isSelected: selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
+                        reportID: transaction.reportID,
+                        policyID: transaction.policyID,
+                        amount: transaction.modifiedAmount ?? transaction.amount,
                     };
                 });
             });

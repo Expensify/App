@@ -7,12 +7,10 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
-        avatarFileName: unknown;
         chatType: unknown;
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
         isOwnPolicyExpenseChat: unknown;
-        isPolicyExpenseChat: unknown;
         isPinned: unknown;
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
@@ -35,7 +33,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability: unknown;
         type: unknown;
         visibility: unknown;
-        cachedTotal: unknown;
         invoiceReceiver: unknown;
         lastMessageTranslationKey: unknown;
         parentReportID: unknown;
@@ -43,7 +40,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
-        displayName: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
         lastActionType: unknown;
@@ -52,18 +48,14 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         total: unknown;
         unheldTotal: unknown;
         currency: unknown;
-        errors: unknown;
         errorFields: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
-        isHidden: unknown;
         privateNotes: unknown;
-        isLoadingPrivateNotes: unknown;
         pendingChatMembers: unknown;
-        transactionThreadReportID: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {

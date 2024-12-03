@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,6 +22,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import Navigation from '@navigation/Navigation';
@@ -50,7 +50,7 @@ type WorkspacePolicyOnyxProps = {
 
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
@@ -326,7 +326,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     >
                                                         <MenuItem
                                                             key={memberCard.cardID}
-                                                            title={memberCard.nameValuePairs?.cardTitle ?? memberCard?.cardName}
+                                                            title={memberCard.nameValuePairs?.cardTitle ?? CardUtils.maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                             badgeText={
                                                                 memberCard.bank === CONST.EXPENSIFY_CARD.BANK
                                                                     ? CurrencyUtils.convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit)
@@ -335,9 +335,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                             icon={CardUtils.getCardFeedIcon(memberCard.bank as CompanyCardFeed)}
                                                             displayInDefaultIconColor
                                                             iconStyles={styles.cardIcon}
-                                                            contentFit="contain"
-                                                            iconWidth={variables.iconSizeExtraLarge}
-                                                            iconHeight={variables.iconSizeExtraLarge}
+                                                            iconWidth={variables.cardIconWidth}
+                                                            iconHeight={variables.cardIconHeight}
                                                             onPress={() => navigateToDetails(memberCard)}
                                                             shouldRemoveHoverBackground={isCardDeleted}
                                                             disabled={isCardDeleted}

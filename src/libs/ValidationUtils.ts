@@ -49,7 +49,7 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
         return false;
     }
 
@@ -343,7 +343,7 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name: string) {
-    return !name.match(CONST.REGEX.EMOJIS);
+    return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
 function isValidReportName(name: string) {
@@ -529,6 +529,31 @@ function isValidZipCodeInternational(zipCode: string): boolean {
     return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
 }
 
+/**
+ * Validates the given value if it is correct ownership percentage
+ * @param value
+ * @param totalOwnedPercentage
+ * @param ownerBeingModifiedID
+ */
+function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<string, number>, ownerBeingModifiedID: string): boolean {
+    const parsedValue = Number(value);
+    const isValidNumber = !Number.isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 100;
+
+    let totalOwnedPercentageSum = 0;
+    const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
+    totalOwnedPercentageKeys.forEach((key) => {
+        if (key === ownerBeingModifiedID) {
+            return;
+        }
+
+        totalOwnedPercentageSum += totalOwnedPercentage[key];
+    });
+
+    const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
+
+    return isValidNumber && isTotalSumValid;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -576,4 +601,5 @@ export {
     isValidEmail,
     isValidPhoneInternational,
     isValidZipCodeInternational,
+    isValidOwnershipPercentage,
 };

@@ -238,7 +238,7 @@ function PaymentMethodList({
                 if (!CardUtils.isExpensifyCard(card.cardID)) {
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        title: CardUtils.maskCardNumber(card.cardName ?? ''),
+                        title: CardUtils.maskCardNumber(card.cardName ?? '', card.bank),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
@@ -250,8 +250,9 @@ function PaymentMethodList({
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
-                        iconStyles: [styles.assignedCardsIconContainer],
-                        iconSize: variables.iconSizeExtraLarge,
+                        iconStyles: [styles.cardIcon],
+                        iconWidth: variables.cardIconWidth,
+                        iconHeight: variables.cardIconHeight,
                     });
                     return;
                 }
@@ -290,9 +291,9 @@ function PaymentMethodList({
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     icon,
-                    iconStyles: [styles.assignedCardsIconContainer],
-                    iconWidth: variables.bankCardWidth,
-                    iconHeight: variables.bankCardHeight,
+                    iconStyles: [styles.cardIcon],
+                    iconWidth: variables.cardIconWidth,
+                    iconHeight: variables.cardIconHeight,
                 });
             });
             return assignedCardsGrouped;
@@ -364,7 +365,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
             return;
         }
         onPress();
@@ -379,7 +380,6 @@ function PaymentMethodList({
                     text={translate('walletPage.addBankAccount')}
                     large
                     success
-                    isDisabled={!isUserValidated}
                     onPress={onPress}
                 />
             ) : (
@@ -392,7 +392,7 @@ function PaymentMethodList({
                 />
             ),
 
-        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle, isUserValidated],
+        [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
     /**
