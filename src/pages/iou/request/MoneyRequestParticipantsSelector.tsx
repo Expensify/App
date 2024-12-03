@@ -121,17 +121,6 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-// <<<<<<< HEAD
-//         const optionList = OptionsListUtils.getFilteredOptions({
-//             reports: options.reports,
-//             personalDetails: options.personalDetails.concat(contacts),
-//             betas,
-//             selectedOptions: participants as Participant[],
-//             excludeLogins: CONST.EXPENSIFY_EMAILS,
-//             // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-//             // sees the option to submit an expense from their admin on their own Workspace Chat.
-//             includeOwnedWorkspaceChats: (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
-// =======
         const optionList = OptionsListUtils.getOptions(
             {
                 reports: options.reports,
@@ -146,7 +135,6 @@ function MoneyRequestParticipantsSelector({
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
                 includeOwnedWorkspaceChats:
                     (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
-// >>>>>>> 2c78c93d81316ddffc4673c78afd6afe4e2dd18f
 
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -303,20 +291,7 @@ function MoneyRequestParticipantsSelector({
         (option: Participant & OptionsListUtils.Option) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(
-                        option,
-                        'accountID',
-                        'login',
-                        'isPolicyExpenseChat',
-                        'reportID',
-                        'searchText',
-                        'policyID',
-                        'participantsList[0].firstName',
-                        'participantsList[0].lastName',
-                        'participantsList[0].displayName',
-                        'participantsList[0].phoneNumber',
-                        'participantsList[0].avatar',
-                    ),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'text', 'phoneNumber'),
                     selected: true,
                     iouType,
                 },
