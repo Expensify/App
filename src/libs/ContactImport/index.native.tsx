@@ -21,9 +21,9 @@ function contactImport(): Promise<ContactImportResult> {
                     CONST.DEVICE_CONTACT.IMAGE_DATA,
                 ]);
             }
-            return Promise.resolve([] as Contact[]);
+            return [] as Contact[];
         })
-        .then((deviceContacts: Contact[]) => ({
+        .then((deviceContacts) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
             permissionStatus,
         }));
