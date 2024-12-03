@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,14 +40,23 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
 
     /**
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
-     */    
-    const previousSessionAge = useRef<number|undefined>() ;
-    const validSessionAge :number|undefined = useMemo(
-        () => session?.creationDate?(!!previousSessionAge.current?(Math.abs(previousSessionAge.current - session.creationDate)<60000?session.creationDate:previousSessionAge.current):
-        Math.abs(new Date().getTime() - session.creationDate) >= CONST.SESSIONS_MAXIDLE_NB_HOURS*3600000?new Date().getTime():session.creationDate):undefined, [session]
+     */
+    const previousSessionAge = useRef<number | undefined>();
+    const validSessionAge: number | undefined = useMemo(
+        () =>
+            session?.creationDate
+                ? !!previousSessionAge.current
+                    ? Math.abs(previousSessionAge.current - session.creationDate) < 60000
+                        ? session.creationDate
+                        : previousSessionAge.current
+                    : Math.abs(new Date().getTime() - session.creationDate) >= CONST.SESSIONS_MAXIDLE_NB_HOURS * 3600000
+                    ? new Date().getTime()
+                    : session.creationDate
+                : undefined,
+        [session],
     );
     useEffect(() => {
-        previousSessionAge.current = validSessionAge ;
+        previousSessionAge.current = validSessionAge;
     });
 
     /**
@@ -61,16 +70,16 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             }
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
-                if (!!session?.creationDate && ((new Date().getTime() - session.creationDate) < CONST.SESSIONS_MAXIDLE_NB_HOURS*3600000)){ // session valid
+                if (!!session?.creationDate && new Date().getTime() - session.creationDate < CONST.SESSIONS_MAXIDLE_NB_HOURS * 3600000) {
+                    // session valid
                     return {
                         ...propsSource,
                         headers: {
                             [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
                         },
                     };
-                }
-                else {
-                    return (require('@assets/images/loadingspinner.gif')); // loading before session changes
+                } else {
+                    return require('@assets/images/loadingspinner.gif'); // loading before session changes
                 }
             }
         }
