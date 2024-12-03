@@ -59,9 +59,6 @@ type ScreenWrapperProps = {
     /** Whether to include padding top */
     includePaddingTop?: boolean;
 
-    /** Whether we should ignore a fact, that safe area paddings were already applied to the screen. If `true` then padding will be always added even if somewhere in hierarchy above we already added this padding. Could be useful in `Modal`s screens as they live in its own native hierarchy. */
-    ignoreInsetsConsumption?: boolean;
-
     /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
     onEntryTransitionEnd?: () => void;
 
