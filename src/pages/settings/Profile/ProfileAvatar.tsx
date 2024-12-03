@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {AttachmentModalHandle} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,19 +30,28 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail);
 
     useEffect(() => {
-        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
+        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) || !!avatarURL) {
             return;
         }
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID, avatarURL]);
 
+    const attachmenModalRef = React.useRef<AttachmentModalHandle>(null);
+    useEffect(() => {
+        setTimeout(() => {
+            attachmenModalRef.current?.open();
+        }, 200);
+    }, []);
+
     return (
         <AttachmentModal
+            ref={attachmenModalRef}
             headerTitle={displayName}
-            defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                Navigation.goBack();
+                setTimeout(() => {
+                    Navigation.goBack();
+                }, 200);
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
