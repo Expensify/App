@@ -465,7 +465,7 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'No tan rápido',
-        description: 'No estás autorizado para realizar esta acción mientras el soporte está conectado.',
+        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
     },
     connectionComplete: {
         title: 'Conexión completa',
