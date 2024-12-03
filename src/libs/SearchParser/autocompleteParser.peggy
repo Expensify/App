@@ -57,11 +57,14 @@ autocompleteKey "key"
       / "category"
       / "to"
       / "taxRate"
+      / "tax-rate"
       / "from"
       / "expenseType"
+      / "expense-type"
       / "type"
       / "status"
       / "cardID"
+      / "card"
     )
 
 identifier
