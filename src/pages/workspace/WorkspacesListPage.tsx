@@ -17,7 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SupportalActionModal from '@components/SupportalActionModal';
+import SupportalActionModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -462,7 +462,7 @@ function WorkspacesListPage() {
                 danger
             />
             <SupportalActionModal
-                isSupportalActionRestrictedModalOpen={isSupportalActionRestrictedModalOpen}
+                isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
             />
         </ScreenWrapper>
