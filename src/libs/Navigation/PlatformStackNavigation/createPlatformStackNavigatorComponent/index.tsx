@@ -19,7 +19,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
-    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
+    const useCustomState = options?.useCustomState ?? (() => undefined);
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
@@ -74,17 +74,15 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             [originalState, navigation, descriptors],
         );
 
-        const {stateToRender, searchRoute} = useCustomState(customCodeProps);
+        const stateToRender = useCustomState(customCodeProps);
         const state = useMemo(() => stateToRender ?? originalState, [originalState, stateToRender]);
         const customCodePropsWithCustomState = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 ...customCodeProps,
                 state,
-                searchRoute,
             }),
-            [customCodeProps, state, searchRoute],
+            [customCodeProps, state],
         );
-
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState, parentRoute);
 

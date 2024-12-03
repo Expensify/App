@@ -9,9 +9,6 @@ import type {
 } from '.';
 import type {PlatformNavigationBuilderDescriptors, PlatformNavigationBuilderNavigation} from './NavigationBuilder';
 
-// Represents a route in the search context within the navigation state.
-type SearchRoute = PlatformStackNavigationState<ParamListBase>['routes'][number];
-
 // Props that custom code receives when passed to the createPlatformStackNavigatorComponent generator function.
 // Custom logic like "transformState", "onWindowDimensionsChange" and custom components like "NavigationContentWrapper" and "ExtraContent" will receive these props
 type CustomCodeProps<
@@ -24,17 +21,13 @@ type CustomCodeProps<
     navigation: PlatformNavigationBuilderNavigation<EventMap, ParamList, ActionHelpers>;
     descriptors: PlatformNavigationBuilderDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
-    searchRoute?: SearchRoute;
 };
 
 // Props for the custom state hook.
 type CustomStateHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList>;
 
-// Defines a hook function type for transforming the navigation state based on props, and returning the transformed state and search route.
-type CustomStateHook<ParamList extends ParamListBase = ParamListBase> = (props: CustomStateHookProps<ParamList>) => {
-    stateToRender?: PlatformStackNavigationState<ParamList>;
-    searchRoute?: SearchRoute;
-};
+// Defines a hook function type for transforming the navigation state based on props, and returning the transformed state.
+type CustomStateHook<ParamList extends ParamListBase = ParamListBase> = (props: CustomStateHookProps<ParamList>) => PlatformStackNavigationState<ParamList>;
 
 // Props for the custom effects hook.
 type CustomEffectsHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList>;

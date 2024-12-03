@@ -31,7 +31,7 @@ function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
     const centralScreenRoutes = state.routes.slice(1);
     const routesToRender = shouldUseNarrowLayout ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
 
-    return {stateToRender: {...state, routes: routesToRender, index: routesToRender.length - 1}};
+    return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 
 const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
