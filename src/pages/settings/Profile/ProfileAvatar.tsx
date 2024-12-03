@@ -36,16 +36,8 @@ function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadi
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID, avatarURL]);
 
-    // const attachmenModalRef = React.useRef<AttachmentModalHandle>(null);
-    // useEffect(() => {
-    //     InteractionManager.runAfterInteractions(() => {
-    //         attachmenModalRef.current?.open();
-    //     });
-    // }, []);
-
     return (
         <AttachmentModal
-            // ref={attachmenModalRef}
             defaultOpen
             headerTitle={displayName}
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
