@@ -262,25 +262,23 @@ function IOURequestStepScan({
                 Navigation.goBack(backTo);
                 return;
             }
-
-            // If the transaction was created from the global create, the person needs to select participants, so take them there.
+    
             if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
                 navigateToParticipantPage();
                 return;
             }
-
-            // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
-            // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+    
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participantAccountID
+                    ? OptionsListUtils.getParticipantsOption(participant, personalDetails)
+                    : OptionsListUtils.getReportOption(participant);
             });
-
+    
             if (shouldSkipConfirmation) {
-                const receipt: Receipt = file;
-                receipt.source = source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                const receipt: Receipt = { ...file, source, state: CONST.IOU.RECEIPT_STATE.SCANREADY };
+    
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.startSplitBill({
                         participants,
@@ -298,90 +296,47 @@ function IOURequestStepScan({
                     });
                     return;
                 }
+    
+                const gpsHandler = (coords: { latitude: number; longitude: number }) => {
+                    const gpsData = { lat: coords.latitude, long: coords.longitude };
+    
+                    const expenseHandler = (isTrack: boolean) => {
+                        const requestFunc = isTrack ? IOU.trackExpense : IOU.requestMoney;
+                        requestFunc(
+                            report,
+                            0,
+                            transaction?.currency ?? 'USD',
+                            transaction?.created ?? '',
+                            '',
+                            currentUserPersonalDetails.login,
+                            currentUserPersonalDetails.accountID,
+                            participants[0],
+                            '',
+                            receipt,
+                            '',
+                            '',
+                            '',
+                            0,
+                            false,
+                            policy,
+                            {},
+                            {},
+                            gpsData,
+                        );
+                    };
+    
+                    if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                        expenseHandler(true);
+                    } else {
+                        expenseHandler(false);
+                    }
+                };
+    
                 getCurrentPosition(
-                    (successData) => {
-                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                            IOU.trackExpense(
-                                report,
-                                0,
-                                transaction?.currency ?? 'USD',
-                                transaction?.created ?? '',
-                                '',
-                                currentUserPersonalDetails.login,
-                                currentUserPersonalDetails.accountID,
-                                participants[0],
-                                '',
-                                receipt,
-                                '',
-                                '',
-                                '',
-                                0,
-                                false,
-                                policy,
-                                {},
-                                {},
-                                {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                },
-                            );
-                        } else {
-                            IOU.requestMoney(
-                                report,
-                                0,
-                                transaction?.currency ?? 'USD',
-                                transaction?.created ?? '',
-                                '',
-                                currentUserPersonalDetails.login,
-                                currentUserPersonalDetails.accountID,
-                                participants[0],
-                                '',
-                                receipt,
-                                '',
-                                '',
-                                '',
-                                0,
-                                false,
-                                policy,
-                                {},
-                                {},
-                                {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                },
-                            );
-                        }
-                    },
+                    (successData) => gpsHandler(successData.coords),
                     (errorData) => {
-                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                            IOU.trackExpense(
-                                report,
-                                0,
-                                transaction?.currency ?? 'USD',
-                                transaction?.created ?? '',
-                                '',
-                                currentUserPersonalDetails.login,
-                                currentUserPersonalDetails.accountID,
-                                participants[0],
-                                '',
-                                receipt,
-                            );
-                        } else {
-                            IOU.requestMoney(
-                                report,
-                                0,
-                                transaction?.currency ?? 'USD',
-                                transaction?.created ?? '',
-                                '',
-                                currentUserPersonalDetails.login,
-                                currentUserPersonalDetails.accountID,
-                                participants[0],
-                                '',
-                                receipt,
-                            );
-                        }
+                        Log.error('[IOURequestStepScan] getCurrentPosition failed', errorData);
+                        gpsHandler({ latitude: 0, longitude: 0 }); // Fallback without GPS
                     },
                     {
                         maximumAge: CONST.GPS.MAX_AGE,
@@ -390,6 +345,7 @@ function IOURequestStepScan({
                 );
                 return;
             }
+    
             navigateToConfirmationPage();
         },
         [
@@ -409,7 +365,8 @@ function IOURequestStepScan({
             transactionTaxAmount,
         ],
     );
-
+    
+    // Helper for updating and navigating after scanning
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             IOU.replaceReceipt(transactionID, file as File, source);
@@ -417,42 +374,40 @@ function IOURequestStepScan({
         },
         [transactionID, navigateBack],
     );
-
+    
     /**
-     * Sets the Receipt objects and navigates the user to the next page
+     * Validates and processes receipt files before navigation.
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
         validateReceipt(originalFile).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
-
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+    
             if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
                 setPdfFile(originalFile);
                 return;
             }
-
-            // With the image size > 24MB, we use manipulateAsync to resize the image.
-            // It takes a long time so we should display a loading indicator while the resize image progresses.
+    
             if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 setIsLoadingReceipt(true);
             }
+    
             FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
                 setIsLoadingReceipt(false);
-                // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
-
+    
                 if (action === CONST.IOU.ACTION.EDIT) {
                     updateScanAndNavigate(file, source);
                     return;
                 }
+    
                 navigateToConfirmationStep(file, source);
             });
         });
     };
+    
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
