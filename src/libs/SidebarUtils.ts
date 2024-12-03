@@ -467,7 +467,8 @@ function getOptionData({
             result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan');
         } else if (
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
-            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY)
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY)
         ) {
             result.alternateText = ReportUtils.getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
