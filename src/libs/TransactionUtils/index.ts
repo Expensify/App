@@ -1,3 +1,4 @@
+import {parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -467,6 +468,22 @@ function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseR
  */
 function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.taxCode ?? '';
+}
+
+/**
+ * Return the posted date from the transaction.
+ */
+function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
+    return transaction?.posted ?? '';
+}
+
+/**
+ * Return the formated posted date from the transaction.
+ */
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const postedDate = getPostedDate(transaction);
+    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
 }
 
 /**
@@ -1309,6 +1326,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getFormattedPostedDate,
 };
 
 export type {TransactionChanges};
