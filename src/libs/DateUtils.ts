@@ -37,6 +37,7 @@ import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardMap} from '@src/TIMEZONES';
@@ -832,14 +833,21 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
-function getFormattedDurationBetweenDates(start: Date, end: Date): string | undefined {
+function getFormattedDurationBetweenDates(translate: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
         return;
     }
 
-    return `${hours ? `${hours}h ` : ''}${minutes}m`;
+    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
+}
+
+function getFormattedDuration(translate: LocaleContextProps['translate'], durationInSeconds: number): string {
+    const hours = Math.floor(durationInSeconds / 3600);
+    const minutes = Math.floor((durationInSeconds % 3600) / 60);
+
+    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -928,6 +936,7 @@ const DateUtils = {
     getDifferenceInDaysFromNow,
     isValidDateString,
     getFormattedDurationBetweenDates,
+    getFormattedDuration,
 };
 
 export default DateUtils;
