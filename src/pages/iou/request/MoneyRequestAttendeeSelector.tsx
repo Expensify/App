@@ -81,11 +81,16 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             recentAttendees ?? [],
             iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
             !isCategorizeOrShareAction,
-            !isCategorizeOrShareAction,
             iouType === CONST.IOU.TYPE.INVOICE,
             action,
-            isPaidGroupPolicy,
         );
+        if (isPaidGroupPolicy) {
+            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, searchTerm, {
+                preferChatroomsOverThreads: true,
+                preferPolicyExpenseChat: !!action,
+                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            });
+        }
         if (optionList.currentUserOption && !isCurrentUserAttendee) {
             optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];
         }
@@ -103,6 +108,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         isCategorizeOrShareAction,
         isPaidGroupPolicy,
         isCurrentUserAttendee,
+        searchTerm,
     ]);
 
     const chatOptions = useMemo(() => {
