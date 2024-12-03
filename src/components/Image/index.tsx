@@ -52,13 +52,11 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             } else {
                 if (Math.abs(new Date().getTime() - session.creationDate) >= CONST.SESSIONS_MAXIDLE_NB_HOURS * 3600000) {
                     return new Date().getTime();
-                } else {
-                    return session.creationDate;
                 }
+                return session.creationDate;
             }
-        } else {
-            return undefined;
         }
+        return undefined;
     }, [session]);
     useEffect(() => {
         previousSessionAge.current = validSessionAge;
