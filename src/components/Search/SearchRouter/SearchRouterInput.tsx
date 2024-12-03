@@ -137,4 +137,4 @@ function SearchRouterInput(
 
 SearchRouterInput.displayName = 'SearchRouterInput';
 
-export default React.forwardRef(SearchRouterInput);
+export default forwardRef(SearchRouterInput);
