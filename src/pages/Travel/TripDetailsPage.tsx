@@ -10,10 +10,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TripReservationUtils from '@libs/TripReservationUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +30,7 @@ type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TripDetailsPage({route}: TripDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
 
@@ -38,7 +41,9 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const tripID = ReportUtils.getTripIDFromTransactionParentReportID(report?.parentReportID);
     const accountID = Object.keys(report?.participants ?? {}).at(0) ?? '-1';
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (data) => data?.[accountID]});
-    const reservationType = transaction?.receipt?.reservationList?.at(0)?.type;
+    const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
+    const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
 
     return (
         <ScreenWrapper
@@ -55,6 +60,11 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}
                     shouldShowBackButton
+                    icon={reservationIcon}
+                    iconHeight={20}
+                    iconWidth={20}
+                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                    iconFill={theme.icon}
                 />
                 <ScrollView>
                     {reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
