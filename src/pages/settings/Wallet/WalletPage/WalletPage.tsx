@@ -321,9 +321,22 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             }
         }
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
+    // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
+    const isCurrentPaymentMethodDefault = () => {
+        const hasMultiplePaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
+        if (hasMultiplePaymentMethods) {
+            if (paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                return paymentMethod.selectedPaymentMethod.bankAccountID === userWallet?.walletLinkedAccountID;
+            }
+            if (paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+                return paymentMethod.selectedPaymentMethod.fundID === userWallet?.walletLinkedAccountID;
+            }
+        }
+        return true;
+    };
 
     const shouldShowMakeDefaultButton =
-        !paymentMethod.isSelectedPaymentMethodDefault &&
+        !isCurrentPaymentMethodDefault() &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
@@ -406,8 +419,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
                                 {hasWallet && (
                                     <Section
-                                        subtitle={translate(`walletPage.${hasActivatedWallet ? 'walletEnabledToSendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
-                                        title={translate('walletPage.sendAndReceiveMoney')}
+                                        subtitle={translate(`walletPage.sendAndReceiveMoney`)}
+                                        title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
@@ -515,7 +528,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 }
 
                                                                 if (!isUserValidated) {
-                                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                                                                    Navigation.navigate(
+                                                                        ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
+                                                                    );
                                                                     return;
                                                                 }
                                                                 Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);

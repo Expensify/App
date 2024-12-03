@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -55,8 +54,8 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
                 menuItems={companyCardFeatures}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
                 subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
-                ctaText={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
-                ctaAccessibilityLabel={translate('workspace.moreFeatures.companyCards.feed.ctaTitle')}
+                ctaText={translate('workspace.companyCards.addCards')}
+                ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
                 illustrationBackgroundColor={colors.blue700}
                 illustration={Illustrations.CompanyCardsEmptyState}
