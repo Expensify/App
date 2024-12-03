@@ -177,9 +177,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [getDatetimeToRelative, successfulDate]);
 
     useEffect(() => {
-        if (policyID) {
-            getAssignedSupportData(policyID);
+        if (!policyID) {
+            return;
         }
+        getAssignedSupportData(policyID);
     }, [policyID]);
 
     const integrationSpecificMenuItems = useMemo(() => {

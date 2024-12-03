@@ -24,6 +24,7 @@ import type {
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
+    GetAssignedSupportDataParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyEditCardLimitTypePageParams,
@@ -4560,7 +4561,10 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
 }
 
 function getAssignedSupportData(policyID: string) {
-    API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, {policyID});
+    const parameters: GetAssignedSupportDataParams = {
+        policyID,
+    };
+    API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, parameters);
 }
 
 export {
