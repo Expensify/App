@@ -22,7 +22,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing}: Pro
             heading={translate('workspace.upgrade.completed.headline')}
             description={
                 isCategorizing ? (
-                    <Text>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>
+                    translate('workspace.upgrade.completed.categorizeMessage')
                 ) : (
                     <>
                         {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
