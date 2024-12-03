@@ -16,6 +16,7 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionList/type
 import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -277,27 +278,29 @@ function NewChatPage() {
         Report.setGroupDraft({participants: logins});
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     }, [selectedOptions, personalData]);
+    const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT});
 
     const footerContent = useMemo(
-        () => (
-            <>
-                <ReferralProgramCTA
-                    referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                    style={selectedOptions.length ? styles.mb5 : undefined}
-                />
-
-                {!!selectedOptions.length && (
-                    <Button
-                        success
-                        large
-                        text={translate('common.next')}
-                        onPress={createGroup}
-                        pressOnEnter
+        () =>
+            !isDismissed || selectedOptions.length ? (
+                <>
+                    <ReferralProgramCTA
+                        referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                        style={selectedOptions.length ? styles.mb5 : undefined}
                     />
-                )}
-            </>
-        ),
-        [createGroup, selectedOptions.length, styles.mb5, translate],
+
+                    {!!selectedOptions.length && (
+                        <Button
+                            success
+                            large
+                            text={translate('common.next')}
+                            onPress={createGroup}
+                            pressOnEnter
+                        />
+                    )}
+                </>
+            ) : null,
+        [createGroup, selectedOptions.length, styles.mb5, translate, isDismissed],
     );
 
     return (
