@@ -190,12 +190,12 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
 
-    query.flatFilters.forEach((filter) => {
-        filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
-    });
-
     query.flatFilters
-        .map((filter) => buildFilterValuesString(filter.key, filter.filters))
+        .map((filter) => {
+            const filters = cloneDeep(filter.filters);
+            filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+            return buildFilterValuesString(filter.key, filters);
+        })
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
