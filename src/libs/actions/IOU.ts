@@ -2057,7 +2057,7 @@ function getMoneyRequestInformation(moneyRequestInformation: GetMoneyRequestInfo
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = ''} = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {attendees, amount, comment, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+    const {attendees, amount, comment = '', currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
 
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
