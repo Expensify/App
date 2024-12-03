@@ -128,6 +128,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
 
+    /** Whether the header should use the headline header style */
+    shouldUseHeadlineHeader?: boolean;
+
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     iconFill?: string;
 

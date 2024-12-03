@@ -349,6 +349,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.MoneyIntoWallet}
+                        shouldUseHeadlineHeader
                         shouldShowBackButton={shouldUseNarrowLayout}
                         shouldDisplaySearchRouter
                     />
