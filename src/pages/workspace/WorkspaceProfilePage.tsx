@@ -269,7 +269,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             </OfflineWithFeedback>
                         )}
 
-                        {canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
+                        {!!canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
