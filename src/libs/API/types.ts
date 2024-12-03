@@ -949,6 +949,7 @@ const READ_COMMANDS = {
     OPEN_DRAFT_DISTANCE_EXPENSE: 'OpenDraftDistanceExpense',
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
+    GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;

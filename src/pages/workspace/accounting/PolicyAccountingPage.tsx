@@ -29,6 +29,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {getConciergeReportID} from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
@@ -174,6 +175,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
+
+    useEffect(() => {
+        if (policyID) {
+            getAssignedSupportData(policyID);
+        }
+    }, [policyID]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];

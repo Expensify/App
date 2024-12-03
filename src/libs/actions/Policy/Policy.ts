@@ -4559,6 +4559,10 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string) {
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
 }
 
+function getAssignedSupportData(policyID: string) {
+    API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, {policyID});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -4654,6 +4658,7 @@ export {
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
+    getAssignedSupportData,
 };
 
 export type {NewCustomUnit};
