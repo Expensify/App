@@ -3704,9 +3704,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
 
-    const trackReport = navigationRef
-        .getRootState()
-        .routes.find((r) => r.name === SCREENS.REPORT && !!r.params && 'reportID' in r.params && r.params.reportID === linkedTrackedExpenseReportAction?.childReportID);
+    const trackReport = Navigation.getPreviousTrackReport(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
         Navigation.isNavigationReady().then(() => Navigation.removeScreenByKey(trackReport.key));
     }

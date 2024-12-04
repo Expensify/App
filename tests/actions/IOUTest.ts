@@ -33,6 +33,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     removeScreenByKey: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getPreviousTrackReport: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/navigationRef', () => ({
