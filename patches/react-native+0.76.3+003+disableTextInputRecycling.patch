@@ -1,12 +1,11 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index 8c532d8..c337229 100644
+index e74500f..c1d7c24 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -133,6 +133,12 @@ - (NSObject *)accessibilityElement
+@@ -155,6 +155,11 @@ - (NSObject *)accessibilityElement
  
  #pragma mark - RCTComponentViewProtocol
  
-+ 
 ++ (BOOL)shouldBeRecycled
 +{
 +    return NO;

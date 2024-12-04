@@ -57,22 +57,23 @@ index 6798059..3c3288c 100644
        onSelectionChange: true,
        onContentSizeChange: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index 75837e3..9e0affe 100644
+index 75837e3..a5b4a5a 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-@@ -738,6 +738,12 @@ export interface TextInputProps
-   onBlur?:
+@@ -739,6 +739,13 @@ export interface TextInputProps
      | ((e: NativeSyntheticEvent<TextInputFocusEventData>) => void)
      | undefined;
+ 
 +  /**
 +    * Callback that is called when the text input was cleared using the native clear command.
 +    */
 +  onClear?:
 +    | ((e: NativeSyntheticEvent<TextInputChangeEventData>) => void)
 +    | undefined;
- 
++
    /**
     * Callback that is called when the text input's text changes.
+    */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 index 28d9036..367ac6e 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
@@ -118,10 +119,10 @@ index 20749a6..f58f147 100644
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index c337229..9f76624 100644
+index e74500f..cca41cd 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -476,6 +476,19 @@ - (void)blur
+@@ -496,6 +496,19 @@ - (void)blur
    [_backedTextInputView resignFirstResponder];
  }
  
@@ -174,7 +175,7 @@ index fe3376a..f674d98 100644
  #if RCT_DEBUG
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java
 new file mode 100644
-index 0000000..abda6bc
+index 0000000..0c142a0
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextClearEvent.java
 @@ -0,0 +1,53 @@
@@ -231,9 +232,8 @@ index 0000000..abda6bc
 +    return eventData;
 +  }
 +}
-\ No newline at end of file
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
-index c65955f..3f3a622 100644
+index c65955f..a013151 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
 @@ -8,6 +8,7 @@
@@ -254,11 +254,10 @@ index c65955f..3f3a622 100644
              .build());
      return eventTypeConstants;
    }
-@@ -325,6 +329,27 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
-           reactEditText.maybeSetTextFromJS(getReactTextUpdate(text, mostRecentEventCount));
+@@ -326,6 +330,26 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
          }
          reactEditText.maybeSetSelection(mostRecentEventCount, start, end);
-+        break;
+         break;
 +      case "clear":
 +        // Capture the current text
 +        Editable text = reactEditText.getText();
@@ -278,10 +277,10 @@ index c65955f..3f3a622 100644
 +                        reactEditText.incrementAndGetEventCounter()
 +                )
 +        );
-+
-         break;
++        break;
      }
    }
+ 
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
 index 6eb58c1..e43e968 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/ios/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
