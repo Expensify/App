@@ -69,7 +69,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: 0,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
