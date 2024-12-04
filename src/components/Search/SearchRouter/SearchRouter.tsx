@@ -12,11 +12,13 @@ import type {SearchQueryString} from '@components/Search/types';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as InputUtils from '@libs/InputUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -79,6 +81,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -213,8 +216,22 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
           }
         : undefined;
 
+    const shouldScrollRef = useRef(false);
+    const searchRouterInputRef = useRef(null);
+    // Trigger scrollToRight when input value changes and shouldScroll is true
+    useEffect(() => {
+        if (!searchRouterInputRef.current || !shouldScrollRef.current) {
+            return;
+        }
+        InputUtils.scrollToRight(searchRouterInputRef.current);
+        shouldScrollRef.current = false;
+    }, [debouncedInputValue]);
+
     const onSearchQueryChange = useCallback(
-        (userQuery: string) => {
+        (userQuery: string, autoScrollToRight = false) => {
+            if (autoScrollToRight) {
+                shouldScrollRef.current = true;
+            }
             const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
@@ -238,7 +255,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (!queryJSON) {
                 return;
             }
-
+            queryJSON.policyID = activeWorkspaceID;
             onRouterClose();
 
             const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
@@ -248,7 +265,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
     );
 
     const onListItemPress = (item: OptionData | SearchQueryItem) => {
@@ -259,7 +276,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                 const searchQuery = getContextualSearchQuery(item);
-                onSearchQueryChange(`${searchQuery} `);
+                onSearchQueryChange(`${searchQuery} `, true);
 
                 const autocompleteKey = getContextualSearchAutocompleteKey(item);
                 if (autocompleteKey && item.autocompleteID) {
@@ -330,6 +347,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 <>
                     <SearchRouterInput
                         value={textInputValue}
+                        ref={searchRouterInputRef}
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
                         onSubmit={() => {
