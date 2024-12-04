@@ -21,4 +21,4 @@ const useCleanupSelectedOptions = (cleanupFunction?: () => void) => {
     }, [isFocused, cleanupFunction, isRightModalOpening]);
 };
 
-export {useCleanupSelectedOptions};
+export default useCleanupSelectedOptions;
