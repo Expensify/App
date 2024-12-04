@@ -215,6 +215,14 @@ function hasAuthToken(): boolean {
     return !!session.authToken;
 }
 
+/**
+ * Indicates if the session which creation date is in parameter is expired
+ * @param sessionCreationDate the session creation date timestamp
+ */
+function isExpiredSession(sessionCreationDate: number): boolean {
+    return new Date().getTime() - sessionCreationDate >= CONST.SESSIONS_MAXIDLE_TIME_MS;
+}
+
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -1197,6 +1205,7 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     hasAuthToken,
+    isExpiredSession,
     canAnonymousUserAccessRoute,
     signInWithSupportAuthToken,
     isSupportAuthToken,
