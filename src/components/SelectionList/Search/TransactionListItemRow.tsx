@@ -280,6 +280,7 @@ function TransactionListItemRow({
                         onButtonPress={onButtonPress}
                         canSelectMultiple={canSelectMultiple}
                         action={item.action}
+                        isOnHold={isOnHold}
                         isSelected={item.isSelected}
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
