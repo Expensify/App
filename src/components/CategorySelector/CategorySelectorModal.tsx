@@ -42,7 +42,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
                 testID={CategorySelectorModal.displayName}
             >

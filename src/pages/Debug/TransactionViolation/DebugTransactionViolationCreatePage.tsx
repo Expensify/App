@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import Debug from '@userActions/Debug';
@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-type DebugTransactionViolationCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
+type DebugTransactionViolationCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
 
 const getInitialTransactionViolation = () =>
     DebugUtils.stringifyJSON({
@@ -63,7 +63,7 @@ function DebugTransactionViolationCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
+    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
     const editJSON = useCallback(

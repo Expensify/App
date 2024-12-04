@@ -53,7 +53,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
-import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -183,6 +182,7 @@ function ReportActionItem({
         `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
         {selector: (transaction) => transaction?.errorFields?.route ?? null},
     );
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
@@ -417,7 +417,7 @@ function ReportActionItem({
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (ReportActionsUtils.isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded() && shouldRenderAddPaymentCard()) {
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',
@@ -518,7 +518,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, reportID]);
+    }, [action, isActionableWhisper, reportID, userBillingFundID]);
 
     /**
      * Get the content of ReportActionItem

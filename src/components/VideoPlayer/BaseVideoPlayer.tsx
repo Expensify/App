@@ -73,13 +73,13 @@ function BaseVideoPlayer({
     const [isEnded, setIsEnded] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
+    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
+        opacity: controlsOpacity.get(),
     }));
 
     const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
@@ -111,8 +111,8 @@ function BaseVideoPlayer({
         if (isEnded) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
-        controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+
+        controlsOpacity.set(withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
     }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
@@ -149,7 +149,7 @@ function BaseVideoPlayer({
             return;
         }
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-        controlsOpacity.value = 1;
+        controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -206,7 +206,7 @@ function BaseVideoPlayer({
             if (status.didJustFinish) {
                 setIsEnded(status.didJustFinish && !status.isLooping);
                 setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-                controlsOpacity.value = 1;
+                controlsOpacity.set(1);
             } else if (status.isPlaying && isEnded) {
                 setIsEnded(false);
             }

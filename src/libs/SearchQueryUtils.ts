@@ -8,8 +8,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import * as CardUtils from './CardUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
+import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
@@ -163,66 +165,32 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * Given a filter name and its value, this function returns the corresponding ID found in Onyx data.
- * Returns a function that can be used as a computeNodeValue callback for traversing the filters tree
+ * @private
+ * Returns an updated filter value for some query filters.
+ * - for `AMOUNT` it formats value to "backend" amount
+ * - for personal filters it tries to substitute any user emails with accountIDs
  */
-function getFindIDFromDisplayValue(cardList: OnyxTypes.CardList, taxRates: Record<string, string[]>) {
-    return (filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) => {
-        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            if (typeof filter === 'string') {
-                const email = filter;
-                return PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? filter;
-            }
-            const emails = filter;
-            return emails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-        }
-        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const names = Array.isArray(filter) ? filter : ([filter] as string[]);
-            return names.map((name) => taxRates[name] ?? name).flat();
-        }
-        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            if (typeof filter === 'string') {
-                const bank = filter;
-                const ids =
-                    Object.values(cardList)
-                        .filter((card) => card.bank === bank)
-                        .map((card) => card.cardID.toString()) ?? filter;
-                return ids.length > 0 ? ids : bank;
-            }
-            const banks = filter;
-            return banks
-                .map(
-                    (bank) =>
-                        Object.values(cardList)
-                            .filter((card) => card.bank === bank)
-                            .map((card) => card.cardID.toString()) ?? bank,
-                )
-                .flat();
-        }
-        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            return getUpdatedAmountValue(filterName, filter);
+function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        if (typeof filterValue === 'string') {
+            return PersonalDetailsUtils.getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
         }
 
-        return filter;
-    };
-}
-
-/**
- * Returns an updated amount value for query filters, correctly formatted to "backend" amount
- */
-function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) {
-    if (filterName !== CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        return filter;
+        return filterValue.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
     }
 
-    if (typeof filter === 'string') {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
-        return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        if (typeof filterValue === 'string') {
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filterValue));
+            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
+        }
+        return filterValue.map((amount) => {
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+        });
     }
-    return filter.map((amount) => {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
-        return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-    });
+
+    return filterValue;
 }
 
 /**
@@ -235,12 +203,12 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
 
-    query.flatFilters.forEach((filter) => {
-        filter.filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
-    });
-
     query.flatFilters
-        .map((filter) => buildFilterValuesString(filter.key, filter.filters))
+        .map((filter) => {
+            const filters = cloneDeep(filter.filters);
+            filters.sort((a, b) => localeCompare(a.value.toString(), b.value.toString()));
+            return buildFilterValuesString(filter.key, filters);
+        })
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
@@ -311,7 +279,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
     for (const filter of filters) {
         const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        queryParts.push(filterValueString);
+        queryParts.push(filterValueString.trim());
     }
 
     return queryParts.join(' ');
@@ -531,26 +499,29 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * @private
- * Returns the human-readable "pretty" value for a filter.
+ * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getDisplayValue(filterName: string, filter: string, personalDetails: OnyxTypes.PersonalDetailsList, cardList: OnyxTypes.CardList, reports: OnyxCollection<OnyxTypes.Report>) {
+function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return personalDetails?.[filter]?.login || filter;
+        return personalDetails?.[filterValue]?.displayName || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        return cardList[filter]?.bank || filter;
+        const cardID = parseInt(filterValue, 10);
+        if (Number.isNaN(cardID)) {
+            return filterValue;
+        }
+        return CardUtils.getCardDescription(cardID) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filter}`]) || filter;
+        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filter));
-        return Number.isNaN(frontendAmount) ? filter : frontendAmount.toString();
+        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filterValue));
+        return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
-    return filter;
+    return filterValue;
 }
 
 /**
@@ -562,12 +533,11 @@ function getDisplayValue(filterName: string, filter: string, personalDetails: On
 function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
     PersonalDetails: OnyxTypes.PersonalDetailsList,
-    cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
-    TaxRates: Record<string, string[]>,
+    taxRates: Record<string, string[]>,
 ) {
     const {type, status} = queryJSON;
-    const filters = queryJSON.flatFilters ?? {};
+    const filters = queryJSON.flatFilters;
 
     let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
@@ -580,10 +550,10 @@ function buildUserReadableQueryString(
             const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
             const taxRateNames = taxRateIDs
                 .map((id) => {
-                    const taxRate = Object.entries(TaxRates)
+                    const taxRate = Object.entries(taxRates)
                         .filter(([, IDs]) => IDs.includes(id))
                         .map(([name]) => name);
-                    return taxRate?.length > 0 ? taxRate : id;
+                    return taxRate.length > 0 ? taxRate : id;
                 })
                 .flat();
 
@@ -596,7 +566,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getDisplayValue(key, filter.value.toString(), PersonalDetails, cardList, reports),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
             }));
         }
         title += buildFilterValuesString(key, displayQueryFilters);
@@ -668,17 +638,36 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
     return standardQuery;
 }
 
+/**
+ * Returns new string query, after parsing it and traversing to update some filter values.
+ * If there are any personal emails, it will try to substitute them with accountIDs
+ */
+function getQueryWithUpdatedValues(query: string, policyID?: string) {
+    const queryJSON = buildSearchQueryJSON(query);
+
+    if (!queryJSON) {
+        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+        return;
+    }
+
+    if (policyID) {
+        queryJSON.policyID = policyID;
+    }
+
+    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
+    return buildSearchQueryString(standardizedQuery);
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getFilterDisplayValue,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
-    traverseAndUpdatedQuery,
-    getFindIDFromDisplayValue,
-    getUpdatedAmountValue,
     sanitizeSearchValue,
+    getQueryWithUpdatedValues,
 };
