@@ -187,7 +187,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         selector: hasSeenTourSelector,
     });
 
-    const {renderProductTourElement, hideElement, shouldShowProductTrainingElement} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON);
+    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON);
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -437,9 +437,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             },
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            renderTooltipContent: renderProductTourElement,
+            renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
-            onHideTooltip: hideElement,
+            onHideTooltip: hideProductTrainingTooltip,
         };
 
         if (quickAction?.action) {
@@ -451,7 +451,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                    shouldRenderTooltip: shouldShowProductTrainingElement,
+                    shouldRenderTooltip: shouldShowProductTrainingTooltip,
                 },
             ];
         }
@@ -470,7 +470,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
-                    shouldRenderTooltip: shouldShowProductTrainingElement,
+                    shouldRenderTooltip: shouldShowProductTrainingTooltip,
                 },
             ];
         }
@@ -482,14 +482,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
         styles.quickActionTooltipWrapper,
-        renderProductTourElement,
-        hideElement,
+        renderProductTrainingTooltip,
+        hideProductTrainingTooltip,
         quickAction?.action,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
-        shouldShowProductTrainingElement,
+        shouldShowProductTrainingTooltip,
         navigateToQuickAction,
         selectOption,
         isValidReport,

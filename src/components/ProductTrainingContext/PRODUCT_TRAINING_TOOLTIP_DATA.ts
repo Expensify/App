@@ -13,7 +13,7 @@ type ShouldShowConditionProps = {
 const PRODUCT_TRAINING_TOOLTIP_DATA = {
     [CONCEIRGE_LHN_GBR]: {
         content: 'productTrainingTooltip.conciergeLHNGBR',
-        onHideElement: () => dismissProductTrainingElement(CONCEIRGE_LHN_GBR),
+        onHideTooltip: () => dismissProductTrainingElement(CONCEIRGE_LHN_GBR),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
         shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration, shouldUseNarrowLayout}: ShouldShowConditionProps) => {
@@ -30,7 +30,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
     },
     [RENAME_SAVED_SEARCH]: {
         content: 'search.saveSearchTooltipText',
-        onHideElement: () => dismissProductTrainingElement(RENAME_SAVED_SEARCH),
+        onHideTooltip: () => dismissProductTrainingElement(RENAME_SAVED_SEARCH),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration, shouldUseNarrowLayout}: ShouldShowConditionProps) => {
@@ -47,7 +47,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
     },
     [QUICK_ACTION_BUTTON]: {
         content: 'quickAction.tooltip.subtitle',
-        onHideElement: () => dismissProductTrainingElement(QUICK_ACTION_BUTTON),
+        onHideTooltip: () => dismissProductTrainingElement(QUICK_ACTION_BUTTON),
         name: QUICK_ACTION_BUTTON,
         priority: 1200,
         shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) => {
@@ -64,7 +64,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
     },
     [WORKSAPCE_CHAT_CREATE]: {
         content: 'reportActionCompose.tooltip.subtitle',
-        onHideElement: () => dismissProductTrainingElement(WORKSAPCE_CHAT_CREATE),
+        onHideTooltip: () => dismissProductTrainingElement(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,
         priority: 1100,
         shouldShow: ({isDismissed, isOnboardingCompleted, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) => {

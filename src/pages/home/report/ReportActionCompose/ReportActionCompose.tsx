@@ -123,7 +123,7 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
 
-    const {renderProductTourElement, hideElement, shouldShowProductTrainingElement} = useProductTrainingContext(
+    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         shouldShowEducationalTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE : undefined,
     );
 
@@ -389,10 +389,10 @@ function ReportActionCompose({
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
                     <EducationalTooltip
-                        shouldRender={!shouldHideEducationalTooltip && shouldShowProductTrainingElement}
-                        renderTooltipContent={renderProductTourElement}
+                        shouldRender={!shouldHideEducationalTooltip && shouldShowProductTrainingTooltip}
+                        renderTooltipContent={renderProductTrainingTooltip}
                         shouldUseOverlay
-                        onHideTooltip={hideElement}
+                        onHideTooltip={hideProductTrainingTooltip}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

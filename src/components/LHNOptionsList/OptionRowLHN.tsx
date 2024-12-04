@@ -55,7 +55,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
     const tooltipToRender = shouldShowGetStartedTooltip && isScreenFocused ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : undefined;
 
-    const {shouldShowProductTrainingElement, renderProductTourElement, hideElement} = useProductTrainingContext(tooltipToRender);
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender);
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
@@ -152,15 +152,15 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={shouldShowProductTrainingElement}
-                renderTooltipContent={renderProductTourElement}
+                shouldRender={shouldShowProductTrainingTooltip}
+                renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
-                onHideTooltip={hideElement}
+                onHideTooltip={hideProductTrainingTooltip}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
             >
@@ -172,8 +172,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 onPress={(event) => {
                                     Performance.markStart(CONST.TIMING.OPEN_REPORT);
                                     Timing.start(CONST.TIMING.OPEN_REPORT);
-                                    if (shouldShowProductTrainingElement) {
-                                        hideElement();
+                                    if (shouldShowProductTrainingTooltip) {
+                                        hideProductTrainingTooltip();
                                     }
 
                                     event?.preventDefault();

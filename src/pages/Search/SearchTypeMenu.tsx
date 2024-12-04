@@ -63,7 +63,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {shouldShowProductTrainingElement, renderProductTourElement, hideElement} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH);
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -153,7 +153,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingElement,
+                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -161,8 +161,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    onHideTooltip: hideElement,
-                    renderTooltipContent: renderProductTourElement,
+                    onHideTooltip: hideProductTrainingTooltip,
+                    renderTooltipContent: renderProductTrainingTooltip,
                 };
             }
             return baseMenuItem;
@@ -177,9 +177,9 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             personalDetails,
             reports,
             taxRates,
-            shouldShowProductTrainingElement,
-            hideElement,
-            renderProductTourElement,
+            shouldShowProductTrainingTooltip,
+            hideProductTrainingTooltip,
+            renderProductTrainingTooltip,
         ],
     );
 
