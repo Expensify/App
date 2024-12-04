@@ -93,8 +93,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             .then((arrayBuffer) => {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                const formattedSpreadsheetData = data.map((row) => (Array.isArray(row) ? row.map((cell) => (typeof cell === 'string' ? cell : String(cell))) : []));
+                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
 
                 setSpreadsheetData(formattedSpreadsheetData)
                     .then(() => {
