@@ -85,11 +85,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
         );
         if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderReportOptions(optionList.recentReports, searchTerm, {
+            const orderedOptions = OptionsListUtils.orderOptions(optionList, searchTerm, {
                 preferChatroomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             });
+            optionList.recentReports = orderedOptions.recentReports;
+            optionList.personalDetails = orderedOptions.personalDetails;
         }
         if (optionList.currentUserOption && !isCurrentUserAttendee) {
             optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];

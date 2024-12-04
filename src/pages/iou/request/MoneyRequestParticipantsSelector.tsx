@@ -126,15 +126,18 @@ function MoneyRequestParticipantsSelector({
             },
         );
 
-        if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderReportOptions(optionList.recentReports, undefined, {
-                preferChatroomsOverThreads: true,
-                preferPolicyExpenseChat: !!action,
-                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            });
+        if (!isPaidGroupPolicy) {
+            return optionList;
         }
 
-        return optionList;
+        const orderedOptions = OptionsListUtils.orderOptions(optionList, undefined, {
+            sortByReportTypeInSearch: true,
+        });
+
+        return {
+            ...optionList,
+            ...orderedOptions,
+        };
     }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, isPaidGroupPolicy, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
