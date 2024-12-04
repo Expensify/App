@@ -53,7 +53,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     const allReportTransactions = (
         isReportListItemType(item)
             ? Object.entries(data)
-                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value as SearchTransaction)?.reportID === item.reportID)
+                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && (value as SearchTransaction)?.reportID === item.reportID)
                   .map((report) => report[1])
             : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]
     ) as SearchTransaction[];
