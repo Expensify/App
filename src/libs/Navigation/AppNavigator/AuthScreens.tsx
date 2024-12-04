@@ -525,7 +525,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                        options={onboardingModalScreenOptions}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={MigratedUserWelcomeModalNavigator}
                     />
                     <RootStack.Screen

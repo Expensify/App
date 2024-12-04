@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
@@ -40,8 +40,11 @@ type FeatureTrainingModalProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
-    /** Style for the animation container */
-    animationContainerStyle?: StyleProp<ViewStyle>;
+    /** Style for the animation inner container */
+    animationInnerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the animation outer container */
+    animationOuterContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to render the animation instead of the video */
     animationStyle?: StyleProp<ViewStyle>;
@@ -86,12 +89,16 @@ type FeatureTrainingModalProps = {
 
     /** Styles for the content container */
     contentContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the modal inner container */
+    modalInnerContainerStyle?: ViewStyle;
 };
 
 function FeatureTrainingModal({
     animation,
     animationStyle,
-    animationContainerStyle,
+    animationInnerContainerStyle,
+    animationOuterContainerStyle,
     videoURL,
     videoAspectRatio: videoAspectRatioProp,
     title = '',
@@ -106,17 +113,22 @@ function FeatureTrainingModal({
     onHelp = () => {},
     children,
     contentContainerStyles,
+    modalInnerContainerStyle,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => setIsModalVisible(true));
+    }, []);
 
     useEffect(() => {
         if (isVideoStatusLocked) {
@@ -154,7 +166,7 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    animationContainerStyle,
+                    animationInnerContainerStyle,
                     !shouldRenderAnimation && {aspectRatio},
                 ]}
             >
@@ -194,10 +206,10 @@ function FeatureTrainingModal({
         shouldRenderAnimation,
         videoStatus,
         videoURL,
-        animationContainerStyle,
         animationStyle,
         animation,
         shouldUseNarrowLayout,
+        animationInnerContainerStyle,
     ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
@@ -207,8 +219,10 @@ function FeatureTrainingModal({
             User.dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
-        Navigation.goBack();
-        onClose?.();
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack();
+            onClose?.();
+        });
     }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
@@ -236,10 +250,13 @@ function FeatureTrainingModal({
                                   width: 'auto',
                               }
                             : {}),
+                        ...modalInnerContainerStyle,
                     }}
                 >
                     <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationOuterContainerStyle]}>
+                            {renderIllustration()}
+                        </View>
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
                                 <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentContainerStyles]}>
