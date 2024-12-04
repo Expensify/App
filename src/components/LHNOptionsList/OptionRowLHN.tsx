@@ -1,17 +1,17 @@
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useRef, useState } from 'react';
-import type { GestureResponderEvent, ViewStyle } from 'react-native';
-import { StyleSheet, View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
+import type {GestureResponderEvent, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import { useSession } from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import { useProductTrainingContext } from '@components/ProductTrainingContext';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -34,16 +34,16 @@ import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import type { OptionRowLHNProps } from './types';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({ reportID, isFocused = false, onSelectRow = () => { }, optionItem, viewMode = 'default', style, onLayout = () => { }, hasDraftComment }: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const [isScreenFocused, setIsScreenFocused] = useState(false);
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
@@ -53,10 +53,10 @@ function OptionRowLHN({ reportID, isFocused = false, onSelectRow = () => { }, op
     // Guides are assigned for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
-    const tooltipToRender = (shouldShowGetStartedTooltip && isScreenFocused) ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : undefined;
+    const tooltipToRender = shouldShowGetStartedTooltip && isScreenFocused ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : undefined;
 
-    const { shouldShowProductTrainingElement, renderProductTourElement, hideElement } = useProductTrainingContext(tooltipToRender);
-    const { translate } = useLocalize();
+    const {shouldShowProductTrainingElement, renderProductTourElement, hideElement} = useProductTrainingContext(tooltipToRender);
+    const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useFocusEffect(
@@ -125,7 +125,7 @@ function OptionRowLHN({ reportID, isFocused = false, onSelectRow = () => { }, op
             '-1',
             reportID,
             undefined,
-            () => { },
+            () => {},
             () => setIsContextMenuActive(false),
             false,
             false,
