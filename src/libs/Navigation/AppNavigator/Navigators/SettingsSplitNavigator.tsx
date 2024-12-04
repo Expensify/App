@@ -3,7 +3,8 @@ import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
-import {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -47,7 +48,7 @@ function SettingsSplitNavigator() {
                     const options: PlatformStackNavigationOptions = {animation: undefined};
 
                     if (screenName === SCREENS.SETTINGS.WORKSPACES) {
-                        options.animation = 'none';
+                        options.animation = Animations.NONE;
                     }
 
                     return (
