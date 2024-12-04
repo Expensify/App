@@ -420,7 +420,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
-            shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
             <ScrollView
