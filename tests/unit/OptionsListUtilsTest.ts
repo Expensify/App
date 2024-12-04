@@ -413,7 +413,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('orderOptions()', () => {
-        // When we call getOptions() with no search value
+        // When we call getValidOptions() with no search value
         let results: Pick<OptionsListUtils.Options, 'personalDetails' | 'recentReports'> = OptionsListUtils.getValidOptions({
             reports: OPTIONS.reports,
             personalDetails: OPTIONS.personalDetails,
@@ -451,7 +451,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
     });
 
-    it('getOptions()', () => {
+    it('getValidOptions()', () => {
         // When we don't include personal detail to the result
         let results = OptionsListUtils.getValidOptions({
             personalDetails: [],
@@ -512,8 +512,8 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
-    it('getOptions() for group Chat', () => {
-        // When we call getOptions() with no search value
+    it('getValidOptions() for group Chat', () => {
+        // When we call getValidOptions() with no search value
         let results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
         // We should expect all the personalDetails to show except the currently logged in user
@@ -525,15 +525,7 @@ describe('OptionsListUtils', () => {
         const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
         expect(personalDetailsOverlapWithReports).toBe(false);
 
-        // When we limit getOptions()
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
-
-        // Then one of our older report options (not in our five most recent) should appear in the personalDetails
-        // but not in recentReports
-        // expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-        // expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(false);
-
-        // When we provide a "selected" option to getOptions()
+        // When we provide a "selected" option to getValidOptions()
         results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
 
         // Then the option should not appear anywhere in either list
@@ -658,7 +650,7 @@ describe('OptionsListUtils', () => {
         expect(formattedMembers.every((personalDetail) => !personalDetail.isDisabled)).toBe(true);
     });
 
-    describe('filterOptions', () => {
+    describe('filterAndOrderOptions', () => {
         it('should return all options when search is empty', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '');
@@ -862,7 +854,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.length).toBe(0);
         });
 
-        it('should show the option from personal details when searching for personal detail with no existing report (getOptions)', () => {
+        it('should show the option from personal details when searching for personal detail with no existing report', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'hulk');
 
@@ -872,7 +864,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
-        it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone (getOptions)', () => {
+        it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'marc@expensify');
 
@@ -881,7 +873,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
-        it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email (getOptions)', () => {
+        it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'marc@expensify.com');
 
@@ -890,7 +882,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).not.toBe(null);
         });
 
-        it('should return user to invite when search term has a period with options for it that do not contain the period (getOptions)', () => {
+        it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'peter.parker@expensify.com');
 
@@ -898,7 +890,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).not.toBe(null);
         });
 
-        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number (getOptions)', () => {
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '5005550006');
 
@@ -908,7 +900,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
         });
 
-        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added (getOptions)', () => {
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '+15005550006');
 
@@ -918,7 +910,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe('+15005550006');
         });
 
-        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added (getOptions)', () => {
+        it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '+1 (800)324-3233');
 
@@ -928,7 +920,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe('+18003243233');
         });
 
-        it('should not return any options or user to invite if contact number contains alphabet characters (getOptions)', () => {
+        it('should not return any options or user to invite if contact number contains alphabet characters', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '998243aaaa');
 
@@ -937,14 +929,14 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
-        it('should not return any options if search value does not match any personal details (getOptions)', () => {
+        it('should not return any options if search value does not match any personal details', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'magneto');
 
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
-        it('should return one recent report and no personal details if a search value provides an email (getOptions)', () => {
+        it('should return one recent report and no personal details if a search value provides an email', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, 'peterparker@expensify.com', {sortByReportTypeInSearch: true});
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -952,13 +944,13 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.length).toBe(0);
         });
 
-        it('should return all matching reports and personal details (getOptions)', () => {
+        it('should return all matching reports and personal details', () => {
             const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
 
-            expect(filteredOptions.personalDetails.length).toBe(2);
-            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.personalDetails.length).toBe(4);
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
+            expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
             expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Panther');

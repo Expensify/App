@@ -1719,35 +1719,37 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         };
     }
 
-    const filteredOptions = filterOptions(options, searchInputValue, config);
-    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredOptions.recentReports, filteredOptions.personalDetails);
+    const filterResult = filterOptions(options, searchInputValue, config);
+    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
+
+    if (config?.maxRecentReportsToShow) {
+        filteredReports = orderReportOptions(filteredReports, searchInputValue, config);
+        filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
+    }
+
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
 
     // sortByReportTypeInSearch option will show the personal details as part of the recent reports
-    let filteredPersonalDetails: ReportUtils.OptionData[] = personalDetailsWithoutDMs;
-    let filteredRecentReports: ReportUtils.OptionData[] = filteredOptions.recentReports;
     if (sortByReportTypeInSearch) {
-        filteredRecentReports = filteredOptions.recentReports.concat(personalDetailsWithoutDMs);
+        filteredReports = filteredReports.concat(personalDetailsWithoutDMs);
         filteredPersonalDetails = [];
+    } else {
+        filteredPersonalDetails = personalDetailsWithoutDMs;
     }
 
     const orderedOptions = orderOptions(
         {
-            recentReports: filteredRecentReports,
+            recentReports: filteredReports,
             personalDetails: filteredPersonalDetails,
         },
         searchInputValue,
         config,
     );
 
-    let orderedReports = orderedOptions.recentReports;
-    if (config?.maxRecentReportsToShow) {
-        orderedReports = orderedReports.slice(0, config.maxRecentReportsToShow);
-    }
-
     return {
-        ...filteredOptions,
-        recentReports: orderedReports,
-        personalDetails: orderedOptions.personalDetails,
+        ...orderedOptions,
+        userToInvite: filterResult.userToInvite,
+        currentUserOption: filterResult.currentUserOption,
     };
 }
 
