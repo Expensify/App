@@ -3,6 +3,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
 const MASKING_PATTERN = '***';
+const keysToMask = [
+    'plaidLinkToken',
+    'plaidAccessToken',
+    'plaidAccountID',
+    'addressName',
+    'addressCity',
+    'addressStreet',
+    'addressZipCode',
+    'street',
+    'city',
+    'state',
+    'zip',
+    'edits',
+    'lastMessageHtml',
+    'lastMessageText',
+];
 
 const maskSessionDetails = (data: Record<string, unknown>): Record<string, unknown> => {
     const session = data.session as Session;
@@ -40,7 +56,13 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
 
         const value = data[key];
 
-        if (typeof value === 'string' && Str.isValidEmail(value)) {
+        if (keysToMask.includes(key)) {
+            if (Array.isArray(value)) {
+                maskedData[key] = value.map(() => MASKING_PATTERN);
+            } else {
+                maskedData[key] = MASKING_PATTERN;
+            }
+        } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[key] = MASKING_PATTERN;
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (key === 'text' || key === 'html')) {
             maskedData[key] = MASKING_PATTERN;
