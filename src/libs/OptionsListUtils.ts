@@ -921,19 +921,30 @@ function orderPersonalDetailsOptions(options: ReportUtils.OptionData[]) {
 }
 
 /**
- * Report Options need to be sorted in the specific order
+ * Orders report options without grouping them by kind.
+ * Usually used when there is no search value
+ */
+function orderReportOptions(options: ReportUtils.OptionData[]) {
+    return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
+}
+
+/**
+ * Ordering for report options when you have a search value, will order them by kind additionally.
  * @param options - list of options to be sorted
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderReportOptions(
+function orderReportOptionsWithSearch(
     options: ReportUtils.OptionData[],
-    searchValue: string | undefined,
+    searchValue: string,
     {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderOptionsConfig = {},
 ) {
     return lodashOrderBy(
         options,
         [
+            // Archived reports should always be at the bottom:
+            sortComparatorReportOptionByArchivedStatus,
+            // Sorting by kind:
             (option) => {
                 if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
                     return 0;
@@ -951,7 +962,7 @@ function orderReportOptions(
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
-                if (!!option.isChatRoom || option.private_isArchived) {
+                if (option.isChatRoom) {
                     return 3;
                 }
                 if (!option.login) {
@@ -964,27 +975,33 @@ function orderReportOptions(
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
-            (option) => {
-                if (option.private_isArchived) {
-                    return CONST.DATE.UNIX_EPOCH;
-                }
-
-                if (searchValue) {
-                    return [option.isSelfDM ?? false, option?.lastVisibleActionCreated];
-                }
-
-                return option?.lastVisibleActionCreated;
-            },
+            // Within the same kind, sort by the last visible action created date
+            sortComparatorReportOptionByDate,
             // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
             preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
             preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
-        ['asc', 'desc', 'desc', 'desc'],
+        ['asc', 'asc', 'desc', 'desc', 'desc'],
     );
 }
 
+function sortComparatorReportOptionByArchivedStatus(option: ReportUtils.OptionData) {
+    return option.private_isArchived ? 1 : 0;
+}
+
+function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
+    // If there is no date (ie. a personal detail option), the option will be sorted to the bottom
+    // (comparing a dateString > '' returns true, and we are sorting descending, so the dateString will come before '')
+    return options.lastVisibleActionCreated ?? '';
+}
+
 function orderOptions(options: Pick<Options, 'recentReports' | 'personalDetails'>, searchValue?: string, config?: OrderOptionsConfig) {
-    const orderedReportOptions = orderReportOptions(options.recentReports, searchValue, config);
+    let orderedReportOptions: ReportUtils.OptionData[];
+    if (searchValue) {
+        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
+    } else {
+        orderedReportOptions = orderReportOptions(options.recentReports);
+    }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
 
     return {
@@ -1294,6 +1311,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getValidOptions(options, {
         betas,
+        includeRecentReports: true,
         includeMultipleParticipantReports: true,
         showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
@@ -1305,10 +1323,14 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
     });
+    const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    return optionList;
+    return {
+        ...optionList,
+        ...orderedOptions,
+    };
 }
 
 function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
@@ -1715,6 +1737,7 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
 function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
     const {maxRecentReportsToShow = 0, sortByReportTypeInSearch = false} = config;
 
+    // TODO: the fast route can maybe be removed, its quite identical with the rest of the code
     // Fast route: there's no search input value and we're limiting the number of recent reports to show
     if (searchInputValue.trim().length === 0 && maxRecentReportsToShow > 0) {
         const {personalDetails, recentReports} = orderOptions(options, searchInputValue, config);
@@ -1732,7 +1755,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
 
     if (config?.maxRecentReportsToShow) {
-        filteredReports = orderReportOptions(filteredReports, searchInputValue, config);
+        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
         filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
     }
 
@@ -1746,7 +1769,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         filteredPersonalDetails = personalDetailsWithoutDMs;
     }
 
-    const orderedOptions =  orderOptions(
+    const orderedOptions = orderOptions(
         {
             recentReports: filteredReports,
             personalDetails: filteredPersonalDetails,
@@ -1810,6 +1833,7 @@ export {
     filterOptions,
     filteredPersonalDetailsOfRecentReports,
     orderReportOptions,
+    orderReportOptionsWithSearch,
     orderPersonalDetailsOptions,
     orderOptions,
     filterAndOrderOptions,
