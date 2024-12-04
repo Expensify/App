@@ -289,7 +289,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
 
     if (
-        IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, undefined, false, chatReportRNVP, invoiceReceiverPolicy) &&
+        IOU.canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) &&
         !ReportUtils.hasOnlyHeldExpenses(report.reportID, allReportTransactions)
     ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
