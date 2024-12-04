@@ -50,15 +50,9 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const data = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data ?? {}) as SearchResults['data'];
-    const allReportTransactions = (
-        isReportListItemType(item)
-            ? Object.entries(data)
-                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && (value as SearchTransaction)?.reportID === item.reportID)
-                  .map((report) => report[1])
-            : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]
-    ) as SearchTransaction[];
-
+    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]) as SearchTransaction[];
     const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
+
     if (hasHeldExpense) {
         goToItem();
         return;
