@@ -41,7 +41,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -55,7 +55,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(card?.availableSpend);
     const formattedLimit = CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit);
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder));
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const translationForLimitType = CardUtils.getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
     const fetchCardDetails = useCallback(() => {

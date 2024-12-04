@@ -46,7 +46,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -59,7 +59,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? -1];
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(cardholder));
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const unassignCard = () => {
