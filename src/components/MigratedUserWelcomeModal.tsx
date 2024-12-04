@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Welcome from '@libs/actions/Welcome';
@@ -29,7 +28,6 @@ const ExpensifyFeatures: FeatureListItem[] = [
 
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -44,12 +42,12 @@ function OnboardingWelcomeVideo() {
             }}
             shouldRenderAnimation
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
-            animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), shouldUseNarrowLayout && styles.cardSectionIllustration]}
+            animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
             animationOuterContainerStyle={styles.p0}
-            contentContainerStyles={styles.mb4}
+            contentContainerStyles={[styles.mb5, styles.gap2]}
             modalInnerContainerStyle={styles.pt0}
         >
-            <View style={[styles.rowGap4, styles.pt4, styles.pl1]}>
+            <View style={[styles.gap3, styles.pt1, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}
