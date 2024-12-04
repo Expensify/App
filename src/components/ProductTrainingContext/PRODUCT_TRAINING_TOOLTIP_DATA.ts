@@ -29,7 +29,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         },
     },
     [RENAME_SAVED_SEARCH]: {
-        content: 'search.saveSearchTooltipText',
+        content: 'productTrainingTooltip.saveSearchTooltipText',
         onHideTooltip: () => dismissProductTrainingElement(RENAME_SAVED_SEARCH),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
@@ -46,7 +46,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         },
     },
     [QUICK_ACTION_BUTTON]: {
-        content: 'quickAction.tooltip.subtitle',
+        content: 'productTrainingTooltip.quickActionButton',
         onHideTooltip: () => dismissProductTrainingElement(QUICK_ACTION_BUTTON),
         name: QUICK_ACTION_BUTTON,
         priority: 1200,
@@ -63,7 +63,7 @@ const PRODUCT_TRAINING_TOOLTIP_DATA = {
         },
     },
     [WORKSAPCE_CHAT_CREATE]: {
-        content: 'reportActionCompose.tooltip.subtitle',
+        content: 'productTrainingTooltip.workspaceChatCreate',
         onHideTooltip: () => dismissProductTrainingElement(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,
         priority: 1100,

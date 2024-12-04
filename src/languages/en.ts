@@ -645,10 +645,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -834,10 +830,6 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -4542,7 +4534,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5439,6 +5430,9 @@ const translations = {
     },
     productTrainingTooltip: {
         conciergeLHNGBR: 'Get started <strong>here!</strong>',
+        saveSearchTooltipText: 'You can <strong>rename your saved search</strong> here!',
+        quickActionButton: '<strong>Quick action!</strong> Just a tap away',
+        workspaceChatCreate: '<strong>Get started!</strong> Submit your expenses here!',
     },
 };
 
