@@ -59,6 +59,9 @@ describe('actions/Report', () => {
             setImmediate(jest.runOnlyPendingTimers);
         }
 
+        // Clear the queue before each test to avoid test pollution
+        SequentialQueue.resetQueue();
+
         return promise;
     });
 
