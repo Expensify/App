@@ -3,7 +3,7 @@ import * as autocompleteParser from '@libs/SearchParser/autocompleteParser';
 
 const tests = [
     {
-        query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportID:123456789 word',
+        query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportid:123456789 word',
         expected: {
             autocomplete: null,
             ranges: [],
@@ -131,12 +131,12 @@ const tests = [
         },
     },
     {
-        query: 'in:"Big Room" from:Friend category:Car,"Cell Phone" status:all expenseType:card,cash',
+        query: 'in:"Big Room" from:Friend category:Car,"Cell Phone" status:all expense-type:card,cash',
         expected: {
             autocomplete: {
                 key: 'expenseType',
                 value: 'cash',
-                start: 80,
+                start: 81,
                 length: 4,
             },
             ranges: [
@@ -145,28 +145,28 @@ const tests = [
                 {key: 'category', value: 'Car', start: 35, length: 3},
                 {key: 'category', value: 'Cell Phone', start: 39, length: 12},
                 {key: 'status', value: 'all', start: 59, length: 3},
-                {key: 'expenseType', value: 'card', start: 75, length: 4},
-                {key: 'expenseType', value: 'cash', start: 80, length: 4},
+                {key: 'expenseType', value: 'card', start: 76, length: 4},
+                {key: 'expenseType', value: 'cash', start: 81, length: 4},
             ],
         },
     },
     {
-        query: 'currency:PLN,USD keyword taxRate:tax  merchant:"Expensify, Inc." tag:"General Overhead",IT expenseType:card,distance',
+        query: 'currency:PLN,USD keyword tax-rate:tax  merchant:"Expensify, Inc." tag:"General Overhead",IT expense-type:card,distance',
         expected: {
             autocomplete: {
                 key: 'expenseType',
                 value: 'distance',
-                start: 108,
+                start: 110,
                 length: 8,
             },
             ranges: [
                 {key: 'currency', value: 'PLN', start: 9, length: 3},
                 {key: 'currency', value: 'USD', start: 13, length: 3},
-                {key: 'taxRate', value: 'tax', start: 33, length: 3},
-                {key: 'tag', value: 'General Overhead', start: 69, length: 18},
-                {key: 'tag', value: 'IT', start: 88, length: 2},
-                {key: 'expenseType', value: 'card', start: 103, length: 4},
-                {key: 'expenseType', value: 'distance', start: 108, length: 8},
+                {key: 'taxRate', value: 'tax', start: 34, length: 3},
+                {key: 'tag', value: 'General Overhead', start: 70, length: 18},
+                {key: 'tag', value: 'IT', start: 89, length: 2},
+                {key: 'expenseType', value: 'card', start: 105, length: 4},
+                {key: 'expenseType', value: 'distance', start: 110, length: 8},
             ],
         },
     },
