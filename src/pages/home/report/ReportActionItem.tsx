@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -9,6 +10,7 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
@@ -51,7 +53,6 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             draftMessage={draftMessage}
             iouReport={iouReport}
             emojiReactions={emojiReactions}
-            userWallet={userWallet}
             linkedTransactionRouteError={linkedTransactionRouteError}
             reportNameValuePairs={reportNameValuePairs}
             isUserValidated={isUserValidated}
@@ -66,11 +67,14 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             createDraftTransactionAndNavigateToParticipantSelector={ReportUtils.createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={Report.resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={Report.resolveActionableMentionWhisper}
-            isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses}
+            isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport)}
             isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
-            getReimbursementDeQueuedActionMessage={ReportUtils.getReimbursementDeQueuedActionMessage}
-            getForReportAction={ModifiedExpenseMessage.getForReportAction}
+            reimbursementDeQueuedActionMessage={ReportUtils.getReimbursementDeQueuedActionMessage(
+                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
+                report,
+            )}
+            forReportAction={ModifiedExpenseMessage.getForReportAction(reportID, action)}
             getTransactionsWithReceipts={ReportUtils.getTransactionsWithReceipts}
             clearError={Transaction.clearError}
             clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}

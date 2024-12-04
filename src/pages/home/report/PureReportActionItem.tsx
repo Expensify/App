@@ -208,20 +208,16 @@ type PureReportActionItemProps = {
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
-    isClosedExpenseReportWithNoExpenses?: (report: OnyxEntry<OnyxTypes.Report>) => boolean;
+    isClosedExpenseReportWithNoExpenses?: boolean;
 
     /** What missing payment method does this report action indicate, if any? */
     missingPaymentMethod?: MissingPaymentMethod | undefined;
 
     /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` action */
-    getReimbursementDeQueuedActionMessage?: (
-        reportAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
-        reportOrID: OnyxEntry<OnyxTypes.Report> | string,
-        isLHNPreview?: boolean,
-    ) => string;
+    reimbursementDeQueuedActionMessage?: string;
 
-    /** Get the report action message when expense has been modified. */
-    getForReportAction?: (reportID: string | undefined, reportAction: OnyxEntry<OnyxTypes.ReportAction>) => string;
+    /** The report action message when expense has been modified. */
+    forReportAction?: string;
 
     /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
@@ -277,11 +273,11 @@ function PureReportActionItem({
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
-    isClosedExpenseReportWithNoExpenses = () => false,
+    isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant = () => false,
     missingPaymentMethod,
-    getReimbursementDeQueuedActionMessage = () => '',
-    getForReportAction = () => '',
+    reimbursementDeQueuedActionMessage = '',
+    forReportAction = '',
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
@@ -677,7 +673,7 @@ function PureReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = isClosedExpenseReportWithNoExpenses(iouReport) ? (
+            children = isClosedExpenseReportWithNoExpenses ? (
                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
             ) : (
                 <ReportPreview
@@ -756,9 +752,9 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (ReportActionsUtils.isReimbursementDeQueuedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getReimbursementDeQueuedActionMessage(action, report)} />;
+            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={getForReportAction(reportID, action)} />;
+            children = <ReportActionItemBasicMessage message={forReportAction} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
