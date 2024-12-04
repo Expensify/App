@@ -664,17 +664,17 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {sortByReportTypeInSearch: true});
 
-            // When sortByReportTypeInSearch is true, we expect all options to be part of the recentReports list:
+            // When sortByReportTypeInSearch is true, we expect all options to be part of the recentReports list and reports should be first:
             expect(filteredOptions.personalDetails.length).toBe(0);
 
             // Expect to only find reports that matched our search text:
             expect(filteredOptions.recentReports.length).toBe(4);
 
             // This items should be ordered by most recent action (and other criteria such as whether they are archived):
-            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man');
-            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow');
-            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman');
+            expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman'); // '2022-11-22 03:26:02.019'
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man'); // '2022-11-22 03:26:02.016'
+            expect(filteredOptions.recentReports.at(2)?.text).toBe('Black Widow'); // This is a personal detail, which has no lastVisibleActionCreated, but matches the login
+            expect(filteredOptions.recentReports.at(3)?.text).toBe('Mister Fantastic, Invisible Woman'); // This again is a report with '2022-11-22 03:26:02.015'
         });
 
         it('should filter users by email', () => {

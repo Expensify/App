@@ -968,7 +968,12 @@ function orderReportOptions(
                 if (option.private_isArchived) {
                     return CONST.DATE.UNIX_EPOCH;
                 }
-                return option?.lastVisibleActionCreated ?? '';
+
+                if (searchValue) {
+                    return [option.isSelfDM ?? false, option?.lastVisibleActionCreated];
+                }
+
+                return option?.lastVisibleActionCreated;
             },
             // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
             preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
@@ -1741,7 +1746,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         filteredPersonalDetails = personalDetailsWithoutDMs;
     }
 
-    const orderedOptions = orderOptions(
+    const orderedOptions =  orderOptions(
         {
             recentReports: filteredReports,
             personalDetails: filteredPersonalDetails,
