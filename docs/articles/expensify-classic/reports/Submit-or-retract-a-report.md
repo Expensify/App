@@ -43,13 +43,15 @@ Depending on your workspace settings, your reports may be automatically submitte
 
 # Submit a report via guided review (Desktop Only)
 
-{% include info.html %}
+{% include selector.html values="desktop" %}
+
+{% include option.html value="desktop" %}
 1. Click the **Reports** tab on the Expensify website.
 2. Click a report to open it.
 3. Click the **Review** button at top of the report.
 4. Follow guided review to check each expense. If the expense looks ready to submit, click **Submit**.
 5. Once you've clicked Submit on all expenses on the report, the report will be submitted.
-{% include end-info.html %}
+{% include end-option.html %}
 
 # Retract a report
 
