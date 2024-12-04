@@ -10,6 +10,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -109,77 +110,78 @@ function WorkspaceConfirmationPage() {
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-
-            <View style={[styles.ph5, styles.pv3]}>
-                <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
-            </View>
-            <AvatarWithImagePicker
-                isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                // eslint-disable-next-line react-compiler/react-compiler
-                avatarID={policyID}
-                source={stashedLocalAvatarImage}
-                onImageSelected={(image) => {
-                    setAvatarFile(image);
-                    setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
-                }}
-                onImageRemoved={() => {
-                    setAvatarFile(undefined);
-                    setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
-                }}
-                size={CONST.AVATAR_SIZE.XLARGE}
-                avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                shouldDisableViewPhoto
-                editIcon={Expensicons.Camera}
-                editIconStyle={styles.smallEditIconAccount}
-                shouldUseStyleUtilityForAnchorPosition
-                type={CONST.ICON_TYPE_WORKSPACE}
-                style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
-                DefaultAvatar={DefaultAvatar}
-                editorMaskImage={Expensicons.ImageCropSquareMask}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
-                submitButtonText={translate('common.confirm')}
-                style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
-                validate={validate}
-                onSubmit={(val) => {
-                    App.createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
-                }}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('workspace.common.workspaceName')}
-                        accessibilityLabel={translate('workspace.common.workspaceName')}
-                        spellCheck={false}
-                        autoFocus
-                        defaultValue={defaultWorkspaceName}
-                        onChangeText={(str) => {
-                            if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                return;
-                            }
-                            setWorkspaceNameFirstCharacter(str);
-                        }}
-                    />
-
-                    <View style={[styles.mhn5, styles.mt4]}>
+            <ScrollView>
+                <View style={[styles.ph5, styles.pv3]}>
+                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
+                </View>
+                <AvatarWithImagePicker
+                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    avatarID={policyID}
+                    source={stashedLocalAvatarImage}
+                    onImageSelected={(image) => {
+                        setAvatarFile(image);
+                        setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                    }}
+                    onImageRemoved={() => {
+                        setAvatarFile(undefined);
+                        setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                    }}
+                    size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    shouldDisableViewPhoto
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    shouldUseStyleUtilityForAnchorPosition
+                    type={CONST.ICON_TYPE_WORKSPACE}
+                    style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
+                    DefaultAvatar={DefaultAvatar}
+                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
+                    submitButtonText={translate('common.confirm')}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    scrollContextEnabled
+                    validate={validate}
+                    onSubmit={(val) => {
+                        App.createWorkspaceWithPolicyDraftAndNavigateToIt('', val[INPUT_IDS.NAME], false, false, '', policyID, currencyCode, avatarFile as File);
+                    }}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
                         <InputWrapper
-                            InputComponent={CurrencyPicker}
-                            value={`${currencyCode} - ${currency?.symbol}`}
-                            inputID={INPUT_IDS.CURRENCY}
-                            label={translate('workspace.editor.currencyInputLabel')}
-                            selectedCurrency={currency?.symbol}
-                            onValueChange={(val) => {
-                                setCurrencyCode(val as string);
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            label={translate('workspace.common.workspaceName')}
+                            accessibilityLabel={translate('workspace.common.workspaceName')}
+                            spellCheck={false}
+                            autoFocus
+                            defaultValue={defaultWorkspaceName}
+                            onChangeText={(str) => {
+                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                    return;
+                                }
+                                setWorkspaceNameFirstCharacter(str);
                             }}
                         />
+
+                        <View style={[styles.mhn5, styles.mt4]}>
+                            <InputWrapper
+                                InputComponent={CurrencyPicker}
+                                value={`${currencyCode} - ${currency?.symbol}`}
+                                inputID={INPUT_IDS.CURRENCY}
+                                label={translate('workspace.editor.currencyInputLabel')}
+                                selectedCurrency={currency?.symbol}
+                                onValueChange={(val) => {
+                                    setCurrencyCode(val as string);
+                                }}
+                            />
+                        </View>
                     </View>
-                </View>
-            </FormProvider>
+                </FormProvider>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
