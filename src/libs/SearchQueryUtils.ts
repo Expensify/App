@@ -443,20 +443,12 @@ function buildFilterFormValuesFromQuery(
                 })
                 .join(' ');
         }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
-        ) {
-            filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`] =
-                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ??
-                filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
-            filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`] =
-                filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ??
-                filtersForm[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
+        if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
+            const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+            const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+            filtersForm[beforeKey] =
+                filterList.find((filter) => filter.operator === 'lt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[beforeKey];
+            filtersForm[afterKey] = filterList.find((filter) => filter.operator === 'gt' && ValidationUtils.isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[afterKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount

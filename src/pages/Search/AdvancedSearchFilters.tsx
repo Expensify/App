@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchFilterKey} from '@components/Search/types';
+import type {SearchFilterKey, SearchDateFilterKeys} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -31,6 +31,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 
 const baseFilterConfig = {
     date: {
@@ -247,17 +248,12 @@ const sortOptionsWithEmptyValue = (a: string, b: string) => {
 };
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
-    if (
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
-    ) {
+    if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         // the value of date filter is a combination of dateBefore + dateAfter values
-        const dateBefore = filters[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
-        const dateAfter = filters[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
+        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+        const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+        const dateBefore = filters[keyBefore];
+        const dateAfter = filters[keyAfter];
         let dateValue = '';
         if (dateBefore) {
             dateValue = translate('search.filters.date.before', {date: dateBefore});
@@ -272,7 +268,9 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return dateValue;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
@@ -290,32 +288,32 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[filterKey]) {
-        const filterArray = filters[filterKey] ?? [];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[nonDateFilterKey]) {
+        const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray.sort(localeCompare).join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[filterKey]) {
-        const filterArray = filters[filterKey] ?? [];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && filters[nonDateFilterKey]) {
+        const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
             .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noCategory') : value))
             .join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[filterKey]) {
-        const filterArray = filters[filterKey] ?? [];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && filters[nonDateFilterKey]) {
+        const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
             .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
             .join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
-        return filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        return filters[nonDateFilterKey];
     }
 
-    const filterValue = filters[filterKey];
+    const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 

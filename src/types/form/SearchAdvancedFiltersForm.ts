@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
+import type {SearchDateFilterKeys} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type Form from './Form';
 
-const DATE_FILTER_KEYS = [
+const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
