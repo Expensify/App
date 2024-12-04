@@ -293,7 +293,7 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(1);
         });
 
-        it('should display the unread report in the focuse mode with the bold text', async () => {
+        it('should display the unread report in the focus mode with the bold text', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
