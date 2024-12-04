@@ -9,7 +9,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchFilterKey, SearchDateFilterKeys} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -28,10 +28,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 
 const baseFilterConfig = {
     date: {
