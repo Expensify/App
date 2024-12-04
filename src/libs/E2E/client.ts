@@ -25,7 +25,7 @@ const defaultRequestInit: RequestInit = {
 
 const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> => {
     // Don't process these specific API commands because running them over and over again in the tests hammers the server in a bad way.
-    if (url.indexOf('command=OptInToPushNotifications') > -1 || url.indexOf('command=OptOutOfPushNotifications') > -1) {
+    if (url.includes('command=OptInToPushNotifications') || url.includes('command=OptOutOfPushNotifications')) {
         return Promise.resolve(new Response());
     }
 
