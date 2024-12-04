@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useCleanupSelectedOptions} from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -51,7 +52,7 @@ function WorkspaceTaxesPage({
         params: {policyID},
     },
 }: WorkspaceTaxesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -86,12 +87,8 @@ function WorkspaceTaxesPage({
         }, [fetchTaxes]),
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedTaxesIDs([]);
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {
@@ -190,6 +187,10 @@ function WorkspaceTaxesPage({
 
     const navigateToEditTaxRate = (taxRate: ListItem) => {
         if (!taxRate.keyForList) {
+            return;
+        }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTax(taxRate);
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));

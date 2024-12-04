@@ -22,6 +22,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useCleanupSelectedOptions} from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -87,12 +88,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useFocusEffect(fetchTags);
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedTags({});
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
         if (!policyTagList) {
@@ -176,6 +173,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
         if (tag.orderWeight !== undefined) {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
