@@ -326,7 +326,7 @@ function PopoverMenu({
         // by external updates.
         setFocusedIndex(getSelectedItemIndex(menuItems));
 
-        // eslint-disable-next-line react-compiler/react-compiler react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
     return (
