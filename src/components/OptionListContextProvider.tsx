@@ -49,7 +49,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     });
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const prevPersonalDetails = usePrevious(personalDetails);
 
     /**
