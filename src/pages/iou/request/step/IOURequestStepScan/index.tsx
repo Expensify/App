@@ -717,8 +717,8 @@ function IOURequestStepScan({
                     <Icon
                         height={32}
                         width={32}
-                        src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
+                        src={isFlashLightOn ? Expensicons.boltSlash : Expensicons.Bolt}
+                        fill={theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>
