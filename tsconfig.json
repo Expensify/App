@@ -43,7 +43,8 @@
         "modules/index.ts",
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx",
-        "modules/ContactsNitroModule/**/*"
+        "modules/ContactsNitroModule/lib/**/*",
+        "modules/ContactsNitroModule/lib/*.d.ts"
     ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }
