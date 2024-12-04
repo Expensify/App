@@ -12,37 +12,36 @@ Your Expensify bill is determined by:
 - Whether you’re on pay-per-use or an annual subscription
 - Whether you’re using the Expensify Visa® Commercial Card
 
-An active member is anyone who chats, creates, submits, approves, reimburses, or exports a report in Expensify in any given month. This includes Copilots and automatic actions by Concierge.
+An active member is anyone who creates, submits, approves, reimburses, or exports a report in Expensify in any given month. This includes Copilots and automatic actions by Concierge.
 
-## Collect vs Control plan
+Your billing receipts can be viewed under **Settings** > **Account** > **Payments** > **Billing History**. We recommend appointing a single billing owner for each Group Workspace.
 
-Control plan coming soon, comparison to follow.
+# Save Money on Your Plan
 
-## Pay-per-use vs annual subscription
+## The Expensify Visa® Commercial Card Savings
+
+Save the most money on your Expensify plan by pairing the Expensify Visa® Commercial Card with an annual subscription when the card is used for at least 50% of settled U.S. spend for the month.
+
+- **Collect Plan:** $5 per active member per month 
+- **Control Plan:** $9 per active member per month
+
+**You also get cash back!** Earn 1% cash back on all Expensify Card purchases or 2% if card spending reaches $250,000 or more monthly (for U.S. purchases only). Cash back first applies to your Expensify bill, with any remainder deposited directly into your bank account.
+
+Use Expensify’s [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to see your potential savings with the Expensify Card. 
+
+## Annual Subscription vs Pay-per-use
+
+**Annual Subscription Discount**
+
+You get a 50% discount with an annual subscription:
+
+- Collect Plan: $10 per active member per month 
+- Control Plan: $18 per active member per month
+  
+If your active members exceed your subscription size, additional members are billed at the pay-per-use rate for that month. You can increase your subscription size at any time (extending your annual term) but can only reduce it once your current subscription period ends.
 
 **Pay-per-use**
 
-With the pay-per-use rate, you pay the full rate per active member. 
+Rates for pay-per-use plans are applied at full price:
 - **Collect plan:** $20 per active member
 - **Control plan:** $36 per active member
-
-**Annual**
-
-With the annual rate, you set your monthly active member count at the beginning of your subscription and get 50% off your monthly active member cost. 
-- **Collect plan:** $10 per active member
-- **Control plan:** $18 per active member
-
-If you have any additional active members above the number included in your set member count, they will be billed at the pay-per-use rate. You can also choose to increase your annual subscription size, which will extend your annual subscription length. However, you cannot reduce your annual subscription size until your current subscription has ended. For questions, contact Concierge or your account manager.
-
-## The Expensify Card
-
-Bundling the Expensify Card with an annual subscription provides you with the lowest monthly price for Expensify. And the more you spend with the Expensify Cards, the lower your bill will be.
-
-If at least 50% of your approved USD spend in a given month is on your company’s Expensify Cards, you will receive an additional 50% discount on the price per active member when paired with the annual subscription. 
-- **Collect plan:** $5 per active member
-- **Control plan:** $9 per active member
-
-Additionally, you receive cash back every month that is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account. 
-- 1% cash back on all Expensify Card purchases
-- 2% cash back if the amount spent across your Expensify Cards is $250k or more (for U.S. purchases only)
-
