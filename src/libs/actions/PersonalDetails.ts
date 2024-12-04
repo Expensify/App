@@ -121,20 +121,35 @@ function updateDisplayName(firstName: string, lastName: string) {
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-
-    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    legalFirstName,
-                    legalLastName,
-                },
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                legalFirstName,
+                legalLastName,
             },
-        ],
+        },
+    ];
+    if (!allPersonalDetails?.[currentUserAccountID]?.firstName && !allPersonalDetails?.[currentUserAccountID]?.lastName) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                        firstName: legalFirstName,
+                        lastName: legalLastName,
+                    }),
+                },
+                firstName: legalFirstName,
+                lastName: legalLastName,
+            },
+        });
+    }
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
+        optimisticData,
     });
-
     Navigation.goBack();
 }
 
