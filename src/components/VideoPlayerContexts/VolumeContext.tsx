@@ -9,26 +9,20 @@ const Context = React.createContext<VolumeContext | null>(null);
 function VolumeContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
+    // We need this field to remember the last value before clicking mute
     const lastNonZeroVolume = useSharedValue(1);
 
     const updateVolume = useCallback(
-        (newVolume: number | ((actualValue: number) => number)) => {
+        (newVolume: number) => {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
-            const volumeValue = typeof newVolume === 'function' ? newVolume(volume.get()) : newVolume;
-
             currentVideoPlayerRef.current.setStatusAsync({
-                volume: volumeValue,
-                isMuted: volumeValue === 0,
+                volume: newVolume,
+                isMuted: newVolume === 0,
             });
 
-            volume.set((value: number) => {
-                if (value !== 0) {
-                    lastNonZeroVolume.set(value);
-                }
-                return volumeValue;
-            });
+            volume.set(newVolume);
         },
         [currentVideoPlayerRef, volume],
     );

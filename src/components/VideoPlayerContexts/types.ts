@@ -23,7 +23,7 @@ type PlaybackContext = {
 };
 
 type VolumeContext = {
-    updateVolume: (newVolume: number | ((value: number) => number)) => void;
+    updateVolume: (newVolume: number) => void;
     volume: SharedValue<number>;
     lastNonZeroVolume: SharedValue<number>;
 };

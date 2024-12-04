@@ -73,6 +73,13 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
         runOnJS(updateIcon)(volume.get());
     }, [volume]);
 
+    const toggleMute = () => {
+        if (volume.get() !== 0) {
+            lastNonZeroVolume.set(volume.get());
+        }
+        updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
+    };
+
     return (
         <Hoverable>
             {(isHovered) => (
@@ -95,11 +102,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
 
                     <IconButton
                         tooltipText={volume.get() === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
-                        onPress={() =>
-                            updateVolume((value) => {
-                                return value === 0 ? lastNonZeroVolume.get() : 0;
-                            })
-                        }
+                        onPress={toggleMute}
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow
