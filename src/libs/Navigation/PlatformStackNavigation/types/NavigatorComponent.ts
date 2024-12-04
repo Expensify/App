@@ -1,4 +1,4 @@
-import type {EventMapBase, ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {EventMapBase, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
@@ -21,6 +21,7 @@ type CustomCodeProps<
     navigation: PlatformNavigationBuilderNavigation<EventMap, ParamList, ActionHelpers>;
     descriptors: PlatformNavigationBuilderDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
+    parentRoute?: RouteProp<ParamListBase>;
 };
 
 // Props for the custom state hook.

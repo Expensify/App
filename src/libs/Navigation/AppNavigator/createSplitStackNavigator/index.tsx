@@ -14,9 +14,9 @@ import type {
 import SplitStackRouter from './SplitStackRouter';
 import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
 
-function useCustomEffects(props: CustomEffectsHookProps, route) {
-    useNavigationResetOnLayoutChange(props);
-    usePreserveSplitNavigatorState(route, props.navigation.getState());
+function useCustomEffects(props: CustomEffectsHookProps) {
+    useNavigationResetOnLayoutChange();
+    usePreserveSplitNavigatorState(props.state, props.parentRoute);
 }
 
 function useCustomSplitNavigatorState({state}: CustomStateHookProps) {

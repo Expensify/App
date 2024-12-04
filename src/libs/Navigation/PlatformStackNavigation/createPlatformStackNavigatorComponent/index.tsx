@@ -70,8 +70,9 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 navigation,
                 descriptors,
                 displayName,
+                parentRoute,
             }),
-            [originalState, navigation, descriptors],
+            [originalState, navigation, descriptors, parentRoute],
         );
 
         const stateToRender = useCustomState(customCodeProps);
@@ -84,7 +85,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             [customCodeProps, state],
         );
         // Executes custom effects defined in "useCustomEffects" navigator option.
-        useCustomEffects(customCodePropsWithCustomState, parentRoute);
+        useCustomEffects(customCodePropsWithCustomState);
 
         const Content = useMemo(
             () => (
