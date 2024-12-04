@@ -8,6 +8,27 @@
 // logicalAnd: rule to match whitespace and return it as a logical 'and' operator.
 // whitespace: rule to match whitespaces.
 
+date = "date"i {return "date"}
+amount = "amount"i {return "amount"}
+merchant = "merchant"i {return "merchant"}
+description = "description"i {return "description"}
+reportID = "reportid"i {return "reportID"}
+keyword = "keyword"i {return "keyword"}
+in = "in"i {return "in"}
+currency = "currency"i {return "currency"}
+tag = "tag"i {return "tag"}
+category = "category"i {return  "category"}
+to = "to"i {return "to"}
+taxRate = "tax-rate"i {return "taxRate"}
+cardID = "card"i {return "cardID"}
+from = "from"i {return "from"}
+expenseType = "expense-type"i {return "expenseType"}
+type = "type"i {return "type"}
+status = "status"i {return "status"}
+sortBy = "sort-by"i {return "sortBy"}
+sortOrder = "sort-order"i {return "sortOrder"}
+policyID = "workspace"i {return "policyID"}
+
 operator "operator"
   = (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
