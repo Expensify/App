@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
@@ -326,7 +326,7 @@ function PopoverMenu({
         // by external updates.
         setFocusedIndex(getSelectedItemIndex(menuItems));
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
     return (
