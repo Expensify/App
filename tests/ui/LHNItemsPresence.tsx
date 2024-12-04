@@ -1,6 +1,5 @@
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
-import type {TextStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -316,7 +315,7 @@ describe('SidebarLinksData', () => {
 
             // And the text is bold
             const displayNameText = getDisplayNames()?.at(0);
-            expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+            expect(displayNameText).toHaveStyle({fontWeight: FontUtils.fontWeight.bold});
         });
     });
 
