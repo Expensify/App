@@ -317,13 +317,12 @@ function PopoverMenu({
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
 
-        if (isVisible) {
-            return;
-        }
-
         // Update the focused item to match the selected item, but only when the popover is not visible.
         // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
         // by external updates.
+        if (isVisible) {
+            return;
+        }
         setFocusedIndex(getSelectedItemIndex(menuItems));
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
