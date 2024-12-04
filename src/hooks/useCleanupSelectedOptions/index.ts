@@ -2,8 +2,6 @@ import {NavigationContainerRefContext, useIsFocused} from '@react-navigation/nat
 import {useContext, useEffect} from 'react';
 import NAVIGATORS from '@src/NAVIGATORS';
 
-let shouldCleanupSelectedOptions = false;
-
 const useCleanupSelectedOptions = (cleanupFunction?: () => void) => {
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const state = navigationContainerRef?.getState();
@@ -16,7 +14,6 @@ const useCleanupSelectedOptions = (cleanupFunction?: () => void) => {
         if (isFocused || isRightModalOpening) {
             return;
         }
-        shouldCleanupSelectedOptions = false;
         cleanupFunction?.();
     }, [isFocused, cleanupFunction, isRightModalOpening]);
 };
