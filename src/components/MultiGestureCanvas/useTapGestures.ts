@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {runOnJS, withSpring} from 'react-native-reanimated';
 import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -46,7 +46,7 @@ const useTapGestures = ({
     // On double tap the content should be zoomed to fill, but at least zoomed by DOUBLE_TAP_SCALE
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
-    const zoomToCoordinates = useWorkletCallback(
+    const zoomToCoordinates = useCallback(
         (focalX: number, focalY: number, callback: () => void) => {
             'worklet';
 
@@ -111,19 +111,18 @@ const useTapGestures = ({
                 offsetAfterZooming.y = 0;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
-            offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);
-            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG, callback);
-            pinchScale.value = doubleTapScale;
+            offsetX.set(withSpring(offsetAfterZooming.x, SPRING_CONFIG));
+            offsetY.set(withSpring(offsetAfterZooming.y, SPRING_CONFIG));
+            zoomScale.set(withSpring(doubleTapScale, SPRING_CONFIG, callback));
+            pinchScale.set(doubleTapScale);
         },
-        [scaledContentWidth, scaledContentHeight, canvasSize, doubleTapScale],
+        [stopAnimation, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
     );
 
     const doubleTapGesture = Gesture.Tap()
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
-            if (!shouldDisableTransformationGestures.value) {
+            if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
 
@@ -137,13 +136,13 @@ const useTapGestures = ({
                 'worklet';
 
                 if (onScaleChanged != null) {
-                    runOnJS(onScaleChanged)(zoomScale.value);
+                    runOnJS(onScaleChanged)(zoomScale.get());
                 }
             };
 
             // If the content is already zoomed, we want to reset the zoom,
             // otherwise we want to zoom in
-            if (zoomScale.value > 1) {
+            if (zoomScale.get() > 1) {
                 reset(true, triggerScaleChangedEvent);
             } else {
                 zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);

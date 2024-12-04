@@ -5,7 +5,14 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
+import Address from './substeps/Address';
+import BusinessType from './substeps/BusinessType';
 import Confirmation from './substeps/Confirmation';
+import ContactInformation from './substeps/ContactInformation';
+import IncorporationLocation from './substeps/IncorporationLocation';
+import Name from './substeps/Name';
+import PaymentVolume from './substeps/PaymentVolume';
+import RegistrationNumber from './substeps/RegistrationNumber';
 
 type BusinessInfoProps = {
     /** Handles back button press */
@@ -15,7 +22,7 @@ type BusinessInfoProps = {
     onSubmit: () => void;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
+const bodyContent: Array<ComponentType<SubStepProps>> = [Name, Address, ContactInformation, RegistrationNumber, IncorporationLocation, BusinessType, PaymentVolume, Confirmation];
 
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();
