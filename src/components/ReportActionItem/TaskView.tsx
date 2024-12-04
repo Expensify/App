@@ -59,7 +59,7 @@ function TaskView({report, ...props}: TaskViewProps) {
     const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
 
     return (

@@ -43,7 +43,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
     }
 
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
-
+    // eslint-disable-next-line
     const ProviderWithOnyx = withOnyx<ProviderPropsWithOnyx<TOnyxKey>, ProviderOnyxProps<TOnyxKey>>({
         [onyxKeyName]: {
             key: onyxKeyName,
