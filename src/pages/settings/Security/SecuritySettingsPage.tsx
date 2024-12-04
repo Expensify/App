@@ -212,8 +212,8 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: Expensicons.Pencil,
             onPress: () => {
-                if(isActingAsDelegate){
-                    Modal.close(()=>setIsNoDelegateAccessMenuVisible(true));
+                if (isActingAsDelegate) {
+                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -225,9 +225,9 @@ function SecuritySettingsPage() {
         {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
-            onPress: () =>{
-                if(isActingAsDelegate){
-                    Modal.close(()=>setIsNoDelegateAccessMenuVisible(true));
+            onPress: () => {
+                if (isActingAsDelegate) {
+                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
                 Modal.close(() => {
