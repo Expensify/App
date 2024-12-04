@@ -1,10 +1,10 @@
 diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
-index ec09231..2b8f4b4 100644
+index 87a4ecc..2f74adc 100644
 --- a/node_modules/expo-av/android/build.gradle
 +++ b/node_modules/expo-av/android/build.gradle
 @@ -3,12 +3,13 @@ apply plugin: 'com.android.library'
  group = 'host.exp.exponent'
- version = '15.0.0'
+ version = '15.0.1'
  
 +def REACT_NATIVE_PATH = this.hasProperty('reactNativeProject') ? this.reactNativeProject + '/node_modules/react-native/package.json' : 'react-native/package.json'
  def REACT_NATIVE_BUILD_FROM_SOURCE = findProject(":ReactAndroid") != null

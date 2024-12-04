@@ -1,12 +1,11 @@
 diff --git a/node_modules/expo-image-manipulator/src/web/utils.web.ts b/node_modules/expo-image-manipulator/src/web/utils.web.ts
-index 2461b48..1ad9696 100644
+index dc2465a..04d8af1 100644
 --- a/node_modules/expo-image-manipulator/src/web/utils.web.ts
 +++ b/node_modules/expo-image-manipulator/src/web/utils.web.ts
-@@ -10,6 +10,15 @@ export function getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D
+@@ -8,6 +8,13 @@ export function getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D
    return ctx;
  }
  
-+
 +const SAFARI_MOBILE_CANVAS_LIMIT = 4096; 
 +
 +const isMobileIOS = () => {
@@ -14,12 +13,11 @@ index 2461b48..1ad9696 100644
 +    return /iP(ad|od|hone)/i.test(userAgent) && /(WebKit|CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
 +};
 +
-+
- export function getResults(canvas: HTMLCanvasElement, options?: SaveOptions): ImageResult {
-   let uri: string;
-   if (options) {
-@@ -31,17 +40,49 @@ export function getResults(canvas: HTMLCanvasElement, options?: SaveOptions): Im
-   };
+ export async function blobToBase64String(blob: Blob): Promise<string> {
+   const dataURL = await new Promise<string>((resolve, reject) => {
+     const reader = new FileReader();
+@@ -19,17 +26,49 @@ export async function blobToBase64String(blob: Blob): Promise<string> {
+   return dataURL.replace(/^data:image\/\w+;base64,/, '');
  }
  
 +function getAdjustedCanvasSize(originalWidth, originalHeight) {
@@ -61,7 +59,7 @@ index 2461b48..1ad9696 100644
 -      canvas.width = imageSource.naturalWidth;
 -      canvas.height = imageSource.naturalHeight;
 +      const adjudstedCanvasSize = getAdjustedCanvasSize(imageSource.naturalWidth, imageSource.naturalHeight);
-+      
++
 +      canvas.width = adjudstedCanvasSize.width;
 +      canvas.height = adjudstedCanvasSize.height;
  
