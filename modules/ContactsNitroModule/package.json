@@ -1,9 +1,7 @@
 {
   "name": "contacts-nitro-module",
   "version": "0.0.1",
-  "main": "lib/index",
-  "module": "lib/index",
-  "types": "lib/index.d.ts",
+  "main": "src/index",
   "react-native": "src/index",
   "description": "React Native Contacts Module with Nitro optimization",
   "source": "src/index",
