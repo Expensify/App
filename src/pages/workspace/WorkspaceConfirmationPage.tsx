@@ -110,7 +110,7 @@ function WorkspaceConfirmationPage() {
                 title={translate('workspace.new.confirmWorkspace')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView contentContainerStyle={styles.flex1}>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
