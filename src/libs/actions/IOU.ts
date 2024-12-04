@@ -7190,7 +7190,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
-    const approvalChain = ReportUtils.getApprovalChain(PolicyUtils.getPolicy(expenseReport?.policyID), expenseReport);
+    const approvalChain = ReportUtils.getApprovalChain(policy, expenseReport);
     const managerID = PersonalDetailsUtils.getAccountIDsByLogins(approvalChain).at(0);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
