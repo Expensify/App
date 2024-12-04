@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
-import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -38,16 +37,14 @@ function ReportAvatar({route}: ReportAvatarProps) {
         };
     }, [report, policy]);
 
-    const onModalClose = () => {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
-    };
-
     return (
         <AttachmentModal
             headerTitle={attachment.headerTitle}
             defaultOpen
             source={attachment.source}
-            onModalClose={() => attachmentModalHandler.handleModalClose(onModalClose)}
+            onModalClose={() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+            }}
             isWorkspaceAvatar={attachment.isWorkspaceAvatar}
             maybeIcon
             originalFileName={attachment.originalFileName}

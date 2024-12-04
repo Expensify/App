@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
-import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
@@ -76,7 +75,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}
             defaultOpen
-            onModalClose={() => attachmentModalHandler.handleModalClose(onModalClose)}
+            onModalClose={onModalClose}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
