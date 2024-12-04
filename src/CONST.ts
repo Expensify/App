@@ -124,7 +124,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '4. Add your reimburser to the request.\n' +
                 '\n' +
                 'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-        }
+        },
     ],
 };
 
