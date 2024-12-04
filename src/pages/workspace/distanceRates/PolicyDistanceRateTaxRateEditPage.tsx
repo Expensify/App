@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,8 +5,9 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
+type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
 
 function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTaxRateEditPageProps) {
     const styles = useThemeStyles();
@@ -30,7 +30,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
     const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID ?? '');
 
-    const onTaxRateChange = (newTaxRate: OptionsListUtils.TaxRatesOption) => {
+    const onTaxRateChange = (newTaxRate: TaxOptionsListUtils.TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {
             Navigation.goBack();
             return;

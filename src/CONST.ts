@@ -70,6 +70,7 @@ const selectableOnboardingChoices = {
 } as const;
 
 const backendOnboardingChoices = {
+    ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
 } as const;
 
@@ -90,19 +91,19 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-const selfGuidedTourTask: OnboardingTaskType = {
+const selfGuidedTourTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     title: 'Take a 2-minute tour',
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
 
-const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
-        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v3.mp4`,
         thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
-        duration: 55,
+        duration: 26,
         width: 1280,
         height: 960,
     },
@@ -133,7 +134,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -142,9 +143,10 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessageType = {
     ],
 };
 
-const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageType = {
+const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -171,7 +173,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageTyp
                 '\n' +
                 'Here’s how to set up your bank account:\n' +
                 '\n' +
-                '1. Click your profile picture.\n' +
+                '1. Click the settings tab.\n' +
                 '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                 '3. Connect your bank account.\n' +
                 '\n' +
@@ -180,7 +182,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessageTyp
     ],
 };
 
-const onboardingPersonalSpendMessage: OnboardingMessageType = {
+const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     video: {
         url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
@@ -190,6 +192,7 @@ const onboardingPersonalSpendMessage: OnboardingMessageType = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -208,9 +211,10 @@ const onboardingPersonalSpendMessage: OnboardingMessageType = {
         },
     ],
 };
-const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType = {
+const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -231,11 +235,11 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessageType =
     ],
 };
 
-type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
-type OnboardingCompanySizeType = ValueOf<typeof onboardingCompanySize>;
+type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccountingType = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -251,9 +255,9 @@ const onboardingCompanySize = {
     LARGE: '1001+',
 } as const;
 
-type OnboardingInviteType = ValueOf<typeof onboardingInviteTypes>;
+type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
-type OnboardingTaskType = {
+type OnboardingTask = {
     type: string;
     autoCompleted: boolean;
     title:
@@ -273,15 +277,23 @@ type OnboardingTaskType = {
                   workspaceMembersLink: string;
                   integrationName: string;
                   workspaceAccountingLink: string;
+                  workspaceSettingsLink: string;
                   navatticURL: string;
               }>,
           ) => string);
 };
 
-type OnboardingMessageType = {
+type OnboardingMessage = {
+    /** Text message that will be displayed first */
     message: string;
+
+    /** Video object to be displayed after initial description message */
     video?: Video;
-    tasks: OnboardingTaskType[];
+
+    /** List of tasks connected with the message, they will have a checkbox and a separate report for more information */
+    tasks: OnboardingTask[];
+
+    /** Type of task described in a string format */
     type?: string;
 };
 
@@ -297,6 +309,7 @@ const CONST = {
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+    DEFAULT_IMAGE_FILE_NAME: 'image',
     DISABLED_MAX_EXPENSE_VALUE: 10000000000,
     POLICY_BILLABLE_MODES: {
         BILLABLE: 'billable',
@@ -610,8 +623,41 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_BENEFICIAL_OWNER: 1,
+                IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
+                BENEFICIAL_OWNER_DETAILS_FORM: 3,
+                ARE_THERE_MORE_BENEFICIAL_OWNERS: 4,
+                OWNERSHIP_CHART: 5,
+                BENEFICIAL_OWNERS_LIST: 6,
+            },
+            BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
+                PREFIX: 'beneficialOwner',
+                FIRST_NAME: 'firstName',
+                LAST_NAME: 'lastName',
+                OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
+                DOB: 'dob',
+                SSN_LAST_4: 'ssnLast4',
+                STREET: 'street',
+                CITY: 'city',
+                STATE: 'state',
+                ZIP_CODE: 'zipCode',
+                COUNTRY: 'country',
+            },
+            CURRENT_USER_KEY: 'currentUser',
+        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
+        SIGNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_DIRECTOR: 1,
+                ENTER_EMAIL: 2,
+                SIGNER_DETAILS_FORM: 3,
+                HANG_TIGHT: 4,
+            },
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -832,6 +878,7 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    DEFAULT_NUMBER_ID: 0,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -866,6 +913,8 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
+        'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -887,6 +936,7 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
+    PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
@@ -1253,17 +1303,13 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_ROUTER_RENDER: 'search_router_render',
-        CHAT_RENDER: 'chat_render',
+        OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
-        HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
-        REPORT_INITIAL_RENDER: 'report_initial_render',
-        SWITCH_REPORT: 'switch_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
-        MESSAGE_SENT: 'message_sent',
+        SEND_MESSAGE: 'send_message',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1297,6 +1343,10 @@ const CONST = {
     STATUS_BAR_STYLE: {
         LIGHT_CONTENT: 'light-content',
         DARK_CONTENT: 'dark-content',
+    },
+    NAVIGATION_BAR_BUTTONS_STYLE: {
+        LIGHT: 'light',
+        DARK: 'dark',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
@@ -1606,6 +1656,7 @@ const CONST = {
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
+        ACCOUNTS_PAYABLE: 'accountspayable@expensify.com',
         ADMIN: 'admin@expensify.com',
         BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
@@ -1820,6 +1871,7 @@ const CONST = {
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
+        ACCOUNTING_METHOD: 'accountingMethod',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT: 'collectionAccount',
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
@@ -1858,7 +1910,6 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_CUSTOM_LIST_LIMIT: 8,
         NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
@@ -2068,6 +2119,7 @@ const CONST = {
 
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
+        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? 10903701),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
         BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? 1371),
         CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? 10027416),
@@ -2528,8 +2580,8 @@ const CONST = {
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                quickbooksOnline: 'Quickbooks Online',
-                quickbooksDesktop: 'Quickbooks Desktop',
+                quickbooksOnline: 'QuickBooks Online',
+                quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
@@ -2801,12 +2853,14 @@ const CONST = {
         AMEX_CUSTOM_FEED: {
             CORPORATE: 'American Express Corporate Cards',
             BUSINESS: 'American Express Business Cards',
+            PERSONAL: 'American Express Personal Cards',
         },
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
         CARD_LIST_THRESHOLD: 8,
+        DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -2927,8 +2981,8 @@ const CONST = {
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
+        EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -2963,6 +3017,10 @@ const CONST = {
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get ALL_EMOJIS() {
+            return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
@@ -3012,6 +3070,7 @@ const CONST = {
     get EXPENSIFY_EMAILS() {
         return [
             this.EMAIL.ACCOUNTING,
+            this.EMAIL.ACCOUNTS_PAYABLE,
             this.EMAIL.ADMIN,
             this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
@@ -3032,6 +3091,7 @@ const CONST = {
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
             this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ACCOUNTS_PAYABLE,
             this.ACCOUNT_ID.ADMIN,
             this.ACCOUNT_ID.BILLS,
             this.ACCOUNT_ID.CHRONOS,
@@ -3760,8 +3820,8 @@ const CONST = {
         },
         GA: {},
         GB: {
-            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*[0-9][A-Z-CIKMOV]{2}$/,
-            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH',
+            regex: /^[A-Z]{1,2}[0-9R][0-9A-Z]?\s*([0-9][ABD-HJLNP-UW-Z]{2})?$/,
+            samples: 'LA102UX, BL2F8FX, BD1S9LU, WR4G 6LH, W1U',
         },
         GD: {},
         GE: {
@@ -4547,9 +4607,6 @@ const CONST = {
     },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
-    CATEGORY_LIST_THRESHOLD: 8,
-    TAG_LIST_THRESHOLD: 8,
-    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 32,
@@ -4632,11 +4689,6 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_SELECTION_LIST_PAGE_LENGTH: 500,
-
-    /**
-     *  We only include the members search bar when we have 8 or more members
-     */
-    SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT: 8,
 
     /**
      * Bank account names
@@ -4811,12 +4863,10 @@ const CONST = {
     WORKSPACE_SWITCHER: {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
-        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
@@ -4892,7 +4942,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
                         '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
@@ -4908,6 +4958,15 @@ const CONST = {
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
                 },
                 {
+                    type: 'setupCategoriesAndTags',
+                    autoCompleted: false,
+                    title: 'Set up categories and tags',
+                    description: ({workspaceSettingsLink, workspaceAccountingLink}) =>
+                        '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
+                        '\n' +
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
+                },
+                {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
@@ -4916,13 +4975,12 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Add or import your own categories.\n' +
-                        "6. Disable any default categories you don't need.\n" +
-                        '7. Require a category for every expense in *Settings*.\n' +
+                        "5. Disable any categories you don't need.\n" +
+                        '6. Add your own categories in the top right.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
@@ -4935,7 +4993,7 @@ const CONST = {
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click More features.\n' +
@@ -4954,7 +5012,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *More features*.\n' +
@@ -4973,7 +5031,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Members* > *Invite member*.\n' +
@@ -4991,7 +5049,7 @@ const CONST = {
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
                         '\n' +
-                        '1. Click your profile photo.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Go to Workspaces.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click Accounting.\n' +
@@ -5002,10 +5060,7 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: {
-            ...onboardingPersonalSpendMessage,
-            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
-        },
+        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -5060,11 +5115,60 @@ const CONST = {
                         '\n' +
                         'Here’s how to set up your bank account:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
+                        '1. Click the settings tab.\n' +
                         '2. Click *Wallet* > *Bank accounts* > *+ Add bank account*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+                },
+            ],
+        },
+        [onboardingChoices.ADMIN]: {
+            message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    type: 'meetSetupSpecialist',
+                    autoCompleted: false,
+                    title: 'Meet your setup specialist',
+                    description:
+                        '*Meet your setup specialist* who can answer any questions as you get started with Expensify. Yes, a real human!' +
+                        '\n' +
+                        'Chat with them in your #admins room or schedule a call today.',
+                },
+                {
+                    type: 'reviewWorkspaceSettings',
+                    autoCompleted: false,
+                    title: 'Review your workspace settings',
+                    description:
+                        "Here's how to review and update your workspace settings:" +
+                        '\n' +
+                        '1. Click the settings tab.' +
+                        '2. Click *Workspaces* > [Your workspace].' +
+                        '\n' +
+                        "Make any changes there and we'll track them in the #admins room.",
+                },
+                {
+                    type: 'submitExpense',
+                    autoCompleted: false,
+                    title: 'Submit an expense',
+                    description:
+                        '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                        '\n' +
+                        'Here’s how to submit an expense:\n' +
+                        '\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Submit expense*.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Add your reimburser to the request.\n' +
+                        '\n' +
+                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
                 },
             ],
         },
@@ -5073,13 +5177,13 @@ const CONST = {
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             tasks: [],
         },
-    } satisfies Record<OnboardingPurposeType, OnboardingMessageType>,
+    } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
     COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
         [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
         [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
         [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessageType>,
+    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessage>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -5804,6 +5908,12 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+        BENEFIT: {
+            CHATTING_DIRECTLY: 'chattingDirectly',
+            EVERYTHING_MOBILE: 'everythingMobile',
+            TRAVEL_EXPENSE: 'travelExpense',
+        },
+        BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
     SESSION_STORAGE_KEYS: {
@@ -5862,11 +5972,16 @@ const CONST = {
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
+            APPROVE: 'approve',
+            PAY: 'pay',
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
@@ -6019,6 +6134,16 @@ const CONST = {
         ILLUSTRATION: 'illustration',
         VIDEO: 'video',
     },
+    REPORT_FIELDS_FEATURE: {
+        qbo: {
+            classes: 'report-fields-qbo-classes',
+            customers: 'report-fields-qbo-customers',
+            locations: 'report-fields-qbo-locations',
+        },
+        xero: {
+            mapping: 'report-fields-mapping',
+        },
+    },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
@@ -6028,6 +6153,14 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+            },
+            categories: {
+                id: 'categories' as const,
+                alias: 'categories',
+                name: 'Categories',
+                title: 'workspace.upgrade.categories.title' as const,
+                description: 'workspace.upgrade.categories.description' as const,
+                icon: 'FolderOpen',
             },
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
@@ -6156,6 +6289,7 @@ const CONST = {
         RATE_ID: 'rateID',
         ENABLED: 'enabled',
         IGNORE: 'ignore',
+        DESTINATION: 'destination',
     },
 
     IMPORT_SPREADSHEET: {
@@ -6187,10 +6321,17 @@ const CONST = {
     },
 
     DEBUG: {
+        FORMS: {
+            REPORT: 'report',
+            REPORT_ACTION: 'reportAction',
+            TRANSACTION: 'transaction',
+            TRANSACTION_VIOLATION: 'transactionViolation',
+        },
         DETAILS: 'details',
         JSON: 'json',
         REPORT_ACTIONS: 'actions',
         REPORT_ACTION_PREVIEW: 'preview',
+        TRANSACTION_VIOLATIONS: 'violations',
     },
 
     REPORT_IN_LHN_REASONS: {
@@ -6227,6 +6368,10 @@ const CONST = {
             PAID_ADOPTION: 'paid_adoption',
         },
     },
+
+    HYBRID_APP: {
+        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -6243,14 +6388,14 @@ export type {
     Country,
     IOUAction,
     IOUType,
-    OnboardingPurposeType,
-    OnboardingCompanySizeType,
+    OnboardingPurpose,
+    OnboardingCompanySize,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
     CancellationType,
-    OnboardingInviteType,
-    OnboardingAccountingType,
+    OnboardingInvite,
+    OnboardingAccounting,
 };
 
 export default CONST;
