@@ -1160,10 +1160,9 @@ function getValidOptions(
         return true;
     });
 
-    const havingLoginPersonalDetails = includeP2P
+    const allPersonalDetailsOptions = includeP2P
         ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
         : [];
-    const allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
