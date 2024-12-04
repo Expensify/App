@@ -1,3 +1,4 @@
+import {parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -15,15 +16,15 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -470,6 +471,22 @@ function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Return the posted date from the transaction.
+ */
+function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
+    return transaction?.posted ?? '';
+}
+
+/**
+ * Return the formated posted date from the transaction.
+ */
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const postedDate = getPostedDate(transaction);
+    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
+}
+
+/**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
 function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -872,17 +889,6 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
     );
 }
 
-/**
- * Checks if any non-hold violations for the provided transaction are of type 'violation'
- */
-function hasNonHoldViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
-    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
-        (violation: TransactionViolation) =>
-            violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
-            violation.name !== CONST.VIOLATIONS.HOLD &&
-            (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
-    );
-}
 /**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
@@ -1303,7 +1309,6 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
-    hasNonHoldViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
     hasNoticeTypeViolation,
@@ -1321,6 +1326,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getFormattedPostedDate,
 };
 
 export type {TransactionChanges};
