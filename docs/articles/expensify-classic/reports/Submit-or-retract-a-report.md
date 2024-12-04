@@ -53,6 +53,8 @@ Depending on your workspace settings, your reports may be automatically submitte
 5. Once you've clicked Submit on all expenses on the report, the report will be submitted.
 {% include end-option.html %}
 
+{% include end-selector.html %}
+
 # Retract a report
 
 You can retract a submitted report to edit the reported expenses and re-submit the report. 
