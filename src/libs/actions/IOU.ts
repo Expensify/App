@@ -124,7 +124,7 @@ type CategorizeTrackedExpenseInformation = {
     transactionThreadReportID: string;
     reportPreviewReportActionID: string;
     onyxData: OnyxData | undefined;
-    isDraftPolicy: boolean,
+    isDraftPolicy: boolean;
 };
 type CategorizeTrackedExpenseTransactionParams = {
     amount: number;
@@ -3483,8 +3483,16 @@ function categorizeTrackedExpense(
     transactionParams: CategorizeTrackedExpenseTransactionParams,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
-    const {transactionID, moneyRequestReportID, actionableWhisperReportActionID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID, onyxData,isDraftPolicy} =
-        trackedExpenseInformation;
+    const {
+        transactionID,
+        moneyRequestReportID,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        onyxData,
+        isDraftPolicy,
+    } = trackedExpenseInformation;
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
     const {
