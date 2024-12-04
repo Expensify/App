@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +22,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -35,7 +36,7 @@ import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
-type ExpensifyCardPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
+type ExpensifyCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
 
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
@@ -84,6 +85,9 @@ function ExpensifyCardPage({
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
@@ -134,6 +138,9 @@ function ExpensifyCardPage({
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
+    const primaryLogin = account?.primaryLogin ?? '';
+    const loginData = loginList?.[primaryLogin];
+
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
         if (!draftValues) {
@@ -144,17 +151,6 @@ function ExpensifyCardPage({
         }
 
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
-    };
-
-    const sendValidateCode = () => {
-        const primaryLogin = account?.primaryLogin ?? '';
-        const loginData = loginList?.[primaryLogin];
-
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
     };
 
     if (isNotFound) {
@@ -209,7 +205,7 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.newKansasLarge}
                                 />
-                                {limitNameKey && limitTitleKey && (
+                                {!!limitNameKey && !!limitTitleKey && (
                                     <MenuItemWithTopDescription
                                         description={translate(limitNameKey)}
                                         title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
@@ -310,11 +306,12 @@ function ExpensifyCardPage({
                     <ValidateCodeActionModal
                         handleSubmitForm={handleRevealDetails}
                         clearError={() => {}}
-                        sendValidateCode={sendValidateCode}
+                        sendValidateCode={() => requestValidateCodeAction()}
                         onClose={() => setIsValidateCodeActionModalVisible(false)}
                         isVisible={isValidateCodeActionModalVisible}
+                        hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                         title={translate('cardPage.validateCardTitle')}
-                        description={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
+                        descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
                     />
                 </>
             )}

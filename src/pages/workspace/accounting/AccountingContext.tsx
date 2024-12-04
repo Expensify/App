@@ -126,7 +126,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         <AccountingContext.Provider value={accountingContext}>
             {children}
             {!shouldShowConfirmationModal && renderActiveIntegration()}
-            {shouldShowConfirmationModal && activeIntegration?.integrationToDisconnect && (
+            {!!shouldShowConfirmationModal && !!activeIntegration?.integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         if (!activeIntegration?.integrationToDisconnect) {

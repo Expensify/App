@@ -5,7 +5,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -28,7 +27,6 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
-    const {canUseNewDotQBD} = usePermissions();
 
     const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
@@ -37,7 +35,9 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
                 value: vendor.id,
                 text: vendor.name,
                 keyForList: vendor.name,
-                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
+                // We use the logical OR (||) here instead of ?? because `nonReimbursableBillDefaultVendor` can be an empty string
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isSelected: vendor.id === (nonReimbursableBillDefaultVendor || vendors.at(0)?.id),
             })) ?? [];
         return data.length ? [{data}] : [];
     }, [nonReimbursableBillDefaultVendor, vendors]);
@@ -69,13 +69,12 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName}
             title="workspace.accounting.defaultVendor"
             sections={sections}
             listItem={RadioListItem}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}

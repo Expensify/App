@@ -14,6 +14,13 @@ Expensify offers importing multiple invoices (bulk import) via CSV to save you f
 5. Add the invoice details following the formatting rules (see below **CSV formatting guide** section)
 6. Click **Upload CSV**
 
+![Click Reports, New Reports, choose Bulk Import Invoices](https://help.expensify.com/assets/images/invoice-bulk-01.png){:width="100%"}
+
+![Download Sample CSV](https://help.expensify.com/assets/images/invoice-bulk-02.png){:width="100%"}
+
+![Format CSV following our guidelines](https://help.expensify.com/assets/images/invoice-bulk-03.png){:width="100%"}
+
+
 ## CSV formatting guide
 
 - Send to: recipient's email address (ex: john.smith@companydomain.com)
@@ -27,9 +34,14 @@ Expensify offers importing multiple invoices (bulk import) via CSV to save you f
 ## After the Invoices are uploaded
 
 - After you click **Upload**, the invoices will automatically be created and viewable on the **Reports** page.
+- Set the **Reports page** filter to Invoices to narrow down your search. 
 - The **Send To** contact will get an email notifying them of the invoice you sent.
 - You can manually edit the invoice details.
 - You can manually upload a PDF of the invoice to the report. 
+
+![Search for Invoices on Reports page](https://help.expensify.com/assets/images/invoice-bulk-04.png){:width="100%"}
+
+![Invoices will indicate next steps at the top of each report](https://help.expensify.com/assets/images/invoice-bulk-05.png){:width="100%"}
 
 {% include faq-begin.md %}
 

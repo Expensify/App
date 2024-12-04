@@ -10,6 +10,7 @@ import type {
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
+    UpdatePhoneNumberParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -17,6 +18,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -155,6 +157,41 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     });
 
     Navigation.goBack();
+}
+
+function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+    const parameters: UpdatePhoneNumberParams = {phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber: currenPhoneNumber,
+                    errorFields: {
+                        phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
+                    },
+                },
+            },
+        ],
+    });
+}
+
+function clearPhoneNumberError() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errorFields: {
+            phoneNumber: null,
+        },
+    });
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -428,7 +465,7 @@ function clearAvatarErrors() {
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) {
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
@@ -440,6 +477,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
         addressCountry: values.country,
         addressState: values.state.trim(),
         dob: values.dob,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
@@ -480,6 +518,8 @@ export {
     setDisplayName,
     updateDisplayName,
     updateLegalName,
+    updatePhoneNumber,
+    clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,

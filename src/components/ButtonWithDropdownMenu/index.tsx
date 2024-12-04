@@ -17,7 +17,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
-    success = false,
+    success = true,
     isSplitButton = true,
     isLoading = false,
     isDisabled = false,
@@ -190,7 +190,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-            {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
+            {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => {

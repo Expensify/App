@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
@@ -25,14 +24,15 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.nonReimbursableBillDefaultVendor);
-    const {canUseNewDotQBD} = usePermissions();
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
-    const accountName = useMemo(
-        () => getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable).find(({id}) => nonReimbursableAccount === id)?.name,
-        [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount],
-    );
+    const accountName = useMemo(() => {
+        const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
+        // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name || translate('workspace.qbd.notConfigured');
+    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, translate, nonReimbursableAccount]);
 
     const sections = [
         {
@@ -44,7 +44,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             keyForList: translate('workspace.accounting.exportAs'),
         },
         {
-            title: accountName ?? translate('workspace.qbd.notConfigured'),
+            title: accountName,
             description: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
@@ -58,8 +58,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             displayName={QuickbooksDesktopCompanyCardExpenseAccountPage.displayName}
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbd.exportCompanyCardsDescription"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

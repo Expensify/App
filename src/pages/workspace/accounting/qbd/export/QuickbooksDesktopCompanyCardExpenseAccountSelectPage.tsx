@@ -6,7 +6,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ConnectionUtils from '@libs/ConnectionUtils';
@@ -31,7 +30,6 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const {canUseNewDotQBD} = usePermissions();
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
 
@@ -41,7 +39,9 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
             value: card,
             text: card.name,
             keyForList: card.name,
-            isSelected: card.id === nonReimbursableAccount,
+            // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            isSelected: card.id === (nonReimbursableAccount || accounts.at(0)?.id),
         }));
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
@@ -71,12 +71,11 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName}
             headerTitleAlreadyTranslated={ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable)}
             headerContent={nonReimbursable ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${nonReimbursable}AccountDescription`)}</Text> : null}
-            shouldBeBlocked={!canUseNewDotQBD} // TODO: [QBD] remove it once the QBD beta is done
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             onSelectRow={selectExportAccount}

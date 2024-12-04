@@ -39,7 +39,7 @@ function BaseImportOnyxState({
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: onFileRead,
+                                    onPicked: (data) => onFileRead(data.at(0) ?? {}),
                                 });
                             }}
                         />

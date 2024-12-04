@@ -1,6 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,7 +17,6 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,6 +26,7 @@ import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhr
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -44,10 +42,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, policies}: RoomMembersPageProps) {
-    const route = useRoute<RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = Number(session?.accountID);
@@ -55,7 +53,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState('');
+    const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
@@ -70,14 +68,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        setSearchValue(userSearchPhrase ?? '');
-    }, [isFocusedScreen, setSearchValue, userSearchPhrase]);
-
-    useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         if (isFocusedScreen) {
@@ -192,8 +182,19 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             // When offline, we want to include the pending members with delete action as they are displayed in the list as well
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
-        return activeParticipants.length >= CONST.SHOULD_SHOW_MEMBERS_SEARCH_INPUT_BREAKPOINT;
+        return activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     }, [participants, personalDetails, isOffline, report]);
+
+    useEffect(() => {
+        if (!isFocusedScreen || !shouldShowTextInput) {
+            return;
+        }
+        setSearchValue(userSearchPhrase ?? '');
+    }, [isFocusedScreen, shouldShowTextInput, userSearchPhrase]);
+
+    useEffect(() => {
+        UserSearchPhraseActions.updateUserSearchPhrase(searchValue);
+    }, [searchValue]);
 
     useEffect(() => {
         if (!isFocusedScreen) {
@@ -385,9 +386,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                         textInputLabel={translate('selectionList.findMember')}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         textInputValue={searchValue}
-                        onChangeText={(value) => {
-                            setSearchValue(value);
-                        }}
+                        onChangeText={setSearchValue}
                         headerMessage={headerMessage}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}

@@ -8,6 +8,7 @@ import android.database.CursorWindow
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
+import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -36,6 +37,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(BootSplashPackage())
             add(ExpensifyAppPackage())
             add(RNTextInputResetPackage())
+            add(NavBarManagerPackage())
         }
 
         override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
@@ -64,7 +66,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load()
+            load(bridgelessEnabled = false)
         }
         if (BuildConfig.DEBUG) {
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)

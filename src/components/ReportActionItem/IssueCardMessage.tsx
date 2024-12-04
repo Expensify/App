@@ -41,7 +41,6 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
 
-    const shouldShowAddMissingDetailsButton = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
     const cardIssuedActionOriginalMessage = ReportActionsUtils.isActionOfType(
         action,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
@@ -53,6 +52,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    const shouldShowAddMissingDetailsButton = !isEmptyObject(card) && action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
 
     return (
         <>

@@ -96,7 +96,7 @@ function NetSuiteImportCustomFieldView({
             shouldBeBlocked={!customField}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField))}
         >
-            {customField && (
+            {!!customField && (
                 <OfflineWithFeedback
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, `${importCustomField}_${valueIndex}`)}
                     errorRowStyles={[styles.ph5, styles.pv3]}
