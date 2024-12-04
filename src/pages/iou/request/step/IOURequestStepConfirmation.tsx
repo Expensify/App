@@ -602,7 +602,6 @@ function IOURequestStepConfirmation({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
         >
