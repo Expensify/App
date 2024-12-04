@@ -1,10 +1,9 @@
-import { useRoute } from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
-import { default as React, useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
-
+import {default as React, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring} from 'react-native-reanimated';
@@ -17,7 +16,6 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
-import PaymentCompleteAnimation from '@components/SettlementButton/PaymentCompleteAnimation';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -80,7 +78,6 @@ function MoneyRequestPreviewContent({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
-    const [isPaymentAnimationVisible, setIsPaymentAnimationVisible] = useState(false);
 
     const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
@@ -169,10 +166,6 @@ function MoneyRequestPreviewContent({
         transform: [{scale: checkMarkScale.value}],
     }));
 
-    const handleAnimationFinish = () => {
-        setIsPaymentAnimationVisible(false);
-    };
-
     // Track previous shouldShowPaidIcon value
     const prevIsSettledRef = useRef(shouldShowPaidIcon);
 
@@ -180,9 +173,6 @@ function MoneyRequestPreviewContent({
         if (shouldShowPaidIcon && !prevIsSettledRef.current) {
             // Start the checkmark animation
             checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
-
-            // Start the payment complete animation
-            setIsPaymentAnimationVisible(true);
         } else if (shouldShowPaidIcon) {
             // Ensure the checkmark is visible without animation if already settled
             checkMarkScale.value = 1;
@@ -472,10 +462,6 @@ function MoneyRequestPreviewContent({
                                                 <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
-                                        <PaymentCompleteAnimation
-                                            isVisible={isPaymentAnimationVisible}
-                                            onAnimationFinish={handleAnimationFinish}
-                                        />
                                     </View>
                                     {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
                                     {shouldShowCategoryOrTag && (
