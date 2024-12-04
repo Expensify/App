@@ -44,25 +44,23 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
             : undefined;
     }, [source]);
 
-    const isSourcePdf = typeof source === 'number' || (typeof source === 'string' && Str.isPDF(source));
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isSourceVideo = ((typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name))) ?? (file?.name && Str.isVideo(file.name));
-    const isFileNamePdf = file?.name && Str.isPDF(file.name);
     const isFileNameImage = file?.name && Str.isImage(file.name);
-    const isFilePdf = isSourcePdf || isFileNamePdf;
     const isFileImage = isSourceImage || isFileNameImage;
     const isFileVideo = isSourceVideo && typeof source === 'string';
 
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
-    let previewComponent;
-
-    if (isFilePdf) {
-        previewComponent = <DefaultAttachmentView fileName={file?.name} />;
-    }
 
     if (isFileVideo) {
-        previewComponent = (
-            <>
+        return (
+            <PressableWithFeedback
+                accessibilityRole="button"
+                style={[fillStyle, styles.br2, styles.overflowHidden, styles.alignSelfStart, {aspectRatio}]}
+                onPress={onPress}
+                accessible
+                accessibilityLabel="Attachment Thumbnail"
+            >
                 <Video
                     style={[styles.w100, styles.h100]}
                     source={{
@@ -84,20 +82,6 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
                         />
                     </View>
                 </View>
-            </>
-        );
-    }
-
-    if (previewComponent) {
-        return (
-            <PressableWithFeedback
-                accessibilityRole="button"
-                style={[fillStyle, styles.br2, styles.overflowHidden, styles.alignItemsCenter, styles.alignSelfCenter, {aspectRatio}]}
-                onPress={onPress}
-                accessible
-                accessibilityLabel="Attachment Thumbnail"
-            >
-                {previewComponent}
             </PressableWithFeedback>
         );
     }
@@ -106,7 +90,7 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
-                style={[styles.alignItemsCenter, {aspectRatio: 1}]}
+                style={[styles.alignItemsStart, {aspectRatio: 1}]}
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Image Thumbnail"
