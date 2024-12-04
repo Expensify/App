@@ -75,7 +75,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? hiddenTranslation : '');
+    return defaultValue || (passedPersonalDetails?.login ?? (shouldFallbackToHidden ? hiddenTranslation : ''));
 }
 
 /**
