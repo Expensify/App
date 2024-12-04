@@ -17,7 +17,7 @@ Onyx.connect({
 export default function markAllPolicyReportsAsRead(policyID: string) {
     let delay = 0;
     Object.keys(allReports ?? {}).forEach((key: string) => {
-        const report: Report | null | undefined = allReports?.[key];
+        const report = allReports?.[key];
         if (report?.policyID !== policyID || !ReportUtils.isUnread(report)) {
             return;
         }
