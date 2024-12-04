@@ -429,7 +429,6 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
-    Report.notifyNewAction(taskReportID, currentUserAccountID);
 }
 
 /**
@@ -513,7 +512,6 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
-    Report.notifyNewAction(taskReportID, currentUserAccountID);
 }
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
@@ -590,7 +588,6 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
-    Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
 function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
@@ -729,7 +726,6 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK_ASSIGNEE, parameters, {optimisticData, successData, failureData});
-    Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
 /**
@@ -776,13 +772,19 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID, currentUserAccountID]);
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport(
+        [assigneeAccountID, currentUserAccountID],
+        '',
+        undefined,
+        CONST.POLICY.OWNER_EMAIL_FAKE,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        false,
+        '',
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    );
 
-    // When assigning a task to a new user, by default we share the task in their DM
-    // However, the DM doesn't exist yet - and will be created optimistically once the task is created
-    // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
-    // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-    report.isHidden = true;
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
     const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
