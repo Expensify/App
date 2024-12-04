@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -42,7 +43,7 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
-import SettlementButton from './SettlementButton';
+import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -120,6 +121,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
+    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -133,7 +135,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         hasAllPendingRTERViolations ||
         (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID ?? '')));
 
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
@@ -179,7 +181,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-
+    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
+    const startAnimation = useCallback(() => {
+        setIsPaidAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type || !chatReport) {
@@ -192,12 +198,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+                startAnimation();
                 IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
+                startAnimation();
                 IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -360,7 +368,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
-                        <SettlementButton
+                        <AnimatedSettlementButton
+                            isPaidAnimationRunning={isPaidAnimationRunning}
+                            onAnimationFinish={stopAnimation}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -425,7 +435,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                            <SettlementButton
+                            <AnimatedSettlementButton
+                                isPaidAnimationRunning={isPaidAnimationRunning}
+                                onAnimationFinish={stopAnimation}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
