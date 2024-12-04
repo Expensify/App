@@ -62,7 +62,9 @@ function Composer(
             return;
         }
 
-        // We need the delay for setSelection to properly work for IOS.
+        // We need the delay for setSelection to properly work for IOS in bridgeless mode due to a react native
+        // internal bug of dispatching the event before the component is ready for it.
+        // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
         const timeoutID = setTimeout(() => {
             // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
             textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
