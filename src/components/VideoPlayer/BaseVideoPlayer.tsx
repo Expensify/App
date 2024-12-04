@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -254,15 +254,7 @@ function BaseVideoPlayer({
                     if (!('isMuted' in status)) {
                         return;
                     }
-                    // updateVolume((value) => {
-                    //     const valueToSet = value === 0 ? 0.25 : value;
-                    //     console.log("_________________________________________")
-                    //     console.log('valueToSet', valueToSet);
-                    //     console.log('status', status);
-                    //     console.log("_________________________________________")
-                    //
-                    //     return status.isMuted ? 0 : status.volume || valueToSet;
-                    // });
+
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
 
