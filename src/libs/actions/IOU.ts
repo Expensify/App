@@ -3702,14 +3702,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
+    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+
     const trackReport = navigationRef
         .getRootState()
         .routes.find((r) => r.name === SCREENS.REPORT && !!r.params && 'reportID' in r.params && r.params.reportID === linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
-        Navigation.removeScreenByKey(trackReport.key);
+        Navigation.isNavigationReady().then(() => Navigation.removeScreenByKey(trackReport.key));
     }
 
-    Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
     }
