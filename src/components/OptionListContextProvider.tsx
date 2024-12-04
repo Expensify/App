@@ -95,7 +95,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
             const personalDetail = personalDetails[accountID];
 
-            if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
+            if (prevPersonalDetail && personalDetail && isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
             }
 

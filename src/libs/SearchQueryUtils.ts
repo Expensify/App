@@ -361,7 +361,7 @@ function buildFilterFormValuesFromQuery(
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
-    personalDetails: OnyxTypes.PersonalDetailsList,
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
@@ -391,7 +391,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-            filtersForm[filterKey] = filterValues.filter((id) => personalDetails[id]);
+            filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
@@ -488,7 +488,7 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList, reports: OnyxCollection<OnyxTypes.Report>) {
+function getFilterDisplayValue(filterName: string, filterValue: string, personalDetails: OnyxTypes.PersonalDetailsList | undefined, reports: OnyxCollection<OnyxTypes.Report>) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -519,7 +519,7 @@ function getFilterDisplayValue(filterName: string, filterValue: string, personal
  */
 function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList,
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
 ) {
