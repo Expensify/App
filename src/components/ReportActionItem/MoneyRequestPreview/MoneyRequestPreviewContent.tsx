@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
@@ -29,6 +28,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -71,7 +71,7 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
@@ -175,7 +175,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}] : [];
+    const receiptImages = [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}];
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -326,6 +326,8 @@ function MoneyRequestPreviewContent({
         }
     };
 
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -346,17 +348,16 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
-                        <ReportActionItemImages
-                            images={receiptImages}
-                            isHovered={isHovered || isScanning}
-                            size={1}
-                        />
-                    )}
+                    <ReportActionItemImages
+                        images={receiptImages}
+                        isHovered={isHovered || isScanning}
+                        size={1}
+                        onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
+                    />
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipt ? styles.mtn1 : {}]}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
@@ -465,7 +466,7 @@ function MoneyRequestPreviewContent({
                                                         numberOfLines={1}
                                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {tag}
+                                                        {PolicyUtils.getCleanedTagName(tag)}
                                                     </Text>
                                                 </View>
                                             )}
@@ -483,8 +484,6 @@ function MoneyRequestPreviewContent({
     if (!onPreviewPressed) {
         return childContainer;
     }
-
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
         <PressableWithoutFeedback
