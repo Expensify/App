@@ -1735,23 +1735,13 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
 function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
-    const {maxRecentReportsToShow = 0, sortByReportTypeInSearch = false} = config;
+    const {sortByReportTypeInSearch = false} = config;
 
-    // TODO: the fast route can maybe be removed, its quite identical with the rest of the code
-    // Fast route: there's no search input value and we're limiting the number of recent reports to show
-    if (searchInputValue.trim().length === 0 && maxRecentReportsToShow > 0) {
-        const {personalDetails, recentReports} = orderOptions(options, searchInputValue, config);
-        const limitedRecentReports = recentReports.slice(0, maxRecentReportsToShow);
-        const filteredPersonalDetails = filteredPersonalDetailsOfRecentReports(limitedRecentReports, personalDetails);
-
-        return {
-            ...options,
-            personalDetails: filteredPersonalDetails,
-            recentReports: limitedRecentReports,
-        };
+    let filterResult = options;
+    if (searchInputValue.trim().length > 0) {
+        filterResult = filterOptions(options, searchInputValue, config);
     }
 
-    const filterResult = filterOptions(options, searchInputValue, config);
     let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
 
     if (config?.maxRecentReportsToShow) {
