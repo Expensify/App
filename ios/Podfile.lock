@@ -1968,7 +1968,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context (4.11.1):
+  - react-native-safe-area-context (4.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1981,8 +1981,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.11.1)
-    - react-native-safe-area-context/fabric (= 4.11.1)
+    - react-native-safe-area-context/common (= 4.12.0)
+    - react-native-safe-area-context/fabric (= 4.12.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1991,7 +1991,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.11.1):
+  - react-native-safe-area-context/common (4.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2012,7 +2012,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.11.1):
+  - react-native-safe-area-context/fabric (4.12.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3295,7 +3295,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
   react-native-quick-sqlite: 7c793c9f5834e756b336257a8d8b8239b7ceb451
   react-native-release-profiler: 131ec5e4145d900b2be2a8d6641e2ce0dd784259
-  react-native-safe-area-context: 2279fe040bc93af8624f7d034806180fdbe5fa02
+  react-native-safe-area-context: 458f6b948437afcb59198016b26bbd02ff9c3b47
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: ad29375839c9aa0409ce8e8693291b42bdc067a4
   React-nativeconfig: aeed6e2a8ac02b2df54476afcc7c663416c12bf7
