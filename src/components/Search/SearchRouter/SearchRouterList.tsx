@@ -399,6 +399,10 @@ function SearchRouterList(
         sections.push({data: [searchQueryItem]});
     }
 
+    if (additionalSections) {
+        sections.push(...additionalSections);
+    }
+
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
@@ -419,10 +423,6 @@ function SearchRouterList(
         });
 
         sections.push({title: translate('search.suggestions'), data: autocompleteData});
-    }
-
-    if (additionalSections) {
-        sections.push(...additionalSections);
     }
 
     const onArrowFocus = useCallback(

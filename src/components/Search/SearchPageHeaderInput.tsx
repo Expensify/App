@@ -136,7 +136,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 return;
             }
 
-            // TODO remove special handling of policyID after navigation is merged https://github.com/Expensify/App/pull/49539
             if (queryJSON.policyID) {
                 userQueryJSON.policyID = queryJSON.policyID;
             }
@@ -160,8 +159,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
-                    // Special case where empty item resets Search to default query
-                    Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: ''}));
                     return;
                 }
 
