@@ -124,6 +124,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         tag: transactionTag,
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
+        postedDate: transactionPostedDate,
     } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -199,6 +200,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     let amountDescription = `${translate('iou.amount')}`;
+    let dateDescription = `${translate('common.date')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transactionBackup ?? transaction, isDistanceRequest);
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
@@ -234,6 +236,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     if (isCardTransaction) {
+        if (transactionPostedDate) {
+            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
+        }
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
@@ -591,7 +596,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
-                        description={translate('common.date')}
+                        description={dateDescription}
                         title={transactionDate}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
