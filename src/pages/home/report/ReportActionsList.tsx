@@ -211,6 +211,11 @@ function ReportActionsList({
         return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
     }, [report.reportID, report.lastReadTime]);
 
+    const lastReadTime =
+        (transactionThreadReport?.lastReadTime ?? '') > reportLastReadTime
+            ? transactionThreadReport?.lastReadTime
+            : reportLastReadTime;
+
     /**
      * The timestamp for the unread marker.
      *
@@ -219,9 +224,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(lastReadTime);
     useEffect(() => {
-        setUnreadMarkerTime(reportLastReadTime);
+        setUnreadMarkerTime(lastReadTime);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
