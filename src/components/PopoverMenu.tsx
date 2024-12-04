@@ -127,6 +127,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
+
+    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -166,6 +169,7 @@ function PopoverMenu({
     scrollContainerStyle,
     shouldUseScrollView = false,
     shouldUpdateFocusedIndex = true,
+    shouldUseModalPaddingStyle,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -338,6 +342,7 @@ function PopoverMenu({
             useNativeDriver
             restoreFocusType={restoreFocusType}
             innerContainerStyle={innerContainerStyle}
+            shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
