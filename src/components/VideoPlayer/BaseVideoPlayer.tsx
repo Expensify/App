@@ -90,7 +90,7 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
-    const {updateVolume} = useVolumeContext();
+    const {updateVolume, lastNonZeroVolume, volume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
@@ -187,6 +187,8 @@ function BaseVideoPlayer({
         },
         [playVideo, videoResumeTryNumberRef],
     );
+    const prevIsMuted = useSharedValue(true);
+    const prevVolume = useSharedValue(0);
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
@@ -207,6 +209,16 @@ function BaseVideoPlayer({
             } else if (status.isPlaying && isEnded) {
                 setIsEnded(false);
             }
+
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+                updateVolume(lastNonZeroVolume.get());
+            }
+
+            if (isFullScreenRef.current && prevVolume.get() !== 0 && status.volume === 0 && !status.isMuted) {
+                currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
+            }
+            prevIsMuted.set(status.isMuted);
+            prevVolume.set(status.volume);
 
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -254,7 +266,6 @@ function BaseVideoPlayer({
                     if (!('isMuted' in status)) {
                         return;
                     }
-
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
 
