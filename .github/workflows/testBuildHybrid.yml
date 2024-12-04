@@ -198,7 +198,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [validateActor, getBranchRef, androidHybrid] #TODO add ios job
+    needs: [validateActor, getBranchRef, androidHybrid]
     if: ${{ always() }}
     steps:
       - name: Checkout
