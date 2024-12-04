@@ -1703,6 +1703,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 }
 
 type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
+
+/**
+ * Filters and orders the options based on the search input value.
+ * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
+ */
 function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
     const {maxRecentReportsToShow = 0, sortByReportTypeInSearch = false} = config;
 

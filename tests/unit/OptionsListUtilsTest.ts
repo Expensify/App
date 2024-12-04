@@ -983,6 +983,16 @@ describe('OptionsListUtils', () => {
                     expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
+
+        it('should return all results when setting maxRecentReportsToShow to 0', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '', {maxRecentReportsToShow: 0});
+
+            expect(filteredOptions.recentReports.length).toBe(10);
+            // There are only two personal details that have no reports. Personal details will be
+            // excluded from the list if they have reports (DMs).
+            expect(filteredOptions.personalDetails.length).toBe(2);
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
