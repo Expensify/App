@@ -46,7 +46,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    // Track active tooltips
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
     const unregisterTooltip = useCallback(
