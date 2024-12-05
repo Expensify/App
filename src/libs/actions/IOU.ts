@@ -61,6 +61,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -167,7 +168,7 @@ type GPSPoint = {
 };
 
 type RequestMoneyTransactionParams = {
-    attendees: Attendee[] | undefined;
+    attendees?: Attendee[];
     amount: number;
     currency: string;
     comment?: string;
@@ -204,6 +205,16 @@ type RequestMoneyInformation = {
     action?: IOUAction;
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
+};
+
+type MoneyRequestInformationParams = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionParams: RequestMoneyTransactionParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
+    moneyRequestReportID?: string;
+    existingTransactionID?: string;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -1785,10 +1796,21 @@ function getDeleteTrackExpenseInformation(
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: null,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [userAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1827,6 +1849,19 @@ function getDeleteTrackExpenseInformation(
             },
         },
     ];
+
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
+    if (shouldDeleteTransactionThread && transactionThread) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: Object.keys(transactionThread).reduce<Record<string, null>>((acc, key) => {
+                acc[key] = null;
+                return acc;
+            }, {}),
+        });
+    }
 
     const failureData: OnyxUpdate[] = [];
 
@@ -2044,31 +2079,12 @@ function getSendInvoiceInformation(
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getMoneyRequestInformation(
-    parentChatReport: OnyxEntry<OnyxTypes.Report>,
-    participant: Participant,
-    comment: string,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    receipt: Receipt | undefined,
-    existingTransactionID: string | undefined,
-    category: string | undefined,
-    tag: string | undefined,
-    taxCode: string | undefined,
-    taxAmount: number | undefined,
-    billable: boolean | undefined,
-    policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists> | undefined,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
-    payeeAccountID = userAccountID,
-    payeeEmail = currentUserEmail,
-    moneyRequestReportID = '',
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    attendees?: Attendee[],
-    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
-): MoneyRequestInformation {
+function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = ''} = moneyRequestInformation;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {attendees, amount, comment = '', currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -3598,8 +3614,7 @@ function shareTrackedExpense(
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
-    const {participant, payeeAccountID, payeeEmail} = participantParams;
-    const {policy, policyCategories, policyTagList} = policyParams;
+    const {payeeAccountID} = participantParams;
     const {
         amount,
         currency,
@@ -3637,32 +3652,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
-    } = getMoneyRequestInformation(
-        isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        created,
-        merchant,
-        receipt,
-        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && ReportActionsUtils.isMoneyRequestAction(linkedTrackedExpenseReportAction)
-            ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-            : undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        payeeAccountID,
-        payeeEmail,
+    } = getMoneyRequestInformation({
+        parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
         moneyRequestReportID,
-        linkedTrackedExpenseReportAction,
-        attendees,
-    );
+        existingTransactionID:
+            isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && ReportActionsUtils.isMoneyRequestAction(linkedTrackedExpenseReportAction)
+                ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+                : undefined,
+    });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     switch (action) {
@@ -5319,31 +5319,35 @@ function createDistanceRequest(
             createdReportActionIDForThread,
             payerEmail,
             onyxData: moneyRequestOnyxData,
-        } = getMoneyRequestInformation(
-            currentChatReport,
-            participant,
-            comment,
-            amount,
-            currency,
-            created,
-            merchant,
-            optimisticReceipt,
-            undefined,
-            category,
-            tag,
-            taxCode,
-            taxAmount,
-            billable,
-            policy,
-            policyTagList,
-            policyCategories,
-            userAccountID,
-            currentUserEmail,
-            moneyRequestReportID,
-            undefined,
-            undefined,
+        } = getMoneyRequestInformation({
+            parentChatReport: currentChatReport,
             existingTransaction,
-        );
+            moneyRequestReportID,
+            participantParams: {
+                participant,
+                payeeAccountID: userAccountID,
+                payeeEmail: currentUserEmail,
+            },
+            policyParams: {
+                policy,
+                policyCategories,
+                policyTagList,
+            },
+            transactionParams: {
+                amount,
+                currency,
+                comment,
+                created,
+                merchant,
+                receipt: optimisticReceipt,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+            },
+        });
+
         onyxData = moneyRequestOnyxData;
 
         parameters = {
@@ -5430,10 +5434,9 @@ function updateMoneyRequestAmountAndCurrency({
  *
  * @param transactionID  - The transactionID of IOU
  * @param reportAction - The reportAction of the transaction in the IOU report
- * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction) {
     // STEP 1: Get all collections we're updating
     const allReports = ReportConnection.getAllReports();
     const iouReportID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID : '-1';
@@ -5553,19 +5556,6 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
-    // STEP 5: Calculate the url that the user will be navigated back to
-    // This depends on which page they are on and which resources were deleted
-    let reportIDToNavigateBack: string | undefined;
-    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        reportIDToNavigateBack = iouReport.reportID;
-    }
-
-    if (iouReport?.chatReportID && shouldDeleteIOUReport) {
-        reportIDToNavigateBack = iouReport.chatReportID;
-    }
-
-    const urlToNavigateBack = reportIDToNavigateBack ? ROUTES.REPORT_WITH_ID.getRoute(reportIDToNavigateBack) : undefined;
-
     return {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5579,8 +5569,57 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
         transactionViolations,
         reportPreviewAction,
         iouReport,
-        urlToNavigateBack,
     };
+}
+
+/**
+ * Calculate the URL to navigate to after a money request deletion
+ * @param transactionID - The ID of the money request being deleted
+ * @param reportAction - The report action associated with the money request
+ * @param isSingleTransactionView - whether we are in the transaction thread report
+ * @returns The URL to navigate to
+ */
+function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+
+    // Determine which report to navigate back to
+    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
+    }
+
+    if (iouReport?.chatReportID && shouldDeleteIOUReport) {
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID);
+    }
+
+    return undefined;
+}
+
+/**
+ * Calculate the URL to navigate to after a track expense deletion
+ * @param chatReportID - The ID of the chat report containing the track expense
+ * @param transactionID - The ID of the track expense being deleted
+ * @param reportAction - The report action associated with the track expense
+ * @param isSingleTransactionView - Whether we're in single transaction view
+ * @returns The URL to navigate to
+ */
+function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+    const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+
+    // If not a self DM, handle it as a regular money request
+    if (!ReportUtils.isSelfDM(chatReport)) {
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    }
+
+    const transactionThreadID = reportAction.childReportID;
+    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
+
+    // Only navigate if in single transaction view and the thread will be deleted
+    if (isSingleTransactionView && shouldDeleteTransactionThread && chatReport?.reportID) {
+        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
+        return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
+    }
+
+    return undefined;
 }
 
 /**
@@ -5601,9 +5640,9 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         chatReport,
         iouReport,
         reportPreviewAction,
-        urlToNavigateBack,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -5747,8 +5786,9 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         transactionViolations,
         iouReport,
         reportPreviewAction,
-        urlToNavigateBack,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function
@@ -5768,10 +5808,21 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: null,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [userAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -5868,6 +5919,19 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             },
         },
     ];
+
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
+    if (shouldDeleteTransactionThread && transactionThread) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: Object.keys(transactionThread).reduce<Record<string, null>>((acc, key) => {
+                acc[key] = null;
+                return acc;
+            }, {}),
+        });
+    }
 
     if (shouldDeleteIOUReport) {
         successData.push({
@@ -5972,15 +6036,18 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 }
 
 function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
+
     // STEP 1: Get all collections we're updating
     const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!ReportUtils.isSelfDM(chatReport)) {
-        return deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+        return urlToNavigateBack;
     }
 
     const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
-    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
+    const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
         chatReportID,
         transactionID,
         reportAction,
@@ -5995,10 +6062,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
     CachedPDFPaths.clearByKey(transactionID);
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
-    if (isSingleTransactionView && shouldDeleteTransactionThread) {
-        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        return ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '-1');
-    }
+    return urlToNavigateBack;
 }
 
 /**
@@ -7329,6 +7393,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const approvalChain = ReportUtils.getApprovalChain(policy, expenseReport);
+    const managerID = PersonalDetailsUtils.getAccountIDsByLogins(approvalChain).at(0);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
         ? [
@@ -7347,6 +7413,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
+                      managerID,
                       lastMessageText: ReportActionsUtils.getReportActionText(optimisticSubmittedReportAction),
                       lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -8607,5 +8674,7 @@ export {
     updateLastLocationPermissionPrompt,
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
+    getNavigationUrlOnMoneyRequestDelete,
+    getNavigationUrlAfterTrackExpenseDelete,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
