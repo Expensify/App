@@ -4,6 +4,7 @@ import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
+    // eslint-disable-next-line deprecation/deprecation
     document.execCommand('insertText', false, text);
 };
 
@@ -27,7 +28,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     }
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false, isMarkdownEnabled = true) => {
     const navigation = useNavigation();
 
     /**
@@ -129,6 +130,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
     );
 
     useEffect(() => {
+        if (!isMarkdownEnabled) {
+            return;
+        }
         // we need to re-register listener on navigation focus/blur if the component (like Composer) is not unmounting
         // when navigating away to different screen (report) to avoid paste event on other screen being wrongly handled
         // by current screen paste listener
@@ -149,7 +153,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             document.removeEventListener('paste', handlePaste, true);
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [isMarkdownEnabled]);
 };
 
 export default useHtmlPaste;
