@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
@@ -156,20 +156,22 @@ function ShareDetailsPage({
                             <View style={[styles.pt6, styles.pb2]}>
                                 <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
                             </View>
-                            <AttachmentModal
-                                headerTitle={fileName}
-                                source={currentAttachment?.content}
-                                originalFileName={fileName}
-                                fallbackSource={Expensicons.FallbackAvatar}
-                            >
-                                {({show}) => (
-                                    <AttachmentPreview
-                                        source={currentAttachment?.content}
-                                        aspectRatio={currentAttachment?.aspectRatio}
-                                        onPress={show}
-                                    />
-                                )}
-                            </AttachmentModal>
+                            <SafeAreaView>
+                                <AttachmentModal
+                                    headerTitle={fileName}
+                                    source={currentAttachment?.content}
+                                    originalFileName={fileName}
+                                    fallbackSource={Expensicons.FallbackAvatar}
+                                >
+                                    {({show}) => (
+                                        <AttachmentPreview
+                                            source={currentAttachment?.content}
+                                            aspectRatio={currentAttachment?.aspectRatio}
+                                            onPress={show}
+                                        />
+                                    )}
+                                </AttachmentModal>
+                            </SafeAreaView>
                         </>
                     )}
                 </View>
