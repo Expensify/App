@@ -41,7 +41,7 @@ function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
 
 // TEMPORARY BETA TO HIDE PRODUCT TRAINING TOOLTIP AND MIGRATE USER WELCOME MODAL
 function shouldShowProductTrainingElements(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PRODCUCT_TRAINING) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.PRODUCT_TRAINING) || canUseAllBetas(betas);
 }
 
 /**

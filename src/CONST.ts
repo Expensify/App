@@ -680,7 +680,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
-        PRODCUCT_TRAINING: 'productTraining',
+        PRODUCT_TRAINING: 'productTraining',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
