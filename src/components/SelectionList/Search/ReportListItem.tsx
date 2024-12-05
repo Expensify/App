@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -109,12 +110,7 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const reportItemTotal = reportItem?.total ?? 0;
-    const reportItemUnheldTotal = reportItem?.unheldTotal ?? 0;
-    const isOnHold = reportItemTotal - reportItemUnheldTotal === 0;
-
-    const isApproveAction = reportItem.action === CONST.SEARCH.ACTION_TYPES.APPROVE;
-    const shouldUseSuccessStyle = isApproveAction ? !isOnHold : true;
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses('', reportItem.transactions);
 
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
@@ -209,7 +205,7 @@ function ReportListItem<TItem extends ListItem>({
                         <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                             <ActionCell
                                 action={reportItem.action}
-                                shouldUseSuccessStyle={shouldUseSuccessStyle}
+                                shouldUseSuccessStyle={!hasHeldExpenses}
                                 goToItem={handleOnButtonPress}
                                 isSelected={item.isSelected}
                                 isLoading={reportItem.isActionLoading}

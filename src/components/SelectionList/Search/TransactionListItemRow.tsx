@@ -267,9 +267,6 @@ function TransactionListItemRow({
 
     const isOnHold = useMemo(() => TransactionUtils.isOnHold(item), [item]);
 
-    const isApproveAction = item.action === CONST.SEARCH.ACTION_TYPES.APPROVE;
-    const shouldUseSuccessStyle = isApproveAction ? !isOnHold : true;
-
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
@@ -283,7 +280,7 @@ function TransactionListItemRow({
                         onButtonPress={onButtonPress}
                         canSelectMultiple={canSelectMultiple}
                         action={item.action}
-                        shouldUseSuccessStyle={shouldUseSuccessStyle}
+                        shouldUseSuccessStyle={!isOnHold}
                         isSelected={item.isSelected}
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
@@ -450,7 +447,7 @@ function TransactionListItemRow({
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
-                        shouldUseSuccessStyle={shouldUseSuccessStyle}
+                        shouldUseSuccessStyle={!isOnHold}
                         isSelected={isButtonSelected}
                         isChildListItem={isChildListItem}
                         parentAction={parentAction}
