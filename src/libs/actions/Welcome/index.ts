@@ -205,7 +205,7 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-function dismissProductTrainingElement(elementName: string) {
+function dismissProductTraining(elementName: string) {
     const date = new Date();
     // const optimisticData = [
     //     {
@@ -226,7 +226,7 @@ function dismissProductTrainingElement(elementName: string) {
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
-    dismissProductTrainingElement,
+    dismissProductTraining,
     setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
