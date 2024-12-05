@@ -3,7 +3,7 @@ title: Billing and Subscriptions
 description: Billing Page Overview
 ---
 
-# Billing Overview
+# Expensify Billing Overview
 
 At the beginning of each month, the Billing Owner for the workspace will be billed for the previous month’s activity. 
 Your Expensify bill is determined by: 
