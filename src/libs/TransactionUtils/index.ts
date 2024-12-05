@@ -44,15 +44,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -240,9 +231,11 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const parentReport = transaction?.reportID ? ReportUtils.getReport(transaction.reportID) : undefined;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
+    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some(
+        (participant) => participant.chatReportID && ReportUtils.getReport(participant.chatReportID)?.isOwnPolicyExpenseChat,
+    );
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
@@ -1126,7 +1119,7 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+            const report = ReportUtils.getReport(reportID);
             const policy = PolicyUtils.getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));
@@ -1201,7 +1194,7 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
 }
 
 function getTransactionID(threadReportID: string): string {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
+    const report = ReportUtils.getReport(threadReportID);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
