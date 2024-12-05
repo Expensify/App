@@ -5987,6 +5987,7 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            SUBMIT: 'submit',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',

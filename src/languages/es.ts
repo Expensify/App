@@ -4600,6 +4600,7 @@ const translations = {
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             approve: 'Aprobar',
+            submit: 'Enviar',
             pay: 'Pagar',
             delete: 'Eliminar',
             hold: 'Retener',

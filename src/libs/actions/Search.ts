@@ -399,4 +399,5 @@ export {
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
+    submitMoneyRequestOnSearch,
 };
