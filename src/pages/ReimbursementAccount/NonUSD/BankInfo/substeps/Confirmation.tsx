@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -33,10 +34,16 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
         () => (
             <>
                 {corpayFields?.map((field) => {
+                    let title = values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : '';
+
+                    if (field.id === ACCOUNT_HOLDER_COUNTRY) {
+                        title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
+                    }
+
                     return (
                         <MenuItemWithTopDescription
                             description={field.label}
-                            title={values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : ''}
+                            title={title}
                             shouldShowRightIcon
                             onPress={() => {
                                 if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
@@ -74,6 +81,8 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
 
         onNext();
         BankAccounts.clearReimbursementAccountBankCreation();
+
+        return () => BankAccounts.clearReimbursementAccountBankCreation();
     }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading]);
 
     return (
