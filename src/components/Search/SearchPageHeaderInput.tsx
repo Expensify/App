@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -86,18 +87,21 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const isFocused = useIsFocused();
     const {registerSearchPageInput, unregisterSearchPageInput} = useSearchRouterContext();
 
-    // If query is non-canned that means Search Input is displayed, so we need to register it in the context.
+    // If query is non-canned that means Search Input is displayed, so we need to register its ref in the context.
     useEffect(() => {
-        if (isCannedQuery || !textInputRef.current) {
-            return unregisterSearchPageInput();
+        if (!isFocused) {
+            return;
         }
 
-        registerSearchPageInput(textInputRef.current);
-
-        return unregisterSearchPageInput;
-    }, [isCannedQuery, registerSearchPageInput, unregisterSearchPageInput]);
+        if (!isCannedQuery && textInputRef.current) {
+            registerSearchPageInput(textInputRef.current);
+        } else {
+            unregisterSearchPageInput();
+        }
+    }, [isCannedQuery, isFocused, registerSearchPageInput, unregisterSearchPageInput]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates);
