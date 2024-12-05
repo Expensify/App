@@ -2280,6 +2280,12 @@ const translations = {
         selectCountry: 'Select country',
         findCountry: 'Find country',
         address: 'Address',
+        chooseFile: 'Choose file',
+        uploadDocuments: 'Upload documents',
+        proofOfBeneficialOwner: 'Proof of beneficial owner',
+        copyOfID: 'Copy of ID',
+        proofOfAddress: 'Proof of address',
+        codiceFiscale: 'Codice fiscale',
     },
     validationStep: {
         headerTitle: 'Validate bank account',

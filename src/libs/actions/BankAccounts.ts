@@ -8,6 +8,7 @@ import type {
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
+    SaveCorpayOnboardingBeneficialOwnerParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -378,6 +379,10 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
     });
 }
 
+function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBeneficialOwnerParams) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters);
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -611,6 +616,7 @@ export {
     getCorpayBankAccountFields,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingBeneficialOwners,
 };
 
 export type {BusinessAddress, PersonalAddress};

@@ -2304,6 +2304,12 @@ const translations = {
         selectCountry: 'Seleccionar país',
         findCountry: 'Buscar país',
         address: 'Dirección',
+        chooseFile: 'Choose file',
+        uploadDocuments: 'Upload documents',
+        proofOfBeneficialOwner: 'Proof of beneficial owner',
+        copyOfID: 'Copy of ID',
+        proofOfAddress: 'Proof of address',
+        codiceFiscale: 'Codice fiscale',
     },
     validationStep: {
         headerTitle: 'Validar cuenta bancaria',
