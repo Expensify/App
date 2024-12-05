@@ -6705,7 +6705,7 @@ function getPayMoneyRequestParams(
 
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '') && !full && !!iouReport?.unheldTotal) {
-        total = iouReport?.unheldTotal;
+        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
