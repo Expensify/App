@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -109,6 +109,19 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
+    const isOnHold = useMemo(() => {
+        if (!reportItem) {
+            return false;
+        }
+
+        const total = reportItem?.total ?? 0;
+        const unHeldTotal = reportItem?.unheldTotal ?? 0;
+        return total - unHeldTotal === 0;
+    }, [reportItem]);
+
+    const isApproveAction = reportItem.action === CONST.SEARCH.ACTION_TYPES.APPROVE;
+    const shouldUseSuccessStyle = isApproveAction ? !isOnHold : true;
+
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
 
@@ -200,8 +213,10 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                     {isLargeScreenWidth && (
                         <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
+                            <Text>bezita</Text>
                             <ActionCell
                                 action={reportItem.action}
+                                shouldUseSuccessStyle={shouldUseSuccessStyle}
                                 goToItem={handleOnButtonPress}
                                 isSelected={item.isSelected}
                                 isLoading={reportItem.isActionLoading}
