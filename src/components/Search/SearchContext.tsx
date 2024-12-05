@@ -1,6 +1,8 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
+import * as SearchUIUtils from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
@@ -13,6 +15,8 @@ const defaultSearchContext = {
     clearSelectedTransactions: () => {},
     shouldShowStatusBarLoading: false,
     setShouldShowStatusBarLoading: () => {},
+    lastSearchType: undefined,
+    setLastSearchType: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -20,13 +24,12 @@ const Context = React.createContext<SearchContext>(defaultSearchContext);
 function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[], selectedTransactions: SelectedTransactions) {
     return (data ?? [])
         .filter(
-            (item) =>
-                !SearchUtils.isTransactionListItemType(item) &&
-                !SearchUtils.isReportActionListItemType(item) &&
-                item.reportID &&
+            (item): item is ReportListItemType =>
+                SearchUIUtils.isReportListItemType(item) &&
+                isMoneyRequestReport(item) &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
-        .map((item) => item.reportID);
+        .map((item) => ({reportID: item.reportID, action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW, total: item.total ?? 0, policyID: item.policyID ?? ''}));
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
@@ -69,6 +72,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     );
 
     const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
+    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
 
     const searchContext = useMemo<SearchContext>(
         () => ({
@@ -78,8 +82,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             clearSelectedTransactions,
             shouldShowStatusBarLoading,
             setShouldShowStatusBarLoading,
+            lastSearchType,
+            setLastSearchType,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading],
+        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading, lastSearchType, setLastSearchType],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

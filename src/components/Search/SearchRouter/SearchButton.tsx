@@ -1,36 +1,52 @@
-import React from 'react';
+import React, {useRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Permissions from '@libs/Permissions';
+import Performance from '@libs/Performance';
+import * as Session from '@userActions/Session';
+import Timing from '@userActions/Timing';
+import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
 
-function SearchButton() {
+type SearchButtonProps = {
+    style?: StyleProp<ViewStyle>;
+};
+
+function SearchButton({style}: SearchButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
-
-    if (!Permissions.canUseNewSearchRouter()) {
-        return;
-    }
+    const pressableRef = useRef<View>(null);
 
     return (
-        <PressableWithoutFeedback
-            accessibilityLabel={translate('common.search')}
-            style={[styles.flexRow, styles.touchableButtonImage]}
-            onPress={() => {
-                openSearchRouter();
-            }}
-        >
-            <Icon
-                src={Expensicons.MagnifyingGlass}
-                fill={theme.icon}
-            />
-        </PressableWithoutFeedback>
+        <Tooltip text={translate('common.search')}>
+            <PressableWithoutFeedback
+                ref={pressableRef}
+                nativeID="searchButton"
+                accessibilityLabel={translate('common.search')}
+                style={[styles.flexRow, styles.touchableButtonImage, style]}
+                // eslint-disable-next-line react-compiler/react-compiler
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    pressableRef?.current?.blur();
+
+                    Timing.start(CONST.TIMING.OPEN_SEARCH);
+                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+
+                    openSearchRouter();
+                })}
+            >
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 

@@ -45,7 +45,7 @@ function SearchFiltersCurrencyPage() {
             testID={SearchFiltersCurrencyPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -56,7 +56,6 @@ function SearchFiltersCurrencyPage() {
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
-                    pickerTitle={translate('search.filters.currency')}
                     items={currencyItems}
                     initiallySelectedItems={selectedCurrenciesItems}
                     onSaveSelection={handleOnSubmit}

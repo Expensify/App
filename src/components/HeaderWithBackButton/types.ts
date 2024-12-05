@@ -56,6 +56,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
+    /** Whether we should show a loading indicator replacing the download button */
+    isDownloading?: boolean;
+
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton?: boolean;
 
@@ -139,6 +142,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
 export type {ThreeDotsMenuItem};

@@ -43,6 +43,7 @@ import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
+import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +117,7 @@ function ReportActionCompose({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -132,7 +134,6 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
-    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -272,7 +273,8 @@ function ReportActionCompose({
                 Report.addAttachment(reportID, attachmentFileRef.current, newCommentTrimmed);
                 attachmentFileRef.current = null;
             } else {
-                Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newCommentTrimmed});
+                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
             }
         },
@@ -341,7 +343,7 @@ function ReportActionCompose({
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        const clearComposer = composerRefShared.value.clear;
+        const clearComposer = composerRefShared.get().clear;
         if (!clearComposer) {
             throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
@@ -392,6 +394,16 @@ function ReportActionCompose({
         ],
     );
 
+    const onValueChange = useCallback(
+        (value: string) => {
+            if (value.length === 0 && isComposerFullSize) {
+                Report.setIsComposerFullSize(reportID, false);
+            }
+            validateCommentMaxLength(value, {reportID});
+        },
+        [isComposerFullSize, reportID, validateCommentMaxLength],
+    );
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -432,6 +444,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
+                                shouldDisableSendButton={hasExceededMaxCommentLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -440,7 +453,6 @@ function ReportActionCompose({
                                             reportID={reportID}
                                             report={report}
                                             reportParticipantIDs={reportParticipantIDs}
-                                            isFullComposerAvailable={isFullComposerAvailable}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
@@ -450,15 +462,21 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
+                                            onCanceledAttachmentPicker={() => {
+                                                if (!shouldFocusInputOnScreenFocus) {
+                                                    return;
+                                                }
+                                                focus();
+                                            }}
                                             actionButtonRef={actionButtonRef}
+                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
                                                 composerRef.current = ref ?? undefined;
-                                                // eslint-disable-next-line react-compiler/react-compiler
-                                                composerRefShared.value = {
+                                                composerRefShared.set({
                                                     clear: ref?.clear,
-                                                };
+                                                });
                                             }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}
@@ -479,20 +497,13 @@ function ReportActionCompose({
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={!!disabled}
-                                            isFullComposerAvailable={isFullComposerAvailable}
-                                            setIsFullComposerAvailable={setIsFullComposerAvailable}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
-                                            onValueChange={(value) => {
-                                                if (value.length === 0 && isComposerFullSize) {
-                                                    Report.setIsComposerFullSize(reportID, false);
-                                                }
-                                                validateCommentMaxLength(value, {reportID});
-                                            }}
+                                            onValueChange={onValueChange}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {

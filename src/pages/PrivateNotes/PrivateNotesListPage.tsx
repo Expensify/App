@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
@@ -36,8 +36,8 @@ type NoteListItem = {
     accountID: string;
 };
 
-function PrivateNotesListPage({report, session}: PrivateNotesListPageProps) {
-    const route = useRoute<RouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
+function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
+    const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
     const backTo = route.params.backTo;
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
@@ -76,14 +76,14 @@ function PrivateNotesListPage({report, session}: PrivateNotesListPageProps) {
             return {
                 reportID: report.reportID,
                 accountID,
-                title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
+                title: Number(sessionAccountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
                 note: privateNote?.note ?? '',
-                disabled: Number(session?.accountID) !== Number(accountID),
+                disabled: Number(sessionAccountID) !== Number(accountID),
             };
         });
-    }, [report, personalDetailsList, session, translate, backTo]);
+    }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
         <ScreenWrapper

@@ -96,6 +96,10 @@ export default {
         width: '80%',
     },
 
+    w90: {
+        width: '90%',
+    },
+
     w100: {
         width: '100%',
     },
@@ -117,5 +121,8 @@ export default {
     },
     wAuto: {
         width: 'auto',
+    },
+    wFitContent: {
+        width: 'fit-content',
     },
 } satisfies Record<string, ViewStyle>;

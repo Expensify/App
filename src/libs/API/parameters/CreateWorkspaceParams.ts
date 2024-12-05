@@ -10,6 +10,7 @@ type CreateWorkspaceParams = {
     expenseCreatedReportActionID: string;
     customUnitID: string;
     customUnitRateID: string;
+    engagementChoice?: string;
 };
 
 export default CreateWorkspaceParams;

@@ -15,13 +15,11 @@ export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = f
     const {translate} = useLocalize();
     const noDelegateAccessPromptStart = translate('delegate.notAllowedMessageStart', {accountOwnerEmail: delegatorEmail});
     const noDelegateAccessHyperLinked = translate('delegate.notAllowedMessageHyperLinked');
-    const noDelegateAccessPromptEnd = translate('delegate.notAllowedMessageEnd');
 
     const delegateNoAccessPrompt = (
         <Text>
             {noDelegateAccessPromptStart}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{noDelegateAccessHyperLinked}</TextLink>
-            {noDelegateAccessPromptEnd}
+            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{noDelegateAccessHyperLinked}</TextLink>.
         </Text>
     );
 

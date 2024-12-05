@@ -85,7 +85,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                 </Section>
             </ScrollView>
 
-            {reimbursementAccount?.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
+            {!!reimbursementAccount?.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>
     );
 }

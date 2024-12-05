@@ -26,6 +26,8 @@ type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
     thumbnail?: string;
 
+    isEmptyReceipt?: boolean;
+
     /** The file type of the receipt */
     fileExtension?: string;
 
@@ -55,6 +57,12 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt is not editable */
     readonly?: boolean;
+
+    /** whether or not this report is from review duplicates */
+    isFromReviewDuplicates?: boolean;
+
+    /** Callback to be called on pressing the image */
+    onPress?: () => void;
 };
 
 /**
@@ -70,11 +78,14 @@ function ReportActionItemImage({
     enablePreviewModal = false,
     transaction,
     isLocalFile = false,
+    isEmptyReceipt = false,
     fileExtension,
     filename,
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
+    isFromReviewDuplicates = false,
+    onPress,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -124,6 +135,8 @@ function ReportActionItemImage({
             isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
             shouldUseInitialObjectPosition: isDistanceRequest,
+            isEmptyReceipt,
+            onPress,
         };
     }
 
@@ -135,7 +148,12 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '-1', transaction?.transactionID ?? '-1', readonly),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
+                                    transaction?.transactionID ?? '-1',
+                                    readonly,
+                                    isFromReviewDuplicates,
+                                ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}

@@ -1,5 +1,5 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -21,50 +22,37 @@ import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
     value: string;
 };
 
-const mockedData: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-        vcf: 'Visa Corporate Card',
-        gl1025: 'Corporate Amex',
-    },
-};
-
-type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
+type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    const policy = PolicyUtils.getPolicy(policyID);
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardFeeds = mockedData;
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
+    const availableCompanyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -72,8 +60,6 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             return;
         }
         if (selectedFeed === CONST.EXPENSIFY_CARD.NAME) {
-            const activeRoute = Navigation.getActiveRoute();
-
             Card.setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
                 data: {
@@ -81,16 +67,28 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 },
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
         } else {
+            const data: Partial<AssignCardData> = {
+                email: memberLogin,
+                bankName: selectedFeed,
+                cardName: `${memberName}'s card`,
+            };
+            let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+
+            if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+                data.cardNumber = Object.keys(filteredCardList).at(0);
+                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            }
             CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CARD,
-                data: {
-                    email: memberLogin,
-                },
+                currentStep,
+                data,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed));
+            Navigation.setNavigationActionToMicrotaskQueue(() =>
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))),
+            );
         }
     };
 
@@ -99,40 +97,41 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: value,
+        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (
             <Icon
                 src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
 
-    const feeds = workspaceAccountID
-        ? [
-              ...companyCardFeeds,
-              {
-                  value: CONST.EXPENSIFY_CARD.NAME,
-                  text: translate('workspace.common.expensifyCard'),
-                  keyForList: CONST.EXPENSIFY_CARD.NAME,
-                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                  leftElement: (
-                      <Icon
-                          src={ExpensifyCardImage}
-                          width={variables.cardIconWidth}
-                          height={variables.cardIconHeight}
-                          additionalStyles={[styles.cardIcon, styles.mr3]}
-                      />
-                  ),
-              },
-          ]
-        : companyCardFeeds;
+    const feeds =
+        workspaceAccountID && policy?.areExpensifyCardsEnabled
+            ? [
+                  ...companyCardFeeds,
+                  {
+                      value: CONST.EXPENSIFY_CARD.NAME,
+                      text: translate('workspace.common.expensifyCard'),
+                      keyForList: CONST.EXPENSIFY_CARD.NAME,
+                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                      leftElement: (
+                          <Icon
+                              src={ExpensifyCardImage}
+                              width={variables.cardIconWidth}
+                              height={variables.cardIconHeight}
+                              additionalStyles={[styles.cardIcon, styles.mr3]}
+                          />
+                      ),
+                  },
+              ]
+            : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 
@@ -147,7 +146,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList

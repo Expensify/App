@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -40,17 +41,24 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
-    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const canEditReportDescription = ReportUtils.canEditReportDescription(report, policy);
+    const {canUseCombinedTrackSubmit} = usePermissions();
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
             item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
-        .map((item, index) => `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(`reportActionsView.iouTypes.${item}`)}`)
+        .map(
+            (item, index) =>
+                `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
+                    canUseCombinedTrackSubmit && item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                )}`,
+        )
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
@@ -123,12 +131,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (!canEditPolicyDescription) {
+                                if (!canEditReportDescription) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
+                                const activeRoute = Navigation.getActiveRoute();
+                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                             }}
-                            style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
+                            style={[styles.renderHTML, canEditReportDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                         >
                             <RenderHTML html={welcomeMessage.messageHtml} />
@@ -153,8 +162,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     (welcomeMessage?.messageHtml ? (
                         <PressableWithoutFeedback
                             onPress={() => {
-                                const activeRoute = Navigation.getReportRHPActiveRoute();
-                                if (ReportUtils.canEditReportDescription(report, policy)) {
+                                const activeRoute = Navigation.getActiveRoute();
+                                if (canEditReportDescription) {
                                     Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
                                     return;
                                 }

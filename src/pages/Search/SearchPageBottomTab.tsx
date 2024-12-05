@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,7 @@ function SearchPageBottomTab() {
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
-        top: topBarOffset.value,
+        top: topBarOffset.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -47,27 +47,37 @@ function SearchPageBottomTab() {
                 return;
             }
             const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.value;
-            const distanceScrolled = currentOffset - scrollOffset.value;
+            const isScrollingDown = currentOffset > scrollOffset.get();
+            const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                topBarOffset.value = clamp(topBarOffset.value - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight);
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
             }
-            scrollOffset.value = currentOffset;
+            scrollOffset.set(currentOffset);
         },
     });
 
+    const onContentSizeChange = useCallback(
+        (w: number, h: number) => {
+            if (windowHeight <= h) {
+                return;
+            }
+            topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+        },
+        [windowHeight, topBarOffset],
+    );
+
     const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const parsedQuery = SearchUtils.buildSearchQueryJSON(searchParams?.q);
-    const searchName = searchParams?.name;
-    const policyIDFromSearchQuery = parsedQuery && SearchUtils.getPolicyIDFromSearchQuery(parsedQuery);
+    const parsedQuery = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
+    const isSearchNameModified = searchParams?.name === searchParams?.q;
+    const searchName = isSearchNameModified ? undefined : searchParams?.name;
+    const policyIDFromSearchQuery = parsedQuery && SearchQueryUtils.getPolicyIDFromSearchQuery(parsedQuery);
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -85,6 +95,8 @@ function SearchPageBottomTab() {
         );
     }
 
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -97,9 +109,8 @@ function SearchPageBottomTab() {
                         <TopBar
                             activeWorkspaceID={policyID}
                             breadcrumbLabel={translate('common.search')}
-                            shouldDisplaySearch={false}
-                            shouldDisplaySearchRouter={shouldUseNarrowLayout}
-                            isCustomSearchQuery={shouldUseNarrowLayout && !SearchUtils.isCannedSearchQuery(queryJSON)}
+                            shouldDisplaySearch={shouldUseNarrowLayout}
+                            shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
                     </View>
                     {shouldUseNarrowLayout ? (
@@ -109,11 +120,9 @@ function SearchPageBottomTab() {
                                 searchName={searchName}
                             />
                             <SearchStatusBar
-                                type={queryJSON.type}
-                                status={queryJSON.status}
-                                policyID={queryJSON.policyID}
+                                queryJSON={queryJSON}
                                 onStatusChange={() => {
-                                    topBarOffset.value = withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS});
+                                    topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
                         </Animated.View>
@@ -129,8 +138,10 @@ function SearchPageBottomTab() {
             )}
             {shouldUseNarrowLayout && (
                 <Search
+                    isSearchScreenFocused={isActiveCentralPaneRoute}
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
+                    onContentSizeChange={onContentSizeChange}
                     contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
                 />
             )}

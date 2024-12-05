@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,65 +11,52 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CardFeeds} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
     /** Card feed value */
-    value: string;
+    value: CompanyCardFeed;
 };
 
-const mockedData: CardFeeds = {
-    companyCards: {
-        cdfbmo: {
-            pending: false,
-            asrEnabled: true,
-            forceReimbursable: 'force_no',
-            liabilityType: 'corporate',
-            preferredPolicy: '',
-            reportTitleFormat: '{report:card}{report:bank}{report:submit:from}{report:total}{report:enddate:MMMM}',
-            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-        },
-    },
-    companyCardNicknames: {
-        cdfbmo: 'BMO MasterCard',
-    },
-};
-
-type WorkspaceCompanyCardFeedSelectorPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
+type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
+    const availableCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
-    const cardFeeds = mockedData;
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
-
-    const feeds: CardFeedListItem[] = Object.entries(cardFeeds?.companyCardNicknames ?? {}).map(([key, value]) => ({
-        value: key,
-        text: value,
-        keyForList: key,
-        isSelected: key === selectedFeed,
+    const feeds: CardFeedListItem[] = (Object.keys(availableCards) as CompanyCardFeed[]).map((feed) => ({
+        value: feed,
+        text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
+        keyForList: feed,
+        isSelected: feed === selectedFeed,
+        brickRoadIndicator: companyFeeds[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        canShowSeveralIndicators: !!companyFeeds[feed]?.errors,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon(key)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                src={CardUtils.getCardFeedIcon(feed)}
+                height={variables.cardIconHeight}
+                width={variables.cardIconWidth}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
@@ -93,7 +79,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.companyCards.selectCardFeed')}
+                    title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
@@ -105,10 +91,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     initiallyFocusedOptionKey={selectedFeed}
                     listFooterContent={
                         <MenuItem
-                            title={translate('workspace.companyCards.addCompanyCards')}
+                            title={translate('workspace.companyCards.addCards')}
                             icon={Expensicons.Plus}
                             onPress={() => {
-                                // TODO: navigate to Add Feed flow when it's implemented
+                                CompanyCards.clearAddNewCardFlow();
+                                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
                             }}
                         />
                     }

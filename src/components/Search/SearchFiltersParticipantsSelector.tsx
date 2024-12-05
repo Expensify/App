@@ -25,9 +25,6 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     headerMessage: '',
-    categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
 };
 
 function getSelectedOptionData(option: Option): OptionData {
@@ -57,27 +54,16 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getFilteredOptions(
-            options.reports,
-            options.personalDetails,
-            undefined,
-            '',
-            selectedOptions,
-            CONST.EXPENSIFY_EMAILS,
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
-            undefined,
-            false,
+        return OptionsListUtils.getOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                maxRecentReportsToShow: 0,
+            },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
@@ -90,7 +76,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }

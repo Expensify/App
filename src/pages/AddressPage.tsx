@@ -78,14 +78,13 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={AddressPage.displayName}
         >
             <HeaderWithBackButton
                 title={title}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backTo)}
-                shouldDisplaySearchRouter
             />
             {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

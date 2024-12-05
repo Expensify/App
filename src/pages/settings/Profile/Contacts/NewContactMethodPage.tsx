@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -13,13 +12,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as UserUtils from '@libs/UserUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +31,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type NewContactMethodPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const contactMethod = UserUtils.getContactMethod();
@@ -39,7 +42,9 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = ErrorUtils.getLatestErrorField(loginData, 'addedLogin');
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -55,13 +60,21 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
 
     const addNewContactMethod = useCallback(
         (magicCode: string) => {
-            User.addNewContactMethod(pendingContactAction?.contactMethod ?? '', magicCode);
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+            User.addNewContactMethod(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? ''), magicCode);
         },
         [pendingContactAction?.contactMethod],
     );
 
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
+    useEffect(() => {
+        if (!pendingContactAction?.actionVerified) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        User.clearUnvalidatedNewContactMethodAction();
+    }, [pendingContactAction?.actionVerified]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -99,10 +112,14 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
+    if (isActingAsDelegate) {
+        return <NotFoundPage onBackButtonPress={onBackButtonPress} />;
+    }
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={NewContactMethodPage.displayName}
         >
@@ -143,11 +160,24 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
                 validateError={validateLoginError}
                 handleSubmitForm={addNewContactMethod}
-                clearError={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                clearError={() => {
+                    if (!loginData) {
+                        return;
+                    }
+                    User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                }}
+                onClose={() => {
+                    if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                        User.clearContactMethod(pendingContactAction?.contactMethod);
+                        User.clearUnvalidatedNewContactMethodAction();
+                    }
+                    setIsValidateCodeActionModalVisible(false);
+                }}
                 isVisible={isValidateCodeActionModalVisible}
-                title={contactMethod}
-                description={translate('contacts.enterMagicCode', {contactMethod})}
+                hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
+                title={translate('delegate.makeSureItIsYou')}
+                sendValidateCode={() => User.requestValidateCodeAction()}
+                descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
             />
         </ScreenWrapper>
     );

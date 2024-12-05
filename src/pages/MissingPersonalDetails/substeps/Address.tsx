@@ -37,40 +37,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
         shouldSaveDraft: true,
     });
 
-    const handleAddressChange = useCallback((value: unknown, key: unknown) => {
-        const addressPart = value as string;
-        const addressPartKey = key as keyof Address;
-
-        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.COUNTRY) {
-            setCurrentCountry(addressPart as Country | '');
-            setState('');
-            setCity('');
-            setZipcode('');
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.STATE) {
-            setState(addressPart);
-            setCity('');
-            setZipcode('');
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.CITY) {
-            setCity(addressPart);
-            setZipcode('');
-            return;
-        }
-        setZipcode(addressPart);
-    }, []);
-
-    const isUSAForm = currentCountry === CONST.COUNTRY.US;
-
-    const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
-
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
@@ -104,6 +70,40 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
         },
         [translate],
     );
+
+    const handleAddressChange = useCallback((value: unknown, key: unknown) => {
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
+
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.COUNTRY) {
+            setCurrentCountry(addressPart as Country | '');
+            setState('');
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipcode('');
+            return;
+        }
+        setZipcode(addressPart);
+    }, []);
+
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
+
+    const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
+
+    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     return (
         <FormProvider

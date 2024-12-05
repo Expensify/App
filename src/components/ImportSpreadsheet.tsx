@@ -33,7 +33,7 @@ type ImportSpreedsheetProps = {
     goTo: Routes;
 };
 
-function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
@@ -42,6 +42,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -121,7 +123,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
@@ -158,7 +160,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreedsheet.displayName}
+            testID={ImportSpreadsheet.displayName}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
@@ -167,7 +169,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.navigate(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
@@ -212,6 +214,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     );
 }
 
-ImportSpreedsheet.displayName = 'ImportSpreedsheet';
+ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
-export default ImportSpreedsheet;
+export default ImportSpreadsheet;

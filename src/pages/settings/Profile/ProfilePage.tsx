@@ -16,6 +16,7 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ function ProfilePage() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -97,6 +99,12 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
         },
         {
+            description: translate('common.phoneNumber'),
+            title: privateDetails.phoneNumber ?? '',
+            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,
@@ -116,7 +124,10 @@ function ProfilePage() {
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
             />
-            <ScrollView style={styles.pt3}>
+            <ScrollView
+                style={styles.pt3}
+                contentContainerStyle={safeAreaPaddingBottomStyle}
+            >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
@@ -195,6 +206,7 @@ function ProfilePage() {
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
                                 </>

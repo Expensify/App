@@ -13,6 +13,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -117,13 +118,17 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         />
                     </View>
                     {hasAssignee && (
-                        <Avatar
-                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                            source={avatar}
-                            size={avatarSize}
-                            avatarID={taskAssigneeAccountID}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
+                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                            <View>
+                                <Avatar
+                                    containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                    source={avatar}
+                                    size={avatarSize}
+                                    avatarID={taskAssigneeAccountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                />
+                            </View>
+                        </UserDetailsTooltip>
                     )}
                     <Text style={titleStyle}>{taskTitle}</Text>
                 </View>

@@ -1,10 +1,8 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -17,8 +15,8 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StatusBar from '@libs/StatusBar';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -31,7 +29,7 @@ import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+type ExitSurveyResponsePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps) {
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE]});
@@ -40,7 +38,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
-    const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     // Device safe area top and bottom insets.
     // When the keyboard is shown, the bottom inset doesn't affect the height, so we take it out from the calculation.
@@ -50,7 +48,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     const {isOffline} = useNetwork({
         onReconnect: () => {
             navigation.setParams({
-                backTo: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                backTo: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
             });
         },
     });
@@ -120,15 +118,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={(el: AnimatedTextInputRef) => {
-                                if (!el) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                inputCallbackRef(el);
-                            }}
+                            ref={inputCallbackRef}
                             containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
                             shouldSubmitForm

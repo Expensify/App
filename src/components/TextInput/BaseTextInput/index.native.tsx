@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -72,6 +73,7 @@ function BaseTextInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
@@ -97,6 +99,7 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    useHtmlPaste(input, undefined, false, isMarkdownEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -182,8 +185,11 @@ function BaseTextInput(
 
             const layout = event.nativeEvent.layout;
 
+            // We need to increase the height for single line inputs to escape cursor jumping on ios
+            const heightToFitEmojis = 1;
+
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
+            setHeight((prevHeight: number) => (!multiline ? layout.height + heightToFitEmojis : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
@@ -258,6 +264,7 @@ function BaseTextInput(
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+        isAutoGrowHeightMarkdown && styles.pb2,
     ]);
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
@@ -274,7 +281,10 @@ function BaseTextInput(
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
-                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                        autoGrowHeight &&
+                            !isAutoGrowHeightMarkdown &&
+                            styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
+                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -301,7 +311,7 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {iconLeft && (
+                            {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
                                         src={iconLeft}
@@ -351,9 +361,10 @@ function BaseTextInput(
                                     !isMultiline && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(autoGrowHeight
+                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
                                         ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
+                                    isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -374,8 +385,8 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
-                            {inputProps.isLoading && (
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
@@ -397,7 +408,7 @@ function BaseTextInput(
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && icon && (
+                            {!inputProps.secureTextEntry && !!icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}
@@ -415,7 +426,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {contentWidth && (
+            {!!contentWidth && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
@@ -444,7 +455,7 @@ function BaseTextInput(
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
-            {(!!autoGrow || autoGrowHeight) && (
+            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628

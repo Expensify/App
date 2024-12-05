@@ -49,6 +49,9 @@ type SettlementButtonProps = {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles to add to the component wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 

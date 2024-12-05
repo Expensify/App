@@ -130,10 +130,14 @@ type ReportActionItemProps = {
     /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
+    isThreadReportParentAction?: boolean;
+
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    hideThreadReplies?: boolean;
 
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
@@ -153,8 +157,8 @@ function ReportActionItem({
     shouldShowSubscriptAvatar = false,
     onPress = undefined,
     isFirstVisibleReportAction = false,
+    isThreadReportParentAction = false,
     shouldUseThreadDividerLine = false,
-    hideThreadReplies = false,
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
@@ -177,6 +181,7 @@ function ReportActionItem({
         `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? -1 : -1}`,
         {selector: (transaction) => transaction?.errorFields?.route ?? null},
     );
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
@@ -195,7 +200,7 @@ function ReportActionItem({
     const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
-
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
@@ -355,9 +360,22 @@ function ReportActionItem({
                 disabledActions,
                 false,
                 setIsEmojiPickerActive as () => void,
+                undefined,
+                isThreadReportParentAction,
             );
         },
-        [draftMessage, action, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, disabledActions, isArchivedRoom, isChronosReport],
+        [
+            draftMessage,
+            action,
+            reportID,
+            toggleContextMenuFromActiveReportAction,
+            originalReportID,
+            shouldDisplayContextMenu,
+            disabledActions,
+            isArchivedRoom,
+            isChronosReport,
+            isThreadReportParentAction,
+        ],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -397,7 +415,7 @@ function ReportActionItem({
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
                 {
                     text: 'subscription.cardSection.addCardButton',
@@ -498,7 +516,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, reportID]);
+    }, [action, isActionableWhisper, reportID, userBillingFundID]);
 
     /**
      * Get the content of ReportActionItem
@@ -599,7 +617,7 @@ function ReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID)}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, isUserValidated)}
                                 pressOnEnter
                                 large
                             />
@@ -657,6 +675,8 @@ function ReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={ReportUtils.getIOUApprovedMessage(action)} />;
             }
+        } else if (ReportActionsUtils.isUnapprovedAction(action)) {
+            children = <ReportActionItemBasicMessage message={ReportUtils.getIOUUnapprovedMessage(action)} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = ReportActionsUtils.getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -693,7 +713,13 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getRemovedFromApprovalChainMessage(action)} />;
         } else if (
-            ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS)
+            ReportActionsUtils.isActionOfType(
+                action,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+            )
         ) {
             children = (
                 <IssueCardMessage
@@ -775,7 +801,7 @@ function ReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = !hideThreadReplies && ReportUtils.shouldDisplayThreadReplies(action, reportID);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(action, isThreadReportParentAction);
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -946,6 +972,7 @@ function ReportActionItem({
             <Hoverable
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
+                shouldFreezeCapture={isPaymentMethodPopoverActive}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
@@ -960,6 +987,7 @@ function ReportActionItem({
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                isThreadReportParentAction={isThreadReportParentAction}
                                 draftMessage={draftMessage}
                                 isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}

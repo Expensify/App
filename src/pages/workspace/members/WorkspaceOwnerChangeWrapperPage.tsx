@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
@@ -22,7 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
 import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
 
-type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
@@ -75,7 +75,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
-                    {policy?.isLoading && <FullScreenLoadingIndicator />}
+                    {!!policy?.isLoading && <FullScreenLoadingIndicator />}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
                     {!policy?.isLoading && !shouldShowPaymentCardForm && (
                         <WorkspaceOwnerChangeCheck

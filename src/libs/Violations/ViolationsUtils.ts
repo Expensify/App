@@ -2,7 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +80,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
@@ -218,7 +218,7 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
+        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 
@@ -253,6 +253,7 @@ const ViolationsUtils = {
             tagName,
             taxName,
             type,
+            rterType,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -316,6 +317,7 @@ const ViolationsUtils = {
                     email,
                     isTransactionOlderThan7Days,
                     member,
+                    rterType,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
@@ -340,6 +342,11 @@ const ViolationsUtils = {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 return violation.name as never;
         }
+    },
+
+    // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
+    getViolationAmountLimit(violation: TransactionViolation): number {
+        return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 };
 

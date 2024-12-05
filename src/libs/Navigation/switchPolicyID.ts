@@ -1,10 +1,10 @@
-import {getActionFromState} from '@react-navigation/core';
+import {CommonActions, getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isCentralPaneName} from '@libs/NavigationUtils';
-import * as SearchUtils from '@libs/SearchUtils';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -52,6 +52,17 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         params.policyID = policyID;
     }
 
+    // If the last route in the BottomTabNavigator is already a 'Home' route, we want to change the params rather than pushing a new 'Home' route,
+    // so that the screen does not get re-mounted. This would cause an empty screen/white flash when navigating back from the workspace switcher.
+    const homeRoute = bottomTabNavigatorRoute.state.routes.at(-1);
+    if (homeRoute && homeRoute.name === SCREENS.HOME) {
+        return {
+            ...CommonActions.setParams(params),
+            source: homeRoute?.key,
+        };
+    }
+
+    // If there is no 'Home' route in the BottomTabNavigator or if we are updating a different navigator, we want to push a new route.
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
@@ -80,10 +91,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
 
     // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
-    // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // Here's the configuration: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
-        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchUtils.buildCannedSearchQuery()});
+        newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()});
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
@@ -110,16 +121,16 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
         if (isOpeningSearchFromBottomTab && params.q) {
             delete params.policyID;
-            const queryJSON = SearchUtils.buildSearchQueryJSON(params.q);
+            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(params.q);
 
             if (policyID) {
                 if (queryJSON) {
                     queryJSON.policyID = policyID;
-                    params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                    params.q = SearchQueryUtils.buildSearchQueryString(queryJSON);
                 }
             } else if (queryJSON) {
                 delete queryJSON.policyID;
-                params.q = SearchUtils.buildSearchQueryString(queryJSON);
+                params.q = SearchQueryUtils.buildSearchQueryString(queryJSON);
             }
         }
 

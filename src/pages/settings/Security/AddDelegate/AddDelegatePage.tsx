@@ -27,30 +27,22 @@ function useOptions() {
     const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            optionsList.reports,
-            optionsList.personalDetails,
-            betas,
-            '',
-            [],
-            [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-            false,
-            false,
-            0,
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getOptions(
+            {
+                reports: optionsList.reports,
+                personalDetails: optionsList.personalDetails,
+            },
+            {
+                betas,
+                excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
+                maxRecentReportsToShow: 0,
+            },
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
         if (isLoading) {
+            // eslint-disable-next-line react-compiler/react-compiler
             setIsLoading(false);
         }
 
@@ -60,9 +52,6 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 

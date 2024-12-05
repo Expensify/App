@@ -12,6 +12,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as IOU from '@userActions/IOU';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
@@ -41,9 +43,6 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** Callback to open the file in the modal */
     displayFileInModal: (url: FileObject) => void;
-
-    /** Whether or not the full size composer is available */
-    isFullComposerAvailable: boolean;
 
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
@@ -86,6 +85,8 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** The personal details of everyone in the report */
     reportParticipantIDs?: number[];
+
+    shouldDisableAttachmentItem?: boolean;
 };
 
 /**
@@ -96,7 +97,6 @@ function AttachmentPickerWithMenuItems({
     report,
     reportParticipantIDs,
     displayFileInModal,
-    isFullComposerAvailable,
     isComposerFullSize,
     reportID,
     isBlockedFromConcierge,
@@ -110,6 +110,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     raiseIsScrollLikelyLayoutTriggered,
+    shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
     const isFocused = useIsFocused();
     const theme = useTheme();
@@ -120,6 +121,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -141,8 +143,8 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: translate('iou.submitExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.REQUEST),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.PAY]: {
@@ -157,8 +159,8 @@ function AttachmentPickerWithMenuItems({
                 },
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
-                text: translate('iou.trackExpense'),
+                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.TRACK),
+                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
@@ -168,10 +170,15 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        const moneyRequestOptionsList = ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
+
+        return canUseCombinedTrackSubmit
+            ? // Removes track option for the workspace with the canUseCombinedTrackSubmit enabled
+              moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text))
+            : moneyRequestOptionsList;
+    }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
@@ -213,13 +220,36 @@ function AttachmentPickerWithMenuItems({
         setMenuVisibility(false);
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
+    // 1. Limit the container width to a single column.
+    const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
+
+    // 2. If there isn't enough height for two buttons, the Expand/Collapse button wraps to the next column so that it's intentionally hidden,
+    //    and the Create button is centered vertically.
+    const innerContainerStyles = [
+        styles.dFlex,
+        styles.flexColumnReverse,
+        styles.flexWrap,
+        styles.justifyContentCenter,
+        styles.pAbsolute,
+        styles.h100,
+        styles.w100,
+        styles.overflowHidden,
+        {paddingVertical: styles.composerSizeButton.marginHorizontal},
+    ];
+
+    // 3. If there is enough height for two buttons, the Expand/Collapse button is at the top.
+    const expandCollapseButtonContainerStyles = [styles.flexGrow1, styles.flexShrink0];
+
+    // 4. And the Create button is at the bottom.
+    const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: displayFileInModal,
+                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
@@ -229,87 +259,86 @@ function AttachmentPickerWithMenuItems({
                     {
                         icon: Expensicons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
-                        onSelected: () => {
-                            if (Browser.isSafari()) {
-                                return;
-                            }
-                            triggerAttachmentPicker();
-                        },
-                        shouldCallAfterModalHide: true,
+                        disabled: shouldDisableAttachmentItem,
                     },
                 ];
                 return (
                     <>
-                        <View style={[styles.dFlex, styles.flexColumn, isFullComposerAvailable || isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter]}>
-                            {isComposerFullSize && (
-                                <Tooltip text={translate('reportActionCompose.collapse')}>
-                                    <PressableWithFeedback
-                                        onPress={(e) => {
-                                            e?.preventDefault();
-                                            raiseIsScrollLikelyLayoutTriggered();
-                                            Report.setIsComposerFullSize(reportID, false);
-                                        }}
-                                        // Keep focus on the composer when Collapse button is clicked.
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        style={styles.composerSizeButton}
-                                        disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('reportActionCompose.collapse')}
-                                    >
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={Expensicons.Collapse}
-                                        />
-                                    </PressableWithFeedback>
-                                </Tooltip>
-                            )}
-                            {!isComposerFullSize && isFullComposerAvailable && (
-                                <Tooltip text={translate('reportActionCompose.expand')}>
-                                    <PressableWithFeedback
-                                        onPress={(e) => {
-                                            e?.preventDefault();
-                                            raiseIsScrollLikelyLayoutTriggered();
-                                            Report.setIsComposerFullSize(reportID, true);
-                                        }}
-                                        // Keep focus on the composer when Expand button is clicked.
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        style={styles.composerSizeButton}
-                                        disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('reportActionCompose.expand')}
-                                    >
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={Expensicons.Expand}
-                                        />
-                                    </PressableWithFeedback>
-                                </Tooltip>
-                            )}
-                            <Tooltip text={translate('common.create')}>
-                                <PressableWithFeedback
-                                    ref={actionButtonRef}
-                                    onPress={(e) => {
-                                        e?.preventDefault();
-                                        if (!isFocused) {
-                                            return;
-                                        }
-                                        onAddActionPressed();
+                        <View style={outerContainerStyles}>
+                            <View style={innerContainerStyles}>
+                                <View style={createButtonContainerStyles}>
+                                    <Tooltip text={translate('common.create')}>
+                                        <PressableWithFeedback
+                                            ref={actionButtonRef}
+                                            onPress={(e) => {
+                                                e?.preventDefault();
+                                                if (!isFocused) {
+                                                    return;
+                                                }
+                                                onAddActionPressed();
 
-                                        // Drop focus to avoid blue focus ring.
-                                        actionButtonRef.current?.blur();
-                                        setMenuVisibility(!isMenuVisible);
-                                    }}
-                                    style={styles.composerSizeButton}
-                                    disabled={isBlockedFromConcierge || disabled}
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.create')}
-                                >
-                                    <Icon
-                                        fill={theme.icon}
-                                        src={Expensicons.Plus}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
+                                                // Drop focus to avoid blue focus ring.
+                                                actionButtonRef.current?.blur();
+                                                setMenuVisibility(!isMenuVisible);
+                                            }}
+                                            style={styles.composerSizeButton}
+                                            disabled={isBlockedFromConcierge || disabled}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.create')}
+                                        >
+                                            <Icon
+                                                fill={theme.icon}
+                                                src={Expensicons.Plus}
+                                            />
+                                        </PressableWithFeedback>
+                                    </Tooltip>
+                                </View>
+                                <View style={expandCollapseButtonContainerStyles}>
+                                    {isComposerFullSize ? (
+                                        <Tooltip text={translate('reportActionCompose.collapse')}>
+                                            <PressableWithFeedback
+                                                onPress={(e) => {
+                                                    e?.preventDefault();
+                                                    raiseIsScrollLikelyLayoutTriggered();
+                                                    Report.setIsComposerFullSize(reportID, false);
+                                                }}
+                                                // Keep focus on the composer when Collapse button is clicked.
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                style={styles.composerSizeButton}
+                                                disabled={isBlockedFromConcierge || disabled}
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={translate('reportActionCompose.collapse')}
+                                            >
+                                                <Icon
+                                                    fill={theme.icon}
+                                                    src={Expensicons.Collapse}
+                                                />
+                                            </PressableWithFeedback>
+                                        </Tooltip>
+                                    ) : (
+                                        <Tooltip text={translate('reportActionCompose.expand')}>
+                                            <PressableWithFeedback
+                                                onPress={(e) => {
+                                                    e?.preventDefault();
+                                                    raiseIsScrollLikelyLayoutTriggered();
+                                                    Report.setIsComposerFullSize(reportID, true);
+                                                }}
+                                                // Keep focus on the composer when Expand button is clicked.
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                style={styles.composerSizeButton}
+                                                disabled={isBlockedFromConcierge || disabled}
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={translate('reportActionCompose.expand')}
+                                            >
+                                                <Icon
+                                                    fill={theme.icon}
+                                                    src={Expensicons.Expand}
+                                                />
+                                            </PressableWithFeedback>
+                                        </Tooltip>
+                                    )}
+                                </View>
+                            </View>
                         </View>
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
@@ -322,8 +351,14 @@ function AttachmentPickerWithMenuItems({
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated
                                 // by the user on Safari.
-                                if (index === menuItems.length - 1 && Browser.isSafari()) {
-                                    triggerAttachmentPicker();
+                                if (index === menuItems.length - 1) {
+                                    if (Browser.isSafari()) {
+                                        triggerAttachmentPicker();
+                                        return;
+                                    }
+                                    Modal.close(() => {
+                                        triggerAttachmentPicker();
+                                    });
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}

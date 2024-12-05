@@ -1,118 +1,33 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy/Policy';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {WorkspaceCardsList} from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
-const mockedCards = {
-    id1: {
-        cardID: 885646,
-        accountID: 11309072,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id2: {
-        accountID: 885646,
-        bank: 'cdfbmo',
-        cardID: 885642,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id18: {
-        accountID: 885646,
-        cardID: 885643,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id27: {
-        cardID: 885644,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id16: {
-        cardID: 885645,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id25: {
-        cardID: 885646,
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id14: {
-        cardID: 885647,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id23: {
-        cardID: 885648,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id12: {
-        cardID: 885649,
-        accountID: 885646,
-        nameValuePairs: {
-            cardTitle: 'Test 1',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-    id21: {
-        cardID: 885640,
-        accountID: 885646,
-        bank: 'cdfbmo',
-        nameValuePairs: {
-            cardTitle: 'Test 2',
-        },
-        cardNumber: '1234 56XX XXXX 1222',
-    },
-} as unknown as WorkspaceCardsList;
-
-type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
@@ -120,33 +35,73 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const theme = useTheme();
     const policyID = route.params.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const defaultFeed = Object.keys(cardFeeds?.companyCards ?? {}).at(0);
-    const selectedFeed = lastSelectedFeed ?? defaultFeed;
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
+
+    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
+    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
+    const isPending = !!selectedFeedData?.pending;
+    const isFeedAdded = !isPending && !isNoFeed;
+
     const fetchCompanyCards = useCallback(() => {
-        Policy.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
+        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const isLoading = !isOffline && (!cardFeeds || (cardFeeds.isLoading && !cardsList));
 
     useFocusEffect(fetchCompanyCards);
 
-    const companyCards = cardFeeds?.companyCards ?? {};
-    const selectedCompanyCard = companyCards[selectedFeed ?? ''] ?? null;
-    const isNoFeed = !selectedCompanyCard;
-    const isPending = selectedCompanyCard?.pending;
-    const isFeedAdded = !isPending && !isNoFeed;
-    const isLoading = !cardFeeds || cardFeeds.isLoading;
+    useEffect(() => {
+        if (!!isLoading || !selectedFeed || isPending) {
+            return;
+        }
 
-    // TODO: use data form onyx instead of mocked one when API is implemented
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const cardsList = mockedCards ?? {};
+        CompanyCards.openPolicyCompanyCardsFeed(policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending]);
+
+    const handleAssignCard = () => {
+        if (!selectedFeed) {
+            return;
+        }
+        const data: Partial<AssignCardData> = {
+            bankName: selectedFeed,
+        };
+
+        let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !PolicyUtils.isDeletedPolicyEmployee(employee, isOffline));
+
+        if (employeeList.length === 1) {
+            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+            data.email = userEmail;
+            const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(userEmail);
+            const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
+            data.cardName = `${memberName}'s card`;
+            currentStep = CONST.COMPANY_CARD.STEP.CARD;
+
+            if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+                data.cardNumber = Object.keys(filteredCardList).at(0);
+                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            }
+        }
+
+        CompanyCards.setAssignCardStepAndData({data, currentStep});
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
+    };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {isLoading && (
+            {!!isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
@@ -155,7 +110,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
-                    shouldUseScrollView={isFeedAdded}
+                    shouldUseScrollView={isNoFeed}
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
@@ -164,19 +119,22 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
-                    {(isFeedAdded || isPending) && (
+                    {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
-                            selectedFeed={selectedFeed ?? ''}
+                            selectedFeed={selectedFeed}
+                            shouldShowAssignCardButton={isPending || !isEmptyObject(cardsList)}
+                            handleAssignCard={handleAssignCard}
                         />
                     )}
                     {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                    {isFeedAdded && !isPending && <WorkspaceCompanyCardsFeedAddedEmptyPage />}
                     {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
                     {isFeedAdded && !isPending && (
                         <WorkspaceCompanyCardsList
                             cardsList={cardsList}
                             policyID={policyID}
+                            handleAssignCard={handleAssignCard}
+                            isDisabledAssignCardButton={!selectedFeedData || !!selectedFeedData?.errors}
                         />
                     )}
                 </WorkspacePageWithSections>

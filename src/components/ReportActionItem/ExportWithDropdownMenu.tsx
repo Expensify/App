@@ -12,6 +12,7 @@ import * as ReportActions from '@libs/actions/Report';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -55,6 +56,9 @@ function ExportWithDropdownMenu({
             icon: iconToDisplay,
             disabled: !canBeExported,
             displayInDefaultIconColor: true,
+            iconWidth: variables.iconSizeMenuItem,
+            iconHeight: variables.iconSizeMenuItem,
+            additionalIconStyles: styles.integrationIcon,
         };
         const options = [
             {
@@ -120,6 +124,7 @@ function ExportWithDropdownMenu({
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                wrapperStyle={styles.flex1}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             <ConfirmModal
