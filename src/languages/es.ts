@@ -4618,7 +4618,8 @@ const translations = {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
                 cardFeeds: 'Flujos de tarjetas',
-                cardFeedName: (cardFeedBankName: string, cardFeedName?: string) => `Todo ${cardFeedBankName}${cardFeedName ? ` - ${cardFeedName}` : ''}`,
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `Todo ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Menos de ${amount ?? ''}`,

@@ -167,7 +167,7 @@ function SearchFiltersCardPage() {
             const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
-            const text = translate('search.filters.card.cardFeedName', cardFeedBankName, isBankRepeating ? correspondingPolicy?.name : undefined);
+            const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
             const correspondingCards = Object.keys(cardFeed ?? {});
             if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
                 return;
@@ -180,7 +180,7 @@ function SearchFiltersCardPage() {
             const {domainName, bank, correspospondingCardIDs} = domainFeed;
             const isBankRepeating = repeatingBanks.includes(bank);
             const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
-            const text = translate('search.filters.card.cardFeedName', cardFeedBankName, isBankRepeating ? domainName : undefined);
+            const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? domainName : undefined});
             if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
                 return;
             }

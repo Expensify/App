@@ -4574,7 +4574,8 @@ const translations = {
                 expensify: 'Expensify',
                 individualCards: 'Individual cards',
                 cardFeeds: 'Card feeds',
-                cardFeedName: (cardFeedBankName: string, cardFeedName?: string) => `All ${cardFeedBankName}${cardFeedName ? ` - ${cardFeedName}` : ''}`,
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             current: 'Current',
             past: 'Past',
