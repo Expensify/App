@@ -236,6 +236,8 @@ type PureReportActionItemProps = {
 
     /** User payment card ID */
     userBillingFundID?: number;
+
+    reportAutomaticallyForwardedMessage: string;
 };
 
 function PureReportActionItem({
@@ -283,6 +285,7 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
+    reportAutomaticallyForwardedMessage,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -787,7 +790,7 @@ function PureReportActionItem({
             if (wasAutoForwarded) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${ReportUtils.getReportAutomaticallyForwardedMessage(action, reportID)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {

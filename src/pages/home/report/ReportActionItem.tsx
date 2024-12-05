@@ -80,6 +80,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={Report.dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            reportAutomaticallyForwardedMessage={ReportUtils.getReportAutomaticallyForwardedMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportID)}
         />
     );
 }

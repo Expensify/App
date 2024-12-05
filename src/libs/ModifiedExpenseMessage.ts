@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -132,7 +133,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportOrID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction(reportOrID: string | SearchReport | undefined, reportAction: OnyxEntry<ReportAction>): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }

@@ -2571,7 +2571,7 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
  */
 function getReimbursementQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     shouldUseShortDisplayName = true,
 ): string {
     const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
@@ -2592,7 +2592,7 @@ function getReimbursementQueuedActionMessage(
  */
 function getReimbursementDeQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
     const report = typeof reportOrID === 'string' ? ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
@@ -4785,7 +4785,7 @@ function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -4804,7 +4804,7 @@ function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeo
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
