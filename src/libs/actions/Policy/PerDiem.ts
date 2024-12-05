@@ -205,6 +205,10 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
+type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
+    rates: Record<string, Rate | null>;
+};
+
 function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce((acc, subRate) => {
         if (subRate.rateID in acc) {
@@ -217,6 +221,7 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
 
     // Copy the custom unit and remove the sub rates that are to be deleted
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
+    const customUnitOnyxUpdate: DeletePerDiemCustomUnitOnyxType = lodashDeepClone(customUnit);
     for (const rateID in mappedDeletedSubRatesToRate) {
         if (!(rateID in newCustomUnit.rates)) {
             // eslint-disable-next-line no-continue
@@ -225,19 +230,23 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
         const subRates = mappedDeletedSubRatesToRate[rateID];
         if (subRates.length === newCustomUnit.rates[rateID].subRates?.length) {
             delete newCustomUnit.rates[rateID];
+            customUnitOnyxUpdate.rates[rateID] = null;
         } else {
             const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
             newCustomUnit.rates[rateID].subRates = newSubRates;
+            if (!isEmptyObject(customUnitOnyxUpdate.rates[rateID])) {
+                customUnitOnyxUpdate.rates[rateID].subRates = newSubRates;
+            }
         }
     }
-    return newCustomUnit;
+    return {newCustomUnit, customUnitOnyxUpdate};
 }
 
 function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | undefined, subRatesToBeDeleted: SubRateData[]) {
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
-    const newCustomUnit = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
+    const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -245,7 +254,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
+                        [customUnit.customUnitID]: customUnitOnyxUpdate,
                     },
                 },
             },
