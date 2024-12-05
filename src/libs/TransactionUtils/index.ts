@@ -15,7 +15,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line import/no-cycle
@@ -27,7 +26,6 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     OnyxInputOrEntry,
     Policy,
     RecentWaypoint,
@@ -85,12 +83,6 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? -1;
     },
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -856,10 +848,6 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID: string, checkDismissed = false): boolean {
-    if (!Permissions.canUseDupeDetection(allBetas ?? [])) {
-        return false;
-    }
-
     const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
@@ -922,7 +910,7 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
         ) ?? [];
 
     const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    if (!Permissions.canUseDupeDetection(allBetas ?? []) && hasOnlyDupeDetectionViolation) {
+    if (hasOnlyDupeDetectionViolation) {
         return false;
     }
 
