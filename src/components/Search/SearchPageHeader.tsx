@@ -92,7 +92,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         if (shouldShowSubmitOption) {
             options.push({
-                icon: Expensicons.Plane,
+                icon: Expensicons.Send,
                 text: translate('search.bulkActions.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
