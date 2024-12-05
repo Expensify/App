@@ -138,7 +138,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return content ? `<comment>${content}</comment>` : '';
             };
             return (
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
                     <Icon
                         src={Expensicons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -150,17 +150,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 </View>
             );
         },
-        [
-            styles.alignItemsCenter,
-            styles.flexRow,
-            styles.flexWrap,
-            styles.gap1,
-            styles.justifyContentCenter,
-            styles.renderHTMLTitle,
-            styles.textAlignCenter,
-            theme.tooltipHighlightText,
-            translate,
-        ],
+        [styles, theme.tooltipHighlightText, translate],
     );
 
     const contextValue = useMemo(
