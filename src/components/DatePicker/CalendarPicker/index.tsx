@@ -179,7 +179,6 @@ function CalendarPicker({
                     </Text>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
-                        testID="prev-month-arrow"
                         disabled={!hasAvailableDatesPrevMonth}
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
@@ -188,17 +187,20 @@ function CalendarPicker({
                         <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
                             direction={CONST.DIRECTION.LEFT}
+                            testID="prev-month-arrow"
                         />
                     </PressableWithFeedback>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
-                        testID="next-month-arrow"
                         disabled={!hasAvailableDatesNextMonth}
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
                     >
-                        <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
+                        <ArrowIcon
+                            disabled={!hasAvailableDatesNextMonth}
+                            testID="next-month-arrow"
+                        />
                     </PressableWithFeedback>
                 </View>
             </View>

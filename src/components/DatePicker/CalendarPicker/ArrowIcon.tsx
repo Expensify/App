@@ -14,14 +14,20 @@ type ArrowIconProps = {
 
     /** Specifies direction of icon */
     direction?: ValueOf<typeof CONST.DIRECTION>;
+
+    /** TestID for testing */
+    testID?: string;
 };
 
-function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT}: ArrowIconProps) {
+function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT, testID}: ArrowIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
-        <View style={[styles.p1, StyleUtils.getDirectionStyle(direction), disabled ? styles.buttonOpacityDisabled : {}]}>
+        <View
+            style={[styles.p1, StyleUtils.getDirectionStyle(direction), disabled ? styles.buttonOpacityDisabled : {}]}
+            testID={testID}
+        >
             <Icon
                 fill={theme.icon}
                 src={Expensicons.ArrowRight}
