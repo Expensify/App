@@ -17,15 +17,23 @@ function VolumeContextProvider({children}: ChildrenProps) {
             if (!currentVideoPlayerRef.current) {
                 return;
             }
-            currentVideoPlayerRef.current.setStatusAsync({
-                volume: newVolume,
-                isMuted: newVolume === 0,
-            });
+            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
 
             volume.set(newVolume);
         },
         [currentVideoPlayerRef, volume],
     );
+
+    // This function ensures mute and unmute functionality. Overwriting lastNonZeroValue
+    // only in the case of mute guarantees that a pan gesture reducing the volume to zero won’t cause
+    // us to lose this value. As a result, unmute restores the last non-zero value.
+    const toggleMute = useCallback(() => {
+        if (volume.get() !== 0) {
+            lastNonZeroVolume.set(volume.get());
+        }
+        updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
+    }, [lastNonZeroVolume, updateVolume, volume]);
+
     // We want to update the volume when currently playing video changes.
     // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
     useEffect(() => {
@@ -40,8 +48,9 @@ function VolumeContextProvider({children}: ChildrenProps) {
             updateVolume,
             volume,
             lastNonZeroVolume,
+            toggleMute,
         }),
-        [updateVolume, volume, lastNonZeroVolume],
+        [updateVolume, volume, lastNonZeroVolume, toggleMute],
     );
 
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

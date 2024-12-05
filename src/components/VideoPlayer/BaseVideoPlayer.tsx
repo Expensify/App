@@ -90,7 +90,7 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
-    const {updateVolume, lastNonZeroVolume, volume} = useVolumeContext();
+    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
@@ -210,6 +210,8 @@ function BaseVideoPlayer({
                 setIsEnded(false);
             }
 
+            // These two conditions are essential for the mute and unmute functionality to work properly during
+            // fullscreen playback on the web
             if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
                 updateVolume(lastNonZeroVolume.get());
             }

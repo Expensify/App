@@ -33,7 +33,7 @@ const getVolumeIcon = (volume: number) => {
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateVolume, volume, lastNonZeroVolume} = useVolumeContext();
+    const {updateVolume, volume, toggleMute} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
@@ -72,13 +72,6 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
         runOnJS(updateVolume)(volume.get());
         runOnJS(updateIcon)(volume.get());
     }, [volume]);
-
-    const toggleMute = () => {
-        if (volume.get() !== 0) {
-            lastNonZeroVolume.set(volume.get());
-        }
-        updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
-    };
 
     return (
         <Hoverable>
