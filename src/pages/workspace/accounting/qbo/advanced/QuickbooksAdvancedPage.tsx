@@ -157,7 +157,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {qboToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

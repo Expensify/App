@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -23,7 +24,12 @@ function CardNameStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const length = values.cardTitle.length;
+        if (length > CONST.STANDARD_LENGTH_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        }
+        return errors;
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
@@ -43,12 +49,12 @@ function CardNameStep() {
     return (
         <ScreenWrapper
             testID={CardNameStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whatBankIssuesCard')}</Text>
@@ -67,7 +73,6 @@ function CardNameStep() {
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={addNewCard?.data?.bankName}
                     containerStyles={[styles.mb6]}
-                    maxLength={CONST.STANDARD_LENGTH_LIMIT}
                     ref={inputCallbackRef}
                 />
             </FormProvider>

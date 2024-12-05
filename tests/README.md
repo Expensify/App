@@ -59,62 +59,60 @@ expect(onyxData).toBe(expectedOnyxData);
 
 ## Documenting Tests
 
-Tests aren't always clear about what exactly is being tested.  To make this a bit easier we recommend adopting the following format for code comments:
+Comments are just as critical in tests as the tests themselves. They provide context behind why the test was written and what the expected behavior is supposed to be which will benefit the future generations of engineers looking at them. Think about it. When was the last time you saw a unit test and wondered why it was written that way and then you didn't want to touch it because you didn't know if changing the behavior of the test was appropriate or not? It was probably pretty recent :D
+
+In order to give future engineers the best context for a unit test, follow this guide:
+
+1. DO add three sections to every test:
+  - "Given" - This introduces the initial condition of the test
+  - "When" - Describes what action is being done and the thing that is being tested
+  - "Then" - Describes what is expected to happen
+
+2. DO begin each comment section with the literal words "Given", "When", and "Then", just like the examples below.
+3. DO explain **WHY** the test is doing what it is doing in every comment.
+4. DO NOT explain **WHAT** the code is doing in comments. This information should be self-evident.
+
+The format looks like this:
 
 ```
-// Given <initial_condition>
-...  code that sets initial condition
+// BAD
+// Given an account
+{* code that sets initial condition *}
 
-// When <something_happens>
-... code that does something
+// When it is closed
+{* code that does something *}
 
-// Then <expectation>
-... code that performs the assertion
-```
+// Then the user is logged out
+{* code that performs the assertion *}
 
-## Example Test
+// GOOD
+// Given an account of a brand new user
+{* code that sets initial condition *}
 
-```javascript
-HttpUtils.xhr = jest.fn();
+// When the account is closed by clicking on the close account button
+{* code that does something *}
 
-describe('actions/Report', () => {
-    it('adds an optimistic comment', () => {
-        // Given an Onyx subscription to a report's `reportActions`
-        const ACTION_ID = 1;
-        const REPORT_ID = 1;
-        let reportActions;
-        Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
-        });
-
-        // Mock Report_AddComment command so it can succeed
-        HttpUtils.xhr.mockImplementation(() => Promise.resolve({
-            jsonCode: 200,
-        }));
-
-        // When we add a new action to that report
-        Report.addComment(REPORT_ID, 'Hello!');
-        return waitForBatchedUpdates()
-            .then(() => {
-                const action = reportActions[ACTION_ID];
-
-                // Then the action set in the Onyx callback should match
-                // the comment we left and it will be in a loading state because
-                // it's an "optimistic comment"
-                expect(action.message[0].text).toBe('Hello!');
-                expect(action.isPending).toBe(true);
-            });
-    });
-});
+// Then the user should be logged out because their account is no longer active
+{* code that performs the assertion *}
 ```
 
 ## When to Write a Test
 
-Many of the UI features of our application should go through rigorous testing by you, your PR reviewer, and finally QA before deployment. It's also difficult to maintain UI tests when the UI changes often. Therefore, it's not valuable for us to place every single part of the application UI under test at this time. The manual testing steps should catch most major UI bugs. Therefore, if we are writing any test there should be a **good reason**.
+Many of the UI features of our application should go through rigorous testing by you, your PR reviewer, and finally QA before deployment. However, the code is mature enough now that protecting code against regressions is the top priority.
 
-**What's a "good reason" to write a test?**
+**What's a "good reason" to skip writing a test?**
 
+- App build configurations
+- Changes to Github actions (for now)
+- Copy changes
+- Help site changes
+- Style changes (for now)
+- When fixing a deploy blocker, it's OK to not include the automated tests in the blocker-fixing PR, but make sure to follow up in a separate PR once the deploy blocker is resolved
+
+**What changes to definitely cover by tests?**
+
+- Any PR that fixes a bug
+- When introducing a new feature, cover as much logic as possible by unit tests
 - Anything that is difficult or impossible to run a manual tests on
 	- e.g. a test to verify an outcome after an authentication token expires (which normally takes two hours)
 - Areas of the code that are changing often, breaking often, and would benefit from the resiliency an automated test would provide

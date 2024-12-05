@@ -9,7 +9,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import usePrevious from '@hooks/usePrevious';
@@ -26,13 +26,12 @@ import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
 import './mapbox.css';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
-const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
+const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
     (
         {
             style,
@@ -40,13 +39,14 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
             waypoints,
             mapPadding,
             accessToken,
-            userLocation,
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
         },
         ref,
     ) => {
+        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
 
@@ -295,8 +295,4 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default withOnyx<ComponentProps, MapViewOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-})(MapViewImpl);
+export default MapViewImpl;
