@@ -131,6 +131,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
             },
         },
     ];
+    // In case the user does not have a display name, we will update the display name based on the legal name
     if (!allPersonalDetails?.[currentUserAccountID]?.firstName && !allPersonalDetails?.[currentUserAccountID]?.lastName) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
