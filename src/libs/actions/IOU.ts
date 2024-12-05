@@ -3231,7 +3231,9 @@ function updateMoneyRequestDistance({
     if (transactionBackup) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         // We need to have all the keys of the original waypoint in the failure data for onyx merge to properly reset
-        //  waypoints keys that do not exist in the waypoint of the reverting failure data.
+        // waypoints keys that do not exist in the waypoint of the reverting failure data. For instance, if a waypoint had
+        // three keys and the waypoint we we want to revert to has 2 keys then the third key that doesn't exist in the failureData
+        // waypoint should be explicitly reset otherwise onyx merge will leave it intact.
         const allWaypointKeys = [...new Set([...Object.keys(transactionBackup.comment?.waypoints ?? {}), ...Object.keys(transaction?.comment?.waypoints ?? {})])];
         const onyxWaypoints = allWaypointKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
             acc[key] = transactionBackup.comment?.waypoints?.[key] ? {...transactionBackup.comment?.waypoints?.[key]} : null;
