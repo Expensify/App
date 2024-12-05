@@ -1963,20 +1963,14 @@ describe('actions/IOU', () => {
                     }
                     return waitForBatchedUpdates();
                 })
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connection);
-                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                        },
+                    }),
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
