@@ -206,24 +206,23 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
 }
 
 function dismissProductTrainingElement(elementName: string) {
+    const date = new Date();
     // const optimisticData = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
     //         key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     //         value: {
     //             dismissedProductTrainingElements: {
-    //                 [elementName]: Date.now(),
+    //                 [elementName]: DateUtils.getDBTime(date.valueOf()),
     //             },
     //         },
     //     },
     // ];
+    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING_ELEMENT, {name: elementName}, {optimisticData});
 
-    const date = new Date();
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
         [elementName]: DateUtils.getDBTime(date.valueOf()),
     });
-
-    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING_ELEMENT, {elementName}, {optimisticData});
 }
 
 export {

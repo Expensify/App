@@ -40,20 +40,17 @@ type FeatureTrainingModalProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
-    /** Style for the animation inner container */
+    /** Style for the inner container of the animation */
     animationInnerContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Style for the animation outer container */
+    /** Style for the outer container of the animation */
     animationOuterContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to render the animation instead of the video */
+    /** Additional styles for the animation */
     animationStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to render the animation instead of the video */
-    shouldRenderAnimation?: boolean;
-
     /** URL for the video */
-    videoURL?: string;
+    videoURL: string;
 
     videoAspectRatio?: number;
 
@@ -104,7 +101,6 @@ function FeatureTrainingModal({
     title = '',
     description = '',
     secondaryDescription = '',
-    shouldRenderAnimation = false,
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
@@ -167,13 +163,13 @@ function FeatureTrainingModal({
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
                     animationInnerContainerStyle,
-                    !shouldRenderAnimation && {aspectRatio},
+                    !!videoURL && {aspectRatio},
                 ]}
             >
-                {!shouldRenderAnimation && videoStatus === 'video' ? (
+                {!!videoURL && videoStatus === 'video' ? (
                     <GestureHandlerRootView>
                         <VideoPlayer
-                            url={videoURL ?? ''}
+                            url={videoURL}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                             onVideoLoaded={setAspectRatio}
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
@@ -183,7 +179,7 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 ) : (
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !shouldRenderAnimation && {aspectRatio}, animationStyle]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
                         <Lottie
                             source={animation ?? LottieAnimations.Hands}
                             style={styles.h100}
@@ -203,7 +199,6 @@ function FeatureTrainingModal({
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.h100,
-        shouldRenderAnimation,
         videoStatus,
         videoURL,
         animationStyle,

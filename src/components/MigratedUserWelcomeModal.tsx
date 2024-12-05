@@ -33,6 +33,8 @@ function OnboardingWelcomeVideo() {
 
     return (
         <FeatureTrainingModal
+            // We would like to show the Lottie animation instead of a video
+            videoURL=""
             title={translate('migratedUserWelcomeModal.title')}
             description={translate('migratedUserWelcomeModal.subtitle')}
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
@@ -40,7 +42,6 @@ function OnboardingWelcomeVideo() {
             onClose={() => {
                 Welcome.dismissProductTrainingElement('nudgeMigrationWelcomeModal');
             }}
-            shouldRenderAnimation
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
             animationOuterContainerStyle={styles.p0}
