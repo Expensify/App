@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/CardListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
@@ -88,25 +89,23 @@ function SearchFiltersCardPage() {
     const {translate} = useLocalize();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const filteredWorkspaceCardFeeds = Object.entries(workspaceCardFeeds ?? {}).filter((cardFeed) => !isEmptyObject(cardFeed));
 
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [newSelectedCards, setNewSelectedCards] = useState(initiallySelectedCards ?? []);
 
-    const sections = useMemo(() => {
-        const newSections = [];
-
-        const invidualCardsSectionData: CardFilterItem[] = [];
+    const {invidualCardsSectionData, domainCardFeedsData} = useMemo(() => {
+        const individualCards: CardFilterItem[] = [];
         const domainFeedsCards: Record<string, DomainFeedData> = {};
 
         Object.values(userCardList ?? {}).forEach((card) => {
             const isSelected = newSelectedCards.includes(card.cardID.toString());
             const cardData = buildIndividualCardItem(card, isSelected, styles.cardIcon);
 
-            invidualCardsSectionData.push(cardData);
+            individualCards.push(cardData);
 
             // Cards in cardList can also be domain cards, we use them to compute domain feed
             if (!card.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
@@ -127,10 +126,13 @@ function SearchFiltersCardPage() {
                 const isSelected = newSelectedCards.includes(card.cardID.toString());
                 const cardData = buildIndividualCardItem(card, isSelected, styles.cardIcon);
 
-                invidualCardsSectionData.push(cardData);
+                individualCards.push(cardData);
             });
         });
+        return {invidualCardsSectionData: individualCards, domainCardFeedsData: domainFeedsCards};
+    }, [filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, userCardList]);
 
+    const cardFeedsSectionData = useMemo(() => {
         const repeatingBanks: string[] = [];
         const banks: string[] = [];
         const handleRepeatingBankNames = (bankName: string) => {
@@ -149,11 +151,11 @@ function SearchFiltersCardPage() {
 
             handleRepeatingBankNames(bankName);
         });
-        Object.values(domainFeedsCards).forEach((domainFeed) => {
+        Object.values(domainCardFeedsData).forEach((domainFeed) => {
             handleRepeatingBankNames(domainFeed.bank);
         });
 
-        const cardFeedsSectionData: CardFilterItem[] = [];
+        const cardFeedsData: CardFilterItem[] = [];
 
         filteredWorkspaceCardFeeds.forEach(([, cardFeed]) => {
             const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => isCard(cardFeedItem));
@@ -167,31 +169,44 @@ function SearchFiltersCardPage() {
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
             const text = translate('search.filters.card.cardFeedName', cardFeedBankName, isBankRepeating ? correspondingPolicy?.name : undefined);
             const correspondingCards = Object.keys(cardFeed ?? {});
+            if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
+                return;
+            }
 
-            cardFeedsSectionData.push(buildCardFeedItem(text, policyID, correspondingCards, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
+            cardFeedsData.push(buildCardFeedItem(text, policyID, correspondingCards, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
 
-        Object.values(domainFeedsCards).forEach((domainFeed) => {
+        Object.values(domainCardFeedsData).forEach((domainFeed) => {
             const {domainName, bank, correspospondingCardIDs} = domainFeed;
             const isBankRepeating = repeatingBanks.includes(bank);
             const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
             const text = translate('search.filters.card.cardFeedName', cardFeedBankName, isBankRepeating ? domainName : undefined);
+            if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
+                return;
+            }
 
-            cardFeedsSectionData.push(buildCardFeedItem(text, domainName, correspospondingCardIDs, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
+            cardFeedsData.push(buildCardFeedItem(text, domainName, correspospondingCardIDs, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
+        return cardFeedsData;
+    }, [debouncedSearchTerm, domainCardFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
+
+    const shouldShowSearchInput = cardFeedsSectionData.length + invidualCardsSectionData.length > 8;
+
+    const sections = useMemo(() => {
+        const newSections = [];
+
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
-            data: cardFeedsSectionData,
+            data: debouncedSearchTerm ? cardFeedsSectionData.filter((item) => item.text?.includes(debouncedSearchTerm)) : cardFeedsSectionData,
             shouldShow: cardFeedsSectionData.length > 0,
         });
-
         newSections.push({
             title: translate('search.filters.card.individualCards'),
-            data: invidualCardsSectionData,
+            data: debouncedSearchTerm ? invidualCardsSectionData.filter((item) => item.text?.includes(debouncedSearchTerm)) : invidualCardsSectionData,
             shouldShow: invidualCardsSectionData.length > 0,
         });
         return newSections;
-    }, [filteredWorkspaceCardFeeds, translate, newSelectedCards, styles.cardIcon, userCardList]);
+    }, [translate, cardFeedsSectionData, invidualCardsSectionData, debouncedSearchTerm]);
 
     const handleConfirmSelection = useCallback(() => {
         SearchActions.updateAdvancedFilters({
@@ -255,6 +270,11 @@ function SearchFiltersCardPage() {
                     shouldShowTooltips
                     canSelectMultiple
                     ListItem={CardListItem}
+                    textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                    textInputValue={searchTerm}
+                    onChangeText={(value) => {
+                        setSearchTerm(value);
+                    }}
                 />
             </View>
         </ScreenWrapper>
