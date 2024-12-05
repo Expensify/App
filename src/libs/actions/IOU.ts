@@ -5598,7 +5598,7 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportActio
  * @returns The URL to navigate to
  */
 function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
-    const chatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
 
     // If not a self DM, handle it as a regular money request
     if (!ReportUtils.isSelfDM(chatReport)) {
