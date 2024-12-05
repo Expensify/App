@@ -300,8 +300,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     // We're intentionally passing empty violations for now since Auth violations are not ready yet and the risk of blocking submit because of the RTER or Broken connections violations is really small for the current cohort of users.
-    const allTransactionsViolations = [] as OnyxTypes.TransactionViolations[];
-    if (IOU.canSubmitReport(report, policy, allTransactionsViolations)) {
+    if (IOU.canSubmitReport(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
