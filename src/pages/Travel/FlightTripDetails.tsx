@@ -37,6 +37,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         reservation.end.shortName
     })`;
 
+    const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{flightRouteDescription}</Text>
@@ -109,16 +111,17 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     </View>
                 )}
             </View>
-
-            <MenuItem
-                label={translate('travel.flightDetails.passenger')}
-                title={personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name}
-                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
-                interactive={false}
-                wrapperStyle={styles.pb3}
-            />
+            {!!displayName && (
+                <MenuItem
+                    label={translate('travel.flightDetails.passenger')}
+                    title={displayName}
+                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                    interactive={false}
+                    wrapperStyle={styles.pb3}
+                />
+            )}
         </>
     );
 }

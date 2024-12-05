@@ -26,6 +26,8 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline)).date}`
         : reservation.cancellationPolicy;
 
+    const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{reservation.start.longName}</Text>
@@ -66,15 +68,17 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     interactive={false}
                 />
             )}
-            <MenuItem
-                label={translate('travel.hotelDetails.guest')}
-                title={personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name}
-                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
-                interactive={false}
-                wrapperStyle={styles.pb3}
-            />
+            {!!displayName && (
+                <MenuItem
+                    label={translate('travel.hotelDetails.guest')}
+                    title={displayName}
+                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                    interactive={false}
+                    wrapperStyle={styles.pb3}
+                />
+            )}
         </>
     );
 }

@@ -28,6 +28,8 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
     })`;
     const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
+    const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{trainRouteDescription}</Text>
@@ -88,15 +90,17 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 />
             )}
 
-            <MenuItem
-                label={translate('travel.trainDetails.passenger')}
-                title={personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name}
-                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
-                interactive={false}
-                wrapperStyle={styles.pb3}
-            />
+            {!!displayName && (
+                <MenuItem
+                    label={translate('travel.trainDetails.passenger')}
+                    title={displayName}
+                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                    interactive={false}
+                    wrapperStyle={styles.pb3}
+                />
+            )}
         </>
     );
 }
