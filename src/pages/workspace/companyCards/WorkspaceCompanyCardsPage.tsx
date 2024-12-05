@@ -41,7 +41,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
 
     const {cardList, ...cards} = cardsList ?? {};
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
@@ -77,8 +77,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !PolicyUtils.isDeletedPolicyEmployee(employee, isOffline));
 
-        if (Object.keys(policy?.employeeList ?? {}).length === 1) {
+        if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
             data.email = userEmail;
             const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(userEmail);
