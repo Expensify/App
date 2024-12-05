@@ -1920,14 +1920,17 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<OnyxTypes.Report>;
             let chatReport: OnyxEntry<OnyxTypes.Report>;
 
+            // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
+                    // Which owns a workspace
                     PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
                 .then(
                     () =>
+                        // And
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
@@ -1943,7 +1946,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
-                        // When a submit IOU expense is made
+                        // When an IOU expense is submitted to that policy expense chat
                         IOU.requestMoney({
                             report: chatReport,
                             participantParams: {
