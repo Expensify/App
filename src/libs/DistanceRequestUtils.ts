@@ -282,7 +282,7 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  */
 function getCustomUnitRateID(reportID: string) {
     const report = ReportUtils.getReport(reportID);
-    const parentReport = report?.parentReportID ? ReportUtils.getReport(report?.parentReportID) : undefined;
+    const parentReport = report?.parentReportID ? ReportUtils.getReport(report.parentReportID) : undefined;
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
