@@ -212,9 +212,7 @@ function dismissProductTrainingElement(elementName: string) {
     //         onyxMethod: Onyx.METHOD.MERGE,
     //         key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     //         value: {
-    //             dismissedProductTrainingElements: {
     //                 [elementName]: DateUtils.getDBTime(date.valueOf()),
-    //             },
     //         },
     //     },
     // ];
