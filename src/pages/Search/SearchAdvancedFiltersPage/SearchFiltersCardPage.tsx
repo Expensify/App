@@ -97,9 +97,9 @@ function SearchFiltersCardPage() {
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [newSelectedCards, setNewSelectedCards] = useState(initiallySelectedCards ?? []);
 
-    const {invidualCardsSectionData, domainCardFeedsData} = useMemo(() => {
+    const {invidualCardsSectionData, domainFeedsData} = useMemo(() => {
         const individualCards: CardFilterItem[] = [];
-        const domainFeedsCards: Record<string, DomainFeedData> = {};
+        const domainFeeds: Record<string, DomainFeedData> = {};
 
         Object.values(userCardList ?? {}).forEach((card) => {
             const isSelected = newSelectedCards.includes(card.cardID.toString());
@@ -109,10 +109,10 @@ function SearchFiltersCardPage() {
 
             // Cards in cardList can also be domain cards, we use them to compute domain feed
             if (!card.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
-                if (domainFeedsCards[card.domainName]) {
-                    domainFeedsCards[card.domainName].correspospondingCardIDs.push(card.cardID.toString());
+                if (domainFeeds[card.domainName]) {
+                    domainFeeds[card.domainName].correspospondingCardIDs.push(card.cardID.toString());
                 } else {
-                    domainFeedsCards[card.domainName] = {domainName: card.domainName, bank: card.bank, correspospondingCardIDs: [card.cardID.toString()]};
+                    domainFeeds[card.domainName] = {domainName: card.domainName, bank: card.bank, correspospondingCardIDs: [card.cardID.toString()]};
                 }
             }
         });
@@ -129,7 +129,7 @@ function SearchFiltersCardPage() {
                 individualCards.push(cardData);
             });
         });
-        return {invidualCardsSectionData: individualCards, domainCardFeedsData: domainFeedsCards};
+        return {invidualCardsSectionData: individualCards, domainFeedsData: domainFeeds};
     }, [filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, userCardList]);
 
     const cardFeedsSectionData = useMemo(() => {
@@ -151,7 +151,7 @@ function SearchFiltersCardPage() {
 
             handleRepeatingBankNames(bankName);
         });
-        Object.values(domainCardFeedsData).forEach((domainFeed) => {
+        Object.values(domainFeedsData).forEach((domainFeed) => {
             handleRepeatingBankNames(domainFeed.bank);
         });
 
@@ -176,7 +176,7 @@ function SearchFiltersCardPage() {
             cardFeedsData.push(buildCardFeedItem(text, policyID, correspondingCards, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
 
-        Object.values(domainCardFeedsData).forEach((domainFeed) => {
+        Object.values(domainFeedsData).forEach((domainFeed) => {
             const {domainName, bank, correspospondingCardIDs} = domainFeed;
             const isBankRepeating = repeatingBanks.includes(bank);
             const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
@@ -188,7 +188,7 @@ function SearchFiltersCardPage() {
             cardFeedsData.push(buildCardFeedItem(text, domainName, correspospondingCardIDs, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
         return cardFeedsData;
-    }, [debouncedSearchTerm, domainCardFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
+    }, [debouncedSearchTerm, domainFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
 
     const shouldShowSearchInput = cardFeedsSectionData.length + invidualCardsSectionData.length > 8;
 
