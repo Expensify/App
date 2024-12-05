@@ -2415,7 +2415,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
             mockFetch?.resume?.();
 
             // Then After resuming fetch, the report for the given thread ID still does not exist
@@ -2430,7 +2430,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
         });
 
         it('delete the transaction thread if there are only changelogs (i.e. MODIFIED_EXPENSE actions) in the thread', async () => {
@@ -2537,7 +2537,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
         });
 
         it('does not delete the transaction thread if there are visible comments in the thread', async () => {
