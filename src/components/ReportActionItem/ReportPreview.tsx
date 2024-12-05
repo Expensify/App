@@ -155,7 +155,7 @@ function ReportPreview({
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
     }));
-    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
+    const checkMarkScale = useSharedValue(iouSettled ? 1 : 0.25);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
