@@ -1,11 +1,20 @@
-import type {MoveSelectiontoEnd, ScrollToBottom} from './types';
+import type {MoveSelectiontoEnd, ScrollInput} from './types';
 
-const scrollToBottom: ScrollToBottom = (input) => {
+const scrollToBottom: ScrollInput = (input) => {
     if (!('scrollTop' in input)) {
         return;
     }
     // eslint-disable-next-line no-param-reassign
     input.scrollTop = input.scrollHeight;
+};
+
+const scrollToRight: ScrollInput = (input) => {
+    if (!('scrollLeft' in input)) {
+        return;
+    }
+    // Scroll to the far right
+    // eslint-disable-next-line no-param-reassign
+    input.scrollLeft = input.scrollWidth;
 };
 
 const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
@@ -16,4 +25,4 @@ const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
     input.setSelectionRange(length, length);
 };
 
-export {scrollToBottom, moveSelectionToEnd};
+export {scrollToBottom, moveSelectionToEnd, scrollToRight};

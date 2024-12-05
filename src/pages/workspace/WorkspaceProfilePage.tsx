@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -23,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -39,7 +39,7 @@ import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceProfilePageProps = WithPolicyProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceProfilePageProps = WithPolicyProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
@@ -77,7 +77,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '-1')), [policy?.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1')), [policy?.id]);
     const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '-1')), [policy?.id]);
-    const onPressPlanType = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_PLAN.getRoute(policy?.id ?? '-1')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription =
@@ -262,22 +261,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         disabled={readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
-                                        shouldGreyOutWhenDisabled={false}
-                                        shouldUseDefaultCursorWhenDisabled
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
-                        )}
-                        {!readOnly && !!policy?.type && (
-                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
-                                <View>
-                                    <MenuItemWithTopDescription
-                                        title={PolicyUtils.getUserFriendlyWorkspaceType(policy.type)}
-                                        description={translate('workspace.common.planType')}
-                                        shouldShowRightIcon={!readOnly}
-                                        disabled={readOnly}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={onPressPlanType}
                                         shouldGreyOutWhenDisabled={false}
                                         shouldUseDefaultCursorWhenDisabled
                                     />
