@@ -7063,16 +7063,12 @@ function canIOUBePaid(
     );
 }
 
-function canSubmitReport(
-    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
-    allReportTransactions: OnyxEntry<OnyxTypes.Transaction> | SearchTransaction[],
-    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
-) {
+function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy, transactionViolations: OnyxTypes.TransactionViolations[]) {
     const currentUserAccountID = Report.getCurrentUserAccountID();
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(report);
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(allReportTransactions);
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
+    const hasAllPendingRTERViolations = transactionViolations.every((violations) => TransactionUtils.hasPendingRTERViolation(violations));
+    const shouldShowBrokenConnectionViolation = transactionViolations.some((violations) => TransactionUtils.shouldShowBrokenConnectionViolation('', report, policy, violations));
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return (

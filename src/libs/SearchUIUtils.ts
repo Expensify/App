@@ -299,7 +299,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canSubmitReport(report, allReportTransactions, policy)) {
+    const allTransactionsViolations = [] as OnyxTypes.TransactionViolations[];
+    if (IOU.canSubmitReport(report, policy, allTransactionsViolations)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
