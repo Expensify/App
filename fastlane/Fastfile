@@ -594,6 +594,13 @@ platform :ios do
 
         app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
         version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+
+        # Skip if the version is already at 100% rollout
+        if version.fetch_app_store_version_phased_release.phased_release_state == "COMPLETE"
+          UI.important "Version is already at 100% rollout, skipping completing the rollout"
+          next
+        end
+
         version.fetch_app_store_version_phased_release.complete
     end
 
