@@ -13,10 +13,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
-}
-
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
@@ -49,7 +45,6 @@ function canUseLinkPreviews(): boolean {
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseDupeDetection,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
     canUseCombinedTrackSubmit,
