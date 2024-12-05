@@ -1977,6 +1977,7 @@ describe('actions/IOU', () => {
                     }),
                 )
                 .then(() => {
+                    // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
                         IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
                     }
