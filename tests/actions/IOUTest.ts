@@ -1907,7 +1907,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('cancelPayment', () => {
+    describe('a workspace chat with a cancelled payment', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -1916,11 +1916,10 @@ describe('actions/IOU', () => {
             mockFetch?.resume?.();
         });
 
-        it('the report created later will become the iouReportID of the chat report', () => {
+        it("has an iouReportID of the cancelled payment's expense report", () => {
             let expenseReport: OnyxEntry<OnyxTypes.Report>;
             let chatReport: OnyxEntry<OnyxTypes.Report>;
 
-            mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
@@ -1944,6 +1943,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport) {
+                        // When a submit IOU expense is made
                         IOU.requestMoney({
                             report: chatReport,
                             participantParams: {
@@ -1985,8 +1985,8 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    mockFetch?.pause?.();
                     if (chatReport && expenseReport) {
+                        // When we attempt to cancle payment an expense from the expense report
                         IOU.cancelPayment(expenseReport, chatReport);
                     }
                     return waitForBatchedUpdates();
@@ -1997,9 +1997,11 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 waitForCollectionCallback: true,
+                                // When fetching all reports from Onyx
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
+                                    // Then we should find an IOU action with specific properties
                                     expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
                                     resolve();
                                 },
