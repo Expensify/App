@@ -402,7 +402,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: true,
-                    isSuccess: false,
+                    isCreateCorpayBankAccount: true,
                 },
             },
         ],
@@ -412,7 +412,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    isSuccess: true,
+                    isCreateCorpayBankAccount: false,
                 },
             },
         ],
@@ -422,7 +422,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    isSuccess: false,
+                    isCreateCorpayBankAccount: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
@@ -434,6 +434,10 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
 
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
+function clearReimbursementAccountBankCreation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null});
 }
 
 /**
@@ -663,6 +667,7 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     getCorpayBankAccountFields,
+    clearReimbursementAccountBankCreation,
 };
 
 export type {BusinessAddress, PersonalAddress};
