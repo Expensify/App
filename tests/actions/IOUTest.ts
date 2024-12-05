@@ -1967,6 +1967,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() =>
+                    // And given an expense report has now been created which holds the IOU
                     TestHelper.getOnyxData({
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
