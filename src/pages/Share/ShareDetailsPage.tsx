@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearShareData} from '@libs/actions/Share';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -141,7 +140,7 @@ function ShareDetailsPage({
                 )}
 
                 <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
-                    <View style={[styles.pv5]}>
+                    <View style={styles.pv5}>
                         <ScrollView>
                             <TextInput
                                 value={message}
@@ -149,14 +148,13 @@ function ShareDetailsPage({
                                 onChangeText={setMessage}
                                 accessibilityLabel={translate('share.messageInputLabel')}
                                 label={translate('share.messageInputLabel')}
-                                style={{top: 100, position: 'absolute', backgroundColor: 'blue'}}
                             />
                         </ScrollView>
                     </View>
                     {!isTextShared && (
                         <>
                             <View style={[styles.pt6, styles.pb2]}>
-                                <Text style={[styles.textLabelSupporting]}>{translate('common.attachment')}</Text>
+                                <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
                             </View>
                             <SafeAreaView>
                                 <AttachmentModal
@@ -167,7 +165,7 @@ function ShareDetailsPage({
                                 >
                                     {({show}) => (
                                         <AttachmentPreview
-                                            source={currentAttachment?.content}
+                                            source={currentAttachment?.content ?? ''}
                                             aspectRatio={currentAttachment?.aspectRatio}
                                             onPress={show}
                                         />
@@ -183,7 +181,7 @@ function ShareDetailsPage({
                         success
                         large
                         text={translate('common.share')}
-                        style={[styles.w100]}
+                        style={styles.w100}
                         onPress={handleShare}
                     />
                 </View>

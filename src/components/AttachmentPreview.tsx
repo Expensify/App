@@ -22,17 +22,17 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type AttachmentPreviewProps = {
-    /** Optional source (URL, SVG function) for the image shown. */
-    source?: string | undefined;
+    /** Source (URL, SVG function) for file. */
+    source: string;
 
     /** Media's aspect ratio to calculate the thumbnail */
     aspectRatio: number | undefined;
 
-    /** function to call when pressing thumbnail */
+    /** Function to call when pressing thumbnail */
     onPress: () => void;
 };
 
-function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPreviewProps) {
+function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
 
     const file = useMemo<FileObject | undefined>(() => {
@@ -78,7 +78,7 @@ function AttachmentPreview({source = '', aspectRatio = 1, onPress}: AttachmentPr
                             fill="white"
                             width={variables.iconSizeXLarge}
                             height={variables.iconSizeXLarge}
-                            additionalStyles={[styles.ml1]}
+                            additionalStyles={styles.ml1}
                         />
                     </View>
                 </View>
