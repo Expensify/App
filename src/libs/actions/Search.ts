@@ -71,6 +71,9 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
             return;
+        case CONST.SEARCH.ACTION_TYPES.SUBMIT:
+            submitMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            return;
         default:
             goToItem();
     }
@@ -241,6 +244,26 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+}
+
+function submitMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: transactionIDList
+                    ? (Object.fromEntries(
+                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
+                      ) as Partial<SearchTransaction>)
+                    : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+            },
+        },
+    ];
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+
+    API.write(WRITE_COMMANDS.SUBMIT_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
 }
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
