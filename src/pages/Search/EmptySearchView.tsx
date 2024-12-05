@@ -35,7 +35,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
-    hasNoFilterApplied?: boolean;
+    hasResults: boolean;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -49,7 +49,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProps) {
+function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -136,7 +136,7 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasNoFilterApplied) {
+                if (!hasResults) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
@@ -174,7 +174,7 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
             // We want to display the default nothing to show message if there is any filter applied.
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                if (hasNoFilterApplied) {
+                if (!hasResults) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
@@ -233,7 +233,7 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
         ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
-        hasNoFilterApplied,
+        hasResults,
         viewTourTaskReport,
     ]);
 
