@@ -25,19 +25,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    OnyxInputOrEntry,
-    Policy,
-    RecentWaypoint,
-    Report,
-    ReportAction,
-    ReviewDuplicates,
-    TaxRate,
-    TaxRates,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
