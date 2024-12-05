@@ -1996,7 +1996,6 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 waitForCollectionCallback: true,
-                                // When fetching all reports from Onyx
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
