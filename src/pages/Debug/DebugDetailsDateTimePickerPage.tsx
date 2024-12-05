@@ -26,7 +26,7 @@ function DebugDetailsDateTimePickerPage({
 }: DebugDetailsDateTimePickerPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [date, setDate] = useState(DateUtils.extractDate(fieldValue));
+    const [date, setDate] = useState(() => DateUtils.extractDate(fieldValue));
     return (
         <ScreenWrapper testID={DebugDetailsDateTimePickerPage.displayName}>
             <HeaderWithBackButton title={fieldName} />

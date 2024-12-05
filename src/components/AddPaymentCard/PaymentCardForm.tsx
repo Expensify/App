@@ -165,10 +165,6 @@ function PaymentCardForm({
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
-        }
-
         if (!values.acceptTerms) {
             errors.acceptTerms = translate('common.error.acceptTerms');
         }
@@ -283,10 +279,9 @@ function PaymentCardForm({
                     InputComponent={TextInput}
                     defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zip')}
-                    aria-label={translate('common.zip')}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />

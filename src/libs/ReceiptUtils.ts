@@ -16,6 +16,7 @@ type ThumbnailAndImageURI = {
     isThumbnail?: boolean;
     filename?: string;
     fileExtension?: string;
+    isEmptyReceipt?: boolean;
 };
 
 /**
@@ -26,6 +27,9 @@ type ThumbnailAndImageURI = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: ReceiptSource | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
+    if (!TransactionUtils.hasReceipt(transaction) && !receiptPath && !receiptFileName) {
+        return {isEmptyReceipt: true};
+    }
     if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {isThumbnail: true, isLocalFile: true};
     }

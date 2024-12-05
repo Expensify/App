@@ -550,7 +550,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
                             headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         listeners={modalScreenListeners}
                         getComponent={loadWorkspaceJoinUser}

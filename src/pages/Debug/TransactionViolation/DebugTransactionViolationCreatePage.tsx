@@ -63,7 +63,7 @@ function DebugTransactionViolationCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
+    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
     const editJSON = useCallback(

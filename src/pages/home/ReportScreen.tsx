@@ -361,14 +361,30 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         () => !!linkedAction && ReportActionsUtils.isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
     );
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+
+    useEffect(() => {
+        if (!isFocused || !deleteTransactionNavigateBackUrl) {
+            return;
+        }
+        // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                Report.clearDeleteTransactionNavigateBackUrl();
+            });
+        });
+    }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty());
+
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         (!isLinkingToMessage && !isInitialPageReady) ||
         isEmptyObject(reportOnyx) ||
         isLoadingReportOnyx ||
         !isCurrentReportLoadedFromOnyx ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
         isLoading;
 
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;

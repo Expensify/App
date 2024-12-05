@@ -190,7 +190,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             />
                             {approverDisabled && (
                                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
                                     <TextLink
                                         style={[styles.link, styles.label]}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}

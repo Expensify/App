@@ -86,7 +86,7 @@ jobs:
       run:
         working-directory: Mobile-Expensify/react-native
     outputs:
-      APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
+      S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -139,9 +139,6 @@ jobs:
           bundler-cache: true
           working-directory: 'Mobile-Expensify/react-native'
 
-      - name: Install New Expensify Gems
-        run: bundle install
-
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
@@ -175,60 +172,25 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-        run: |
-          bundle exec fastlane android build_adhoc_hybrid
-
-          # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
-          # shellcheck disable=SC1090
-          source "$GITHUB_ENV"
-
-          # apkPath is set within the Fastfile
-          echo "APK_FILE_NAME=$(basename "$apkPath")" >> "$GITHUB_OUTPUT"    
-
-
-  uploadAndroid:
-    name: Upload Android hybrid app to S3
-    needs: [androidHybrid]
-    runs-on: ubuntu-latest
-    outputs:
-      S3_APK_PATH: ${{ steps.exportS3Path.outputs.S3_APK_PATH }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
-        with:
-          bundler-cache: true
-
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-*-artifact
-          merge-multiple: true
-
-      - name: Log downloaded artifact paths
-        run: ls -R /tmp/artifacts
-
+        run: bundle exec fastlane android build_adhoc_hybrid
+      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-
-      - name: Upload AdHoc build to S3
+      
+      - name: Upload Android AdHoc build to S3
         run: bundle exec fastlane android upload_s3
         env:
-          apkPath: /tmp/artifacts/${{ needs.androidHybrid.outputs.APK_FILE_NAME }}
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
+          S3_REGION: us-east-1 
 
-      - name: Export S3 paths
-        id: exportS3Path
+      - name: Export S3 path
+        id: exportAndroidS3Path
         run: |
           # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
@@ -236,7 +198,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [validateActor, getBranchRef, uploadAndroid] #TODO add ios job
+    needs: [validateActor, getBranchRef, androidHybrid]
     if: ${{ always() }}
     steps:
       - name: Checkout
@@ -255,5 +217,5 @@ jobs:
         with:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID: ${{ needs.uploadAndroid.result }}
-          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}

@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +18,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 
@@ -29,13 +27,6 @@ type StatusType = {
     keyForList: string;
     isSelected: boolean;
 };
-
-type StatusClearAfterPageOnyxProps = {
-    /** User's custom status */
-    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
-};
-
-type StatusClearAfterPageProps = StatusClearAfterPageOnyxProps;
 
 /**
  * @param data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
@@ -80,14 +71,15 @@ const useValidateCustomDate = (data: string) => {
     return {customDateError, customTimeError, validateCustomDate};
 };
 
-function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
+function StatusClearAfterPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
+    const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
-    const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
+    const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
     const statusType = useMemo<StatusType[]>(
         () =>
             Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
@@ -222,8 +214,4 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
 StatusClearAfterPage.displayName = 'StatusClearAfterPage';
 
-export default withOnyx<StatusClearAfterPageProps, StatusClearAfterPageOnyxProps>({
-    customStatus: {
-        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-    },
-})(StatusClearAfterPage);
+export default StatusClearAfterPage;

@@ -210,6 +210,7 @@ function BaseModal(
     const modalContextValue = useMemo(
         () => ({
             activeModalType: isVisible ? type : undefined,
+            default: false,
         }),
         [isVisible, type],
     );

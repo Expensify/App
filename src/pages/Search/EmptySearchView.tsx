@@ -121,8 +121,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(375, 240),
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
@@ -133,11 +132,11 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             success: true,
                         },
                     ],
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyExpenseResults.title'),
                     subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
                     buttons: [
@@ -166,17 +165,18 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             success: true,
                         },
                     ],
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.CHAT:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
             default:
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -188,11 +188,11 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
         subtitleComponent,
+        hasSeenTour,
         ctaErrorMessage,
         navatticURL,
-        shouldRedirectToExpensifyClassic,
-        hasSeenTour,
         viewTourTaskReport,
+        shouldRedirectToExpensifyClassic,
     ]);
 
     return (
@@ -201,13 +201,13 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                 SkeletonComponent={SearchRowSkeleton}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={content.headerMedia}
-                headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}
                 buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                lottieWebViewStyles={content.lottieWebViewStyles}
             />
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}

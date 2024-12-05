@@ -389,6 +389,10 @@ platform :ios do
         path: "./OldApp_AppStore_Share_Extension.mobileprovision"
       )
 
+      install_provisioning_profile(
+        path: "./OldApp_AppStore_Notification_Service.mobileprovision"
+      )
+
       build_app(
         workspace: "../iOS/Expensify.xcworkspace",
         scheme: "Expensify",
@@ -398,7 +402,8 @@ platform :ios do
           manageAppVersionAndBuildNumber: false,
           provisioningProfiles: {
               "com.expensify.expensifylite" => "(OldApp) AppStore",
-              "com.expensify.expensifylite.SmartScanExtension" => "(OldApp) AppStore: Share Extension"
+              "com.expensify.expensifylite.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
+              "com.expensify.expensifylite.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
           }
         }
       )
