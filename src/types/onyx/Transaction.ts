@@ -190,6 +190,15 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+/** This represents the details of the traveler */
+type TravelerPersonalDetails = {
+    /** Email of the traveler */
+    email: string;
+
+    /** Name of the traveler */
+    name: string;
+};
+
 /** Model of reservation */
 type Reservation = {
     /** ID of the reservation */
@@ -263,6 +272,9 @@ type Reservation = {
 
     /** Seat number for rail */
     seatNumber?: string;
+
+    /** This represents the details of the traveler */
+    travelerPersonalInfo?: TravelerPersonalDetails;
 };
 
 /** Model of trip reservation time details */

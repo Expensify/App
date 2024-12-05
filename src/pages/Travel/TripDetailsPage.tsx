@@ -39,8 +39,6 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
 
     const tripID = ReportUtils.getTripIDFromTransactionParentReportID(report?.parentReportID);
-    const accountID = Object.keys(report?.participants ?? {}).at(0) ?? '-1';
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (data) => data?.[accountID]});
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
@@ -71,27 +69,11 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         <FlightTripDetails
                             prevReservation={route.params.reservationIndex > 0 ? transaction?.receipt?.reservationList?.at(route.params.reservationIndex - 1) : undefined}
                             reservation={reservation}
-                            personalDetails={personalDetails}
                         />
                     )}
-                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.HOTEL && (
-                        <HotelTripDetails
-                            reservation={reservation}
-                            personalDetails={personalDetails}
-                        />
-                    )}
-                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.CAR && (
-                        <CarTripDetails
-                            reservation={reservation}
-                            personalDetails={personalDetails}
-                        />
-                    )}
-                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.TRAIN && (
-                        <TrainTripDetails
-                            reservation={reservation}
-                            personalDetails={personalDetails}
-                        />
-                    )}
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.HOTEL && <HotelTripDetails reservation={reservation} />}
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.CAR && <CarTripDetails reservation={reservation} />}
+                    {!!reservation && reservationType === CONST.RESERVATION_TYPE.TRAIN && <TrainTripDetails reservation={reservation} />}
                     <MenuItem
                         title={translate('travel.modifyTrip')}
                         icon={Expensicons.Pencil}
