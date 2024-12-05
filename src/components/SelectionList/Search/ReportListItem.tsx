@@ -213,7 +213,6 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                     {isLargeScreenWidth && (
                         <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
-                            <Text>bezita</Text>
                             <ActionCell
                                 action={reportItem.action}
                                 shouldUseSuccessStyle={shouldUseSuccessStyle}
