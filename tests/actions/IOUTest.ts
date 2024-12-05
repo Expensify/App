@@ -1985,7 +1985,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        // When we attempt to cancle payment an expense from the expense report
+                        // And when the payment is cancelled
                         IOU.cancelPayment(expenseReport, chatReport);
                     }
                     return waitForBatchedUpdates();
