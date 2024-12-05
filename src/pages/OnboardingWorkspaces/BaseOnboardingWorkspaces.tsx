@@ -68,6 +68,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 text: policyInfo.policyName,
                 alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
                 keyForList: policyInfo.policyID,
+                isDisabled: true,
                 rightElement: (
                     <Button
                         isDisabled={isOffline}
@@ -129,12 +130,9 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
                 <SelectionList
                     sections={[{data: policyIDItems}]}
-                    onSelectRow={(item) => {
-                        handleJoinWorkspace(item.keyForList);
-                    }}
-                    shouldUpdateFocusedIndex
+                    onSelectRow={() => {}}
                     ListItem={UserListItem}
-                    listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                    listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
                     showLoadingPlaceholder={joinablePoliciesLoading}
                 />
 
