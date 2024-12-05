@@ -1999,7 +1999,7 @@ describe('actions/IOU', () => {
                                 callback: (allReports) => {
                                     Onyx.disconnect(connection);
                                     const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
-                                    // Then we should find an IOU action with specific properties
+                                    // Then the policy expense chat report has the iouReportID of the IOU expense report
                                     expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
                                     resolve();
                                 },
