@@ -250,17 +250,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
-            if (!queryJSON) {
+            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const updatedQuery = SearchQueryUtils.getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            if (!updatedQuery) {
                 return;
             }
-            queryJSON.policyID = activeWorkspaceID;
-            onRouterClose();
 
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
-            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+            onRouterClose();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
