@@ -92,10 +92,10 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
 
             <MenuItem
                 label={translate('travel.trainDetails.passenger')}
-                title={personalDetails?.displayName}
+                title={personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name}
                 icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
                 iconType={CONST.ICON_TYPE_AVATAR}
-                description={personalDetails?.login}
+                description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />

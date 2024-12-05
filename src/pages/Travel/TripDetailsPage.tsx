@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {NativeModules} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,10 +21,16 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Reservation} from '@src/types/onyx/Transaction';
 import CarTripDetails from './CarTripDetails';
 import FlightTripDetails from './FlightTripDetails';
 import HotelTripDetails from './HotelTripDetails';
 import TrainTripDetails from './TrainTripDetails';
+
+function pickTravelerPersonalDetails(personalDetails: OnyxEntry<PersonalDetailsList>, reservation: Reservation | undefined) {
+    return Object.values(personalDetails ?? {})?.find((personalDetail) => personalDetail?.login === reservation?.travelerPersonalInfo?.email);
+}
 
 type TripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRIP_DETAILS>;
 
@@ -39,11 +46,10 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
 
     const tripID = ReportUtils.getTripIDFromTransactionParentReportID(report?.parentReportID);
-    const accountID = Object.keys(report?.participants ?? {}).at(0) ?? '-1';
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (data) => data?.[accountID]});
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation)});
 
     return (
         <ScreenWrapper
@@ -71,25 +77,25 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         <FlightTripDetails
                             prevReservation={route.params.reservationIndex > 0 ? transaction?.receipt?.reservationList?.at(route.params.reservationIndex - 1) : undefined}
                             reservation={reservation}
-                            personalDetails={personalDetails}
+                            personalDetails={travelerPersonalDetails}
                         />
                     )}
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.HOTEL && (
                         <HotelTripDetails
                             reservation={reservation}
-                            personalDetails={personalDetails}
+                            personalDetails={travelerPersonalDetails}
                         />
                     )}
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.CAR && (
                         <CarTripDetails
                             reservation={reservation}
-                            personalDetails={personalDetails}
+                            personalDetails={travelerPersonalDetails}
                         />
                     )}
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.TRAIN && (
                         <TrainTripDetails
                             reservation={reservation}
-                            personalDetails={personalDetails}
+                            personalDetails={travelerPersonalDetails}
                         />
                     )}
                     <MenuItem
