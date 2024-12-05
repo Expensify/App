@@ -1,9 +1,17 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
+
+const WEB_PROP_ATTR = 'data-testid';
+const MASK = 'fs-mask';
+const UNMASK = 'fs-unmask';
+const CUSTOMER = 'customer';
+const CONCIERGE = 'concierge';
+const OTHER = 'other';
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage {
@@ -16,7 +24,9 @@ class FSPage {
         this.properties = properties;
     }
 
-    start() {}
+    start() {
+        parseFSAttributes();
+    }
 }
 
 /**
@@ -92,5 +102,73 @@ const FS = {
     init: (_value: OnyxEntry<UserMetadata>) => {},
 };
 
+/**
+ * Extract values from non-scraped at build time attribute WEB_PROP_ATTR,
+ * reevaluate "fs-class".
+ */
+function parseFSAttributes(): void {
+    window?.document?.querySelectorAll(`[${WEB_PROP_ATTR}]`).forEach((o) => {
+        const attr = o.getAttribute(WEB_PROP_ATTR) ?? '';
+        if (!/fs-/gim.test(attr)) {
+            return;
+        }
+
+        const fsAttrs = attr.match(/fs-[a-zA-Z0-9_-]+/g) ?? [];
+        o.setAttribute('fs-class', fsAttrs.join(','));
+
+        let cleanedAttrs = attr;
+        fsAttrs.forEach((fsAttr) => {
+            cleanedAttrs = cleanedAttrs.replace(fsAttr, '');
+        });
+
+        cleanedAttrs = cleanedAttrs
+            .replace(/,+/g, ',')
+            .replace(/\s*,\s*/g, ',')
+            .replace(/^,+|,+$/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        if (cleanedAttrs) {
+            o.setAttribute(WEB_PROP_ATTR, cleanedAttrs);
+        } else {
+            o.removeAttribute(WEB_PROP_ATTR);
+        }
+    });
+}
+
+/*
+    prefix? if component name should be used as a prefix,
+    in case data-test-id attribute usage,
+    clean component name should be preserved in data-test-id.
+*/
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
+    if (!name) {
+        return `${mask ? MASK : UNMASK}`;
+    }
+
+    if (prefix) {
+        return `${name},${mask ? MASK : UNMASK}`;
+    }
+
+    return `${name}`;
+}
+
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
+    if (!name) {
+        return ['', ''];
+    }
+    if (isConciergeChatReport(report)) {
+        const formattedName = `${CONCIERGE}-${name}`;
+        return [`${formattedName},${UNMASK}`, `${formattedName}`];
+    }
+    if (shouldUnmaskChat(context, report)) {
+        const formattedName = `${CUSTOMER}-${name}`;
+        return [`${formattedName},${UNMASK}`, `${formattedName}`];
+    }
+
+    const formattedName = `${OTHER}-${name}`;
+    return [`${formattedName},${MASK}`, `${formattedName}`];
+}
+
 export default FS;
-export {FSPage};
+export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};
