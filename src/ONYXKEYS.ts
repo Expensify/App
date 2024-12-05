@@ -216,14 +216,8 @@ const ONYXKEYS = {
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
 
-    /** The NVP containing all information related to educational tooltip in workspace chat */
-    NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
-
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
-
-    /**  Whether to hide gbr tooltip */
-    NVP_SHOULD_HIDE_GBR_TOOLTIP: 'nvp_should_hide_gbr_tooltip',
 
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
@@ -1014,9 +1008,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
-    [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
-    [ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
