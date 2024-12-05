@@ -237,6 +237,7 @@ type PureReportActionItemProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
+    /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage: string;
 };
 
@@ -1204,6 +1205,12 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport
+        prevProps.isChronosReport === nextProps.isChronosReport &&
+        prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
+        lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
+        prevProps.reimbursementDeQueuedActionMessage === nextProps.reimbursementDeQueuedActionMessage &&
+        prevProps.forReportAction === nextProps.forReportAction &&
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
     );
 });
