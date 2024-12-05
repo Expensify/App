@@ -217,6 +217,32 @@ type MoneyRequestInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
+type MoneyRequestOptimisticParams = {
+    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
+    iouReport: OnyxTypes.Report;
+    transaction: OnyxTypes.Transaction;
+    reportPreviewAction: ReportAction;
+    chatCreatedAction: OptimisticCreatedReportAction;
+    iouCreatedAction: OptimisticCreatedReportAction;
+    iouAction: OptimisticIOUReportAction;
+    transactionThreadReport: OptimisticChatReport | null;
+    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    optimisticPersonalDetailListAction?: OnyxTypes.PersonalDetailsList;
+    optimisticPolicyRecentlyUsedCategories?: string[];
+    optimisticPolicyRecentlyUsedTags?: OnyxTypes.RecentlyUsedTags;
+    optimisticNextStep?: OnyxTypes.ReportNextStep | null;
+    optimisticRecentlyUsedCurrencies?: string[];
+};
+
+type BuildOnyxDataForMoneyRequestParams = {
+    isNewChatReport: boolean;
+    shouldCreateNewMoneyRequestReport: boolean;
+    isOneOnOneSplit?: boolean;
+    existingTransactionThreadReportID?: string;
+    policyParams?: RequestMoneyPolicyParams;
+    optimisticParams: MoneyRequestOptimisticParams;
+};
+
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -569,29 +595,26 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
 }
 
 /** Builds the Onyx data for an expense */
-function buildOnyxDataForMoneyRequest(
-    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
-    iouReport: OnyxTypes.Report,
-    transaction: OnyxTypes.Transaction,
-    chatCreatedAction: OptimisticCreatedReportAction,
-    iouCreatedAction: OptimisticCreatedReportAction,
-    iouAction: OptimisticIOUReportAction,
-    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
-    reportPreviewAction: ReportAction,
-    optimisticPolicyRecentlyUsedCategories: string[],
-    optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
-    isNewChatReport: boolean,
-    transactionThreadReport: OptimisticChatReport | null,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
-    shouldCreateNewMoneyRequestReport: boolean,
-    policy?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
-    optimisticNextStep?: OnyxTypes.ReportNextStep | null,
-    isOneOnOneSplit = false,
-    existingTransactionThreadReportID?: string,
-    optimisticRecentlyUsedCurrencies?: string[],
-): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {isNewChatReport, shouldCreateNewMoneyRequestReport, isOneOnOneSplit = false, existingTransactionThreadReportID, policyParams = {}, optimisticParams} = moneyRequestParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {
+        chatReport,
+        iouReport,
+        transaction,
+        reportPreviewAction,
+        chatCreatedAction,
+        iouCreatedAction,
+        iouAction,
+        transactionThreadReport,
+        transactionThreadCreatedReportAction,
+        optimisticPersonalDetailListAction = {},
+        optimisticPolicyRecentlyUsedCategories = [],
+        optimisticPolicyRecentlyUsedTags = {},
+        optimisticNextStep,
+        optimisticRecentlyUsedCurrencies,
+    } = optimisticParams;
+
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -2169,7 +2192,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
-    const optimisticPolicyRecentluUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticPolicyRecentlyUsedCurrencies = Policy.buildOptimisticRecentlyUsedCurrencies(currency);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -2238,29 +2261,31 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
-        chatReport,
-        iouReport,
-        optimisticTransaction,
-        optimisticCreatedActionForChat,
-        optimisticCreatedActionForIOUReport,
-        iouAction,
-        optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        optimisticPolicyRecentlyUsedCategories,
-        optimisticPolicyRecentlyUsedTags,
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
         isNewChatReport,
-        optimisticTransactionThread ?? {},
-        optimisticCreatedActionForTransactionThread,
         shouldCreateNewMoneyRequestReport,
-        policy,
-        policyTagList,
-        policyCategories,
-        optimisticNextStep,
-        undefined,
-        undefined,
-        optimisticPolicyRecentluUsedCurrencies,
-    );
+        policyParams: {
+            policy,
+            policyCategories,
+            policyTagList,
+        },
+        optimisticParams: {
+            chatReport,
+            iouReport,
+            transaction: optimisticTransaction,
+            chatCreatedAction: optimisticCreatedActionForChat,
+            iouCreatedAction: optimisticCreatedActionForIOUReport,
+            iouAction,
+            transactionThreadReport: optimisticTransactionThread,
+            transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            optimisticPersonalDetailListAction,
+            reportPreviewAction,
+            optimisticPolicyRecentlyUsedCategories,
+            optimisticPolicyRecentlyUsedTags,
+            optimisticNextStep,
+            optimisticRecentlyUsedCurrencies: optimisticPolicyRecentlyUsedCurrencies,
+        },
+    });
 
     return {
         payerAccountID,
@@ -4400,29 +4425,26 @@ function createSplitsAndOnyxData(
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
-            oneOnOneChatReport,
-            oneOnOneIOUReport,
-            oneOnOneTransaction,
-            oneOnOneCreatedActionForChat,
-            oneOnOneCreatedActionForIOU,
-            oneOnOneIOUAction,
-            oneOnOnePersonalDetailListAction,
-            oneOnOneReportPreviewAction,
-            optimisticPolicyRecentlyUsedCategories,
-            optimisticPolicyRecentlyUsedTags,
-            isNewOneOnOneChatReport,
-            optimisticTransactionThread,
-            optimisticCreatedActionForTransactionThread,
-            shouldCreateNewOneOnOneIOUReport,
-            null,
-            null,
-            null,
-            null,
-            true,
-            undefined,
-            optimisticRecentlyUsedCurrencies,
-        );
+        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isNewChatReport: isNewOneOnOneChatReport,
+            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            isOneOnOneSplit: true,
+            optimisticParams: {
+                chatReport: oneOnOneChatReport,
+                iouReport: oneOnOneIOUReport,
+                transaction: oneOnOneTransaction,
+                chatCreatedAction: oneOnOneCreatedActionForChat,
+                iouCreatedAction: oneOnOneCreatedActionForIOU,
+                iouAction: oneOnOneIOUAction,
+                reportPreviewAction: oneOnOneReportPreviewAction,
+                optimisticPersonalDetailListAction: oneOnOnePersonalDetailListAction,
+                optimisticPolicyRecentlyUsedCategories,
+                optimisticPolicyRecentlyUsedTags,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                optimisticRecentlyUsedCurrencies,
+            },
+        });
 
         const individualSplit = {
             email,
@@ -5128,27 +5150,22 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
-            oneOnOneChatReport,
-            oneOnOneIOUReport,
-            oneOnOneTransaction,
-            oneOnOneCreatedActionForChat,
-            oneOnOneCreatedActionForIOU,
-            oneOnOneIOUAction,
-            {},
-            oneOnOneReportPreviewAction,
-            [],
-            {},
-            isNewOneOnOneChatReport,
-            optimisticTransactionThread,
-            optimisticCreatedActionForTransactionThread,
-            shouldCreateNewOneOnOneIOUReport,
-            null,
-            null,
-            null,
-            null,
-            true,
-        );
+        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isNewChatReport: isNewOneOnOneChatReport,
+            isOneOnOneSplit: true,
+            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            optimisticParams: {
+                chatReport: oneOnOneChatReport,
+                iouReport: oneOnOneIOUReport,
+                transaction: oneOnOneTransaction,
+                chatCreatedAction: oneOnOneCreatedActionForChat,
+                iouCreatedAction: oneOnOneCreatedActionForIOU,
+                iouAction: oneOnOneIOUAction,
+                reportPreviewAction: oneOnOneReportPreviewAction,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            },
+        });
 
         splits.push({
             email: participant.email,
