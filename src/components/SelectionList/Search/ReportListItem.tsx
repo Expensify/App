@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -109,15 +109,9 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const isOnHold = useMemo(() => {
-        if (!reportItem) {
-            return false;
-        }
-
-        const total = reportItem?.total ?? 0;
-        const unHeldTotal = reportItem?.unheldTotal ?? 0;
-        return total - unHeldTotal === 0;
-    }, [reportItem]);
+    const reportItemTotal = reportItem?.total ?? 0;
+    const reportItemUnheldTotal = reportItem?.unheldTotal ?? 0;
+    const isOnHold = reportItemTotal - reportItemUnheldTotal === 0;
 
     const isApproveAction = reportItem.action === CONST.SEARCH.ACTION_TYPES.APPROVE;
     const shouldUseSuccessStyle = isApproveAction ? !isOnHold : true;
