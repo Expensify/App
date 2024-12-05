@@ -95,7 +95,7 @@ The sum of the expenses should equal the balance in your Expensify Clearing or L
 
 {% include faq-begin.md %}
 
-**Why is the amount in my Expensify report so different from the amount in my accounting system?**
+## Why is the amount in my Expensify report so different from the amount in my accounting system?
 
 If the Expensify report shows an amount that is significantly different to your accounting system, there are a few ways to identify the issues:
 - Double check that the expenses posted to the GL are within the correct month. Filter out these expenses to see if they now match those in the CSV report.
@@ -103,7 +103,7 @@ If the Expensify report shows an amount that is significantly different to your 
    - Run the settlements report in the “settlements” view of the Reconciliation Dashboard to confirm that the numbers match.
    - Compare “Approved” activity to your posted activity within your accounting system to confirm the numbers match.
  
-**What if Auto-Reconciliation is disabled for my company’s Expensify Cards?**
+## What if Auto-Reconciliation is disabled for my company’s Expensify Cards?
 
 If Auto-Reconciliation is disabled for your company’s Expensify Cards, a Domain Admin can set an export account for individual cards via Settings > Domains > Domain Name > Company Cards > Edit Exports. 
 
