@@ -271,8 +271,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
-    //! DEV
-    const hasHelpfulErrors = false; // Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
+    const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID ?? '', reportActions ?? [], isOffline);

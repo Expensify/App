@@ -6318,10 +6318,10 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
     }
-    //! DEV
-    // if (report?.errorFields?.notFound) {
-    //     return false;
-    // }
+
+    if (report?.errorFields?.notFound) {
+        return false;
+    }
 
     return true;
 }
