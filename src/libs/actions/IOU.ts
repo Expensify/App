@@ -7063,6 +7063,27 @@ function canIOUBePaid(
     );
 }
 
+function canSubmitReport(
+    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    allReportTransactions: OnyxEntry<OnyxTypes.Transaction> | SearchTransaction[],
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
+) {
+    const currentUserAccountID = Report.getCurrentUserAccountID();
+    const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(report);
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(allReportTransactions);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', moneyRequestReport, policy);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    return (
+        isOpenExpenseReport &&
+        reimbursableSpend !== 0 &&
+        !hasAllPendingRTERViolations &&
+        !shouldShowBrokenConnectionViolation &&
+        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
+    );
+}
+
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
@@ -8675,5 +8696,6 @@ export {
     getIOUReportActionToApproveOrPay,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
+    canSubmitReport,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
