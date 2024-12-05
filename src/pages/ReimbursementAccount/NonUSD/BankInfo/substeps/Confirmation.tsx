@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -61,8 +61,16 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
 
     const handleNext = () => {
         BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, preferredMethod} as ReimbursementAccountForm);
-        onNext();
     };
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.isLoading || reimbursementAccount?.errors || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        onNext();
+    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     return (
         <SafeAreaConsumer>

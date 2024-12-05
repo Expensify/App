@@ -5214,6 +5214,7 @@ const CONST = {
                 state: BankAccount.STATE.SETUP,
             },
             isLoading: false,
+            isSuccess: false,
             errorFields: {},
             errors: {},
             maxAttemptsReached: false,
