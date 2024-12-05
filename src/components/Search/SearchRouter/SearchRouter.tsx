@@ -18,6 +18,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as InputUtils from '@libs/InputUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -215,8 +216,22 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
           }
         : undefined;
 
+    const shouldScrollRef = useRef(false);
+    const searchRouterInputRef = useRef(null);
+    // Trigger scrollToRight when input value changes and shouldScroll is true
+    useEffect(() => {
+        if (!searchRouterInputRef.current || !shouldScrollRef.current) {
+            return;
+        }
+        InputUtils.scrollToRight(searchRouterInputRef.current);
+        shouldScrollRef.current = false;
+    }, [debouncedInputValue]);
+
     const onSearchQueryChange = useCallback(
-        (userQuery: string) => {
+        (userQuery: string, autoScrollToRight = false) => {
+            if (autoScrollToRight) {
+                shouldScrollRef.current = true;
+            }
             const updatedUserQuery = SearchAutocompleteUtils.getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
@@ -235,17 +250,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
-            if (!queryJSON) {
+            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const updatedQuery = SearchQueryUtils.getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            if (!updatedQuery) {
                 return;
             }
-            queryJSON.policyID = activeWorkspaceID;
-            onRouterClose();
 
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
-            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+            onRouterClose();
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -261,7 +273,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                 const searchQuery = getContextualSearchQuery(item);
-                onSearchQueryChange(`${searchQuery} `);
+                onSearchQueryChange(`${searchQuery} `, true);
 
                 const autocompleteKey = getContextualSearchAutocompleteKey(item);
                 if (autocompleteKey && item.autocompleteID) {
@@ -332,6 +344,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 <>
                     <SearchRouterInput
                         value={textInputValue}
+                        ref={searchRouterInputRef}
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
                         onSubmit={() => {
