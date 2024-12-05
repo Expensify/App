@@ -571,6 +571,10 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
+type EditDestinationSubtitleParams = {
+    destination: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -776,4 +780,5 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    EditDestinationSubtitleParams,
 };

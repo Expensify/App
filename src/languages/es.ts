@@ -60,6 +60,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
@@ -2593,6 +2594,9 @@ const translations = {
                 existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
             },
             importPerDiemRates: 'Importar tasas de per diem',
+            editPerDiemRate: 'Edit per diem rate',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this destination will change it for all ${destination} per diem subrates.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this currency will change it for all ${destination} per diem subrates.`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',

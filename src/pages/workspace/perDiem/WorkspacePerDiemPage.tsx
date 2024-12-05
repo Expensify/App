@@ -223,18 +223,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openSubRateDetails = (rate: PolicyOption) => {
-        // TODO: Uncomment this when the import feature is ready
-        // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATE_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const dismissError = (item: PolicyOption) => {
-        // TODO: Implement this when the editing feature is ready
+        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
     };
 
     const handleDeletePerDiemRates = () => {
+        PerDiem.deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
         setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
     };
@@ -423,7 +417,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         onSelectAll={toggleAllSubRates}
                         ListItem={TableListItem}
-                        onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
