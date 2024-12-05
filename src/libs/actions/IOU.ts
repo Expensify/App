@@ -7123,7 +7123,6 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     const managerID = isLastApprover(approvalChain) ? expenseReport?.managerID : getNextApproverAccountID(expenseReport);
 
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, predictedNextStatus);
-    console.log(expenseReport, predictedNextStatus, optimisticNextStep);
     const chatReport = ReportUtils.getReportOrDraftReport(expenseReport?.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {

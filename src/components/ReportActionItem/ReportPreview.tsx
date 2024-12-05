@@ -156,7 +156,6 @@ function ReportPreview({
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
-    console.log(TransactionUtils.getAllSortedTransactions(iouReport?.reportID ?? '-1'));
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = allTransactions.length;
