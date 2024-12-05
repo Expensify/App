@@ -9,9 +9,6 @@ type TempShareFile = {
     /** Mime type of the file */
     mimeType?: string;
 
-    /** Whether to remove the file. Necessary for the offline handling */
-    readyForRemoval?: boolean;
-
     /** ID of the report this share file is, or will be attached to */
     reportID?: string;
 
@@ -23,8 +20,3 @@ type TempShareFile = {
 };
 
 export default TempShareFile;
-
-// {
-//     contnent: 'path' | 'string'
-//     mime: ''
-// }

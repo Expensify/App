@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearShareData} from '@libs/actions/Share';
 import DateUtils from '@libs/DateUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -17,6 +19,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -35,7 +38,8 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
+    const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onyxReport?.policyID}`);
@@ -50,20 +54,16 @@ function SubmitDetailsPage({
         IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportID, policy]);
 
-    const report = onyxReport ?? Report.getOptimisticChatReport(reportID);
+    const optimisticReport = Report.getOptimisticChatReport(reportID);
+    const report = onyxReport ?? optimisticReport;
 
-    const currentAttachment = useMemo(() => {
-        return Object.values(tempShareFiles ?? {})
-            .sort((a, b) => Number(b?.processedAt) - Number(a?.processedAt))
-            .at(0);
-    }, [tempShareFiles]);
     const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
     const participants = selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? -1;
         return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
     });
 
-    const receiptPath = `file://${currentAttachment?.content}`;
+    console.log('participants', participants);
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -75,6 +75,8 @@ function SubmitDetailsPage({
             return;
         }
 
+        console.log('report', report);
+        console.log('reportID', reportID);
         IOU.requestMoney(
             report,
             transactionAmount,
@@ -101,7 +103,9 @@ function SubmitDetailsPage({
             transaction.linkedTrackedExpenseReportAction,
             transaction.linkedTrackedExpenseReportID,
         );
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), CONST.NAVIGATION.TYPE.UP);
+        console.log('navigating reportID', reportID);
+        const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
@@ -112,9 +116,12 @@ function SubmitDetailsPage({
 
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCANREADY;
-        if ((transaction?.amount === undefined || transaction?.amount === 0) && locationPermissionGranted) {
+        console.log('locationPermissionGranted', locationPermissionGranted);
+        if (transaction?.amount === undefined || transaction?.amount === 0) {
             getCurrentPosition(
                 (successData) => {
+                    Report.openReport(report.reportID, '', [unknownUserDetails?.login ?? ''], optimisticReport, undefined, undefined, undefined, undefined);
+
                     finishRequestAndNavigate(participant, receipt, {
                         lat: successData.coords.latitude,
                         long: successData.coords.longitude,
@@ -134,9 +141,6 @@ function SubmitDetailsPage({
     };
 
     const onConfirm = (gpsRequired?: boolean) => {
-        // console.log('lastLocationPermissionPrompt', lastLocationPermissionPrompt);
-        // console.log('DateUtils.isValidDateString(lastLocationPermissionPrompt ?? "")', DateUtils.isValidDateString(lastLocationPermissionPrompt ?? ''));
-        // console.log('DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? ""))', DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')));
         const shouldStartLocationPermissionFlow =
             gpsRequired &&
             (!lastLocationPermissionPrompt ||
@@ -144,13 +148,12 @@ function SubmitDetailsPage({
                     DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS));
 
         if (shouldStartLocationPermissionFlow) {
-            // console.log('shouldStartLocationPermissionFlow', shouldStartLocationPermissionFlow);
             setStartLocationPermissionFlow(true);
             return;
         }
 
         FileUtils.readFileAsync(
-            receiptPath,
+            currentAttachment?.content ?? '',
             FileUtils.getFileName(currentAttachment?.content ?? 'image'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
@@ -184,8 +187,8 @@ function SubmitDetailsPage({
                         isConfirmed={false}
                         reportID={reportID}
                         shouldShowSmartScanFields={false}
-                        receiptPath={receiptPath}
-                        receiptFilename={FileUtils.getFileName(currentAttachment?.content ?? 'test')}
+                        receiptPath={currentAttachment?.content}
+                        receiptFilename={FileUtils.getFileName(currentAttachment?.content ?? '')}
                         transaction={transaction}
                         onConfirm={() => onConfirm(true)}
                     />

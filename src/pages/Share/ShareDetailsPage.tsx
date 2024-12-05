@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearShareData} from '@libs/actions/Share';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,11 +39,18 @@ function ShareDetailsPage({
 
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const currentUserID = Report.getCurrentUserAccountID();
 
     const optimisticReport = Report.getOptimisticChatReport(reportID);
     const report = onyxReport ?? optimisticReport;
     const displayReport = OptionsListUtils.getReportDisplayOption(report);
+
+    if (unknownUserDetails) {
+        optimisticReport.reportID = unknownUserDetails?.accountID?.toString() ?? '';
+        displayReport.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? -1}];
+    }
+
     if (!onyxReport || onyxReport?.ownerAccountID === 0) {
         const participants = onyxReport
             ? ReportUtils.getDisplayNamesWithTooltips(
@@ -60,13 +68,7 @@ function ShareDetailsPage({
         displayReport.alternateText = participants?.filter((u) => u.accountID !== currentUserID).at(0)?.login;
     }
 
-    const [tempShareFiles] = useOnyx(`${ONYXKEYS.COLLECTION.TEMP_SHARE_FILES}`);
-
-    const currentAttachment = useMemo(() => {
-        return Object.values(tempShareFiles ?? {})
-            .sort((a, b) => Number(b?.processedAt) - Number(a?.processedAt))
-            .at(0);
-    }, [tempShareFiles]);
+    const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
 
     const isTextShared = useMemo(() => currentAttachment?.mimeType === 'txt', [currentAttachment]);
 

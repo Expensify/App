@@ -81,6 +81,7 @@ const CASES = {
 type CaseID = ValueOf<typeof CASES>;
 
 function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
+    console.log('ReportDetailsPage');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

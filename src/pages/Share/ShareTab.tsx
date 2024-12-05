@@ -1,4 +1,5 @@
 import React from 'react';
+import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import CONST from '@src/CONST';
@@ -10,11 +11,14 @@ function ShareTab() {
             iouType={CONST.IOU.TYPE.SUBMIT}
             onFinish={() => {}}
             onParticipantsAdded={(value) => {
-                const reportID = value.at(0)?.reportID;
-                const accountID = value.at(0)?.accountID;
+                const participant = value.at(0);
+                const reportID = participant?.reportID;
+                const accountID = participant?.accountID;
+                if (accountID && !reportID && participant) {
+                    saveUnknownUserDetails(participant);
+                }
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
-            iouRequestType="manual"
             action="create"
         />
     );
