@@ -49,8 +49,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
-    const data = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data ?? {}) as SearchResults['data'];
-    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]) as SearchTransaction[];
+    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
 
     if (hasHeldExpense) {
