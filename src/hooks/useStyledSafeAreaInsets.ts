@@ -52,6 +52,10 @@ function useStyledSafeAreaInsets() {
     return {
         paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
         paddingBottom: adaptedPaddingBottom,
+        unmodifiedPaddings: {
+            top: paddingTop,
+            bottom: paddingBottom,
+        },
         insets: adaptedInsets,
         safeAreaPaddingBottomStyle,
     };

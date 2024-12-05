@@ -318,7 +318,6 @@ const WRITE_COMMANDS = {
     DELETE_MONEY_REQUEST_ON_SEARCH: 'DeleteMoneyRequestOnSearch',
     HOLD_MONEY_REQUEST_ON_SEARCH: 'HoldMoneyRequestOnSearch',
     APPROVE_MONEY_REQUEST_ON_SEARCH: 'ApproveMoneyRequestOnSearch',
-    PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
     UNHOLD_MONEY_REQUEST_ON_SEARCH: 'UnholdMoneyRequestOnSearch',
     REQUEST_REFUND: 'User_RefundPurchase',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
@@ -770,7 +769,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;
-    [WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.UnholdMoneyRequestOnSearchParams;
 
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
@@ -1034,6 +1032,9 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
+
+    // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
+    PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1054,6 +1055,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.ConnectPolicyToQuickBooksDesktopParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
