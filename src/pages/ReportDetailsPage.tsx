@@ -795,16 +795,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         </OfflineWithFeedback>
     );
 
-    // A flag to indicate whether the user choose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
-    const navigateBackToAfterDelete = useRef<Route>();
-
     const deleteTransaction = useCallback(() => {
-        setIsDeleteModalVisible(false);
-
         if (caseID === CASES.DEFAULT) {
-            navigateBackToAfterDelete.current = Task.deleteTask(report);
+            Task.deleteTask(report);
             return;
         }
 
@@ -812,14 +805,63 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+
+        if (isTrackExpense) {
+            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
+
+    // A flag to indicate whether the user chose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    useEffect(() => {
+        return () => {
+            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+
+            deleteTransaction();
+        };
+    }, [deleteTransaction]);
+
+    // Where to navigate back to after deleting the transaction and its report.
+    const navigateToTargetUrl = useCallback(() => {
+        let urlToNavigateBack: string | undefined;
+
+        if (!isTransactionDeleted.current) {
+            if (caseID === CASES.DEFAULT) {
+                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
+                if (urlToNavigateBack) {
+                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+                    Navigation.goBack(urlToNavigateBack as Route);
+                } else {
+                    Navigation.dismissModal();
+                }
+                return;
+            }
+            return;
         }
 
-        isTransactionDeleted.current = true;
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+        if (!isEmptyObject(requestParentReportAction)) {
+            const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+            if (isTrackExpense) {
+                urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            } else {
+                urlToNavigateBack = IOU.getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            }
+        }
+
+        if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else {
+            Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+        }
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -912,32 +954,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTransaction}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => {
-                        // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
-                        if (!isTransactionDeleted.current) {
-                            if (caseID === CASES.DEFAULT) {
-                                if (navigateBackToAfterDelete.current) {
-                                    Navigation.goBack(navigateBackToAfterDelete.current);
-                                } else {
-                                    Navigation.dismissModal();
-                                }
-                            }
-                            return;
-                        }
-
-                        if (!navigateBackToAfterDelete.current) {
-                            Navigation.dismissModal();
-                        } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
-                        }
+                    onConfirm={() => {
+                        setIsDeleteModalVisible(false);
+                        isTransactionDeleted.current = true;
                     }}
+                    onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                    onModalHide={navigateToTargetUrl}
                 />
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
