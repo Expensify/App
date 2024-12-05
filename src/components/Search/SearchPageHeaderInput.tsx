@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -112,28 +111,15 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            if (!queryString) {
+            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const updatedQuery = SearchQueryUtils.getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            if (!updatedQuery) {
                 return;
             }
 
-            const cleanedQueryString = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const userQueryJSON = SearchQueryUtils.buildSearchQueryJSON(cleanedQueryString);
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
 
-            if (!userQueryJSON) {
-                Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
-                return;
-            }
-
-            if (queryJSON.policyID) {
-                userQueryJSON.policyID = queryJSON.policyID;
-            }
-
-            const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(userQueryJSON, SearchQueryUtils.getUpdatedAmountValue);
-            const query = SearchQueryUtils.buildSearchQueryString(standardizedQuery);
-
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-
-            if (query !== originalInputQuery) {
+            if (updatedQuery !== originalInputQuery) {
                 SearchActions.clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');

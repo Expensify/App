@@ -3351,6 +3351,7 @@ const translations = {
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
+                    pleaseSelectBank: 'Seleccione una bancaria antes de continuar.',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar.',
                 },
             },
