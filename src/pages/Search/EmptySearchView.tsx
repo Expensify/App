@@ -122,8 +122,7 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(375, 240),
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
@@ -134,12 +133,12 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                             success: true,
                         },
                     ],
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (hasNoFilterApplied) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
-                        headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -168,7 +167,8 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                                 success: true,
                             },
                         ],
-                        headerContentStyles: styles.emptyStateFolderWebStyles,
+                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                     };
                 }
             // We want to display the default nothing to show message if there is any filter applied.
@@ -177,7 +177,6 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                 if (hasNoFilterApplied) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
-                        headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -206,7 +205,8 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                                 success: true,
                             },
                         ],
-                        headerContentStyles: styles.emptyStateFolderWebStyles,
+                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                     };
                 }
             // eslint-disable-next-line no-fallthrough
@@ -214,10 +214,10 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
             default:
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -229,11 +229,11 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
         subtitleComponent,
+        hasSeenTour,
         ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
         hasNoFilterApplied,
-        hasSeenTour,
         viewTourTaskReport,
     ]);
 
@@ -243,13 +243,13 @@ function EmptySearchView({type, hasNoFilterApplied = false}: EmptySearchViewProp
                 SkeletonComponent={SearchRowSkeleton}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={content.headerMedia}
-                headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}
                 buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                lottieWebViewStyles={content.lottieWebViewStyles}
             />
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}

@@ -3,22 +3,22 @@ description: "Mark pull requests as deployed on production or staging"
 inputs:
     PR_NUMBER:
         description: "Pull request number"
-        required: true
+        required: false
     GITHUB_TOKEN:
         description: "Github token for authentication"
         default: "${{ github.token }}"
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
+        required: false
     DESKTOP:
         description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
+        required: false
     IOS:
         description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
+        required: false
     WEB:
         description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
+        required: false
     ANDROID_LINK:
         description: "Link for the Android build"
         required: false

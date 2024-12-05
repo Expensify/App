@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -18,6 +17,8 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -29,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type TagSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
+type TagSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
@@ -42,7 +43,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const isQuickSettingsFlow = !!backTo;
-
+    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
+    const approver = PersonalDetailsUtils.getPersonalDetailByEmail(tagApprover);
+    const approverText = approver?.displayName ?? tagApprover;
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
 
     useEffect(() => {
@@ -104,7 +107,6 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
-    const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params.tagName)?.approver;
 
     const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
     const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
@@ -180,7 +182,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
                             </View>
                             <MenuItemWithTopDescription
-                                title={tagApprover ?? ''}
+                                title={approverText}
                                 description={translate(`workspace.tags.approverDescription`)}
                                 onPress={navigateToEditTagApprover}
                                 shouldShowRightIcon

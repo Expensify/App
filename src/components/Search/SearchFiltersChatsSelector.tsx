@@ -23,7 +23,6 @@ const defaultListOptions = {
     personalDetails: [],
     userToInvite: null,
     currentUserOption: null,
-    categoryOptions: [],
     headerMessage: '',
 };
 
@@ -63,7 +62,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return OptionsListUtils.getSearchOptions(options, '', undefined, false);
+        return OptionsListUtils.getSearchOptions(options, undefined, false);
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
@@ -75,7 +74,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
