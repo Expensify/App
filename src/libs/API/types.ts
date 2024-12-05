@@ -148,9 +148,11 @@ const WRITE_COMMANDS = {
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     IMPORT_MEMBERS_SPREADSHEET: 'ImportMembersSpreadsheet',
     IMPORT_TAGS_SPREADSHEET: 'ImportTagsSpreadsheet',
+    IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
     EXPORT_TAGS_CSV: 'ExportTagsCSV',
+    EXPORT_PER_DIEM_CSV: 'ExportPerDiemCSV',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
@@ -315,7 +317,6 @@ const WRITE_COMMANDS = {
     DELETE_MONEY_REQUEST_ON_SEARCH: 'DeleteMoneyRequestOnSearch',
     HOLD_MONEY_REQUEST_ON_SEARCH: 'HoldMoneyRequestOnSearch',
     APPROVE_MONEY_REQUEST_ON_SEARCH: 'ApproveMoneyRequestOnSearch',
-    PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
     UNHOLD_MONEY_REQUEST_ON_SEARCH: 'UnholdMoneyRequestOnSearch',
     REQUEST_REFUND: 'User_RefundPurchase',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
@@ -573,11 +574,13 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
+    [WRITE_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
     [WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: Parameters.ImportMembersSpreadsheetParams;
     [WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET]: Parameters.ImportTagsSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
+    [WRITE_COMMANDS.EXPORT_PER_DIEM_CSV]: Parameters.ExportPerDiemCSVParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
@@ -766,7 +769,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH]: Parameters.ApproveMoneyRequestOnSearchParams;
-    [WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.UnholdMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
 
@@ -1033,6 +1035,9 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
+
+    // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
+    PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1053,6 +1058,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.ConnectPolicyToQuickBooksDesktopParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
