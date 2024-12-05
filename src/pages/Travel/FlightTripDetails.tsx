@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -12,14 +13,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type FlightTripDetailsProps = {
     reservation: Reservation;
     prevReservation: Reservation | undefined;
+    personalDetails: OnyxEntry<PersonalDetails>;
 };
 
-function FlightTripDetails({reservation, prevReservation}: FlightTripDetailsProps) {
+function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -109,10 +112,10 @@ function FlightTripDetails({reservation, prevReservation}: FlightTripDetailsProp
 
             <MenuItem
                 label={translate('travel.flightDetails.passenger')}
-                title={reservation.travelerPersonalInfo?.name}
-                icon={Expensicons.FallbackAvatar}
+                title={personalDetails?.displayName}
+                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
                 iconType={CONST.ICON_TYPE_AVATAR}
-                description={reservation.travelerPersonalInfo?.email}
+                description={personalDetails?.login}
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />

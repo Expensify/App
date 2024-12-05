@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,13 +9,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TrainTripDetailsProps = {
     reservation: Reservation;
+    personalDetails: OnyxEntry<PersonalDetails>;
 };
 
-function TrainTripDetails({reservation}: TrainTripDetailsProps) {
+function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -89,10 +92,10 @@ function TrainTripDetails({reservation}: TrainTripDetailsProps) {
 
             <MenuItem
                 label={translate('travel.trainDetails.passenger')}
-                title={reservation.travelerPersonalInfo?.name}
-                icon={Expensicons.FallbackAvatar}
+                title={personalDetails?.displayName}
+                icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
                 iconType={CONST.ICON_TYPE_AVATAR}
-                description={reservation.travelerPersonalInfo?.email}
+                description={personalDetails?.login}
                 interactive={false}
                 wrapperStyle={styles.pb3}
             />
