@@ -3253,6 +3253,7 @@ function updateMoneyRequestDistance({
                     },
                 },
                 modifiedWaypoints: onyxModifiedWaypoints,
+                routes: null,
             },
         });
     }
