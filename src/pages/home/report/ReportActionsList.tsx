@@ -211,7 +211,7 @@ function ReportActionsList({
         return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
     }, [report.reportID, report.lastReadTime]);
 
-    const lastReadTime = (transactionThreadReport?.lastReadTime ?? '') > reportLastReadTime ? transactionThreadReport?.lastReadTime : reportLastReadTime;
+    const lastReadTime = transactionThreadReport?.lastReadTime && transactionThreadReport.lastReadTime > reportLastReadTime ? transactionThreadReport.lastReadTime : reportLastReadTime;
 
     /**
      * The timestamp for the unread marker.
