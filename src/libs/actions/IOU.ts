@@ -532,6 +532,22 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     });
 }
 
+/**
+ * Revert custom unit rateID of the draft transaction to the original transaction's rate
+ */
+function resetDraftTransactionsCustomUnitRateID(transactionID: string) {
+    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (!originalTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: originalTransaction.comment?.customUnit ?? {},
+        },
+    });
+}
+
 /** Set the distance rate of a new  transaction */
 function setMoneyRequestDistanceRate(transactionID: string, rateID: string, policyID: string, isDraft: boolean) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
@@ -8644,6 +8660,7 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
+    resetDraftTransactionsCustomUnitRateID,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,

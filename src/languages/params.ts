@@ -165,7 +165,7 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
-type MovedFromSelfDMParams = {name: string};
+type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 

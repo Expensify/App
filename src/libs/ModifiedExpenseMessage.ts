@@ -149,9 +149,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (reportActionOriginalMessage?.movedToReportID) {
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage.movedToReportID}`];
         const {reportName, workspaceName} = ReportUtils.getParentNavigationSubtitle(destinationReport);
-        const destinationReportName = workspaceName || reportName || Localize.translateLocal('common.hidden');
-
-        return Localize.translateLocal('iou.movedFromSelfDM', {name: destinationReportName});
+        return Localize.translateLocal('iou.movedFromSelfDM', {reportName, workspaceName});
     }
 
     const removalFragments: string[] = [];
