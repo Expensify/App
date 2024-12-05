@@ -461,6 +461,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The card transaction's posted date */
         posted?: string;
+
+        /** The inserted time of the transaction */
+        inserted?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
