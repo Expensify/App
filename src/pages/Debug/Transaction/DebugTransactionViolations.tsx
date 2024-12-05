@@ -1,8 +1,6 @@
 import React from 'react';
-import type {ListRenderItemInfo} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import FlatList from '@components/FlatList';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -23,12 +21,13 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const renderItem = ({item, index}: ListRenderItemInfo<TransactionViolation>) => (
+    const renderItem = (item: TransactionViolation, index: number) => (
         <PressableWithFeedback
             accessibilityLabel={translate('common.details')}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION.getRoute(transactionID, String(index)))}
             style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
             hoverStyle={styles.hoveredComponentBG}
+            key={index}
         >
             <Text>{item.type}</Text>
             <Text>{item.name}</Text>
@@ -44,11 +43,9 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.getRoute(transactionID))}
                 style={[styles.pb5, styles.ph3]}
             />
-            <FlatList
-                data={transactionViolations}
-                renderItem={renderItem}
-                scrollEnabled={false}
-            />
+            {/* This list was previously rendered as a FlatList, but it turned out that it caused the component to flash in some cases,
+            so it was replaced by this solution. */}
+            {transactionViolations?.map((item, index) => renderItem(item, index))}
         </ScrollView>
     );
 }
