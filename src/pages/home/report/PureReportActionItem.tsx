@@ -238,7 +238,7 @@ type PureReportActionItemProps = {
     userBillingFundID?: number;
 
     /** A message related to a report action that has been automatically forwarded */
-    reportAutomaticallyForwardedMessage: string;
+    reportAutomaticallyForwardedMessage?: string;
 };
 
 function PureReportActionItem({
