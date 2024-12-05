@@ -216,7 +216,7 @@ function dismissProductTrainingElement(elementName: string) {
     //         },
     //     },
     // ];
-    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING_ELEMENT, {name: elementName}, {optimisticData});
+    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
 
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
         [elementName]: DateUtils.getDBTime(date.valueOf()),
