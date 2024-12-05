@@ -1856,10 +1856,7 @@ function getDeleteTrackExpenseInformation(
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: Object.keys(transactionThread).reduce<Record<string, null>>((acc, key) => {
-                acc[key] = null;
-                return acc;
-            }, {}),
+            value: null,
         });
     }
 
@@ -5926,10 +5923,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: Object.keys(transactionThread).reduce<Record<string, null>>((acc, key) => {
-                acc[key] = null;
-                return acc;
-            }, {}),
+            value: null,
         });
     }
 
