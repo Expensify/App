@@ -26,7 +26,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
     const trainRouteDescription = `${reservation.start.longName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.longName} (${
         reservation.end.shortName
     })`;
-    const trainDuration = reservation.duration && DateUtils.getFormattedDuration(translate, reservation.duration);
+    const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
 
     return (
         <>
@@ -79,16 +79,14 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                         />
                     </View>
                 )}
-                {!!reservation.confirmations?.at(0)?.value && (
-                    <View style={styles.w50}>
-                        <MenuItemWithTopDescription
-                            description={translate('travel.trainDetails.confirmation')}
-                            title={reservation.confirmations?.at(0)?.value}
-                            interactive={false}
-                        />
-                    </View>
-                )}
             </View>
+            {!!reservation.confirmations?.at(0)?.value && (
+                <MenuItemWithTopDescription
+                    description={translate('travel.trainDetails.confirmation')}
+                    title={reservation.confirmations?.at(0)?.value}
+                    interactive={false}
+                />
+            )}
 
             <MenuItem
                 label={translate('travel.trainDetails.passenger')}
