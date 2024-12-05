@@ -23,8 +23,14 @@ const defaultRequestInit: RequestInit = {
     headers: defaultHeaders,
 };
 
-const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> =>
-    fetch(url, {
+const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> => {
+    // Don't process these specific API commands because running them over and over again in the tests hammers the server in a bad way.
+    if (url.includes('command=OptInToPushNotifications') || url.includes('command=OptOutOfPushNotifications')) {
+        console.debug('Skipping request to opt in or out of push notifications');
+        return Promise.resolve(new Response());
+    }
+
+    return fetch(url, {
         method: 'POST',
         headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -46,6 +52,7 @@ const sendRequest = (url: string, data: Record<string, unknown>): Promise<Respon
                 throw new Error(errorMsg);
             });
     });
+};
 
 /**
  * Submits a test result to the server.
