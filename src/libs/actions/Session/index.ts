@@ -488,7 +488,7 @@ function signUpUser() {
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
-function signInAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
+function setupNewDotAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
     const parsedHybridAppSettings = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
     const {initialOnyxValues} = parsedHybridAppSettings;
     const {hybridApp, ...newDotOnyxValues} = initialOnyxValues;
@@ -1165,5 +1165,5 @@ export {
     isSupportAuthToken,
     hasStashedSession,
     signUpUser,
-    signInAfterTransitionFromOldDot,
+    setupNewDotAfterTransitionFromOldDot,
 };
