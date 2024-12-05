@@ -84,12 +84,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         (tooltipName: ProductTrainingTooltipName) => {
             const isDismissed = !!dismissedProductTraining?.[tooltipName];
 
+            if (isDismissed) {
+                return false;
+            }
             const tooltipConfig = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
 
+            if (!isOnboardingCompleted && !hasBeenAddedToNudgeMigration) {
+                return false;
+            }
+
             return tooltipConfig.shouldShow({
-                isDismissed,
-                isOnboardingCompleted,
-                hasBeenAddedToNudgeMigration,
                 shouldUseNarrowLayout,
             });
         },
