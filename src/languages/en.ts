@@ -4551,7 +4551,6 @@ const translations = {
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
-            submit: 'Submit',
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
