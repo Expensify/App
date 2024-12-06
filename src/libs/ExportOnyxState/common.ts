@@ -87,13 +87,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
         // loginList is an object that contains emails as keys, the keys should be masked as well
         let propertyName = '';
         if (Str.isValidEmail(key)) {
-            if (emailMap.has(key)) {
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                propertyName = emailMap.get(key) as string;
-            } else {
-                const maskedEmail = maskEmail(key);
-                propertyName = maskedEmail;
-            }
+            propertyName = maskEmail(key);
         } else {
             propertyName = key;
         }
@@ -101,21 +95,9 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
         const value = data[propertyName];
 
         if (typeof value === 'string' && Str.isValidEmail(value)) {
-            const maskedEmail = maskEmail(value);
-            maskedData[propertyName] = maskedEmail;
+            maskedData[propertyName] = maskEmail(value);
         } else if (typeof value === 'string' && stringContainsEmail(value)) {
-            let maskedEmailString = value;
-            const email = extractEmail(value) ?? '';
-
-            if (!emailMap.has(email)) {
-                const randomEmail = randomizeEmail(email);
-                emailMap.set(email, randomEmail);
-                maskedEmailString = replaceEmailInString(value, randomEmail);
-            } else {
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                maskedEmailString = replaceEmailInString(value, emailMap.get(email) as string);
-            }
-            maskedData[propertyName] = maskedEmailString;
+            maskedData[propertyName] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? ''));
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
             maskedData[propertyName] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
