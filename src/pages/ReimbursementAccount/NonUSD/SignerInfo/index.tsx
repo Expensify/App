@@ -48,6 +48,7 @@ const INPUT_KEYS = {
     SECOND_SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE,
     SECOND_SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL,
     SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+    SIGNER_COPY_OF_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID,
 };
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
@@ -55,6 +56,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
@@ -85,16 +87,16 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         } else {
             BankAccounts.saveCorpayOnboardingDirectorInformation(
                 {
-                    signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
-                    signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
-                    signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
-                    signerEmail: onyxValues[INPUT_KEYS.SIGNER_EMAIL],
-                    signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
-                    secondSignerFullName: onyxValues[INPUT_KEYS.SECOND_SIGNER_FULL_NAME],
-                    secondSignerDateOfBirth: onyxValues[INPUT_KEYS.SECOND_SIGNER_DATE_OF_BIRTH],
-                    secondSignerJobTitle: onyxValues[INPUT_KEYS.SECOND_SIGNER_JOB_TITLE],
-                    secondSignerEmail: onyxValues[INPUT_KEYS.SECOND_SIGNER_EMAIL],
-                    secondSignerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                    companyDirectors: [
+                        {
+                            signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
+                            signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
+                            signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
+                            signerEmail: account?.primaryLogin ?? '',
+                            signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                        },
+                    ],
+                    copyOfID: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
                 },
                 bankAccountID,
             );

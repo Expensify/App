@@ -1,24 +1,36 @@
-type SaveCorpayOnboardingDirectorInformation = {
+import type {FileObject} from '@components/AttachmentModal';
+
+// secondSignerFullName?: string;
+// secondSignerDateOfBirth?: string;
+// secondSignerJobTitle?: string;
+// secondSignerEmail?: string;
+// secondSignerCompleteResidentialAddress?: string;
+
+type SaveCorpayOnboardingCompanyDirector = {
     signerFullName: string;
     signerDateOfBirth: string;
     signerJobTitle: string;
     signerEmail: string;
     signerCompleteResidentialAddress: string;
-    secondSignerFullName?: string;
-    secondSignerDateOfBirth?: string;
-    secondSignerJobTitle?: string;
-    secondSignerEmail?: string;
-    secondSignerCompleteResidentialAddress?: string;
+};
+
+type SaveCorpayOnboardingDirectorInformation = {
+    companyDirectors: SaveCorpayOnboardingCompanyDirector[];
+    proofOfDirectors?: FileObject | string;
+    copyOfID?: FileObject | string;
+    addressProof?: FileObject | string;
+    codiceProof?: FileObject | string;
+    pdsAndFSG?: FileObject | string;
 };
 
 type SaveCorpayOnboardingDirectorInformationParams = {
     inputs: string;
     bankAccountID: number;
-    proofOfDirectors?: File;
-    copyOfID?: File;
-    addressProof?: File;
-    codiceProof?: File;
-    pdsAndFSG?: File;
+    proofOfDirectors?: FileObject | string;
+    copyOfID?: FileObject | string;
+    addressProof?: FileObject | string;
+    codiceProof?: FileObject | string;
+    pdsAndFSG?: FileObject | string;
 };
 
 export type {SaveCorpayOnboardingDirectorInformation, SaveCorpayOnboardingDirectorInformationParams};
