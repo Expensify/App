@@ -5428,7 +5428,7 @@ const translations = {
         exploreExpensify: 'Explore everything Expensify has to offer',
     },
     migratedUserWelcomeModal: {
-        title: 'Travel and expense at the speed of chat!',
+        title: 'Travel and expense, at the speed of chat',
         subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
         confirmText: "Let's go!",
         features: {
