@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -28,7 +29,10 @@ function SignUpWelcomeForm() {
                     large
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
-                    onPress={() => Session.signUpUser()}
+                    onPress={() => {
+                        Session.signUpUser();
+                        setReadyToShowAuthScreens(true);
+                    }}
                     pressOnEnter
                     style={[styles.mb2]}
                 />

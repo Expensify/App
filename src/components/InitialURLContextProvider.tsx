@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
+import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,12 +25,14 @@ type InitialURLContextProviderProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route | ValueOf<typeof CONST.HYBRID_APP>;
 
+    hybridAppSettings?: string;
+
     /** Children passed to the context provider */
     children: ReactNode;
 };
 
-function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>();
+function InitialURLContextProvider({children, url, hybridAppSettings}: InitialURLContextProviderProps) {
+    const [initialURL, setInitialURL] = useState<Route | ValueOf<typeof CONST.HYBRID_APP> | undefined>(url);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const {splashScreenState, setSplashScreenState} = useSplashScreenStateContext();
 
@@ -50,8 +52,8 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
             return;
         }
 
-        if (url) {
-            signInAfterTransitionFromOldDot(url).then((route) => {
+        if (url && hybridAppSettings) {
+            setupNewDotAfterTransitionFromOldDot(url, hybridAppSettings).then((route) => {
                 setInitialURL(route);
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
@@ -60,12 +62,12 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [setSplashScreenState, url]);
+    }, [hybridAppSettings, setSplashScreenState, url]);
 
     const initialUrlContext = useMemo(
         () => ({
-            initialURL,
-            setInitialURL,
+            initialURL: initialURL === CONST.HYBRID_APP.REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT ? undefined : initialURL,
+            setInitialURL: setInitialURL as React.Dispatch<React.SetStateAction<Route | undefined>>,
         }),
         [initialURL],
     );

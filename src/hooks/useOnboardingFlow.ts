@@ -21,7 +21,7 @@ function useOnboardingFlowRouter() {
         selector: hasCompletedHybridAppOnboardingFlowSelector,
     });
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (data) => data?.isSingleNewDotEntry});
 
     useEffect(() => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
