@@ -155,6 +155,13 @@ export default function installNetworkInterceptor(
         const options = fetchArgsGetRequestInit(args);
         const headers = getFetchRequestHeadersAsObject(options);
         const url = fetchArgsGetUrl(args);
+
+        // Don't process these specific API commands because running them over and over again in the tests hammers the server in a bad way.
+        if (url.includes('command=OptInToPushNotifications') || url.includes('command=OptOutOfPushNotifications')) {
+            console.debug('Skipping request to opt in or out of push notifications');
+            return Promise.resolve(new Response());
+        }
+
         // Check if headers contain any of the ignored headers, or if react native metro server:
         if (IGNORE_REQUEST_HEADERS.some((header) => headers[header] != null) || url.includes('8081')) {
             return originalFetch(...args);
