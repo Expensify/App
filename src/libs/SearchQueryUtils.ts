@@ -515,7 +515,7 @@ function getFilterDisplayValue(filterName: string, filterValue: string, personal
         return CardUtils.getCardDescription(cardID) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils.getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return ReportUtils.getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const frontendAmount = CurrencyUtils.convertToFrontendAmountAsInteger(Number(filterValue));
