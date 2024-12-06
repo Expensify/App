@@ -299,7 +299,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    // We're intentionally passing empty violations for now since Auth violations are not ready yet and the risk of blocking submit because of the RTER or Broken connections violations is really small for the current cohort of users.
     if (IOU.canSubmitReport(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
