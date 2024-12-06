@@ -746,16 +746,24 @@ function buildOnyxDataForMoneyRequest(
     }
 
     if (isNewChatReport) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: null,
-                errorFields: null,
-                isOptimisticReport: false,
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: null,
+                    errorFields: null,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport?.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
     }
 
     successData.push(
@@ -766,6 +774,12 @@ function buildOnyxDataForMoneyRequest(
                 participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -776,6 +790,12 @@ function buildOnyxDataForMoneyRequest(
                 participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -1125,6 +1145,12 @@ function buildOnyxDataForInvoice(
                 participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -1135,6 +1161,12 @@ function buildOnyxDataForInvoice(
                 participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -1190,16 +1222,24 @@ function buildOnyxDataForInvoice(
     );
 
     if (isNewChatReport) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: null,
-                errorFields: null,
-                isOptimisticReport: false,
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: null,
+                    errorFields: null,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport?.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
     }
 
     const errorKey = DateUtils.getMicroseconds();
@@ -1562,6 +1602,12 @@ function buildOnyxDataForTrackExpense(
             value: {
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -6245,6 +6291,12 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
             value: {
                 participants: redundantParticipants,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTransactionThread.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -6264,7 +6316,7 @@ function getSendMoneyParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport.reportID}`,
             value: {
                 isOptimisticReport: false,
             },
@@ -6705,7 +6757,7 @@ function getPayMoneyRequestParams(
 
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '') && !full && !!iouReport?.unheldTotal) {
-        total = iouReport?.unheldTotal;
+        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -7392,6 +7444,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const approvalChain = ReportUtils.getApprovalChain(policy, expenseReport);
+    const managerID = PersonalDetailsUtils.getAccountIDsByLogins(approvalChain).at(0);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
         ? [
@@ -7410,6 +7464,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
+                      managerID,
                       lastMessageText: ReportActionsUtils.getReportActionText(optimisticSubmittedReportAction),
                       lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
