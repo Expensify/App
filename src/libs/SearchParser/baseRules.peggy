@@ -19,15 +19,15 @@ currency = "currency"i {return "currency"}
 tag = "tag"i {return "tag"}
 category = "category"i {return  "category"}
 to = "to"i {return "to"}
-taxRate = "tax-rate"i {return "taxRate"}
-cardID = "card"i {return "cardID"}
+taxRate =  "taxRate"i/ "tax-rate"i  {return "taxRate"}
+cardID =  "cardID"/"card"i {return "cardID"}
 from = "from"i {return "from"}
-expenseType = "expense-type"i {return "expenseType"}
+expenseType = "expenseType" /"expense-type"i {return "expenseType"}
 type = "type"i {return "type"}
 status = "status"i {return "status"}
-sortBy = "sort-by"i {return "sortBy"}
-sortOrder = "sort-order"i {return "sortOrder"}
-policyID = "workspace"i {return "policyID"}
+sortBy = "sortBy"/"sort-by"i {return "sortBy"}
+sortOrder = "sortOrder"/"sort-order"i {return "sortOrder"}
+policyID =  "policyID"/"workspace"i {return "policyID"}
 
 operator "operator"
   = (":" / "=") { return "eq"; }
