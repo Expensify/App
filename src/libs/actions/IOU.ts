@@ -5809,19 +5809,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
-    Onyx.update(onyxUpdatesActions);
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-
-    // On web, navigation should happen immediately after updating reportActions.
-    if (isWeb) {
+    Onyx.update(onyxUpdatesActions).then(() => {
         Navigation.goBack(urlToNavigateBack);
-    }
-    InteractionManager.runAfterInteractions(() => {
-        if (!isWeb) {
-            Navigation.goBack(urlToNavigateBack);
-        }
-        // After navigation, update the remaining data.
-        Onyx.update(onyxUpdates);
+        InteractionManager.runAfterInteractions(() => {
+            // After navigation, update the remaining data.
+            Onyx.update(onyxUpdates);
+        });
     });
 }
 
