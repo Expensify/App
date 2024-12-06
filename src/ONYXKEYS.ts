@@ -353,7 +353,7 @@ const ONYXKEYS = {
     // Stores onboarding last visited path
     ONBOARDING_LAST_VISITED_PATH: 'onboardingLastVisitedPath',
 
-    // Whether the user has dismissed the product training element (Modal, Tooltip, etc.)
+    // Object containing names/timestamps of dismissed product training elements (Modal, Tooltip, etc.)
     NVP_DISMISSED_PRODUCT_TRAINING: 'nvp_dismissedProductTraining',
 
     // Max width supported for HTML <canvas> element

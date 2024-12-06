@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Welcome from '@libs/actions/Welcome';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
@@ -40,7 +41,7 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
-                Welcome.dismissProductTrainingElement('nudgeMigrationWelcomeModal');
+                Welcome.dismissProductTraining(CONST.MIGRTED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}

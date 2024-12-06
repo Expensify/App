@@ -5,7 +5,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the nudgeMigration Welcome Modal, we store the timestamp here.
      */
-    nudgeMigrationWelcomeModal: Date;
+    migratedUserWelcomeModal: Date;
 
     /**
      * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.

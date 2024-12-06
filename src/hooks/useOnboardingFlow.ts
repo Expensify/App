@@ -36,7 +36,7 @@ function useOnboardingFlowRouter() {
             return;
         }
 
-        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.nudgeMigrationWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
             Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
@@ -72,7 +72,7 @@ function useOnboardingFlowRouter() {
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,
         dismissedProductTrainingMetadata,
-        dismissedProductTraining?.nudgeMigrationWelcomeModal,
+        dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
         allBetasMetadata,
         allBetas,

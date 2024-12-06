@@ -205,20 +205,18 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-function dismissProductTrainingElement(elementName: string) {
+function dismissProductTraining(elementName: string) {
     const date = new Date();
     // const optimisticData = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
     //         key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     //         value: {
-    //             dismissedProductTrainingElements: {
     //                 [elementName]: DateUtils.getDBTime(date.valueOf()),
-    //             },
     //         },
     //     },
     // ];
-    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING_ELEMENT, {name: elementName}, {optimisticData});
+    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
 
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
         [elementName]: DateUtils.getDBTime(date.valueOf()),
@@ -228,7 +226,7 @@ function dismissProductTrainingElement(elementName: string) {
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
-    dismissProductTrainingElement,
+    dismissProductTraining,
     setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,

@@ -6375,6 +6375,9 @@ const CONST = {
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
+
+    MIGRTED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
