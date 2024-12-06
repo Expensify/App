@@ -255,7 +255,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (!queryJSON) {
                 return;
             }
-            queryJSON.policyID = activeWorkspaceID;
+            if (!queryJSON.policyID) {
+                queryJSON.policyID = activeWorkspaceID;
+            }
             onRouterClose();
 
             const standardizedQuery = SearchQueryUtils.traverseAndUpdatedQuery(queryJSON, SearchQueryUtils.getUpdatedAmountValue);
