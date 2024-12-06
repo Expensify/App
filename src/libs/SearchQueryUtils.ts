@@ -11,7 +11,9 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import * as CardUtils from './CardUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
+import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 import * as searchParser from './SearchParser/searchParser';
@@ -163,21 +165,32 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * Returns an updated amount value for query filters, correctly formatted to "backend" amount
+ * @private
+ * Returns an updated filter value for some query filters.
+ * - for `AMOUNT` it formats value to "backend" amount
+ * - for personal filters it tries to substitute any user emails with accountIDs
  */
-function getUpdatedAmountValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filter: string | string[]) {
-    if (filterName !== CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        return filter;
+function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        if (typeof filterValue === 'string') {
+            return PersonalDetailsUtils.getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
+        }
+
+        return filterValue.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
     }
 
-    if (typeof filter === 'string') {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filter));
-        return Number.isNaN(backendAmount) ? filter : backendAmount.toString();
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+        if (typeof filterValue === 'string') {
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(filterValue));
+            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
+        }
+        return filterValue.map((amount) => {
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
+            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+        });
     }
-    return filter.map((amount) => {
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number(amount));
-        return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-    });
+
+    return filterValue;
 }
 
 /**
@@ -266,7 +279,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
     for (const filter of filters) {
         const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        queryParts.push(filterValueString);
+        queryParts.push(filterValueString.trim());
     }
 
     return queryParts.join(' ');
@@ -625,6 +638,26 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
     return standardQuery;
 }
 
+/**
+ * Returns new string query, after parsing it and traversing to update some filter values.
+ * If there are any personal emails, it will try to substitute them with accountIDs
+ */
+function getQueryWithUpdatedValues(query: string, policyID?: string) {
+    const queryJSON = buildSearchQueryJSON(query);
+
+    if (!queryJSON) {
+        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+        return;
+    }
+
+    if (policyID) {
+        queryJSON.policyID = policyID;
+    }
+
+    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
+    return buildSearchQueryString(standardizedQuery);
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -635,7 +668,6 @@ export {
     getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
-    traverseAndUpdatedQuery,
-    getUpdatedAmountValue,
     sanitizeSearchValue,
+    getQueryWithUpdatedValues,
 };

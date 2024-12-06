@@ -462,6 +462,12 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
+                                            onCanceledAttachmentPicker={() => {
+                                                if (!shouldFocusInputOnScreenFocus) {
+                                                    return;
+                                                }
+                                                focus();
+                                            }}
                                             actionButtonRef={actionButtonRef}
                                             shouldDisableAttachmentItem={hasExceededMaxCommentLength}
                                         />
