@@ -217,7 +217,7 @@ type PureReportActionItemProps = {
     reimbursementDeQueuedActionMessage?: string;
 
     /** The report action message when expense has been modified. */
-    forReportAction?: string;
+    modifiedExpenseMessage?: string;
 
     /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
@@ -280,7 +280,7 @@ function PureReportActionItem({
     isCurrentUserTheOnlyParticipant = () => false,
     missingPaymentMethod,
     reimbursementDeQueuedActionMessage = '',
-    forReportAction = '',
+    modifiedExpenseMessage = '',
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
@@ -758,7 +758,7 @@ function PureReportActionItem({
         } else if (ReportActionsUtils.isReimbursementDeQueuedAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={forReportAction} />;
+            children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
         } else if (
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
             ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
@@ -1209,7 +1209,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedActionMessage === nextProps.reimbursementDeQueuedActionMessage &&
-        prevProps.forReportAction === nextProps.forReportAction &&
+        prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
     );

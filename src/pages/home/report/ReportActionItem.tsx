@@ -74,7 +74,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
                 report,
             )}
-            forReportAction={ModifiedExpenseMessage.getForReportAction(reportID, action)}
+            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction(reportID, action)}
             getTransactionsWithReceipts={ReportUtils.getTransactionsWithReceipts}
             clearError={Transaction.clearError}
             clearAllRelatedReportActionErrors={ReportActions.clearAllRelatedReportActionErrors}
