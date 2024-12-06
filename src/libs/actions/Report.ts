@@ -99,6 +99,7 @@ import {
     completeShortMention,
     doesReportBelongToWorkspace,
     findLastAccessedReport,
+    findSelfDMReportID,
     formatReportLastMessageText,
     getChatByParticipants,
     getChildReportNotificationPreference,
@@ -3914,8 +3915,8 @@ function prepareOnboardingOptimisticData(
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-        const selfDMReportID = ReportUtils.findSelfDMReportID();
-        const selfDMReport = ReportConnection.getReport(selfDMReportID ?? '-1');
+        const selfDMReportID = findSelfDMReportID();
+        const selfDMReport = getReport(selfDMReportID ?? '-1');
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
