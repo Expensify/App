@@ -126,12 +126,8 @@ function MoneyRequestParticipantsSelector({
             },
         );
 
-        if (!isPaidGroupPolicy) {
-            return optionList;
-        }
-
         const orderedOptions = OptionsListUtils.orderOptions(optionList, undefined, {
-            sortByReportTypeInSearch: true,
+            sortByReportTypeInSearch: isPaidGroupPolicy,
         });
 
         return {
