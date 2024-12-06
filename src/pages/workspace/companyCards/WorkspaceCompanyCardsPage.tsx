@@ -39,6 +39,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+
+    const {cardList, ...cards} = cardsList ?? {};
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
@@ -123,7 +125,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                         <WorkspaceCompanyCardsListHeaderButtons
                             policyID={policyID}
                             selectedFeed={selectedFeed}
-                            shouldShowAssignCardButton={isPending || !isEmptyObject(cardsList)}
+                            shouldShowAssignCardButton={isPending || !isEmptyObject(cards)}
                             handleAssignCard={handleAssignCard}
                         />
                     )}
