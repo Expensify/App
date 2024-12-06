@@ -4,6 +4,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -31,9 +32,11 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
+        setError('');
         setIsSubmitting(true);
         BankAccounts.createCorpayBankAccount(
             {...formValues, ...values},
@@ -45,6 +48,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
             if (response?.jsonCode) {
                 if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     onNext();
+                } else {
+                    setError(response.message ?? '');
                 }
             }
         });
@@ -165,6 +170,11 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     inputID="acceptTerms"
                     LabelComponent={TermsAndConditionsLabel}
                     style={[styles.mt3]}
+                />
+                <FormHelpMessage
+                    style={[styles.mt3, styles.mbn1]}
+                    isError
+                    message={error}
                 />
             </FormProvider>
         </ScrollView>
