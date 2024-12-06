@@ -19,6 +19,7 @@ const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
+    TAX_ID_EIN_NUMBER,
     COMPANY_COUNTRY,
     COMPANY_STREET,
     COMPANY_CITY,
@@ -78,6 +79,14 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         }}
                     />
                     <MenuItemWithTopDescription
+                        description={translate('businessInfoStep.taxIDEIN')}
+                        title={values[TAX_ID_EIN_NUMBER]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(4);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
                         description={translate('businessInfoStep.businessAddress')}
                         title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_ZIP_CODE], values[COMPANY_COUNTRY])}
                         shouldShowRightIcon
@@ -106,7 +115,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={businessType}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(5);
+                            onMove(6);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -114,7 +123,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={values[FORMATION_INCORPORATION_COUNTRY_CODE]}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(4);
+                            onMove(5);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -122,7 +131,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={businessCategory}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(5);
+                            onMove(6);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -130,7 +139,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={paymentVolume}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(6);
+                            onMove(7);
                         }}
                     />
                     <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>

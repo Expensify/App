@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -7,6 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
+import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -35,14 +37,32 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const bodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 
+const INPUT_KEYS = {
+    SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME,
+    SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_DATE_OF_BIRTH,
+    SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE,
+    SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL,
+    SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+    SECOND_SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME,
+    SECOND_SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH,
+    SECOND_SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE,
+    SECOND_SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL,
+    SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+    SIGNER_COPY_OF_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID,
+};
+
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
+    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+
     // TODO set this based on param from redirect or BE response
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
@@ -51,10 +71,35 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
 
+    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+
+    useEffect(() => {
+        if (!country) {
+            return;
+        }
+
+        BankAccounts.getCorpayOnboardingFields(country);
+    }, [country]);
+
     const submit = () => {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
+            BankAccounts.saveCorpayOnboardingDirectorInformation(
+                {
+                    companyDirectors: [
+                        {
+                            signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
+                            signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
+                            signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
+                            signerEmail: account?.primaryLogin ?? '',
+                            signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
+                        },
+                    ],
+                    copyOfID: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
+                },
+                bankAccountID,
+            );
             onSubmit();
         }
     };
@@ -107,6 +152,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     };
 
     const handleEmailSubmit = () => {
+        // TODO: the message to the email provided in the previous step should be sent
         setCurrentSubStep(SUBSTEP.HANG_TIGHT);
     };
 

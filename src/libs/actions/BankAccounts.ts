@@ -11,10 +11,13 @@ import type {
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
+import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
+import type {SaveCorpayOnboardingDirectorInformation} from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -500,6 +503,24 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     };
 }
 
+function getCorpayOnboardingFields(country: Country | '') {
+    return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
+}
+
+function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetails, bankAccountID: number) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, {
+        inputs: JSON.stringify(parameters),
+        bankAccountID,
+    });
+}
+
+function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformation, bankAccountID: number) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, {
+        inputs: JSON.stringify(parameters),
+        bankAccountID,
+    });
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -730,6 +751,9 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     getCorpayBankAccountFields,
+    getCorpayOnboardingFields,
+    saveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingDirectorInformation,
 };
 
 export type {BusinessAddress, PersonalAddress};
