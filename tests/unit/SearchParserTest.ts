@@ -159,7 +159,7 @@ const tests = [
         },
     },
     {
-        query: 'amount>100 amount<200 from:usera@user.com taxRate:1234 cardID:1234 reportID:12345 tag:ecx date>2023-01-01',
+        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
             status: 'all',
@@ -229,7 +229,7 @@ const tests = [
         },
     },
     {
-        query: 'amount>200 expenseType:cash,card description:"Las Vegas party" date:2024-06-01 category:travel,hotel,"meal & entertainment"',
+        query: 'amount>200 expense-type:cash,card description:"Las Vegas party" date:2024-06-01 category:travel,hotel,"meal & entertainment"',
         expected: {
             type: 'expense',
             status: 'all',

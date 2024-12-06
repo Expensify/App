@@ -1,9 +1,11 @@
+import type {ValueOf} from 'type-fest';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
+import type CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchFilterKey | ValueOf<typeof CONST.SEARCH.SEARCH_UI_KEYS>, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
