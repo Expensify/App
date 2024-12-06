@@ -25,6 +25,7 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Binoculars from '@assets/images/binoculars.svg';
+import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
@@ -414,4 +415,5 @@ export {
     QBDSquare,
     GalleryNotFound,
     Train,
+    boltSlash,
 };

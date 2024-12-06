@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as FormActions from '@userActions/FormActions';
 import * as Subscription from '@userActions/Subscription';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
@@ -58,15 +60,17 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('subscription.subscriptionSize.title')}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <SubStep
-                isEditing={canChangeSubscriptionSize}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('subscription.subscriptionSize.title')}
+                    onBackButtonPress={onBackButtonPress}
+                />
+                <SubStep
+                    isEditing={canChangeSubscriptionSize}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
