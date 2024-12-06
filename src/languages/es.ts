@@ -976,19 +976,8 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => {
-            let result = `movió el gasto de su mensaje directo a`;
-
-            if (workspaceName) {
-                return `${result} ${workspaceName}`;
-            }
-
-            if (reportName) {
-                return `${result} un chat con ${reportName}`;
-            }
-
-            return `${result} Oscuro`;
-        },
+        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) =>
+            `movió el gasto desde su propio mensaje directo a ${workspaceName ? workspaceName : `un chat con ${reportName}`}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
