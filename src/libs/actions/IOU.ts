@@ -533,9 +533,9 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
 }
 
 /**
- * Revert custom unit rateID of the draft transaction to the original transaction's rate
+ * Revert custom unit of the draft transaction to the original transaction's value
  */
-function resetDraftTransactionsCustomUnitRateID(transactionID: string) {
+function resetDraftTransactionsCustomUnit(transactionID: string) {
     const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (!originalTransaction) {
         return;
@@ -8660,7 +8660,7 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
-    resetDraftTransactionsCustomUnitRateID,
+    resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,

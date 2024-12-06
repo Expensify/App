@@ -144,7 +144,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            IOU.resetDraftTransactionsCustomUnitRateID(transactionID);
+            IOU.resetDraftTransactionsCustomUnit(transactionID);
         },
         [isMovingTransactionFromTrackExpense, transactionID],
     );

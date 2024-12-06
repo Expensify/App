@@ -211,8 +211,8 @@ function MoneyRequestConfirmationList({
         }
 
         const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
-        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
-        IOU.setCustomUnitRateID(transactionID, lastSelectedRate);
+        const lastSelectedRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        IOU.setCustomUnitRateID(transactionID, lastSelectedRateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
@@ -676,7 +676,7 @@ function MoneyRequestConfirmationList({
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat)) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat.
+            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
             // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
             return;
         }
