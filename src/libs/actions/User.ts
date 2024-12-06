@@ -1384,6 +1384,13 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
 
+/**
+ * Check which policies the user can join
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    Session.validateUserAndGetAccessiblePolicies(validateCode);
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1425,4 +1432,5 @@ export {
     subscribeToActiveGuides,
     dismissGBRTooltip,
     setIsDebugModeEnabled,
+    validateUserAndGetAccessiblePolicies,
 };
