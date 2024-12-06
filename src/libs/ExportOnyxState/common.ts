@@ -51,6 +51,18 @@ const maskSessionDetails = (data: Record<string, unknown>): Record<string, unkno
     };
 };
 
+const maskEmail = (email: string) => {
+    let maskedEmail = '';
+    if (!emailMap.has(email)) {
+        maskedEmail = randomizeEmail(email);
+        emailMap.set(email, maskedEmail);
+    } else {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        maskedEmail = emailMap.get(email) as string;
+    }
+    return maskedEmail;
+};
+
 const maskFragileData = (data: Record<string, unknown> | unknown[] | null, parentKey?: string): Record<string, unknown> | unknown[] | null => {
     if (data === null) {
         return data;
@@ -59,15 +71,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
     if (Array.isArray(data)) {
         return data.map((item): unknown => {
             if (typeof item === 'string' && Str.isValidEmail(item)) {
-                let maskedEmail = '';
-                if (!emailMap.has(item)) {
-                    maskedEmail = randomizeEmail(item);
-                    emailMap.set(item, maskedEmail);
-                } else {
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    maskedEmail = emailMap.get(item) as string;
-                }
-                return maskedEmail;
+                return maskEmail(item);
             }
             return typeof item === 'object' ? maskFragileData(item as Record<string, unknown>, parentKey) : item;
         });
@@ -87,7 +91,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                 propertyName = emailMap.get(key) as string;
             } else {
-                const maskedEmail = randomizeEmail(key);
+                const maskedEmail = maskEmail(key);
                 propertyName = maskedEmail;
             }
         } else {
@@ -97,14 +101,7 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
         const value = data[propertyName];
 
         if (typeof value === 'string' && Str.isValidEmail(value)) {
-            let maskedEmail = '';
-            if (!emailMap.has(value)) {
-                maskedEmail = randomizeEmail(value);
-                emailMap.set(value, maskedEmail);
-            } else {
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                maskedEmail = emailMap.get(value) as string;
-            }
+            const maskedEmail = maskEmail(value);
             maskedData[propertyName] = maskedEmail;
         } else if (typeof value === 'string' && stringContainsEmail(value)) {
             let maskedEmailString = value;
