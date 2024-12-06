@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import React, {forwardRef, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -36,7 +36,7 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
 
 type AutocompleteItemData = {
-    filterKey: SearchFilterKey;
+    filterKey: ValueOf<typeof CONST.SEARCH.SEARCH_UI_KEYS>;
     text: string;
     autocompleteID?: string;
 };
@@ -217,7 +217,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.tag,
                     text: tagName,
                 }));
             }
@@ -229,7 +229,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCategories.map((categoryName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.category,
                     text: categoryName,
                 }));
             }
@@ -241,7 +241,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.currency,
                     text: currencyName,
                 }));
             }
@@ -252,7 +252,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredTaxRates.map((tax) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.taxRate,
                     text: tax.taxRateName,
                     autocompleteID: tax.taxRateIds.join(','),
                 }));
@@ -263,7 +263,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.from,
                     text: participant.name,
                     autocompleteID: participant.accountID,
                 }));
@@ -274,7 +274,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.to,
                     text: participant.name,
                     autocompleteID: participant.accountID,
                 }));
@@ -285,7 +285,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredChats.map((chat) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.in,
                     text: chat.text ?? '',
                     autocompleteID: chat.reportID,
                 }));
@@ -295,7 +295,7 @@ function SearchRouterList(
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
-                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, text: type}));
+                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_UI_KEYS.type, text: type}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -303,7 +303,7 @@ function SearchRouterList(
                     .sort()
                     .slice(0, 10);
 
-                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, text: status}));
+                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_UI_KEYS.status, text: status}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
@@ -311,7 +311,7 @@ function SearchRouterList(
                     .sort();
 
                 return filteredExpenseTypes.map((expenseType) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.expenseType,
                     text: expenseType,
                 }));
             }
@@ -325,7 +325,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    filterKey: CONST.SEARCH.SEARCH_UI_KEYS.cardID,
                     text: CardUtils.getCardDescription(card.cardID),
                     autocompleteID: card.cardID.toString(),
                 }));

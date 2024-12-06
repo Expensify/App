@@ -50,20 +50,20 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
 }
 
 function getContextualSearchQuery(item: SearchQueryItem) {
-    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
+    const baseQuery = `${CONST.SEARCH.SEARCH_UI_KEYS.type}:${item.roomType}`;
     let additionalQuery = '';
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_UI_KEYS.policyID}:${item.policyID}`;
             if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_UI_KEYS.to}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_UI_KEYS.in}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;

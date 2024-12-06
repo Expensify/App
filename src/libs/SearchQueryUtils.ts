@@ -556,7 +556,7 @@ function buildUserReadableQueryString(
                 value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
             }));
         }
-        title += buildFilterValuesString(key, displayQueryFilters);
+        title += buildFilterValuesString(CONST.SEARCH.SEARCH_UI_KEYS[key], displayQueryFilters);
     }
 
     return title;
