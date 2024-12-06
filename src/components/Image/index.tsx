@@ -1,21 +1,24 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import {activate as activateReauthenticator} from '@libs/actions/Session/Reauthenticator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
-import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
+import type {ImageOnLoadEvent, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
+function Image({source: propsSource, isAuthTokenRequired = false, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
-
+    const session = useSession();
+    if (session.creationDate) console.log(`@51888 initialize with session ${new Date(session.creationDate).toISOString()} `);
+                
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
+            console.log(`@51888 updateAspectRatio`);
             if (!isObjectPositionTop) {
                 return;
             }
@@ -33,10 +36,21 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     const handleLoad = useCallback(
         (event: ImageOnLoadEvent) => {
             const {width, height} = event.nativeEvent;
+            console.log(`@51888 onload image width ${width} height ${height}`);
             onLoad?.(event);
             updateAspectRatio(width, height);
         },
         [onLoad, updateAspectRatio],
+    );
+
+    // an accpeted session is either received less than 60s after the previous
+    // or is dated from 2H after and is now quite
+    const isAcceptedSession = useCallback(
+        (sessionCreationDateDiff : number, sessionCreationDate : number)  => {
+            return (sessionCreationDateDiff < 60000 
+                || (sessionCreationDateDiff >= CONST.SESSIONS_MAXIDLE_TIME_MS 
+                    &&  new Date().getTime() - sessionCreationDate < 60000));
+        },[] 
     );
 
     /**
@@ -44,24 +58,42 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
      */
     const previousSessionAge = useRef<number | undefined>();
     const validSessionAge: number | undefined = useMemo(() => {
+        // for performance gain, the processing is reserved to attachments images only
+        if (!isAuthTokenRequired){
+            return undefined;
+        }
         if (session?.creationDate) {
+            console.log(`@51888 setting validSessionAge with session ${new Date(session.creationDate).toISOString()} `);
             if (previousSessionAge.current) {
+                console.log(`@51888 setting validSessionAge with previousSessionAge.current ${new Date(previousSessionAge.current).toISOString()} `);
                 // most likely a reauthentication happens
                 // but unless the calculated source is different from the previous, the image wont reload
-                if (session.creationDate - previousSessionAge.current < 60000) {
+                if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
+                    console.log(`@51888 setting validSessionAge to new session received less than 60s ago or newer from 2H`);
                     return session.creationDate;
                 }
+                console.log(`@51888 setting validSessionAge to unchanged`);
                 return previousSessionAge.current;
             }
+            else {
+                console.log(`@51888 setting validSessionAge with previousSessionAge.current ${previousSessionAge?.current}`);
+            }
             if (isExpiredSession(session.creationDate)) {
+                console.log(`@51888 setting validSessionAge to now as session is expired`);
                 return new Date().getTime();
             }
+            console.log(`@51888 setting validSessionAge to current session ${new Date(session.creationDate).toISOString()}`);
             return session.creationDate;
         }
+        console.log(`@51888 setting validSessionAge with session ${session?.creationDate} `);
         return undefined;
     }, [session]);
     useEffect(() => {
-        previousSessionAge.current = validSessionAge;
+        // for performance gain, the processing is reserved to attachments images only
+        if (isAuthTokenRequired){
+            previousSessionAge.current = validSessionAge;
+            console.log(`@51888 useEffect setting previousSessionAge to ${validSessionAge?new Date(validSessionAge).toISOString():validSessionAge}`);
+        }
     });
 
     /**
@@ -71,14 +103,17 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     // source could be a result of require or a number or an object but all are expected so no unsafe-assignment
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const source = useMemo(() => {
+        console.log(`@51888 calculating source`);
         if (typeof propsSource === 'object' && 'uri' in propsSource) {
             if (typeof propsSource.uri === 'number') {
+                console.log(`@51888 source as number `, propsSource.uri);
                 return propsSource.uri;
             }
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
                     // session valid
+                    console.log(`@51888 source with token `, propsSource);
                     return {
                         ...propsSource,
                         headers: {
@@ -86,12 +121,14 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
                         },
                     };
                 }
+                console.log(`@51888 source as spinner `);
                 if (session) activateReauthenticator(session);
                 // source could be a result of require, it is expected so no unsafe-assignment
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return require('@assets/images/loadingspinner.gif'); // loading before session changes
             }
         }
+        console.log(`@51888 source as default `, propsSource);
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // but we still need the image to reload sometimes (exemple : when the current session is expired)
@@ -116,18 +153,12 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     );
 }
 
-function imagePropsAreEqual(prevProps: ImageOwnProps, nextProps: ImageOwnProps) {
+function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
+    console.log(`@51888 imagePropsAreEqual? `, {'prev' : prevProps.source, 'next' : nextProps.source});
     return prevProps.source === nextProps.source;
 }
 
-const ImageWithOnyx = React.memo(
-    withOnyx<ImageProps, ImageOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(Image),
-    imagePropsAreEqual,
-);
+const ImageWithOnyx = React.memo(Image, imagePropsAreEqual);
 
 ImageWithOnyx.displayName = 'Image';
 

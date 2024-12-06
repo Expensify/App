@@ -9,10 +9,6 @@ type ExpoImageSource = ImageSource | number | ImageSource[];
 
 type ImageObjectPosition = ValueOf<typeof CONST.IMAGE_OBJECT_POSITION>;
 
-type ImageOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
 
 type ImageOnLoadEvent = {
     nativeEvent: {
@@ -55,6 +51,6 @@ type ImageOwnProps = BaseImageProps & {
     objectPosition?: ImageObjectPosition;
 };
 
-type ImageProps = ImageOnyxProps & ImageOwnProps;
+type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ImageOwnProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
