@@ -218,20 +218,28 @@ type MoneyRequestInformationParams = {
 };
 
 type MoneyRequestOptimisticParams = {
-    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
-    iouReport: OnyxTypes.Report;
-    transaction: OnyxTypes.Transaction;
-    reportPreviewAction: ReportAction;
-    chatCreatedAction: OptimisticCreatedReportAction;
-    iouCreatedAction: OptimisticCreatedReportAction;
-    iouAction: OptimisticIOUReportAction;
-    transactionThreadReport: OptimisticChatReport | null;
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
-    optimisticPersonalDetailListAction?: OnyxTypes.PersonalDetailsList;
-    optimisticPolicyRecentlyUsedCategories?: string[];
-    optimisticPolicyRecentlyUsedTags?: OnyxTypes.RecentlyUsedTags;
-    optimisticNextStep?: OnyxTypes.ReportNextStep | null;
-    optimisticRecentlyUsedCurrencies?: string[];
+    chat: {
+        report: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
+        createdAction: OptimisticCreatedReportAction;
+        reportPreviewAction: ReportAction;
+    };
+    iou: {
+        report: OnyxTypes.Report;
+        createdAction: OptimisticCreatedReportAction;
+        action: OptimisticIOUReportAction;
+    };
+    transactionParams: {
+        transaction: OnyxTypes.Transaction;
+        transactionThreadReport: OptimisticChatReport | null;
+        transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    };
+    policyRecentlyUsed: {
+        categories?: string[];
+        tags?: OnyxTypes.RecentlyUsedTags;
+        currencies?: string[];
+    };
+    personalDetailListAction?: OnyxTypes.PersonalDetailsList;
+    nextStep?: OnyxTypes.ReportNextStep | null;
 };
 
 type BuildOnyxDataForMoneyRequestParams = {
@@ -599,24 +607,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const {isNewChatReport, shouldCreateNewMoneyRequestReport, isOneOnOneSplit = false, existingTransactionThreadReportID, policyParams = {}, optimisticParams} = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
-        chatReport,
-        iouReport,
-        transaction,
-        reportPreviewAction,
-        chatCreatedAction,
-        iouCreatedAction,
-        iouAction,
-        transactionThreadReport,
-        transactionThreadCreatedReportAction,
-        optimisticPersonalDetailListAction = {},
-        optimisticPolicyRecentlyUsedCategories = [],
-        optimisticPolicyRecentlyUsedTags = {},
-        optimisticNextStep,
-        optimisticRecentlyUsedCurrencies,
+        chat,
+        iou,
+        transactionParams: {transaction, transactionThreadReport, transactionThreadCreatedReportAction},
+        policyRecentlyUsed,
+        personalDetailListAction,
+        nextStep,
     } = optimisticParams;
 
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
+    const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -626,16 +626,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
     const existingTransactionThreadReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
-    if (chatReport) {
+    if (chat.report) {
         optimisticData.push({
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
             value: {
-                ...chatReport,
+                ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
-                iouReportID: iouReport.reportID,
+                iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -645,12 +645,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     optimisticData.push(
         {
             onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
-                ...iouReport,
-                lastMessageText: ReportActionsUtils.getReportActionText(iouAction),
-                lastMessageHtml: ReportActionsUtils.getReportActionHtml(iouAction),
-                lastVisibleActionCreated: iouAction.created,
+                ...iou.report,
+                lastMessageText: ReportActionsUtils.getReportActionText(iou.action),
+                lastMessageHtml: ReportActionsUtils.getReportActionHtml(iou.action),
+                lastVisibleActionCreated: iou.action.created,
                 pendingFields: {
                     ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
@@ -664,33 +664,33 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
                   value: {
-                      [chatCreatedAction.reportActionID]: chatCreatedAction,
-                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                      [chat.createdAction.reportActionID]: chat.createdAction,
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
                   },
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
                   value: {
-                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
                   },
               },
         shouldCreateNewMoneyRequestReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                   value: {
-                      [iouCreatedAction.reportActionID]: iouCreatedAction as OnyxTypes.ReportAction,
-                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
+                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
                   },
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                   value: {
-                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
                   },
               },
         {
@@ -713,36 +713,36 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (optimisticPolicyRecentlyUsedCategories.length) {
+    if (policyRecentlyUsed.categories?.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
-            value: optimisticPolicyRecentlyUsedCategories,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iou.report.policyID}`,
+            value: policyRecentlyUsed.categories,
         });
     }
 
-    if (optimisticRecentlyUsedCurrencies?.length) {
+    if (policyRecentlyUsed.currencies?.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            value: optimisticRecentlyUsedCurrencies,
+            value: policyRecentlyUsed.currencies,
         });
     }
 
-    if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
+    if (!isEmptyObject(policyRecentlyUsed.tags)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
-            value: optimisticPolicyRecentlyUsedTags,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report.policyID}`,
+            value: policyRecentlyUsed.tags,
         });
     }
 
     const redundantParticipants: Record<number, null> = {};
-    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+    if (!isEmptyObject(personalDetailListAction)) {
         const successPersonalDetailListAction: Record<number, null> = {};
 
         // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+        Object.keys(personalDetailListAction).forEach((accountIDKey) => {
             const accountID = Number(accountIDKey);
             successPersonalDetailListAction[accountID] = null;
             redundantParticipants[accountID] = null;
@@ -751,7 +751,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailListAction,
+            value: personalDetailListAction,
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -760,11 +760,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (!isEmptyObject(optimisticNextStep)) {
+    if (!isEmptyObject(nextStep)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: optimisticNextStep,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
+            value: nextStep,
         });
     }
 
@@ -772,7 +772,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
                 value: {
                     participants: redundantParticipants,
                     pendingFields: null,
@@ -781,7 +781,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
                 value: {
                     isOptimisticReport: false,
                 },
@@ -792,7 +792,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     successData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
                 participants: redundantParticipants,
                 pendingFields: null,
@@ -801,7 +801,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
             value: {
                 isOptimisticReport: false,
             },
@@ -837,34 +837,34 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
             value: {
                 ...(isNewChatReport
                     ? {
-                          [chatCreatedAction.reportActionID]: {
+                          [chat.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
                           },
                       }
                     : {}),
-                [reportPreviewAction.reportActionID]: {
+                [chat.reportPreviewAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                          [iouCreatedAction.reportActionID]: {
+                          [iou.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
                           },
                       }
                     : {}),
-                [iouAction.reportActionID]: {
+                [iou.action.reportActionID]: {
                     pendingAction: null,
                     errors: null,
                 },
@@ -890,12 +890,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
             value: {
-                iouReportID: chatReport?.iouReportID,
-                lastReadTime: chatReport?.lastReadTime,
+                iouReportID: chat.report?.iouReportID,
+                lastReadTime: chat.report?.lastReadTime,
                 pendingFields: null,
-                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
+                hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -907,7 +907,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
                 pendingFields: null,
                 errorFields: {
@@ -939,21 +939,21 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                          [iouCreatedAction.reportActionID]: {
+                          [iou.createdAction.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                               errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                           },
-                          [iouAction.reportActionID]: {
+                          [iou.action.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                           },
                       }
                     : {
-                          [iouAction.reportActionID]: {
+                          [iou.action.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                               errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
@@ -969,7 +969,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: newQuickAction,
-                chatReportID: chatReport?.reportID,
+                chatReportID: chat.report?.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         });
@@ -2316,20 +2316,28 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             policyTagList,
         },
         optimisticParams: {
-            chatReport,
-            iouReport,
-            transaction: optimisticTransaction,
-            chatCreatedAction: optimisticCreatedActionForChat,
-            iouCreatedAction: optimisticCreatedActionForIOUReport,
-            iouAction,
-            transactionThreadReport: optimisticTransactionThread,
-            transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
-            optimisticPersonalDetailListAction,
-            reportPreviewAction,
-            optimisticPolicyRecentlyUsedCategories,
-            optimisticPolicyRecentlyUsedTags,
-            optimisticNextStep,
-            optimisticRecentlyUsedCurrencies: optimisticPolicyRecentlyUsedCurrencies,
+            chat: {
+                report: chatReport,
+                createdAction: optimisticCreatedActionForChat,
+                reportPreviewAction,
+            },
+            iou: {
+                report: iouReport,
+                createdAction: optimisticCreatedActionForIOUReport,
+                action: iouAction,
+            },
+            transactionParams: {
+                transaction: optimisticTransaction,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            },
+            policyRecentlyUsed: {
+                categories: optimisticPolicyRecentlyUsedCategories,
+                tags: optimisticPolicyRecentlyUsedTags,
+                currencies: optimisticPolicyRecentlyUsedCurrencies,
+            },
+            personalDetailListAction: optimisticPersonalDetailListAction,
+            nextStep: optimisticNextStep,
         },
     });
 
@@ -4476,19 +4484,27 @@ function createSplitsAndOnyxData(
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
             optimisticParams: {
-                chatReport: oneOnOneChatReport,
-                iouReport: oneOnOneIOUReport,
-                transaction: oneOnOneTransaction,
-                chatCreatedAction: oneOnOneCreatedActionForChat,
-                iouCreatedAction: oneOnOneCreatedActionForIOU,
-                iouAction: oneOnOneIOUAction,
-                reportPreviewAction: oneOnOneReportPreviewAction,
-                optimisticPersonalDetailListAction: oneOnOnePersonalDetailListAction,
-                optimisticPolicyRecentlyUsedCategories,
-                optimisticPolicyRecentlyUsedTags,
-                transactionThreadReport: optimisticTransactionThread,
-                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
-                optimisticRecentlyUsedCurrencies,
+                chat: {
+                    report: oneOnOneChatReport,
+                    createdAction: oneOnOneCreatedActionForChat,
+                    reportPreviewAction: oneOnOneReportPreviewAction,
+                },
+                iou: {
+                    report: oneOnOneIOUReport,
+                    createdAction: oneOnOneCreatedActionForIOU,
+                    action: oneOnOneIOUAction,
+                },
+                transactionParams: {
+                    transaction: oneOnOneTransaction,
+                    transactionThreadReport: optimisticTransactionThread,
+                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                },
+                policyRecentlyUsed: {
+                    categories: optimisticPolicyRecentlyUsedCategories,
+                    tags: optimisticPolicyRecentlyUsedTags,
+                    currencies: optimisticRecentlyUsedCurrencies,
+                },
+                personalDetailListAction: oneOnOnePersonalDetailListAction,
             },
         });
 
@@ -5201,15 +5217,22 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             optimisticParams: {
-                chatReport: oneOnOneChatReport,
-                iouReport: oneOnOneIOUReport,
-                transaction: oneOnOneTransaction,
-                chatCreatedAction: oneOnOneCreatedActionForChat,
-                iouCreatedAction: oneOnOneCreatedActionForIOU,
-                iouAction: oneOnOneIOUAction,
-                reportPreviewAction: oneOnOneReportPreviewAction,
-                transactionThreadReport: optimisticTransactionThread,
-                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                chat: {
+                    report: oneOnOneChatReport,
+                    createdAction: oneOnOneCreatedActionForChat,
+                    reportPreviewAction: oneOnOneReportPreviewAction,
+                },
+                iou: {
+                    report: oneOnOneIOUReport,
+                    createdAction: oneOnOneCreatedActionForIOU,
+                    action: oneOnOneIOUAction,
+                },
+                transactionParams: {
+                    transaction: oneOnOneTransaction,
+                    transactionThreadReport: optimisticTransactionThread,
+                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                },
+                policyRecentlyUsed: {},
             },
         });
 
