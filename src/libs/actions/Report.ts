@@ -87,7 +87,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
-import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
@@ -942,7 +941,6 @@ function openReport(
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
-                isOptimisticReport: true,
             };
         }
 
@@ -951,16 +949,34 @@ function openReport(
             emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+        );
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -987,21 +1003,29 @@ function openReport(
             redundantParticipants[accountID] = null;
         });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: {
-                    createChat: null,
-                    reportName: null,
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: {
+                        createChat: null,
+                        reportName: null,
+                    },
+                    errorFields: {
+                        createChat: null,
+                    },
                 },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2331,6 +2355,12 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -2917,6 +2947,8 @@ function leaveGroupChat(reportID: string) {
         });
     }
 
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3490,27 +3522,10 @@ function prepareOnboardingOptimisticData(
         }
     }
 
-    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
-    const shouldPostTasksInAdminsRoom = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+');
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
-    const adminsChatReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
-    const targetChatReport = shouldPostTasksInAdminsRoom ? adminsChatReport : ReportUtils.getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
+    const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
-    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
-    const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
-    let assignedGuideAccountID: number;
-    if (assignedGuidePersonalDetail) {
-        assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
-    } else {
-        assignedGuideAccountID = generateAccountID(assignedGuideEmail);
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [assignedGuideAccountID]: {
-                login: assignedGuideEmail,
-                displayName: assignedGuideEmail,
-            },
-        });
-    }
-    const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
@@ -3572,9 +3587,7 @@ function prepareOnboardingOptimisticData(
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             );
-            const emailCreatingAction =
-                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
-            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
+            const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.EMAIL.CONCIERGE);
             const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
                 currentTask.reportID,
                 taskTitle,
@@ -3636,8 +3649,14 @@ function prepareOnboardingOptimisticData(
                         description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
-                    isOptimisticReport: true,
                     managerID: currentUserAccountID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${currentTask.reportID}`,
+                value: {
+                    isOptimisticReport: true,
                 },
             },
             {
@@ -3717,6 +3736,12 @@ function prepareOnboardingOptimisticData(
                         description: null,
                         managerID: null,
                     },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${currentTask.reportID}`,
+                value: {
                     isOptimisticReport: false,
                 },
             },
@@ -3754,7 +3779,13 @@ function prepareOnboardingOptimisticData(
                 lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
                 lastVisibleActionCreated,
-                lastActorAccountID: actorAccountID,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
         {
@@ -3763,18 +3794,6 @@ function prepareOnboardingOptimisticData(
             value: {choice: engagementChoice},
         },
     );
-
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-            },
-        });
-    }
-
     if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3784,17 +3803,13 @@ function prepareOnboardingOptimisticData(
     }
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
-
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {pendingAction: null},
-            },
-        });
-    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {pendingAction: null},
+        },
+    });
 
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
@@ -3824,16 +3839,7 @@ function prepareOnboardingOptimisticData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: failureReport,
         },
-
         {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {choice: null},
-        },
-    );
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom) {
-        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
@@ -3841,8 +3847,13 @@ function prepareOnboardingOptimisticData(
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
             },
-        });
-    }
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice: null},
+        },
+    );
 
     if (!wasInvited) {
         failureData.push({
@@ -3884,10 +3895,9 @@ function prepareOnboardingOptimisticData(
         });
     }
 
-    // If we post tasks in the #admins room, it means that a guide is assigned and all messages except tasks are handled by the backend
-    const guidedSetupData: GuidedSetupData = shouldPostTasksInAdminsRoom ? [] : [{type: 'message', ...textMessage}];
+    const guidedSetupData: GuidedSetupData = [{type: 'message', ...textMessage}];
 
-    if (!shouldPostTasksInAdminsRoom && 'video' in data && data.video && videoCommentAction && videoMessage) {
+    if ('video' in data && data.video && videoCommentAction && videoMessage) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -4401,6 +4411,14 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function setDeleteTransactionNavigateBackUrl(url: string) {
+    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
+}
+
+function clearDeleteTransactionNavigateBackUrl() {
+    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+}
+
 export type {Video};
 
 export {
@@ -4490,4 +4508,6 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    setDeleteTransactionNavigateBackUrl,
+    clearDeleteTransactionNavigateBackUrl,
 };
