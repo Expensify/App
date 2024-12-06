@@ -261,7 +261,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
 
     const parameters = {
         policyID,
-        customUnitData: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(newCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
@@ -291,7 +291,7 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
 
     const parameters = {
         policyID,
-        customUnitData: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(newCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
@@ -326,7 +326,7 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
 
     const parameters = {
         policyID,
-        customUnitData: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(newCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
@@ -361,7 +361,7 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
 
     const parameters = {
         policyID,
-        customUnitData: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(newCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
@@ -391,7 +391,7 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
 
     const parameters = {
         policyID,
-        customUnitData: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(newCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);

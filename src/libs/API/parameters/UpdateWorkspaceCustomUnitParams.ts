@@ -1,6 +1,6 @@
 type UpdateWorkspaceCustomUnitParams = {
     policyID: string;
-    customUnitData: string;
+    customUnit: string;
 };
 
 export default UpdateWorkspaceCustomUnitParams;
