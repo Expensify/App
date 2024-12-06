@@ -1,17 +1,22 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {ImageContentFit} from 'expo-image';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
+import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
@@ -35,17 +40,12 @@ type VideoLoadedEventType = {
 
 type VideoStatus = 'video' | 'animation';
 
-type FeatureTrainingModalProps = {
-    /** Animation to show when video is unavailable. Useful when app is offline */
-    animation?: DotLottieAnimation;
-
-    /** URL for the video */
-    videoURL: string;
-
-    videoAspectRatio?: number;
+type BaseFeatureTrainingModalProps = {
+    /** The aspect ratio to preserve for the icon, video or animation */
+    illustrationAspectRatio?: number;
 
     /** Title for the modal */
-    title?: string;
+    title?: string | React.ReactNode;
 
     /** Describe what is showing */
     description?: string;
@@ -70,12 +70,40 @@ type FeatureTrainingModalProps = {
 
     /** Link to navigate to when user wants to learn more */
     onHelp?: () => void;
+
+    /** Children to show below title and description and above buttons */
+    children?: React.ReactNode;
+
+    /** Modal width */
+    width?: number;
 };
+
+type FeatureTrainingModalVideoProps = {
+    /** URL for the video */
+    videoURL: string;
+
+    /** Animation to show when video is unavailable. Useful when app is offline */
+    animation?: DotLottieAnimation;
+};
+
+type FeatureTrainingModalSVGProps = {
+    /** Expensicon for the page */
+    image: IconAsset;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
+};
+
+// This page requires either an icon or a video/animation, but not both
+type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
 
 function FeatureTrainingModal({
     animation,
     videoURL,
-    videoAspectRatio: videoAspectRatioProp,
+    illustrationAspectRatio: illustrationAspectRatioProp,
+    image,
+    contentFitImage,
+    width = variables.onboardingModalWidth,
     title = '',
     description = '',
     secondaryDescription = '',
@@ -85,15 +113,17 @@ function FeatureTrainingModal({
     onClose = () => {},
     helpText = '',
     onHelp = () => {},
+    children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
+    const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
@@ -116,14 +146,14 @@ function FeatureTrainingModal({
         }
 
         if ('naturalSize' in event) {
-            setVideoAspectRatio(event.naturalSize.width / event.naturalSize.height);
+            setIllustrationAspectRatio(event.naturalSize.width / event.naturalSize.height);
         } else {
-            setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
+            setIllustrationAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
 
     const renderIllustration = useCallback(() => {
-        const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
+        const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
             <View
@@ -136,7 +166,13 @@ function FeatureTrainingModal({
                     {aspectRatio},
                 ]}
             >
-                {videoStatus === 'video' ? (
+                {!!image && (
+                    <ImageSVG
+                        src={image}
+                        contentFit={contentFitImage}
+                    />
+                )}
+                {!!videoURL && videoStatus === 'video' && (
                     <GestureHandlerRootView>
                         <VideoPlayer
                             url={videoURL}
@@ -148,7 +184,8 @@ function FeatureTrainingModal({
                             isLooping
                         />
                     </GestureHandlerRootView>
-                ) : (
+                )}
+                {!!videoURL && videoStatus === 'animation' && (
                     <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
                         <Lottie
                             source={animation ?? LottieAnimations.Hands}
@@ -161,7 +198,7 @@ function FeatureTrainingModal({
                 )}
             </View>
         );
-    }, [animation, videoURL, videoAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
+    }, [animation, videoURL, image, contentFitImage, illustrationAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
@@ -170,9 +207,11 @@ function FeatureTrainingModal({
             User.dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
-        Navigation.goBack();
+        if (onboardingIsMediumOrLargerScreenWidth) {
+            Navigation.goBack();
+        }
         onClose?.();
-    }, [onClose, willShowAgain]);
+    }, [onClose, willShowAgain, onboardingIsMediumOrLargerScreenWidth]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();
@@ -188,9 +227,8 @@ function FeatureTrainingModal({
                     onClose={closeModal}
                     innerContainerStyle={{
                         boxShadow: 'none',
-                        borderRadius: 16,
                         paddingBottom: 20,
-                        paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
+                        paddingTop: !!image || onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
                         ...(onboardingIsMediumOrLargerScreenWidth
                             ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                               // To make it take as little space as possible.
@@ -201,16 +239,19 @@ function FeatureTrainingModal({
                             : {}),
                     }}
                 >
-                    <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                    <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, !!image && styles.p0]}>
+                            {renderIllustration()}
+                        </View>
                         <View style={[styles.mt5, styles.mh5]}>
                             {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                    <Text style={[styles.textHeadlineH1]}>{title}</Text>
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], !!image && styles.mb5]}>
+                                    {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                 </View>
                             )}
+                            {children}
                             {shouldShowDismissModalOption && (
                                 <CheckboxWithLabel
                                     label={translate('featureTraining.doNotShowAgain')}
