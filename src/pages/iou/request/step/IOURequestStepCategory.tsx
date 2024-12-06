@@ -121,11 +121,7 @@ function IOURequestStepCategory({
 
             if (categoryTaxPercentage) {
                 categoryTaxAmount = CurrencyUtils.convertToBackendAmount(
-                    TransactionUtils.calculateTaxAmount(
-                        categoryTaxPercentage,
-                        TransactionUtils.getAmount(currentTransaction),
-                        TransactionUtils.getCurrency(transaction),
-                    ),
+                    TransactionUtils.calculateTaxAmount(categoryTaxPercentage, TransactionUtils.getAmount(currentTransaction), TransactionUtils.getCurrency(transaction)),
                 );
             }
         }
