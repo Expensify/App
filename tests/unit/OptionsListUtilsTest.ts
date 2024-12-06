@@ -781,7 +781,11 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS);
             const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {maxRecentReportsToShow: 2});
 
+            // Note: in the past maxRecentReportsToShow: 0 would return all recent reports, this has changed, and is expected to return none now
+            const limitToZeroOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {maxRecentReportsToShow: 0});
+
             expect(filteredOptions.recentReports.length).toBe(2);
+            expect(limitToZeroOptions.recentReports.length).toBe(0);
         });
 
         it('should not return any user to invite if email exists on the personal details list', () => {
@@ -982,16 +986,6 @@ describe('OptionsListUtils', () => {
                     expect(filteredResults.recentReports.length).toBe(1);
                     expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
-        });
-
-        it('should return all results when setting maxRecentReportsToShow to 0', () => {
-            const options = OptionsListUtils.getSearchOptions(OPTIONS);
-            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '', {maxRecentReportsToShow: 0});
-
-            expect(filteredOptions.recentReports.length).toBe(10);
-            // There are only two personal details that have no reports. Personal details will be
-            // excluded from the list if they have reports (DMs).
-            expect(filteredOptions.personalDetails.length).toBe(2);
         });
     });
 

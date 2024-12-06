@@ -1744,7 +1744,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 
     let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
 
-    if (config?.maxRecentReportsToShow) {
+    if (typeof config?.maxRecentReportsToShow === 'number') {
         filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
         filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
     }
