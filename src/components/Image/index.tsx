@@ -15,6 +15,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
+            console.log(`@51888 updateAspectRatio`);
             if (!isObjectPositionTop) {
                 return;
             }
@@ -32,7 +33,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     const handleLoad = useCallback(
         (event: ImageOnLoadEvent) => {
             const {width, height} = event.nativeEvent;
-
+            console.log(`@51888 onload image width ${width} height ${height}`, propsSource);
             onLoad?.(event);
             updateAspectRatio(width, height);
         },
@@ -71,14 +72,17 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     // source could be a result of require or a number or an object but all are expected so no unsafe-assignment
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const source = useMemo(() => {
+        console.log(`@51888 calculating source`);
         if (typeof propsSource === 'object' && 'uri' in propsSource) {
             if (typeof propsSource.uri === 'number') {
+                console.log(`@51888 source as number `, propsSource.uri);
                 return propsSource.uri;
             }
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
                     // session valid
+                    console.log(`@51888 source with token `, propsSource);
                     return {
                         ...propsSource,
                         headers: {
@@ -86,11 +90,13 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
                         },
                     };
                 }
+                console.log(`@51888 source as spinner `);
                 // source could be a result of require, it is expected so no unsafe-assignment
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return require('@assets/images/loadingspinner.gif'); // loading before session changes
             }
         }
+        console.log(`@51888 source as default `, propsSource);
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // but we still need the image to reload sometimes (exemple : when the current session is expired)

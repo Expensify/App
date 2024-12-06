@@ -65,6 +65,7 @@ let authPromiseResolver: ((value: boolean) => void) | null = null;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
+        console.log(`@51888 new session`, session);
         session = value ?? {};
         if (!session.creationDate) {
             session.creationDate = new Date().getTime();
