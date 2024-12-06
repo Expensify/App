@@ -115,7 +115,6 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
         >

@@ -58,7 +58,7 @@ function CurrencyPicker({value, errorText, onInputChange = () => {}}: CurrencyPi
                 <ScreenWrapper
                     style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
+                    includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
                 >
                     <HeaderWithBackButton
