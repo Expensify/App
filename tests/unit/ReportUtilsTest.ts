@@ -149,7 +149,7 @@ describe('ReportUtils', () => {
                     reportID: '',
                     participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
                 }),
-            ).toBe(`Ragnar, floki@vikings.net, Lagertha, ${'(833) 240-3627'}`);
+            ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
 
         describe('Default Policy Room', () => {

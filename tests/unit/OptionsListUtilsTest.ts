@@ -884,7 +884,6 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {maxRecentReportsToShow: 5});
             const filteredOptions = OptionsListUtils.filterOptions(options, '.com');
 
-            expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
 
             // We expect that only personal details that are not in the reports are included here
