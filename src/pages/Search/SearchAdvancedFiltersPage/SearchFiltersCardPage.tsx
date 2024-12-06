@@ -278,4 +278,5 @@ function SearchFiltersCardPage() {
 
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
-export {SearchFiltersCardPage, isCard};
+export default SearchFiltersCardPage;
+export {isCard};
