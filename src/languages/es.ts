@@ -2469,7 +2469,7 @@ const translations = {
         flight: 'Vuelo',
         flightDetails: {
             passenger: 'Pasajero',
-            layover: ({layover}: FlightLayoverParams) => `Tienes una <strong>escala de ${layover}</strong> antes de este vuelo`,
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Tienes una <strong>escala de ${layover}</strong> antes de este vuelo</muted-text-label>`,
             takeOff: 'Despegue',
             landing: 'Aterrizaje',
             seat: 'Asiento',

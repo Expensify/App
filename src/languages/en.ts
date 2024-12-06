@@ -2445,7 +2445,7 @@ const translations = {
         flight: 'Flight',
         flightDetails: {
             passenger: 'Passenger',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text>You have a <strong>${layover} layover</strong> before this flight</muted-text>`,
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>You have a <strong>${layover} layover</strong> before this flight</muted-text-label>`,
             takeOff: 'Take-off',
             landing: 'Landing',
             seat: 'Seat',
