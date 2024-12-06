@@ -43,8 +43,10 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID ?? '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
 
-    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(route.params.reportID);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.reportID);
     const reservationType = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0)?.type;
     const reservation = transaction?.receipt?.reservationList?.at(route.params.reservationIndex ?? 0);
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation?.type);
