@@ -74,6 +74,8 @@ target 'NewExpensify' do
     'ReleaseProduction' => :release,
     'Debug' => :debug
 
+  pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text', :modular_headers => true
+
   config = use_native_modules!
 
   # Flags change depending on the env values.
