@@ -38,7 +38,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     })`;
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
-    console.log(`%%% reservation`, reservation);
+
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{flightRouteDescription}</Text>
