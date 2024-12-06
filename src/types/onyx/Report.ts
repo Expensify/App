@@ -160,9 +160,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** ID of the parent report action of the current report, if it exists */
         parentReportActionID?: string;
 
-        /** Whether the current report is optimistic */
-        isOptimisticReport?: boolean;
-
         /** Account ID of the report manager */
         managerID?: number;
 
@@ -190,6 +187,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the total amount requested */
         unheldTotal?: number;
 
+        /** Total amount of unheld non-reimbursable transactions in an expense report */
+        unheldNonReimbursableTotal?: number;
+
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
@@ -210,9 +210,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
         nonReimbursableTotal?: number;
-
-        /** Whether the report is hidden from options list */
-        isHidden?: boolean;
 
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
