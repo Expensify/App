@@ -74,6 +74,16 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
+                    disabled={isUsingImportedState || network?.shouldSimulatePoorConnection}
+                />
+            </TestToolRow>
+
+            {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
+                <Switch
+                    accessibilityLabel="Simulate poor internet connection"
+                    isOn={!!network?.shouldSimulatePoorConnection}
+                    onToggle={() => Network.simulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
                     disabled={isUsingImportedState}
                 />
             </TestToolRow>
