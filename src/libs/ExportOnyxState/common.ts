@@ -137,6 +137,7 @@ const maskOnyxState = (data: Record<string, unknown>, isMaskingFragileDataEnable
         onyxState = maskFragileData(onyxState) as Record<string, unknown>;
     }
 
+    emailMap.clear();
     return onyxState;
 };
 
