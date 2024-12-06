@@ -108,7 +108,7 @@ type ScreenWrapperProps = {
 type ScreenWrapperStatusContextType = {
     didScreenTransitionEnd: boolean;
     isSafeAreaTopPaddingApplied: boolean;
-    includeSafeAreaPaddingBottom: boolean;
+    isSafeAreaBottomPaddingApplied: boolean;
 };
 
 const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
@@ -259,7 +259,7 @@ function ScreenWrapper(
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, includeSafeAreaPaddingBottom}),
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
@@ -304,7 +304,11 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            containerStyles={includeSafeAreaPaddingBottom ? [] : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + 30}]}
+                                            containerStyles={
+                                                includeSafeAreaPaddingBottom
+                                                    ? []
+                                                    : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
+                                            }
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
