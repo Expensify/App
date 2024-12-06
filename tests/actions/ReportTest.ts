@@ -59,6 +59,9 @@ describe('actions/Report', () => {
             setImmediate(jest.runOnlyPendingTimers);
         }
 
+        // Clear the queue before each test to avoid test pollution
+        SequentialQueue.resetQueue();
+
         return promise;
     });
 
@@ -393,8 +396,10 @@ describe('actions/Report', () => {
                 jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
 
-                if (optimisticReportActions.value?.[400]) {
-                    optimisticReportActions.value[400].created = reportActionCreatedDate;
+                const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
+
+                if (optimisticReportActionsValue?.[400]) {
+                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
                 }
 
                 // When we emit the events for these pending created actions to update them to not pending
@@ -778,7 +783,6 @@ describe('actions/Report', () => {
 
         for (let i = 0; i < 5; i++) {
             Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
                 reportID: REPORT_ID,
             });
         }
@@ -805,7 +809,6 @@ describe('actions/Report', () => {
                 reportID = `${i}`;
             }
             Report.openReport(reportID, undefined, ['test@user.com'], {
-                isOptimisticReport: true,
                 reportID: REPORT_ID,
             });
         }
@@ -1305,7 +1308,6 @@ describe('actions/Report', () => {
             undefined,
             ['test@user.com'],
             {
-                isOptimisticReport: true,
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
                 reportID: '2',
