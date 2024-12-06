@@ -762,7 +762,7 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports.at(1)?.text).toBe(`${'Mister Fantastic'}, ${'Invisible Woman'}`);
+            expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {

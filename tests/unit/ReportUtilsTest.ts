@@ -263,10 +263,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'} (archived)`);
+                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'} (archivado)`),
+                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'),
                     );
                 });
             });
@@ -1114,7 +1114,7 @@ describe('ReportUtils', () => {
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual(`${'(833) 240-3627'}, floki@vikings.net, Lagertha, Ragnar`);
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
