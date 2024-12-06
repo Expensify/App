@@ -10,6 +10,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -40,6 +41,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
@@ -109,6 +111,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                             Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
                         }}
                         wrapperStyle={styles.mt3}
+                        disabled={isOffline}
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
@@ -119,6 +122,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         onPress={() => {
                             Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
                         }}
+                        disabled={isOffline}
                     />
                 </ScrollView>
             </FullPageNotFoundView>
