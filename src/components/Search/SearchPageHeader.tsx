@@ -83,34 +83,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
-        const shouldShowSubmitOption =
-            !isOffline &&
-            !isAnyTransactionOnHold &&
-            (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.SUBMIT)
-                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
-
-        if (shouldShowSubmitOption) {
-            options.push({
-                icon: Expensicons.Send,
-                text: translate('search.bulkActions.submit'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const reportIDList = !selectedReports.length
-                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
-                        : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    SearchActions.submitMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
-                },
-            });
-        }
-
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
