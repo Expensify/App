@@ -279,7 +279,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         style={[styles.mr2]}
                                     />
                                 )}
-
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
