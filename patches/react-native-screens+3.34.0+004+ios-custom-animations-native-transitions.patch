@@ -1,0 +1,156 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm b/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
+index abb2cf6..fb81d52 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackAnimator.mm
+@@ -5,13 +5,14 @@
+ 
+ // proportions to default transition duration
+ static const float RNSSlideOpenTransitionDurationProportion = 1;
+-static const float RNSFadeOpenTransitionDurationProportion = 0.2 / 0.35;
+-static const float RNSSlideCloseTransitionDurationProportion = 0.25 / 0.35;
+-static const float RNSFadeCloseTransitionDurationProportion = 0.15 / 0.35;
+-static const float RNSFadeCloseDelayTransitionDurationProportion = 0.1 / 0.35;
++static const float RNSFadeOpenTransitionDurationProportion = 0.2 / 0.5;
++static const float RNSSlideCloseTransitionDurationProportion = 0.25 / 0.5;
++static const float RNSFadeCloseTransitionDurationProportion = 0.15 / 0.5;
++static const float RNSFadeCloseDelayTransitionDurationProportion = 0.1 / 0.5;
+ // same value is used in other projects using similar approach for transistions
+ // and it looks the most similar to the value used by Apple
+ static constexpr float RNSShadowViewMaxAlpha = 0.1;
++static const int UIViewAnimationOptionCurveDefaultTransition = 7 << 16;
+ 
+ @implementation RNSScreenStackAnimator {
+   UINavigationControllerOperation _operation;
+@@ -22,7 +23,7 @@ - (instancetype)initWithOperation:(UINavigationControllerOperation)operation
+ {
+   if (self = [super init]) {
+     _operation = operation;
+-    _transitionDuration = 0.35; // default duration in seconds
++    _transitionDuration = 0.5; // default duration in seconds
+   }
+   return self;
+ }
+@@ -129,6 +130,8 @@ - (void)animateSimplePushWithShadowEnabled:(BOOL)shadowEnabled
+     }
+       
+     [UIView animateWithDuration:[self transitionDuration:transitionContext]
++        delay:0
++        options:UIViewAnimationOptionCurveDefaultTransition
+         animations:^{
+           fromViewController.view.transform = leftTransform;
+           toViewController.view.transform = CGAffineTransformIdentity;
+@@ -170,6 +173,8 @@ - (void)animateSimplePushWithShadowEnabled:(BOOL)shadowEnabled
+ 
+     if (!transitionContext.isInteractive) {
+       [UIView animateWithDuration:[self transitionDuration:transitionContext]
++                            delay:0
++                          options:UIViewAnimationOptionCurveDefaultTransition
+                        animations:animationBlock
+                        completion:completionBlock];
+     } else {
+@@ -203,6 +208,8 @@ - (void)animateSlideFromLeftWithTransitionContext:(id<UIViewControllerContextTra
+     toViewController.view.transform = rightTransform;
+     [[transitionContext containerView] addSubview:toViewController.view];
+     [UIView animateWithDuration:[self transitionDuration:transitionContext]
++        delay:0
++        options:UIViewAnimationOptionCurveDefaultTransition
+         animations:^{
+           fromViewController.view.transform = leftTransform;
+           toViewController.view.transform = CGAffineTransformIdentity;
+@@ -228,6 +235,8 @@ - (void)animateSlideFromLeftWithTransitionContext:(id<UIViewControllerContextTra
+ 
+     if (!transitionContext.isInteractive) {
+       [UIView animateWithDuration:[self transitionDuration:transitionContext]
++                            delay:0
++                          options:UIViewAnimationOptionCurveDefaultTransition
+                        animations:animationBlock
+                        completion:completionBlock];
+     } else {
+@@ -251,6 +260,8 @@ - (void)animateFadeWithTransitionContext:(id<UIViewControllerContextTransitionin
+     [[transitionContext containerView] addSubview:toViewController.view];
+     toViewController.view.alpha = 0.0;
+     [UIView animateWithDuration:[self transitionDuration:transitionContext]
++        delay:0
++        options:UIViewAnimationOptionCurveDefaultTransition
+         animations:^{
+           toViewController.view.alpha = 1.0;
+         }
+@@ -262,6 +273,8 @@ - (void)animateFadeWithTransitionContext:(id<UIViewControllerContextTransitionin
+     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
+ 
+     [UIView animateWithDuration:[self transitionDuration:transitionContext]
++        delay:0
++        options:UIViewAnimationOptionCurveDefaultTransition
+         animations:^{
+           fromViewController.view.alpha = 0.0;
+         }
+@@ -284,6 +297,8 @@ - (void)animateSlideFromBottomWithTransitionContext:(id<UIViewControllerContextT
+     toViewController.view.transform = topBottomTransform;
+     [[transitionContext containerView] addSubview:toViewController.view];
+     [UIView animateWithDuration:[self transitionDuration:transitionContext]
++        delay:0
++        options:UIViewAnimationOptionCurveDefaultTransition
+         animations:^{
+           fromViewController.view.transform = CGAffineTransformIdentity;
+           toViewController.view.transform = CGAffineTransformIdentity;
+@@ -309,6 +324,8 @@ - (void)animateSlideFromBottomWithTransitionContext:(id<UIViewControllerContextT
+ 
+     if (!transitionContext.isInteractive) {
+       [UIView animateWithDuration:[self transitionDuration:transitionContext]
++                            delay:0
++                          options:UIViewAnimationOptionCurveDefaultTransition
+                        animations:animationBlock
+                        completion:completionBlock];
+     } else {
+diff --git a/node_modules/react-native-screens/lib/typescript/fabric/ModalScreenNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/ModalScreenNativeComponent.d.ts
+index 28d6463..a1473e1 100644
+--- a/node_modules/react-native-screens/lib/typescript/fabric/ModalScreenNativeComponent.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/fabric/ModalScreenNativeComponent.d.ts
+@@ -55,7 +55,7 @@ export interface NativeProps extends ViewProps {
+     gestureResponseDistance?: GestureResponseDistanceType;
+     stackPresentation?: WithDefault<StackPresentation, 'push'>;
+     stackAnimation?: WithDefault<StackAnimation, 'default'>;
+-    transitionDuration?: WithDefault<Int32, 350>;
++    transitionDuration?: WithDefault<Int32, 500>;
+     replaceAnimation?: WithDefault<ReplaceAnimation, 'pop'>;
+     swipeDirection?: WithDefault<SwipeDirection, 'horizontal'>;
+     hideKeyboardOnSwipe?: boolean;
+diff --git a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
+index 11ed190..f676e08 100644
+--- a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
+@@ -55,7 +55,7 @@ export interface NativeProps extends ViewProps {
+     gestureResponseDistance?: GestureResponseDistanceType;
+     stackPresentation?: WithDefault<StackPresentation, 'push'>;
+     stackAnimation?: WithDefault<StackAnimation, 'default'>;
+-    transitionDuration?: WithDefault<Int32, 350>;
++    transitionDuration?: WithDefault<Int32, 500>;
+     replaceAnimation?: WithDefault<ReplaceAnimation, 'pop'>;
+     swipeDirection?: WithDefault<SwipeDirection, 'horizontal'>;
+     hideKeyboardOnSwipe?: boolean;
+diff --git a/node_modules/react-native-screens/src/fabric/ModalScreenNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ModalScreenNativeComponent.ts
+index bb59c4c..d4c14ee 100644
+--- a/node_modules/react-native-screens/src/fabric/ModalScreenNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/ModalScreenNativeComponent.ts
+@@ -90,7 +90,7 @@ export interface NativeProps extends ViewProps {
+   gestureResponseDistance?: GestureResponseDistanceType;
+   stackPresentation?: WithDefault<StackPresentation, 'push'>;
+   stackAnimation?: WithDefault<StackAnimation, 'default'>;
+-  transitionDuration?: WithDefault<Int32, 350>;
++  transitionDuration?: WithDefault<Int32, 500>;
+   replaceAnimation?: WithDefault<ReplaceAnimation, 'pop'>;
+   swipeDirection?: WithDefault<SwipeDirection, 'horizontal'>;
+   hideKeyboardOnSwipe?: boolean;
+diff --git a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
+index 4e39336..ab0b313 100644
+--- a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
+@@ -92,7 +92,7 @@ export interface NativeProps extends ViewProps {
+   gestureResponseDistance?: GestureResponseDistanceType;
+   stackPresentation?: WithDefault<StackPresentation, 'push'>;
+   stackAnimation?: WithDefault<StackAnimation, 'default'>;
+-  transitionDuration?: WithDefault<Int32, 350>;
++  transitionDuration?: WithDefault<Int32, 500>;
+   replaceAnimation?: WithDefault<ReplaceAnimation, 'pop'>;
+   swipeDirection?: WithDefault<SwipeDirection, 'horizontal'>;
+   hideKeyboardOnSwipe?: boolean;
