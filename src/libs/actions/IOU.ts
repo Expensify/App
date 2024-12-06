@@ -35,6 +35,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -5676,7 +5677,7 @@ function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transacti
  * @param onlyCleanupActions - whether we only clear the reportActions data
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, onlyCleanupActions = false) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5807,9 +5808,21 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
-    Onyx.update(onlyCleanupActions ? onyxUpdatesActions : onyxUpdates);
+    // First, update the reportActions to ensure related actions are not displayed.
+    Onyx.update(onyxUpdatesActions);
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    return urlToNavigateBack;
+    // On web, navigation should happen immediately after updating reportActions.
+    if (isWeb) {
+        Navigation.goBack(urlToNavigateBack);
+    }
+    InteractionManager.runAfterInteractions(() => {
+        if (!isWeb) {
+            Navigation.goBack(urlToNavigateBack);
+        }
+        // After navigation, update the remaining data.
+        Onyx.update(onyxUpdates);
+    });
 }
 
 /**

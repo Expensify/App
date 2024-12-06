@@ -469,18 +469,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     return;
                                 }
                                 if (parentReportAction) {
-                                    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-                                    const {urlToNavigateBack} = IOU.prepareToCleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                    IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true, true);
-                                    if (isWeb) {
-                                        Navigation.goBack(urlToNavigateBack);
-                                    }
-                                    InteractionManager.runAfterInteractions(() => {
-                                        if (!isWeb) {
-                                            Navigation.goBack(urlToNavigateBack);
-                                        }
-                                        IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true, false);
-                                    });
+                                    IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
                                     return;
                                 }
                             }
