@@ -702,13 +702,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         onPress={() => {
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
                             if (reservations > 1) {
-                                Navigation.navigate(
-                                    ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.parentReportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()),
-                                );
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()));
                             }
-                            Navigation.navigate(
-                                ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.parentReportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()),
-                            );
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}
