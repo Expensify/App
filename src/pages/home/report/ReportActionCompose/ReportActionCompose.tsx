@@ -28,7 +28,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
@@ -65,7 +64,7 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
+type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
     /** A method to call when the form is submitted */
     onSubmit: (newComment: string) => void;
 
@@ -89,11 +88,13 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
-};
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
+};
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
@@ -108,11 +109,12 @@ function ReportActionCompose({
     report,
     reportID,
     isReportReadyForDisplay = true,
-    isEmptyChat,
     lastReportAction,
     shouldShowEducationalTooltip,
+    showSoftInputOnFocus,
     onComposerFocus,
     onComposerBlur,
+    setShowSoftInputOnFocus,
 }: ReportActionComposeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -132,7 +134,7 @@ function ReportActionCompose({
      */
     const [isFocused, setIsFocused] = useState(() => {
         const initialModalState = getModalState();
-        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+        return shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
@@ -484,11 +486,8 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
                                             policyID={report?.policyID ?? '-1'}
-                                            parentReportID={report?.parentReportID}
-                                            parentReportActionID={report?.parentReportActionID}
                                             includeChronos={ReportUtils.chatIncludesChronos(report)}
                                             isGroupPolicyReport={isGroupPolicyReport}
-                                            isEmptyChat={isEmptyChat}
                                             lastReportAction={lastReportAction}
                                             isMenuVisible={isMenuVisible}
                                             inputPlaceholder={inputPlaceholder}
@@ -503,6 +502,8 @@ function ReportActionCompose({
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
+                                            showSoftInputOnFocus={showSoftInputOnFocus}
+                                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                             onValueChange={onValueChange}
                                         />
                                         <ReportDropUI

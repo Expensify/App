@@ -48,9 +48,6 @@ type ReportFooterProps = {
     /** Whether to show educational tooltip in workspace chat for first-time user */
     workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
 
-    /** Whether the chat is empty */
-    isEmptyChat?: boolean;
-
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -65,6 +62,12 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
+
+    /** Whether the soft keyboard is open */
+    showSoftInputOnFocus: boolean;
+
+    /** A method to update showSoftInputOnFocus */
+    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -73,12 +76,13 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
     workspaceTooltip,
+    showSoftInputOnFocus,
     onComposerBlur,
     onComposerFocus,
+    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -224,12 +228,13 @@ function ReportFooter({
                             onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
-                            isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
+                            showSoftInputOnFocus={showSoftInputOnFocus}
+                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                         />
                     </SwipeableView>
                 </View>
@@ -246,10 +251,10 @@ export default memo(
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-        prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
+        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
