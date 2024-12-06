@@ -9,6 +9,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -18,6 +19,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+  
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
     const accountID = Number(route.params.accountID ?? '-1');
@@ -25,7 +27,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail);
 
     useEffect(() => {
-        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
+        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) || !!avatarURL) {
             return;
         }
         PersonalDetails.openPublicProfilePage(accountID);
@@ -35,9 +37,12 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
         <AttachmentModal
             headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             defaultOpen
+            headerTitle={displayName}
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                Navigation.goBack();
+                setTimeout(() => {
+                    Navigation.goBack();
+                }, CONST.ANIMATED_TRANSITION);
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
