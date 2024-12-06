@@ -30,6 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FormActions from '@libs/actions/FormActions';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -110,7 +111,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? ''),
+                memberName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
