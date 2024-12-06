@@ -52,7 +52,7 @@ function SubmitDetailsPage({
         IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportID, policy]);
 
-    const optimisticReport = Report.getOptimisticChatReport(reportID);
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
     const report = onyxReport ?? optimisticReport;
 
     const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);

@@ -1059,8 +1059,7 @@ function openReport(
     }
 }
 
-function getOptimisticChatReport(reportId: string): ReportUtils.OptimisticChatReport {
-    const accountId = parseInt(reportId, 10);
+function getOptimisticChatReport(accountId: number): ReportUtils.OptimisticChatReport {
     return ReportUtils.buildOptimisticChatReport(
         [accountId, currentUserAccountID],
         undefined,

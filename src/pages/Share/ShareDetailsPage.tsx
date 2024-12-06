@@ -41,7 +41,7 @@ function ShareDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const currentUserID = Report.getCurrentUserAccountID();
 
-    const optimisticReport = Report.getOptimisticChatReport(reportID);
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
     const report = onyxReport ?? optimisticReport;
     const displayReport = OptionsListUtils.getReportDisplayOption(report);
 
@@ -62,9 +62,9 @@ function ShareDetailsPage({
                   false,
               )
             : displayReport.participantsList;
-
-        displayReport.text = participants?.filter((u) => u.accountID !== currentUserID).at(0)?.displayName;
-        displayReport.alternateText = participants?.filter((u) => u.accountID !== currentUserID).at(0)?.login;
+        const participant = participants?.filter((u) => u.accountID !== currentUserID).at(0);
+        displayReport.text = participant?.displayName;
+        displayReport.alternateText = participant?.login;
     }
 
     const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
