@@ -1,9 +1,9 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {isExpiredSession} from '@libs/actions/Session';
+import {activate as activateReauthenticator} from '@libs/actions/Session/Reauthenticator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { activate as activateReauthenticator } from '@libs/actions/Session/Reauthenticator';
 import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
