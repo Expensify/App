@@ -21,7 +21,7 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
-    const [currentRole, setCurrentRole] = useState(route.params.currentRole);
+    const currentRole = route.params.currentRole;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -72,7 +72,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     }
 
                     requestValidationCode();
-                    setCurrentRole(option.value);
                     Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
                 }}
                 sections={[{data: roleOptions}]}
