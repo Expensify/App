@@ -74,7 +74,7 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
-                    disabled={isUsingImportedState || network?.shouldSimulatePoorConnection}
+                    disabled={!!isUsingImportedState || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
 
