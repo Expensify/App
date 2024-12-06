@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useState} from 'react';
 import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -42,6 +42,9 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const {translate} = useLocalize();
     const {canUseSpotnanaTravel} = usePermissions();
     const {isOffline} = useNetwork();
+
+    const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
+    const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`);
@@ -108,10 +111,14 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                            setIsModifyTripLoading(true);
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
+                                setIsModifyTripLoading(false);
+                            });
                         }}
                         wrapperStyle={styles.mt3}
-                        disabled={isOffline}
+                        shouldShowLoadingSpinnerIcon={isModifyTripLoading}
+                        disabled={isModifyTripLoading || isOffline}
                     />
                     <MenuItem
                         title={translate('travel.tripSupport')}
@@ -120,9 +127,13 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                            setIsTripSupportLoading(true);
+                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
+                                setIsTripSupportLoading(false);
+                            });
                         }}
-                        disabled={isOffline}
+                        shouldShowLoadingSpinnerIcon={isTripSupportLoading}
+                        disabled={isTripSupportLoading || isOffline}
                     />
                 </ScrollView>
             </FullPageNotFoundView>
