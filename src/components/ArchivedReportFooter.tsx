@@ -19,7 +19,7 @@ type ArchivedReportFooterProps = {
 
 function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {translate} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {initialValue: {}});
     const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: ReportActionsUtils.getLastClosedReportAction});
@@ -52,8 +52,8 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
 
     const text = shouldRenderHTML
         ? translate(`reportArchiveReasons.${archiveReason}`, {
-              displayName: `<strong>${formatPhoneNumber(displayName)}</strong>`,
-              oldDisplayName: `<strong>${formatPhoneNumber(oldDisplayName ?? '')}</strong>`,
+              displayName: `<strong>${displayName}</strong>`,
+              oldDisplayName: `<strong>${oldDisplayName ?? ''}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
               shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })
