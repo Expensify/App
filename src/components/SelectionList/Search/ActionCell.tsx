@@ -75,17 +75,20 @@ function ActionCell({
         );
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
+    if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction) {
         const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
-                text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
+                text={translate(actionTranslationsMap[action])}
                 onPress={goToItem}
                 small
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
+                icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
+                iconFill={theme.danger}
+                iconHoverFill={theme.dangerHover}
             />
         ) : null;
     }
