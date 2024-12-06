@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TextPicker from '@components/TextPicker';
 
 function getInputComponent(field: CorpayFormField) {
     if ((field.valueSet ?? []).length > 0) {
@@ -26,6 +27,9 @@ function getInputComponent(field: CorpayFormField) {
     }
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
         return AddressSearch;
+    }
+    if (field.id === 'accountHolderCountry') {
+        return TextPicker;
     }
     return TextInput;
 }
@@ -64,6 +68,9 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
             }
             if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
                 return [index === 0 ? styles.pb2 : styles.pv2];
+            }
+            if (field.id === 'accountHolderCountry') {
+                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
             }
             return [index === 0 ? styles.pb2 : styles.pv2];
         },

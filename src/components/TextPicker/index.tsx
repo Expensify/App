@@ -7,11 +7,17 @@ import CONST from '@src/CONST';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
-function TextPicker({value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: TextPickerProps, forwardedRef: ForwardedRef<View>) {
+function TextPicker(
+    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, ...rest}: TextPickerProps,
+    forwardedRef: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
+        if (disabled) {
+            return;
+        }
         setIsPickerVisible(true);
     };
 
@@ -30,7 +36,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
-                shouldShowRightIcon
+                shouldShowRightIcon={!disabled}
                 title={value ?? placeholder ?? ''}
                 description={description}
                 onPress={showPickerModal}
@@ -46,6 +52,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 description={description}
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
+                disabled={disabled}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
