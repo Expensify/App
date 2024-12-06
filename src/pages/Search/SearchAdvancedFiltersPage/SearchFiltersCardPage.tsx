@@ -169,9 +169,6 @@ function SearchFiltersCardPage() {
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
             const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
             const correspondingCards = Object.keys(cardFeed ?? {});
-            if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
-                return;
-            }
 
             cardFeedsData.push(buildCardFeedItem(text, policyID, correspondingCards, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
@@ -181,14 +178,11 @@ function SearchFiltersCardPage() {
             const isBankRepeating = repeatingBanks.includes(bank);
             const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
             const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? domainName : undefined});
-            if (debouncedSearchTerm && !text.includes(debouncedSearchTerm)) {
-                return;
-            }
 
             cardFeedsData.push(buildCardFeedItem(text, domainName, correspospondingCardIDs, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
         return cardFeedsData;
-    }, [debouncedSearchTerm, domainFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
+    }, [domainFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
 
     const shouldShowSearchInput = cardFeedsSectionData.length + invidualCardsSectionData.length > 8;
 
@@ -197,12 +191,12 @@ function SearchFiltersCardPage() {
 
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
-            data: debouncedSearchTerm ? cardFeedsSectionData.filter((item) => item.text?.includes(debouncedSearchTerm)) : cardFeedsSectionData,
+            data: cardFeedsSectionData.filter((item) => item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
             shouldShow: cardFeedsSectionData.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.individualCards'),
-            data: debouncedSearchTerm ? invidualCardsSectionData.filter((item) => item.text?.includes(debouncedSearchTerm)) : invidualCardsSectionData,
+            data: invidualCardsSectionData.filter((item) => item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
             shouldShow: invidualCardsSectionData.length > 0,
         });
         return newSections;
@@ -270,6 +264,7 @@ function SearchFiltersCardPage() {
                     shouldShowTooltips
                     canSelectMultiple
                     ListItem={CardListItem}
+                    shouldShowTextInput={shouldShowSearchInput}
                     textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
