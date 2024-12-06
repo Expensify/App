@@ -337,8 +337,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             validateCodeSent: null,
         },
     };
-    successData.push(optimisticResetActionCode);
-    failureData.push(optimisticResetActionCode);
+    optimisticData.push(optimisticResetActionCode);
 
     const parameters: AddDelegateParams = {delegate: email, validateCode, role};
 
