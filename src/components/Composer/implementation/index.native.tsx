@@ -57,6 +57,25 @@ function Composer(
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
+    useEffect(() => {
+        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+            return;
+        }
+
+        // We need the delay for setSelection to properly work for IOS in bridgeless mode due to a react native
+        // internal bug of dispatching the event before the component is ready for it.
+        // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
+        const timeoutID = setTimeout(() => {
+            // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
+            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInput.current?.setSelection(selection.start, selection.start);
+        }, 0);
+
+        return () => clearTimeout(timeoutID);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
+
     /**
      * Set the TextInput Ref
      * @param {Element} el
