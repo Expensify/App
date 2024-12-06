@@ -101,6 +101,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 inputID={field.id}
                                 defaultValue={formValues[field.id]}
                                 label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                description={field.id === 'accountHolderCountry' ? field.label : undefined}
                                 items={getItems(field)}
                                 disabled={field.id === 'accountHolderCountry'}
                                 renamedInputKeys={{
