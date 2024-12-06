@@ -85,7 +85,10 @@ type FeatureTrainingModalProps = {
     children?: React.ReactNode;
 
     /** Styles for the content container */
-    contentContainerStyles?: StyleProp<ViewStyle>;
+    contentInnerContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the content outer container */
+    contentOuterContainerStyles?: StyleProp<ViewStyle>;
 
     /** Styles for the modal inner container */
     modalInnerContainerStyle?: ViewStyle;
@@ -108,7 +111,8 @@ function FeatureTrainingModal({
     helpText = '',
     onHelp = () => {},
     children,
-    contentContainerStyles,
+    contentInnerContainerStyles,
+    contentOuterContainerStyles,
     modalInnerContainerStyle,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
@@ -252,9 +256,9 @@ function FeatureTrainingModal({
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationOuterContainerStyle]}>
                             {renderIllustration()}
                         </View>
-                        <View style={[styles.mt5, styles.mh5]}>
+                        <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                             {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentContainerStyles]}>
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
                                     <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}

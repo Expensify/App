@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Welcome from '@libs/actions/Welcome';
@@ -31,6 +32,7 @@ function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <FeatureTrainingModal
@@ -46,8 +48,9 @@ function OnboardingWelcomeVideo() {
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
             animationOuterContainerStyle={styles.p0}
-            contentContainerStyles={[styles.mb5, styles.gap2]}
-            modalInnerContainerStyle={styles.pt0}
+            contentInnerContainerStyles={[styles.mb5, styles.gap2]}
+            contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
+            modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
         >
             <View style={[styles.gap3, styles.pt1, styles.pl1]}>
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
