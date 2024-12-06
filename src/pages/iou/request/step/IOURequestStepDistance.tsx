@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -512,7 +512,7 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
-                <View style={styles.flex1}>
+                <View style={Platform.OS === 'web' ? styles.flex1 : [styles.dBlock, styles.w100, {height: '85%'}]}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
@@ -529,7 +529,8 @@ function IOURequestStepDistance({
                         }
                     />
                 </View>
-                <View style={[styles.w100, styles.pt2]}>
+
+                <View style={(styles.dBlock, styles.w100, styles.pt2, Platform.OS !== 'web' ? {height: '15%'} : {})}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
                     {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
                         <DotIndicatorMessage
