@@ -2,7 +2,7 @@ import RNFS from 'react-native-fs';
 import {open} from 'react-native-quick-sqlite';
 import Share from 'react-native-share';
 import CONST from '@src/CONST';
-import ExportOnyxState from './common';
+import * as ExportOnyxState from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise((resolve) => {
