@@ -75,8 +75,7 @@ describe('WorkspaceSwitcherPage', () => {
         const workspaceRow = screen.getByLabelText('Workspace A');
         expect(workspaceRow).toBeOnTheScreen();
 
-        // expect(workspaceRow.findByType('svg')).toBeOnTheScreen();
-        fireEvent(workspaceRow, 'press');
+        fireEvent.press(workspaceRow);
         await act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
@@ -86,7 +85,9 @@ describe('WorkspaceSwitcherPage', () => {
         const workspaceRowA = screen.getByLabelText('Workspace A');
         expect(workspaceRowA).toBeOnTheScreen();
 
-        const workspaceRow2 = screen.getByLabelText('Workspace B');
-        expect(workspaceRow2).toBeOnTheScreen();
+        const workspaceRowB = screen.getByLabelText('Workspace B');
+        expect(workspaceRowB).toBeOnTheScreen();
+        fireEvent.press(workspaceRowB);
+        // fireEvent.press(workspaceRowB);
     });
 });
