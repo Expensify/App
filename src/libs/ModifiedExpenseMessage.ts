@@ -9,11 +9,8 @@ import * as Localize from './Localize';
 import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-// This import is needed for getForReportAction. The actual cycle never happens because:
-// - we call `ReportUtils.getReportName` only for the root-level reports which have no `parentReportAction`.
-// - the `ReportUtils.getReportName`, oppositely, calls `getForReportAction` for reports with `parentReportAction`.
 // eslint-disable-next-line import/no-cycle
-import * as ReportUtils from './ReportUtils';
+import {getPolicyName, getRootLevelReportName, getRootParentReport} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -147,15 +144,16 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
+
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const policyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     if (reportActionOriginalMessage?.movedToReportID) {
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage.movedToReportID}`];
-        const rootParentReport = ReportUtils.getRootParentReport(destinationReport);
+        const rootParentReport = getRootParentReport(destinationReport);
         return Localize.translateLocal('iou.movedFromSelfDM', {
-            workspaceName: ReportUtils.getPolicyName(rootParentReport),
-            reportName: ReportUtils.getReportName(rootParentReport),
+            workspaceName: getPolicyName(rootParentReport),
+            reportName: getRootLevelReportName({report: rootParentReport}),
         });
     }
 
