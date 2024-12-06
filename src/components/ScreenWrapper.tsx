@@ -8,7 +8,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
@@ -109,7 +108,7 @@ type ScreenWrapperProps = {
 type ScreenWrapperStatusContextType = {
     didScreenTransitionEnd: boolean;
     isSafeAreaTopPaddingApplied: boolean;
-    isSafeAreaBottomPaddingApplied: boolean;
+    includeSafeAreaPaddingBottom: boolean;
 };
 
 const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
@@ -160,7 +159,6 @@ function ScreenWrapper(
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
-    const {isOffline} = useNetwork();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
@@ -252,18 +250,17 @@ function ScreenWrapper(
     }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    const isSafeAreaBottomPaddingApplied = includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator);
-    if (isSafeAreaBottomPaddingApplied) {
+    if (includeSafeAreaPaddingBottom) {
         paddingStyle.paddingBottom = paddingBottom;
     }
-    if (isSafeAreaBottomPaddingApplied && ignoreInsetsConsumption) {
+    if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
         paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied}),
-        [didScreenTransitionEnd, isSafeAreaBottomPaddingApplied, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     return (
@@ -305,7 +302,10 @@ function ScreenWrapper(
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
                                     <>
-                                        <OfflineIndicator style={offlineIndicatorStyle} />
+                                        <OfflineIndicator
+                                            style={[offlineIndicatorStyle]}
+                                            containerStyles={includeSafeAreaPaddingBottom ? [] : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + 30}]}
+                                        />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
                                     </>
