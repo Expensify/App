@@ -63,7 +63,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nremoved the description (previously "this is for the shuttle")';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -88,7 +88,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle")';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
