@@ -5,13 +5,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Welcome from '@libs/actions/Welcome';
+import convertToLTR from '@libs/convertToLTR';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
+import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
-import MenuItem from './MenuItem';
+import RenderHTML from './RenderHTML';
 
 const ExpensifyFeatures: FeatureListItem[] = [
     {
@@ -56,20 +58,16 @@ function OnboardingWelcomeVideo() {
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}
-                        style={styles.w100}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
                     >
-                        <MenuItem
-                            title={translate(translationKey)}
-                            shouldRenderAsHTML
-                            icon={icon}
-                            iconWidth={variables.menuIconSize}
-                            iconHeight={variables.menuIconSize}
-                            interactive={false}
-                            displayInDefaultIconColor
-                            wrapperStyle={[styles.p0, styles.cursorAuto]}
-                            containerStyle={[styles.m0, styles.wAuto]}
-                            titleContainerStyle={styles.ml6}
+                        <Icon
+                            src={icon}
+                            height={variables.menuIconSize}
+                            width={variables.menuIconSize}
                         />
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                            <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                        </View>
                     </View>
                 ))}
             </View>
