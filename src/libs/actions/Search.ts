@@ -274,6 +274,8 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
         reportActionID: rand64(),
     };
 
+    // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
+    // In the meanyime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, finallyData});
 }
 
