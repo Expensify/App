@@ -98,15 +98,15 @@ describe('ReportUtils', () => {
             const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);
             expect(participants).toHaveLength(5);
 
-            expect(participants.at(0)?.displayName).toBe('(833) 240-3627'.replace(/ /g, '\u00A0'));
+            expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
             expect(participants.at(0)?.login).toBe('+18332403627@expensify.sms');
 
-            expect(participants.at(2)?.displayName).toBe('Lagertha Lothbrok'.replace(/ /g, '\u00A0'));
+            expect(participants.at(2)?.displayName).toBe('Lagertha Lothbrok');
             expect(participants.at(2)?.login).toBe('lagertha@vikings.net');
             expect(participants.at(2)?.accountID).toBe(3);
             expect(participants.at(2)?.pronouns).toBe('She/her');
 
-            expect(participants.at(4)?.displayName).toBe('Ragnar Lothbrok'.replace(/ /g, '\u00A0'));
+            expect(participants.at(4)?.displayName).toBe('Ragnar Lothbrok');
             expect(participants.at(4)?.login).toBe('ragnar@vikings.net');
             expect(participants.at(4)?.accountID).toBe(1);
             expect(participants.at(4)?.pronouns).toBeUndefined();
@@ -121,7 +121,7 @@ describe('ReportUtils', () => {
                         reportID: '',
                         participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                     }),
-                ).toBe('Ragnar Lothbrok'.replace(/ /g, '\u00A0'));
+                ).toBe('Ragnar Lothbrok');
             });
 
             test('no displayName', () => {
@@ -139,7 +139,7 @@ describe('ReportUtils', () => {
                         reportID: '',
                         participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
                     }),
-                ).toBe('(833) 240-3627'.replace(/ /g, '\u00A0'));
+                ).toBe('(833) 240-3627');
             });
         });
 
@@ -149,7 +149,7 @@ describe('ReportUtils', () => {
                     reportID: '',
                     participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
                 }),
-            ).toBe(`Ragnar, floki@vikings.net, Lagertha, ${'(833) 240-3627'.replace(/ /g, '\u00A0')}`);
+            ).toBe(`Ragnar, floki@vikings.net, Lagertha, ${'(833) 240-3627'}`);
         });
 
         describe('Default Policy Room', () => {
@@ -227,7 +227,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: false,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Ragnar Lothbrok'.replace(/ /g, '\u00A0'));
+                    ).toBe('Ragnar Lothbrok');
                 });
             });
 
@@ -263,10 +263,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'.replace(/ /g, '\u00A0')} (archived)`);
+                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'} (archived)`);
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'.replace(/ /g, '\u00A0')} (archivado)`),
+                        expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe(`${'Ragnar Lothbrok'} (archivado)`),
                     );
                 });
             });
@@ -1114,7 +1114,7 @@ describe('ReportUtils', () => {
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual(`${'(833) 240-3627'.replace(/ /g, '\u00A0')}, floki@vikings.net, Lagertha, Ragnar`);
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual(`${'(833) 240-3627'}, floki@vikings.net, Lagertha, Ragnar`);
             });
         });
 

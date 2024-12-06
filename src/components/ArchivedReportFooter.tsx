@@ -53,7 +53,7 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
     const text = shouldRenderHTML
         ? translate(`reportArchiveReasons.${archiveReason}`, {
               displayName: `<strong>${displayName}</strong>`,
-              oldDisplayName: `<strong>${oldDisplayName ?? ''}</strong>`,
+              oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
               shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })

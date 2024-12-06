@@ -2165,7 +2165,7 @@ function getDisplayNameForParticipant(
     }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-    return LocalePhoneNumber.formatPhoneNumber(shouldUseShortForm ? shortName : longName);
+    return shouldUseShortForm ? shortName : longName;
 }
 
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldForceExcludeCurrentUser = false): number[] {
