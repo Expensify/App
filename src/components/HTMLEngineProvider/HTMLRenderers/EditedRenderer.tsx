@@ -12,9 +12,8 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
-    const isLarge = !!(tnode.attributes.islarge !== undefined);
     return (
-        <Text style={isLarge && styles.onlyEmojisTextLineHeight}>
+        <Text fontSize={variables.fontSizeSmall}>
             <Text
                 style={styles.userSelectNone}
                 fontSize={variables.fontSizeSmall}
