@@ -105,7 +105,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const optionList = OptionsListUtils.getOptions(
+        const optionList = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -123,19 +123,17 @@ function MoneyRequestParticipantsSelector({
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                maxRecentReportsToShow: 0,
             },
         );
 
-        if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, undefined, {
-                preferChatroomsOverThreads: true,
-                preferPolicyExpenseChat: !!action,
-                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            });
-        }
+        const orderedOptions = OptionsListUtils.orderOptions(optionList, undefined, {
+            sortByReportTypeInSearch: isPaidGroupPolicy,
+        });
 
-        return optionList;
+        return {
+            ...optionList,
+            ...orderedOptions,
+        };
     }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, isPaidGroupPolicy, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
@@ -149,7 +147,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
