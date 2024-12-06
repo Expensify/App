@@ -1,3 +1,4 @@
+import {CardAnimationContext} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
@@ -30,6 +31,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isCard} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 
 const baseFilterConfig = {
     date: {
@@ -273,7 +275,18 @@ function AdvancedSearchFilters() {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID ?? '-1';
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = Object.values(workspaceCardFeeds ?? {}).reduce((cardsAccumulated, currentCardFeed) => {
+        Object.values(currentCardFeed ?? {}).forEach((card) => {
+            if (!isCard(card)) {
+                return;
+            }
+            // eslint-disable-next-line no-param-reassign
+            cardsAccumulated[card.cardID] = card;
+        });
+        return cardsAccumulated;
+    }, userCardList);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -310,7 +323,7 @@ function AdvancedSearchFilters() {
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!singlePolicyCategories);
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
-    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(cardList).length, areCardsEnabled);
+    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -379,7 +392,7 @@ function AdvancedSearchFilters() {
                 if (!shouldDisplayCardFilter) {
                     return;
                 }
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                 if (!shouldDisplayTaxFilter) {
                     return;

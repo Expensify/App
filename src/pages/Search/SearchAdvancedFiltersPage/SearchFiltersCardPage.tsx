@@ -168,7 +168,7 @@ function SearchFiltersCardPage() {
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
             const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
-            const correspondingCards = Object.keys(cardFeed ?? {});
+            const correspondingCards = Object.keys(cardFeed ?? {}).filter((cardFeedKey) => cardFeedKey !== 'cardList');
 
             cardFeedsData.push(buildCardFeedItem(text, policyID, correspondingCards, newSelectedCards, bank as CompanyCardFeed, styles.cardIcon));
         });
@@ -184,7 +184,7 @@ function SearchFiltersCardPage() {
         return cardFeedsData;
     }, [domainFeedsData, filteredWorkspaceCardFeeds, newSelectedCards, styles.cardIcon, translate]);
 
-    const shouldShowSearchInput = cardFeedsSectionData.length + invidualCardsSectionData.length > 8;
+    const shouldShowSearchInput = cardFeedsSectionData.length + invidualCardsSectionData.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
 
     const sections = useMemo(() => {
         const newSections = [];
@@ -278,4 +278,4 @@ function SearchFiltersCardPage() {
 
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
-export default SearchFiltersCardPage;
+export {SearchFiltersCardPage, isCard};
