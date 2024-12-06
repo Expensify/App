@@ -211,7 +211,7 @@ function ReportActionsList({
         return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
     }, [report.reportID, report.lastReadTime]);
 
-    // In a one-expense report, the report actions from the expense report and transaction thread are combined. 
+    // In a one-expense report, the report actions from the expense report and transaction thread are combined.
     // If the transaction thread has a newer action, it will show an unread marker if we compare it with the expense report lastReadTime.
     // - expense report action A <- expense report lastReadTime
     // - transaction thread action A <- transaction thread lastReadTime
