@@ -212,8 +212,7 @@ function MoneyRequestConfirmationList({
 
         const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
         const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
-        const rateID = lastSelectedRate;
-        IOU.setCustomUnitRateID(transactionID, rateID);
+        IOU.setCustomUnitRateID(transactionID, lastSelectedRate);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
@@ -333,7 +332,7 @@ function MoneyRequestConfirmationList({
         }
 
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
-        const matchingRate = Object.values(policyRates).find((rate) => rate.rate === mileageRate.rate && rate.unit === mileageRate.unit);
+        const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
             IOU.setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
             return;

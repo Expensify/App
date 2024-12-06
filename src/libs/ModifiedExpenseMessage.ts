@@ -9,6 +9,10 @@ import * as Localize from './Localize';
 import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+// This import is needed for getForReportAction. The actual cycle never happens because:
+// - we call `ReportUtils.getReportName` only for the root-level reports which have no `parentReportAction`.
+// - the `ReportUtils.getReportName`, oppositely, calls `getForReportAction` for reports with `parentReportAction`.
+// eslint-disable-next-line import/no-cycle
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
