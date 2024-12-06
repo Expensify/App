@@ -120,11 +120,10 @@ function IOURequestStepCategory({
             categoryTaxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, categoryTaxCode);
 
             if (categoryTaxPercentage) {
-                const isFromExpenseReport = ReportUtils.isExpenseReport(report) || ReportUtils.isPolicyExpenseChat(report);
                 categoryTaxAmount = CurrencyUtils.convertToBackendAmount(
                     TransactionUtils.calculateTaxAmount(
                         categoryTaxPercentage,
-                        TransactionUtils.getAmount(currentTransaction, isFromExpenseReport),
+                        TransactionUtils.getAmount(currentTransaction),
                         TransactionUtils.getCurrency(transaction),
                     ),
                 );
