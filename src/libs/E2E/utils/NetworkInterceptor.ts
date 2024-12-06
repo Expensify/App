@@ -157,7 +157,7 @@ export default function installNetworkInterceptor(
         const url = fetchArgsGetUrl(args);
 
         // Don't process these specific API commands because running them over and over again in the tests hammers the server in a bad way.
-        if (url.includes('command=OptInToPushNotifications') || url.includes('command=OptOutOfPushNotifications')) {
+        if (url.includes('OptInToPushNotifications') || url.includes('OptOutOfPushNotifications')) {
             console.debug('Skipping request to opt in or out of push notifications');
             return Promise.resolve(new Response());
         }
