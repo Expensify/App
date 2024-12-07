@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -37,7 +37,6 @@ function getFeatureNameAlias(featureName: string) {
 }
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
-    const navigation = useNavigation();
     const styles = useThemeStyles();
     const policyID = route.params.policyID;
 
@@ -155,16 +154,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         route.params.featureName,
     ]);
 
-    useEffect(() => {
-        const unsubscribeListener = navigation.addListener('blur', () => {
-            if (!isUpgraded || !canPerformUpgrade) {
-                return;
-            }
-            confirmUpgrade();
-        });
-
-        return unsubscribeListener;
-    }, [isUpgraded, canPerformUpgrade, confirmUpgrade, navigation]);
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!isUpgraded || !canPerformUpgrade) {
+                    return;
+                }
+                confirmUpgrade();
+            };
+        }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
+    );
 
     if (!canPerformUpgrade) {
         return <NotFoundPage />;
