@@ -104,4 +104,5 @@ export default {
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
+    IS_TEST_ENV: process.env.NODE_ENV === 'test',
 } as const;
