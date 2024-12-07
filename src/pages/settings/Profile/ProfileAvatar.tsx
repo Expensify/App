@@ -19,7 +19,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-
+    
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
     const accountID = Number(route.params.accountID ?? '-1');
@@ -35,8 +35,8 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
 
     return (
         <AttachmentModal
-            headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             defaultOpen
+            headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
                 setTimeout(() => {
