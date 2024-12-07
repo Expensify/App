@@ -249,8 +249,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     );
 
     const isPendingActionExist = !!reportActions.at(0)?.pendingAction;
-    const doesCreatedActionExists = useCallback(() => !!sortedAllReportActions?.findLast((action) => ReportActionsUtils.isCreatedAction(action)), [sortedAllReportActions]);
-    const isLinkedMessageAvailable = useMemo(() => indexOfLinkedMessage > -1, [indexOfLinkedMessage]);
+    const doesCreatedActionExists = useCallback(() => !!reportActions?.findLast((action) => ReportActionsUtils.isCreatedAction(action)), [reportActions]);
+    const isLinkedMessageAvailable = indexOfLinkedMessage > -1;
 
     // The linked report actions should have at least 15 messages (counting as 1 page) above them to fill the screen.
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
