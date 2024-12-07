@@ -290,7 +290,7 @@ function MoneyRequestAmountInput(
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
-            autoGrowExtraSpace={variables.iouAmountTextSize}
+            autoGrowExtraSpace={variables.w80}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
