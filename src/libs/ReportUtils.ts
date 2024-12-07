@@ -3977,6 +3977,9 @@ function getReportName(
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (isTaskReport(report)) {
+        return Parser.htmlToText(report?.reportName ?? '');
+    }
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);

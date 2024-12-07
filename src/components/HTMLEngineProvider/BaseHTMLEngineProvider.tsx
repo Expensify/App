@@ -32,6 +32,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'edited',
                 contentModel: HTMLContentModel.textual,
             }),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'alert-text': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
@@ -103,6 +108,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textLineThrough,
             styles.mutedNormalTextLabel,
             styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

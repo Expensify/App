@@ -11,6 +11,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -48,7 +49,7 @@ function TaskView({report, ...props}: TaskViewProps) {
         Task.setTaskReport(report);
     }, [report]);
 
-    const taskTitle = convertToLTR(report.reportName ?? '');
+    const taskTitle = `<task-title>${convertToLTR(report.reportName ?? '')}<task-title>`;
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
         false,
@@ -117,12 +118,15 @@ function TaskView({report, ...props}: TaskViewProps) {
                                             disabled={!canModifyTask || !canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            <Text
+                                            {/* <Text
                                                 numberOfLines={3}
                                                 style={styles.taskTitleMenuItem}
                                             >
                                                 {taskTitle}
-                                            </Text>
+                                            </Text> */}
+                                            <View style={styles.renderHTMLTitle}>
+                                                <RenderHTML html={taskTitle} />
+                                            </View>
                                         </View>
                                         {isOpen && (
                                             <View style={styles.taskRightIconContainer}>
