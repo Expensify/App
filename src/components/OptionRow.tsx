@@ -148,7 +148,8 @@ function OptionRow({
     const shouldUseShortFormInTooltip = (option.participantsList?.length ?? 0) > 1;
     const firstIcon = option?.icons?.at(0);
 
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(option.participantsList ?? (option.accountID ? [option] : []), shouldUseShortFormInTooltip);
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
