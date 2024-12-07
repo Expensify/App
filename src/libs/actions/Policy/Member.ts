@@ -296,17 +296,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
     });
 
-    const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
-    const optimisticApprovalRules: ApprovalRule[] = [];
-
     Object.keys(policy?.employeeList ?? {}).forEach((employeeEmail) => {
-        approvalRules.forEach((rule) => {
-            if (employeeEmail === rule?.approver) {
-                return;
-            }
-            optimisticApprovalRules.push(rule);
-        });
-
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
         failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
@@ -341,6 +331,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
             };
         }
     });
+
+    const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
+    const optimisticApprovalRules = approvalRules.filter((rule) => !emailList.includes(rule?.approver ?? ''));
 
     const optimisticData: OnyxUpdate[] = [
         {
