@@ -480,6 +480,10 @@ const translations = {
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
+    supportalNoAccess: {
+        title: 'Not so fast',
+        description: 'You are not authorized to take this action when support logged in.',
+    },
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',
@@ -2502,7 +2506,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -3307,6 +3311,7 @@ const translations = {
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',
+                    pleaseSelectBank: 'Please select a bank before continuing.',
                     pleaseSelectFeedType: 'Please select a feed type before continuing.',
                 },
             },
@@ -4531,6 +4536,10 @@ const translations = {
                 title: "You haven't created any expenses yet",
                 subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
             },
+            emptyInvoiceResults: {
+                title: "You haven't created any \ninvoices yet",
+                subtitle: 'Use the green button below to send an invoice or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -4572,6 +4581,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -5336,8 +5350,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
     },
     debug: {
         debug: 'Debug',
