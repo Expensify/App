@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,14 +42,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = getFeatureNameAlias(route.params.featureName);
 
-    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias);
+    const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
     const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
-    const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
+    const isUpgraded = useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
