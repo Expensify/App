@@ -1290,6 +1290,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         };
     },
 
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+        if (!!width && !!extraSpace) {
+            return {marginRight: -extraSpace, width: width + extraSpace}
+        }
+        return {width};
+    },
+
     /*
      * Returns the actual maxHeight of the auto-growing markdown text input.
      */
