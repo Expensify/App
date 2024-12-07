@@ -47,7 +47,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, canUseWorkspaceDowngrade} = usePermissions();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -77,6 +77,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '-1')), [policy?.id]);
     const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1')), [policy?.id]);
     const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressPlanType = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_PLAN.getRoute(policy?.id ?? '-1')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription =
@@ -261,6 +262,23 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                         disabled={readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
+                                        shouldGreyOutWhenDisabled={false}
+                                        shouldUseDefaultCursorWhenDisabled
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                        )}
+
+                        {!!canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
+                                <View>
+                                    <MenuItemWithTopDescription
+                                        title={PolicyUtils.getUserFriendlyWorkspaceType(policy.type)}
+                                        description={translate('workspace.common.planType')}
+                                        shouldShowRightIcon={!readOnly}
+                                        disabled={readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressPlanType}
                                         shouldGreyOutWhenDisabled={false}
                                         shouldUseDefaultCursorWhenDisabled
                                     />
