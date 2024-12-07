@@ -1,6 +1,8 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import ScreenWrapper from '@components/ScreenWrapper';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -14,7 +16,7 @@ import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
 
-type AssignCardFeedPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
+type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
@@ -23,14 +25,34 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = route.params?.feed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id ?? '-1';
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
-        CompanyCards.setAssignCardStepAndData({data: {bankName: feed}});
-    }, [feed]);
+        return () => {
+            CompanyCards.clearAssignCardStepAndData();
+        };
+    }, []);
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={AssignCardFeedPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-            return <AssigneeStep policy={policy} />;
+            return (
+                <AssigneeStep
+                    policy={policy}
+                    feed={feed}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.CARD:
             return (
                 <CardSelectionStep
@@ -50,10 +72,14 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 />
             );
         default:
-            return <AssigneeStep policy={policy} />;
+            return (
+                <AssigneeStep
+                    policy={policy}
+                    feed={feed}
+                />
+            );
     }
-
-    return <AssigneeStep policy={policy} />;
 }
 
+AssignCardFeedPage.displayName = 'AssignCardFeedPage';
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

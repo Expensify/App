@@ -36,6 +36,7 @@ import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -191,11 +192,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
-        if (groupPolicies.length === 0) {
-            return false;
-        }
-        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every(
@@ -270,10 +267,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, false), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
@@ -505,6 +500,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         isValidReport,
     ]);
 
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -561,8 +559,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   text: translate('tour.takeATwoMinuteTour'),
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
-                                      Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
+                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
+                                      if (viewTourTaskReport) {
+                                          Task.completeTask(viewTourTaskReport);
+                                      }
                                   },
                               },
                           ]

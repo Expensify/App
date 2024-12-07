@@ -219,6 +219,9 @@ const ONYXKEYS = {
     /** The NVP containing all information related to educational tooltip in workspace chat */
     NVP_WORKSPACE_TOOLTIP: 'workspaceTooltip',
 
+    /**  The NVP containing the target url to navigate to when deleting a transaction */
+    NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
+
     /** Whether to show save search rename tooltip */
     SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP: 'shouldShowSavedSearchRenameTooltip',
 
@@ -716,10 +719,6 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
-        DEBUG_REPORT_PAGE_FORM: 'debugReportPageForm',
-        DEBUG_REPORT_PAGE_FORM_DRAFT: 'debugReportPageFormDraft',
-        DEBUG_REPORT_ACTION_PAGE_FORM: 'debugReportActionPageForm',
-        DEBUG_REPORT_ACTION_PAGE_FORM_DRAFT: 'debugReportActionPageFormDraft',
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
     },
@@ -814,9 +813,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
-    [ONYXKEYS.FORMS.DEBUG_REPORT_PAGE_FORM]: FormTypes.DebugReportForm;
-    [ONYXKEYS.FORMS.DEBUG_REPORT_ACTION_PAGE_FORM]: FormTypes.DebugReportActionForm;
-    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm;
+    [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1018,6 +1015,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_WORKSPACE_TOOLTIP]: OnyxTypes.WorkspaceTooltip;
+    [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
