@@ -259,6 +259,7 @@ function MoneyRequestConfirmationListFooter({
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
     const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && PolicyUtils.isPaidGroupPolicy(policy);
     const {
@@ -369,6 +370,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
