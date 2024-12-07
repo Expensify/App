@@ -1,5 +1,5 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo, useState} from 'react';
+import type {ForwardedRef, MutableRefObject} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
@@ -26,6 +26,7 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
+const RENDER_DELAY = 500;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
@@ -46,27 +47,56 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         if (currentDataIndex === -1) {
             return [];
         }
-        if (currentDataIndex > 0) {
-            return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
+        if (currentDataIndex === 0) {
+            return data;
         }
-        return data;
+        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
     }, [currentDataIndex, data, isInitialData]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
     const dataIndexDifference = data.length - displayedData.length;
 
-    const handleStartReached = useCallback(
-        (info: {distanceFromStart: number}) => {
-            if (!isLoadingData) {
-                onStartReached?.(info);
-            }
-            setIsInitialData(false);
-            const firstDisplayedItem = displayedData.at(0);
-            setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
-        },
-        [isLoadingData, keyExtractor, displayedData, currentDataIndex, onStartReached],
-    );
+    // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
+    const queuedRenders = useRef<Array<{distanceFromStart: number}>>([]);
+    const isRendering = useRef(false);
+
+    const renderTimeout = useRef<NodeJS.Timeout>();
+    useEffect(() => {
+        return () => {
+            clearTimeout(renderTimeout.current);
+        };
+    }, []);
+
+    // Use a ref here to make sure we always operate on the latest state.
+    const updateDisplayedDataRef = useRef() as MutableRefObject<() => void>;
+    // eslint-disable-next-line react-compiler/react-compiler
+    updateDisplayedDataRef.current = () => {
+        const info = queuedRenders.current.shift();
+        if (!info) {
+            isRendering.current = false;
+            return;
+        }
+        isRendering.current = true;
+
+        if (!isLoadingData) {
+            onStartReached?.(info);
+        }
+        setIsInitialData(false);
+        const firstDisplayedItem = displayedData.at(0);
+        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
+
+        renderTimeout.current = setTimeout(() => {
+            updateDisplayedDataRef.current();
+        }, RENDER_DELAY);
+    };
+
+    const handleStartReached = useCallback((info: {distanceFromStart: number}) => {
+        queuedRenders.current.push(info);
+        if (!isRendering.current) {
+            updateDisplayedDataRef.current();
+        }
+    }, []);
 
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
