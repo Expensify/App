@@ -8,6 +8,12 @@ type Network = {
     /** Should the network be forced offline */
     shouldForceOffline?: boolean;
 
+    /** Whether we should simulate poor connection */
+    shouldSimulatePoorConnection?: boolean;
+
+    /** Poor connection timeout id */
+    poorConnectionTimeoutID?: NodeJS.Timeout;
+
     /** Whether we should fail all network requests */
     shouldFailAllRequests?: boolean;
 
