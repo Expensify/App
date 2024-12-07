@@ -3918,69 +3918,9 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
 const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
 /**
- * Get the title for a report that has no parentReportAction (e.g. group chat, policy expense chat, 1:1 DM, etc.)
+ * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
  */
-function getRootLevelReportName({
-    report,
-    policy,
-    personalDetails,
-    invoiceReceiverPolicy,
-}: {
-    report: OnyxEntry<Report>;
-    policy?: OnyxEntry<Policy>;
-    personalDetails?: Partial<PersonalDetailsList>;
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
-}): string {
-    const reportID = report?.reportID;
-    const cacheKey = getCacheKey(report);
-
-    let formattedName: string | undefined;
-
-    if (isClosedExpenseReportWithNoExpenses(report)) {
-        return Localize.translateLocal('parentReportAction.deletedReport');
-    }
-
-    if (isGroupChat(report)) {
-        return getGroupChatName(undefined, true, report) ?? '';
-    }
-
-    if (isChatRoom(report) || isTaskReport(report)) {
-        formattedName = report?.reportName;
-    }
-
-    if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report, policy);
-    }
-
-    if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy);
-    }
-
-    if (isInvoiceReport(report)) {
-        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
-    }
-
-    if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
-    }
-
-    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
-        formattedName += ` (${Localize.translateLocal('common.archived')})`;
-    }
-
-    if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true, personalDetails);
-    }
-
-    if (formattedName) {
-        if (reportID) {
-            reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
-        }
-
-        return formatReportLastMessageText(formattedName);
-    }
-
-    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
+function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
     const participantsWithoutCurrentUser: number[] = [];
     Object.keys(report?.participants ?? {}).forEach((accountID) => {
         const accID = Number(accountID);
@@ -3989,14 +3929,7 @@ function getRootLevelReportName({
         }
     });
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
-    formattedName = participantNames;
-
-    if (reportID) {
-        reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
-    }
-
-    return formattedName;
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
 }
 
 /**
@@ -4020,6 +3953,7 @@ function getReportName(
         }
     }
 
+    let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
     if (parentReportActionParam) {
         parentReportAction = parentReportActionParam;
@@ -4061,7 +3995,7 @@ function getReportName(
 
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            let formattedName = getTransactionReportName(parentReportAction);
+            formattedName = getTransactionReportName(parentReportAction);
             if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
@@ -4108,11 +4042,62 @@ function getReportName(
         return reportActionMessage;
     }
 
+    if (isClosedExpenseReportWithNoExpenses(report)) {
+        return Localize.translateLocal('parentReportAction.deletedReport');
+    }
+
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
 
-    return getRootLevelReportName({report, policy, personalDetails, invoiceReceiverPolicy});
+    if (isGroupChat(report)) {
+        return getGroupChatName(undefined, true, report) ?? '';
+    }
+
+    if (isChatRoom(report) || isTaskReport(report)) {
+        formattedName = report?.reportName;
+    }
+
+    if (isPolicyExpenseChat(report)) {
+        formattedName = getPolicyExpenseChatName(report, policy);
+    }
+
+    if (isMoneyRequestReport(report)) {
+        formattedName = getMoneyRequestReportName(report, policy);
+    }
+
+    if (isInvoiceReport(report)) {
+        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+    }
+
+    if (isInvoiceRoom(report)) {
+        formattedName = getInvoicesChatName(report, invoiceReceiverPolicy);
+    }
+
+    if (isArchivedRoom(report, getReportNameValuePairs(report?.reportID))) {
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
+    }
+
+    if (isSelfDM(report)) {
+        formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true, personalDetails);
+    }
+
+    if (formattedName) {
+        if (reportID) {
+            reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
+        }
+
+        return formatReportLastMessageText(formattedName);
+    }
+
+    // Not a room or PolicyExpenseChat, generate title from first 5 other participants
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+
+    if (reportID) {
+        reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
+    }
+
+    return formattedName;
 }
 
 /**
@@ -8516,6 +8501,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
@@ -8603,6 +8589,7 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
+    getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
@@ -8611,7 +8598,6 @@ export {
     getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
-    getRootLevelReportName,
     getReportName,
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
