@@ -8,6 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -289,6 +290,7 @@ function MoneyRequestAmountInput(
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
+            autoGrowExtraSpace={variables.iouAmountTextSize}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
