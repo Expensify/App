@@ -1453,7 +1453,6 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
     const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-    console.log(lastRead);
     return adminReport ?? lastRead;
 }
 
