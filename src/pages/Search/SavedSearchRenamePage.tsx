@@ -25,6 +25,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAdvancedFilters();
+        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: q,
@@ -49,7 +50,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
             testID={SavedSearchRenamePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('common.rename')} />
             <FormProvider
