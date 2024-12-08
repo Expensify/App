@@ -191,6 +191,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to prevent checkbox from being disabled */
+    shouldPreventDisableCheckboxIfDisabled?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -312,6 +315,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    isLongPressDisabled?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

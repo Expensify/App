@@ -36,6 +36,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
+    isLongPressDisabled = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -79,6 +80,7 @@ function BaseListItem<TItem extends ListItem>({
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}
+                isLongPressDisabled={isLongPressDisabled}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action

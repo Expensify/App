@@ -148,6 +148,11 @@ type PressableProps = RNPressableProps &
          * e.g., show disabled cursor when disabled
          */
         interactive?: boolean;
+
+        /**
+         * Whether long press action should be disabled, ignore isDisabled if passed.
+         */
+        isLongPressDisabled?: boolean;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;

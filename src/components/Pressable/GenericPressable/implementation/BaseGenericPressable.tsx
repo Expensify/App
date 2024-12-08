@@ -37,6 +37,7 @@ function GenericPressable(
         accessible = true,
         fullDisabled = false,
         interactive = true,
+        isLongPressDisabled,
         ...rest
     }: PressableProps,
     ref: PressableRef,
@@ -82,7 +83,7 @@ function GenericPressable(
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {
-            if (isDisabled) {
+            if (isLongPressDisabled ?? isDisabled) {
                 return;
             }
             if (!onLongPress) {
@@ -97,7 +98,7 @@ function GenericPressable(
             }
             onLongPress(event);
         },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnLongPress, isLongPressDisabled, onLongPress, nextFocusRef, ref, isDisabled],
     );
 
     const onPressHandler = useCallback(
@@ -150,7 +151,7 @@ function GenericPressable(
             disabled={fullDisabled}
             // eslint-disable-next-line react-compiler/react-compiler
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
-            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
+            onLongPress={!(isLongPressDisabled ?? isDisabled) && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
