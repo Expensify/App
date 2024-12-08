@@ -4,7 +4,6 @@ import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
@@ -35,7 +34,7 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     resetOptions: () => {},
 });
 
-const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) =>
+const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDetail: PersonalDetails) =>
     prevPersonalDetail?.firstName === personalDetail?.firstName &&
     prevPersonalDetail?.lastName === personalDetail?.lastName &&
     prevPersonalDetail?.login === personalDetail?.login &&
@@ -49,7 +48,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     });
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
 
     /**
@@ -83,6 +82,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return;
         }
 
+        if (!personalDetails) {
+            return;
+        }
+
         const newReportOptions: Array<{
             replaceIndex: number;
             newReportOption: OptionsListUtils.SearchOption<Report>;
@@ -90,9 +93,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
         Object.keys(personalDetails).forEach((accountID) => {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
-            const personalDetail = personalDetails?.[accountID];
+            const personalDetail = personalDetails[accountID];
 
-            if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
+            if (prevPersonalDetail && personalDetail && isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
             }
 
