@@ -1,14 +1,14 @@
-import type {Animated} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 type TextInputLabelProps = {
     /** Label */
     label: string;
 
     /** Label vertical translate */
-    labelTranslateY: Animated.Value;
+    labelTranslateY: SharedValue<number>;
 
     /** Label scale */
-    labelScale: Animated.Value;
+    labelScale: SharedValue<number>;
 
     /** For attribute for label */
     for?: string;
