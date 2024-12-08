@@ -112,21 +112,8 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
-type CategorizeTrackedExpenseInformation = {
-    policyID: string;
-    transactionID: string;
-    moneyRequestPreviewReportActionID: string;
-    moneyRequestReportID: string;
-    moneyRequestCreatedReportActionID: string;
-    actionableWhisperReportActionID: string;
-    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
-    linkedTrackedExpenseReportID: string;
-    transactionThreadReportID: string;
-    reportPreviewReportActionID: string;
-    onyxData: OnyxData | undefined;
-    isDraftPolicy: boolean;
-};
 type CategorizeTrackedExpenseTransactionParams = {
+    transactionID: string;
     amount: number;
     currency: string;
     comment: string;
@@ -138,6 +125,27 @@ type CategorizeTrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
+};
+type CategorizeTrackedExpensePolicyParams = {
+    policyID: string;
+    isDraftPolicy: boolean;
+};
+type CategorizeTrackedExpenseReportInformation = {
+    moneyRequestPreviewReportActionID: string;
+    moneyRequestReportID: string;
+    moneyRequestCreatedReportActionID: string;
+    actionableWhisperReportActionID: string;
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID: string;
+    transactionThreadReportID: string;
+    reportPreviewReportActionID: string;
+};
+type CategorizeTrackedExpenseParams = {
+    onyxData: OnyxData | undefined;
+    reportInformation: CategorizeTrackedExpenseReportInformation;
+    transactionParams: CategorizeTrackedExpenseTransactionParams;
+    policyParams: CategorizeTrackedExpensePolicyParams;
+    createdWorkspaceParams?: CreateWorkspaceParams;
 };
 type SendInvoiceInformation = {
     senderWorkspaceID: string;
@@ -3478,23 +3486,12 @@ function convertTrackedExpenseToRequest(
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function categorizeTrackedExpense(
-    trackedExpenseInformation: CategorizeTrackedExpenseInformation,
-    transactionParams: CategorizeTrackedExpenseTransactionParams,
-    createdWorkspaceParams?: CreateWorkspaceParams,
-) {
-    const {
-        transactionID,
-        moneyRequestReportID,
-        actionableWhisperReportActionID,
-        linkedTrackedExpenseReportAction,
-        linkedTrackedExpenseReportID,
-        transactionThreadReportID,
-        onyxData,
-        isDraftPolicy,
-    } = trackedExpenseInformation;
+function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
-
+    const {transactionID} = transactionParams;
+    const {isDraftPolicy} = policyParams;
+    const {actionableWhisperReportActionID, moneyRequestReportID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID} = reportInformation;
     const {
         optimisticData: moveTransactionOptimisticData,
         successData: moveTransactionSuccessData,
@@ -3514,7 +3511,9 @@ function categorizeTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
     const parameters = {
-        ...trackedExpenseInformation,
+        onyxData,
+        ...reportInformation,
+        ...policyParams,
         ...transactionParams,
         modifiedExpenseReportActionID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
@@ -3889,22 +3888,8 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const trackedExpenseInformation = {
-                policyID: chatReport?.policyID ?? '-1',
-                transactionID: transaction?.transactionID ?? '-1',
-                moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
-                moneyRequestReportID: iouReport?.reportID ?? '-1',
-                moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
-                actionableWhisperReportActionID,
-                linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID,
-                transactionThreadReportID: transactionThreadReportID ?? '-1',
-                reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
-                onyxData,
-                isDraftPolicy,
-            } as CategorizeTrackedExpenseInformation;
-
             const transactionParams = {
+                transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
                 comment,
@@ -3917,7 +3902,29 @@ function trackExpense(
                 billable,
                 receipt: trackedReceipt,
             } as CategorizeTrackedExpenseTransactionParams;
-            categorizeTrackedExpense(trackedExpenseInformation, transactionParams, createdWorkspaceParams);
+            const policyParams = {
+                policyID: chatReport?.policyID ?? '-1',
+                isDraftPolicy,
+            };
+            const reportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
+                moneyRequestReportID: iouReport?.reportID ?? '-1',
+                moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID: transactionThreadReportID ?? '-1',
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
+            };
+            const trackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
+                createdWorkspaceParams,
+            } as CategorizeTrackedExpenseParams;
+
+            categorizeTrackedExpense(trackedExpenseParams);
             break;
         }
         case CONST.IOU.ACTION.SHARE: {
