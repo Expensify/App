@@ -1,6 +1,5 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +21,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing}: Pro
             heading={translate('workspace.upgrade.completed.headline')}
             description={
                 isCategorizing ? (
-                    <Text>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>
+                    translate('workspace.upgrade.completed.categorizeMessage')
                 ) : (
                     <>
                         {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
