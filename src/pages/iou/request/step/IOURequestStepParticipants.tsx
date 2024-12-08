@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -131,11 +132,14 @@ function IOURequestStepParticipants({
             transactionID,
             selectedReportID.current || reportID,
         );
-        if (isCategorizing) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
+
+        const route = isCategorizing
+            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            : iouConfirmationPageRoute;
+
+        KeyboardUtils.dismiss().then(() => {
+            Navigation.navigate(route);
+        });
     }, [iouType, transactionID, transaction, reportID, action, participants]);
 
     const navigateBack = useCallback(() => {
@@ -153,7 +157,9 @@ function IOURequestStepParticipants({
         IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-        Navigation.navigate(iouConfirmationPageRoute);
+        KeyboardUtils.dismiss().then(() => {
+            Navigation.navigate(iouConfirmationPageRoute);
+        });
     };
 
     useEffect(() => {
