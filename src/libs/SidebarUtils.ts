@@ -461,11 +461,11 @@ function getOptionData({
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
             result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
-            result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceNameUpdatedMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
-            result.alternateText = ReportUtils.getWorkspaceCurrencyUpdateMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceCurrencyUpdateMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
-            result.alternateText = ReportUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
             result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan');
         } else if (
@@ -474,7 +474,7 @@ function getOptionData({
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
             ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
         ) {
-            result.alternateText = ReportUtils.getWorkspaceCategoryUpdateMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
@@ -492,7 +492,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-            result.alternateText = ReportUtils.getWorkspaceUpdateFieldMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceUpdateFieldMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = ReportActionsUtils.getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {

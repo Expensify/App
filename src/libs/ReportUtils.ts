@@ -4821,104 +4821,6 @@ function getRejectedReportMessage() {
     return Localize.translateLocal('iou.rejectedThisReport');
 }
 
-function getWorkspaceNameUpdatedMessage(action: ReportAction) {
-    const {oldName, newName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : ReportActionsUtils.getReportActionText(action);
-    return message;
-}
-
-function getWorkspaceCurrencyUpdateMessage(action: ReportAction) {
-    const {oldCurrency, newCurrency} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
-    const message =
-        oldCurrency && newCurrency ? Localize.translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency}) : ReportActionsUtils.getReportActionText(action);
-    return message;
-}
-
-type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
-type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
-
-const getAutoReportingFrequencyDisplayNames = (): AutoReportingFrequencyDisplayNames => ({
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translateLocal('workflowsPage.frequencies.monthly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translateLocal('workflowsPage.frequencies.daily'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translateLocal('workflowsPage.frequencies.weekly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translateLocal('workflowsPage.frequencies.twiceAMonth'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translateLocal('workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translateLocal('workflowsPage.frequencies.manually'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: Localize.translateLocal('workflowsPage.frequencies.instant'),
-});
-
-function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
-    const {oldFrequency, newFrequency} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
-
-    if (!oldFrequency || !newFrequency) {
-        return ReportActionsUtils.getReportActionText(action);
-    }
-
-    const frequencyDisplayNames = getAutoReportingFrequencyDisplayNames();
-    const oldFrequencyTranslation = frequencyDisplayNames[oldFrequency]?.toLowerCase();
-    const newFrequencyTranslation = frequencyDisplayNames[newFrequency]?.toLowerCase();
-
-    if (!oldFrequencyTranslation || !newFrequencyTranslation) {
-        return ReportActionsUtils.getReportActionText(action);
-    }
-
-    return Localize.translateLocal('workspaceActions.updatedWorkspaceFrequencyAction', {
-        oldFrequency: oldFrequencyTranslation,
-        newFrequency: newFrequencyTranslation,
-    });
-}
-
-function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue, newName, oldName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
-        return Localize.translateLocal('workspaceActions.addCategory', {
-            categoryName,
-        });
-    }
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
-        return Localize.translateLocal('workspaceActions.deleteCategory', {
-            categoryName,
-        });
-    }
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
-        return Localize.translateLocal('workspaceActions.updateCategory', {
-            oldValue: !!oldValue,
-            categoryName,
-        });
-    }
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
-        return Localize.translateLocal('workspaceActions.setCategoryName', {
-            oldName,
-            newName,
-        });
-    }
-
-    return ReportActionsUtils.getReportActionText(action);
-}
-
-function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
-    const {newValue, oldValue, updatedField} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
-
-    if (
-        updatedField &&
-        updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE &&
-        CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] &&
-        CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES]
-    ) {
-        return Localize.translateLocal('workspaceActions.updateApprovalMode', {
-            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
-            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
-            fieldName: updatedField,
-        });
-    }
-
-    return ReportActionsUtils.getReportActionText(action);
-}
-
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -8671,9 +8573,6 @@ export {
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
-    getWorkspaceNameUpdatedMessage,
-    getWorkspaceCurrencyUpdateMessage,
-    getWorkspaceFrequencyUpdateMessage,
     getReportAutomaticallySubmittedMessage,
     getIOUSubmittedMessage,
     getIcons,
@@ -8896,9 +8795,7 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
-    getWorkspaceCategoryUpdateMessage,
     getReportMetadata,
-    getWorkspaceUpdateFieldMessage,
 };
 
 export type {
