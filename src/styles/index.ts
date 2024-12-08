@@ -1668,6 +1668,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarListContainer: {
+            ...spacing.pt3,
             paddingBottom: 4,
         },
 
