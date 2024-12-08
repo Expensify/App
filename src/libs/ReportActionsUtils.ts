@@ -1710,8 +1710,8 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const newRole = originalMessage?.newValue ?? '';
-    const oldRole = originalMessage?.oldValue ?? '';
+    const newRole = typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '';
+    const oldRole = typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : '';
     return Localize.translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 

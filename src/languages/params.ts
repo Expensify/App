@@ -286,11 +286,13 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
-type UpdatedWorkspaceCurrencyParams = {oldCurrency: string; newCurrency: string};
+type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
-type UpdatedWorkspaceCategoryParams = {categoryName: string; oldValue?: boolean};
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedWorkspaceFrequencyParams = {oldFrequency: string; newFrequency: string};
+type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
+
+type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -782,7 +784,8 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
-    UpdatedWorkspaceCurrencyParams,
-    UpdatedWorkspaceFrequencyParams,
-    UpdatedWorkspaceCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryNameParams,
 };

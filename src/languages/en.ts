@@ -166,11 +166,12 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFrequencyParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatedWorkspaceCategoryParams,
-    UpdatedWorkspaceCurrencyParams,
-    UpdatedWorkspaceFrequencyParams,
     UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -4451,9 +4452,10 @@ const translations = {
         },
     },
     workspaceActions: {
-        addCategory: ({categoryName}: UpdatedWorkspaceCategoryParams) => `added the category "${categoryName}"`,
-        deleteCategory: ({categoryName}: UpdatedWorkspaceCategoryParams) => `removed the category "${categoryName}"`,
-        updateCategory: ({oldValue, categoryName}: UpdatedWorkspaceCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
@@ -4469,10 +4471,10 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedWorkspaceCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedWorkspaceFrequencyParams) =>
-            `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `updated the default currency from ${oldCurrency} to ${newCurrency}`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `updated the auto-reporting frequency from "${oldFrequency}" to "${newFrequency}"`,
         updatedWorkspaceCorporatePlan: 'upgraded this workspace to the Control plan',
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the Approval Mode from "${oldValue}" to "${newValue}".`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

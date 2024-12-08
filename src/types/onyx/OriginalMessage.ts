@@ -325,10 +325,10 @@ type OriginalMessagePolicyChangeLog = {
     lastModified?: string;
 
     /** New Value */
-    newValue?: boolean;
+    newValue?: boolean | string;
 
     /** Old Value */
-    oldValue?: boolean;
+    oldValue?: boolean | string;
 
     /** Old currency of the workspace */
     oldCurrency?: string;
@@ -347,6 +347,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Name of the added category */
     categoryName?: string;
+
+    /** Name of the updated field */
+    updatedField?: string;
 };
 
 /** Model of `join policy changelog` report action */

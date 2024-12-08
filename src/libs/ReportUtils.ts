@@ -4869,28 +4869,45 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {categoryName, oldValue, newName, oldName} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
-    if (!categoryName) {
-        return ReportActionsUtils.getReportActionText(action);
-    }
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         return Localize.translateLocal('workspaceActions.addCategory', {
             categoryName,
         });
     }
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
         return Localize.translateLocal('workspaceActions.deleteCategory', {
             categoryName,
         });
     }
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         return Localize.translateLocal('workspaceActions.updateCategory', {
             oldValue: !!oldValue,
             categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
+        return Localize.translateLocal('workspaceActions.setCategoryName', {
+            oldName,
+            newName,
+        });
+    }
+
+    return ReportActionsUtils.getReportActionText(action);
+}
+
+function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
+    const {newValue, oldValue, updatedField} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && typeof newValue === 'string' && typeof oldValue === 'string') {
+        return Localize.translateLocal('workspaceActions.updateApprovalMode', {
+            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] ?? oldValue,
+            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] ?? newValue,
+            fieldName: updatedField,
         });
     }
 
@@ -8876,6 +8893,7 @@ export {
     hasInvoiceReports,
     getWorkspaceCategoryUpdateMessage,
     getReportMetadata,
+    getWorkspaceUpdateFieldMessage,
 };
 
 export type {
