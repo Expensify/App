@@ -9,7 +9,6 @@ type ExpoImageSource = ImageSource | number | ImageSource[];
 
 type ImageObjectPosition = ValueOf<typeof CONST.IMAGE_OBJECT_POSITION>;
 
-
 type ImageOnLoadEvent = {
     nativeEvent: {
         width: number;

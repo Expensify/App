@@ -66,7 +66,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         session = value ?? {};
-        console.log(`@51888 Session received new session `, value);
         if (!session.creationDate) {
             session.creationDate = new Date().getTime();
         }

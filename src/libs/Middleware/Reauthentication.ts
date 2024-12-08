@@ -59,7 +59,6 @@ function resetReauthentication(): void {
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
     response
         .then((data) => {
-            console.log(`@51888 middleware reauthenttication has reauthenticate`);
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
                 Log.hmmm('Undefined data in Reauthentication');
@@ -98,7 +97,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                     MainQueue.replay(request);
                     return data;
                 }
-
                 return reauthenticate(request?.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
@@ -135,7 +133,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             return data;
         })
         .catch((error) => {
-            console.log(`@51888 middleware reauthenttication failed reauthenticate`);
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
             if (isFromSequentialQueue) {
                 throw error;
