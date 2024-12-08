@@ -24,12 +24,10 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        if (value && !isSameSession(value)) {
-            if (!active) {
-                return;
-            }
-            deactivate();
+        if (!value || isSameSession(value) || !active) {
+            return;
         }
+        deactivate();
     },
 });
 
