@@ -97,7 +97,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                     MainQueue.replay(request);
                     return data;
                 }
-
                 return reauthenticate(request?.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
