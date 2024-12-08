@@ -187,7 +187,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         selector: hasSeenTourSelector,
     });
 
-    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON);
+    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
+        isCreateMenuActive,
+    );
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -440,6 +443,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             renderTooltipContent: renderProductTrainingTooltip,
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
             onHideTooltip: hideProductTrainingTooltip,
+            shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
 
         if (quickAction?.action) {
@@ -451,7 +455,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                    shouldRenderTooltip: shouldShowProductTrainingTooltip,
                 },
             ];
         }
@@ -470,7 +473,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
-                    shouldRenderTooltip: shouldShowProductTrainingTooltip,
                 },
             ];
         }

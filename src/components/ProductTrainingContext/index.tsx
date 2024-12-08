@@ -170,7 +170,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName?: ProductTrainingTooltipName) => {
+const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldRegister = true) => {
     const context = useContext(ProductTrainingContext);
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -179,26 +179,20 @@ const useProductTrainingContext = (tooltipName?: ProductTrainingTooltipName) => 
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip, renderProductTrainingTooltip} = context;
 
     useEffect(() => {
-        if (tooltipName) {
+        if (shouldRegister) {
             registerTooltip(tooltipName);
             return () => {
                 unregisterTooltip(tooltipName);
             };
         }
         return undefined;
-    }, [tooltipName, registerTooltip, unregisterTooltip]);
+    }, [tooltipName, registerTooltip, unregisterTooltip, shouldRegister]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        if (!tooltipName) {
-            return false;
-        }
         return shouldRenderTooltip(tooltipName);
     }, [tooltipName, shouldRenderTooltip]);
 
     const hideProductTrainingTooltip = useCallback(() => {
-        if (!tooltipName) {
-            return;
-        }
         const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
         tooltip.onHideTooltip();
         unregisterTooltip(tooltipName);

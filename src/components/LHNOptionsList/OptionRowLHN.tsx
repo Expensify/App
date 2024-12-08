@@ -47,9 +47,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
-    const shouldShowGetStartedTooltip = ReportUtils.isConciergeChatReport(report);
-    const tooltipToRender = shouldShowGetStartedTooltip && isScreenFocused ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : undefined;
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender);
+    const shouldShowGetStartedTooltip = ReportUtils.isConciergeChatReport(report) && isScreenFocused;
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR,
+        shouldShowGetStartedTooltip,
+    );
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
