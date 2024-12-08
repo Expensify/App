@@ -331,9 +331,7 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
     | 'avatarUrl'
     | 'invoiceReceiver'
-> & {
-    isOptimisticReport: true;
-};
+>;
 
 type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
     Pick<
@@ -3055,7 +3053,8 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
 
     let payerOrApproverName;
     if (isExpenseReport(report)) {
-        payerOrApproverName = getPolicyName(report, false, policy);
+        const parentReport = getParentReport(report);
+        payerOrApproverName = getPolicyName(parentReport ?? report, false, policy);
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
@@ -3566,7 +3565,8 @@ function getReportPreviewMessage(
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
 
-    const policyName = getPolicyName(report, false, policy);
+    const parentReport = getParentReport(report);
+    const policyName = getPolicyName(parentReport ?? report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
@@ -4206,7 +4206,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1', backTo));
 }
 
-function navigateBackAfterDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
+function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
     if (!backRoute) {
         return;
     }
@@ -5525,7 +5525,6 @@ function buildOptimisticChatReport(
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     const optimisticChatReport: OptimisticChatReport = {
-        isOptimisticReport: true,
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
@@ -6032,6 +6031,12 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${announceChatData.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -6054,6 +6059,12 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${announceChatData.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -6227,7 +6238,6 @@ function buildTransactionThread(
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
         return {
             ...existingTransactionThreadReport,
-            isOptimisticReport: true,
             parentReportActionID: reportAction?.reportActionID,
             parentReportID: moneyRequestReport?.reportID,
             reportName: getTransactionReportName(reportAction),
@@ -7458,6 +7468,7 @@ function getTaskAssigneeChatOnyxData(
     let optimisticAssigneeAddComment: OptimisticReportAction | undefined;
     // Set if this is a new chat that needs to be created for the assignee
     let optimisticChatCreatedReportAction: OptimisticCreatedReportAction | undefined;
+    const assigneeChatReportMetadata = getReportMetadata(assigneeChatReportID);
     const currentTime = DateUtils.getDBTime();
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -7465,7 +7476,7 @@ function getTaskAssigneeChatOnyxData(
 
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
-    if (assigneeChatReport?.isOptimisticReport && assigneeChatReport.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+    if (assigneeChatReportMetadata?.isOptimisticReport && assigneeChatReport?.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
         optimisticData.push(
             {
@@ -7484,18 +7495,26 @@ function getTaskAssigneeChatOnyxData(
             },
         );
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                    // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
+                    participants: {[assigneeAccountID]: null},
                 },
-                isOptimisticReport: false,
-                // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
-                participants: {[assigneeAccountID]: null},
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${assigneeChatReportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         failureData.push(
             {
@@ -8525,6 +8544,10 @@ function hasInvoiceReports() {
     return allReports.some((report) => isInvoiceReport(report));
 }
 
+function getReportMetadata(reportID?: string) {
+    return allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -8790,7 +8813,7 @@ export {
     canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
-    navigateBackAfterDeleteTransaction,
+    navigateBackOnDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
@@ -8852,6 +8875,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getWorkspaceCategoryUpdateMessage,
+    getReportMetadata,
 };
 
 export type {
