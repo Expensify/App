@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import * as Localize from '@libs/Localize';
+import type Navigation from '@libs/Navigation/Navigation';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';
@@ -17,8 +18,15 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
 
-jest.mock('@react-navigation/native');
-
+// jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: jest.fn(),
+        triggerTransitionEnd: jest.fn(),
+    };
+});
 TestHelper.setupApp();
 
 async function navigateToWorkspaceSwitcher(): Promise<void> {
@@ -61,8 +69,9 @@ describe('WorkspaceSwitcherPage', () => {
         PusherHelper.teardown();
     });
 
-    it('triggers press on workspaces list item and checks SVG checkmark visibility', async () => {
+    it('navigates away when a workspace is selected and `isFocused` is true', async () => {
         await signInAndGetApp();
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
 
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
             [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: LHNTestUtils.getFakePolicy('1', 'Workspace A'),
@@ -72,22 +81,27 @@ describe('WorkspaceSwitcherPage', () => {
 
         await navigateToWorkspaceSwitcher();
 
-        const workspaceRow = screen.getByLabelText('Workspace A');
-        expect(workspaceRow).toBeOnTheScreen();
+        // When `isFocused` is true, pressing on a workpace should navigate and the option should be removed from the screen
+        const workspaceRowB = screen.getByLabelText('Workspace B');
+        fireEvent.press(workspaceRowB);
+        expect(screen.queryByLabelText('Workspace B')).toBeNull();
+    });
 
-        fireEvent.press(workspaceRow);
-        await act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    it('does not navigate away when a workspace is selected and `isFocused` is false', async () => {
+        await signInAndGetApp();
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
+
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+            [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: LHNTestUtils.getFakePolicy('1', 'Workspace A'),
+            [`${ONYXKEYS.COLLECTION.POLICY}2` as const]: LHNTestUtils.getFakePolicy('2', 'Workspace B'),
+            [`${ONYXKEYS.COLLECTION.POLICY}3` as const]: LHNTestUtils.getFakePolicy('3', 'Workspace C'),
         });
-        await waitForBatchedUpdatesWithAct();
 
         await navigateToWorkspaceSwitcher();
-        const workspaceRowA = screen.getByLabelText('Workspace A');
-        expect(workspaceRowA).toBeOnTheScreen();
 
+        // When `isFocused` is false, pressing on a workpace should not navigate and the option should remain on the screen
         const workspaceRowB = screen.getByLabelText('Workspace B');
-        expect(workspaceRowB).toBeOnTheScreen();
         fireEvent.press(workspaceRowB);
-        // fireEvent.press(workspaceRowB);
+        expect(screen.getByLabelText('Workspace B')).toBeOnTheScreen();
     });
 });
