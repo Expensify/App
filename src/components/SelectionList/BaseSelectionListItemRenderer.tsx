@@ -1,6 +1,7 @@
 import React from 'react';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
+import * as Browser from '@libs/Browser';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
 import type {BaseListItemProps, BaseSelectionListProps, ListItem} from './types';
 
@@ -72,9 +73,13 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
-                onFocus={() => {
+                onFocus={(event) => {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
+                        return;
+                    }
+                    // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                    if (Browser.isMobileChrome() && event?.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex);
