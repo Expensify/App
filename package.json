@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.72-0",
+  "version": "9.0.72-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -276,7 +276,7 @@
     "electron-builder": "25.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "^2.0.73",
+    "eslint-config-expensify": "^2.0.74",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-jest": "^28.6.0",

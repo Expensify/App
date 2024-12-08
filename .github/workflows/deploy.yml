@@ -167,7 +167,10 @@ jobs:
       run:
         working-directory: Mobile-Expensify/react-native
     steps:
-      - name: Checkout
+      - name: Checkout App repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
           repository: 'Expensify/Mobile-Expensify'
@@ -241,7 +244,7 @@ jobs:
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' ../Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -257,11 +260,23 @@ jobs:
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
+      - name: Get current Android rollout percentage
+        id: getAndroidRolloutPercentage
+        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+        with:
+          GOOGLE_KEY_FILE: Mobile-Expensify/react-native/android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # Complete the previous version rollout
-          bundle exec fastlane android complete_hybrid_rollout
+          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
+              echo "Completing the previous version rollout"
+              bundle exec fastlane android complete_hybrid_rollout
+          else
+              echo "Skipping the completion of the previous version rollout"
+          fi
           
           # Submit the new version for review and slow rollout when it's approved
           bundle exec fastlane android upload_google_play_production_hybrid_rollout

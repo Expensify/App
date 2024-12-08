@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -60,34 +61,36 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
         >
-            <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
-            <MenuItem
-                avatarID={personalDetails?.accountID ?? -1}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                icon={avatarIcon}
-                title={displayName}
-                description={formattedLogin}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                title={translate('delegate.role', {role})}
-                description={translate('delegate.accessLevel')}
-                helperText={translate('delegate.roleDescription', {role})}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
-                shouldShowRightIcon
-            />
-            <DelegateMagicCodeModal
-                login={login}
-                role={role}
-                onClose={() => {
-                    if (!showValidateActionModal) {
-                        setIsValidateCodeActionModalVisible(false);
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                }}
-                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-            />
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
+                <MenuItem
+                    avatarID={personalDetails?.accountID ?? -1}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    icon={avatarIcon}
+                    title={displayName}
+                    description={formattedLogin}
+                    interactive={false}
+                />
+                <MenuItemWithTopDescription
+                    title={translate('delegate.role', {role})}
+                    description={translate('delegate.accessLevel')}
+                    helperText={translate('delegate.roleDescription', {role})}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
+                    shouldShowRightIcon
+                />
+                <DelegateMagicCodeModal
+                    login={login}
+                    role={role}
+                    onClose={() => {
+                        if (!showValidateActionModal) {
+                            setIsValidateCodeActionModalVisible(false);
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_SECURITY);
+                    }}
+                    isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                />
+            </DelegateNoAccessWrapper>
         </HeaderPageLayout>
     );
 }

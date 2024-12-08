@@ -5,7 +5,6 @@ type UseHtmlPaste = (
     textInputRef: MutableRefObject<(HTMLTextAreaElement & TextInput) | TextInput | null>,
     preHtmlPasteCallback?: (event: ClipboardEvent) => boolean,
     removeListenerOnScreenBlur?: boolean,
-    isMarkdownEnabled?: boolean,
 ) => void;
 
 export default UseHtmlPaste;

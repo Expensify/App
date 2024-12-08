@@ -107,7 +107,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id ?? '-1')?.reportID ?? '-1';
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
-
+    const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
         () => ({
@@ -446,20 +446,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                        <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                        <OfflineWithFeedback pendingAction={reportPendingAction}>
-                            <MenuItem
-                                title={getReportName(currentUserPolicyExpenseChat)}
-                                description={translate('workspace.common.workspace')}
-                                icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                shouldShowSubscriptAvatar
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                    {isPolicyExpenseChatEnabled && (
+                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
+                            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                                <MenuItem
+                                    title={getReportName(currentUserPolicyExpenseChat)}
+                                    description={translate('workspace.common.workspace')}
+                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
+                                    shouldShowRightIcon
+                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
+                                    shouldShowSubscriptAvatar
+                                />
+                            </OfflineWithFeedback>
+                        </View>
+                    )}
                 </ScrollView>
                 <ConfirmModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}

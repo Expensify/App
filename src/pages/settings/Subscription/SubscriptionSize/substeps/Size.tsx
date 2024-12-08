@@ -24,7 +24,7 @@ function Size({onNext}: SizeProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>({
+    const updateValuesAndNavigateToNextStep = useStepFormSubmit<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>({
         formId: ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM,
         fieldIds: [INPUT_IDS.SUBSCRIPTION_SIZE],
         onNext,
@@ -55,7 +55,7 @@ function Size({onNext}: SizeProps) {
         <FormProvider
             formID={ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM}
             submitButtonText={translate('common.next')}
-            onSubmit={handleSubmit}
+            onSubmit={updateValuesAndNavigateToNextStep}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline
