@@ -472,7 +472,7 @@ function ReportPreview({
             return;
         }
 
-        thumbsUpScale.set(withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
+        thumbsUpScale.set(withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DELAY}));
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {
