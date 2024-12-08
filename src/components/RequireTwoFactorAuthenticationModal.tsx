@@ -45,20 +45,12 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                     onClose={onCancel}
                     isVisible={isVisible}
                     type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-                    innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
+                    innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
                     shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                     animationOutTiming={500}
                 >
                     <View style={safeAreaPaddingBottomStyle}>
-                        <View
-                            style={[
-                                styles.mh3,
-                                styles.br3,
-                                styles.cardSectionIllustration,
-                                styles.alignItemsCenter,
-                                StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor),
-                            ]}
-                        >
+                        <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
                             <Lottie
                                 source={LottieAnimations.Safe}
                                 style={styles.h100}
