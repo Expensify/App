@@ -47,8 +47,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
-    const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-    const shouldShowGetStartedTooltip = isFirstTimeNewExpensifyUser && ReportUtils.isConciergeChatReport(report);
+    const shouldShowGetStartedTooltip = ReportUtils.isConciergeChatReport(report);
     const tooltipToRender = shouldShowGetStartedTooltip && isScreenFocused ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : undefined;
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender);
     const {translate} = useLocalize();
@@ -167,9 +166,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 onPress={(event) => {
                                     Performance.markStart(CONST.TIMING.OPEN_REPORT);
                                     Timing.start(CONST.TIMING.OPEN_REPORT);
-                                    if (shouldShowProductTrainingTooltip) {
-                                        hideProductTrainingTooltip();
-                                    }
 
                                     event?.preventDefault();
                                     // Enable Composer to focus on clicking the same chat after opening the context menu.

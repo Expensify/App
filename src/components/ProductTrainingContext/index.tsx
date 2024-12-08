@@ -178,7 +178,6 @@ const useProductTrainingContext = (tooltipName?: ProductTrainingTooltipName) => 
 
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip, renderProductTrainingTooltip} = context;
 
-    // Register this tooltip when the component mounts and unregister when it unmounts
     useEffect(() => {
         if (tooltipName) {
             registerTooltip(tooltipName);
