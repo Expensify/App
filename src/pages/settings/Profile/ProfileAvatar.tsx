@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -17,7 +18,7 @@ type ProfileAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof 
 function ProfileAvatar({route}: ProfileAvatarProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
@@ -35,7 +36,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     return (
         <AttachmentModal
             defaultOpen
-            headerTitle={displayName}
+            headerTitle={LocalePhoneNumber.formatPhoneNumber(displayName)}
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
                 setTimeout(() => {
