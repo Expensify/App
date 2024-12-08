@@ -7050,6 +7050,7 @@ function canIOUBePaid(
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: SearchPolicy,
+    shouldCheckApprovedState = true,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -7104,7 +7105,7 @@ function canIOUBePaid(
         reimbursableSpend !== 0 &&
         !isChatReportArchived &&
         !isAutoReimbursable &&
-        !shouldBeApproved &&
+        (!shouldBeApproved || !shouldCheckApprovedState) &&
         !isPayAtEndExpenseReport
     );
 }
