@@ -23,7 +23,6 @@ import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralP
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -208,8 +207,8 @@ function ReportActionsList({
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const reportLastReadTime = useMemo(() => {
-        return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
-    }, [report.reportID, report.lastReadTime]);
+        return report.lastReadTime ?? '';
+    }, [report.lastReadTime]);
 
     // In a one-expense report, the report actions from the expense report and transaction thread are combined.
     // If the transaction thread has a newer action, it will show an unread marker if we compare it with the expense report lastReadTime.

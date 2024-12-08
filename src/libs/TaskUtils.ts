@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -8,7 +7,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
-import * as ReportConnection from './ReportConnection';
+import * as ReportUtils from './ReportUtils';
 
 /**
  * Check if the active route belongs to task edit flow.
@@ -46,7 +45,7 @@ function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '
 }
 
 function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
-    const taskReport = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const taskReport = ReportUtils.getReport(taskReportID);
     return getTaskTitleFromReport(taskReport, fallbackTitle);
 }
 
