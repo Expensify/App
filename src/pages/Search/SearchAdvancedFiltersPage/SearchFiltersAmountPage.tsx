@@ -18,6 +18,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchAdvancedFiltersForm';
 
+import TextInputMask from "react-native-text-input-mask";
+import { MaskedTextInput } from 'react-native-advanced-input-mask';
+
 function SearchFiltersAmountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,7 +76,11 @@ function SearchFiltersAmountPage() {
                 </View>
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={MaskedTextInput}
+                        style={{width: '100%', height: 50, backgroundColor: 'white', color: 'black'}}
+                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                        mask="[99999999][.][99]"
+                        customNotations={[{character: '.', characterSet: '.', isOptional: true}]}
                         inputID={INPUT_IDS.LESS_THAN}
                         name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThanFormattedAmount}
