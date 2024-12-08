@@ -25,10 +25,10 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (value && !isSameSession(value)) {
-            if (active) {
-                deactivate();
+            if (!active) {
                 return;
             }
+            deactivate();
         }
     },
 });
@@ -60,10 +60,10 @@ function activate(session: Session) {
 }
 
 function tryReauthenticate() {
-    if (!isOffline && active) {
-        reauthenticate();
+    if (isOffline || !active) {
         return;
     }
+    reauthenticate();
 }
 
 export default activate;
