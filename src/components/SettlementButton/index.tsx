@@ -7,7 +7,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PaymentUtils from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -61,6 +63,7 @@ function SettlementButton({
     onlyShowPayElsewhere,
     wrapperStyle,
 }: SettlementButtonProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -73,6 +76,9 @@ function SettlementButton({
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
+
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
@@ -125,6 +131,15 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
+            const formattedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, fundList, styles);
+            const getPaymentSubitems = (payAsBusiness: boolean) =>
+                formattedPaymentMethods.map((formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.VBBA, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                }));
+
             if (ReportUtils.isIndividualInvoiceRoom(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
@@ -132,6 +147,17 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
+                        ...getPaymentSubitems(false),
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            icon: Expensicons.Bank,
+                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        },
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addDebitOrCreditCard'),
+                            icon: Expensicons.CreditCard,
+                            onSelected: () => Navigation.navigate(addDebitCardRoute),
+                        },
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: Expensicons.Cash,
@@ -148,6 +174,17 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
+                    ...getPaymentSubitems(true),
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        icon: Expensicons.Bank,
+                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                    },
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
+                        icon: Expensicons.CreditCard,
+                        onSelected: () => Navigation.navigate(addDebitCardRoute),
+                    },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
