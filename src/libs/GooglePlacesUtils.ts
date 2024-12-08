@@ -1,8 +1,6 @@
 type AddressComponent = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    long_name: string;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    short_name: string;
+    longText: string;
+    shortText: string;
     types: string[];
 };
 type FieldsToExtract = Record<string, Exclude<keyof AddressComponent, 'types'>>;
@@ -11,8 +9,8 @@ type FieldsToExtract = Record<string, Exclude<keyof AddressComponent, 'types'>>;
  * Finds an address component by type, and returns the value associated to key. Each address component object
  * inside the addressComponents array has the following structure:
  * [{
- *   long_name: "New York",
- *   short_name: "New York",
+ *   longText: "New York",
+ *   shortText: "New York",
  *   types: [ "locality", "political" ]
  * }]
  */
