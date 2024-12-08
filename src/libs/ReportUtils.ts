@@ -4903,10 +4903,15 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
 function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     const {newValue, oldValue, updatedField} = ReportActionsUtils.getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
-    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && typeof newValue === 'string' && typeof oldValue === 'string') {
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE &&
+        CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] &&
+        CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES]
+    ) {
         return Localize.translateLocal('workspaceActions.updateApprovalMode', {
-            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] ?? oldValue,
-            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] ?? newValue,
+            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
+            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
             fieldName: updatedField,
         });
     }
