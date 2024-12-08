@@ -12,7 +12,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
-    let displayActivityIndicator = false;
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
@@ -71,11 +70,12 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             return session.creationDate;
         }
         return undefined;
-    }, [session]);
+    }, [session, isAuthTokenRequired, isAcceptedSession]);
     useEffect(() => {
         if (isAuthTokenRequired) {
             previousSessionAge.current = validSessionAge;
         }
+        return;
     });
 
     /**
@@ -103,7 +103,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 if (session) {
                     activateReauthenticator(session);
                 }
-                displayActivityIndicator = true;
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return undefined;
             }
@@ -120,7 +119,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      */
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
-    return displayActivityIndicator ? (
+    return source === undefined ? (
         <FullScreenLoadingIndicator />
     ) : (
         <BaseImage

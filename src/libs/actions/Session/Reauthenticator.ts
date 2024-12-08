@@ -29,6 +29,7 @@ Onyx.connect({
                 deactivate();
             }
         }
+        return;
     },
 });
 
@@ -61,8 +62,8 @@ function activate(session: Session) {
 function tryReauthenticate() {
     if (!isOffline && active) {
         reauthenticate();
-        return;
     }
+    return;
 }
 
 export {activate};
