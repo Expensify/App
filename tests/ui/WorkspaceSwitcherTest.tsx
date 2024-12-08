@@ -82,7 +82,7 @@ describe('WorkspaceSwitcherPage', () => {
 
         const workspaceRowB = screen.getByLabelText('Workspace B');
         fireEvent.press(workspaceRowB);
-        expect(screen.queryByLabelText('Workspace B')).toBeNull();
+        expect(screen.queryByTestId('WorkspaceSwitcherPage')).toBeNull();
     });
 
     it('does not navigate away when a workspace is selected and `isFocused` is false', async () => {
