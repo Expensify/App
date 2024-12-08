@@ -74,6 +74,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     useEffect(() => {
         if (isAuthTokenRequired) {
             previousSessionAge.current = validSessionAge;
+            return;
         }
     });
 
