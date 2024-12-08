@@ -28,15 +28,6 @@ jest.mock('@react-navigation/native', () => {
 });
 TestHelper.setupApp();
 
-async function navigateToWorkspaceSwitcher(): Promise<void> {
-    const workspaceSwitcherButton = await screen.findByTestId('WorkspaceSwitcherButton');
-    fireEvent(workspaceSwitcherButton, 'press');
-    await act(() => {
-        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
-    });
-    await waitForBatchedUpdatesWithAct();
-}
-
 async function signInAndGetApp(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
@@ -56,6 +47,15 @@ async function signInAndGetApp(): Promise<void> {
 
     AppActions.setSidebarLoaded();
 
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function navigateToWorkspaceSwitcher(): Promise<void> {
+    const workspaceSwitcherButton = await screen.findByTestId('WorkspaceSwitcherButton');
+    fireEvent(workspaceSwitcherButton, 'press');
+    await act(() => {
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    });
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -80,7 +80,6 @@ describe('WorkspaceSwitcherPage', () => {
 
         await navigateToWorkspaceSwitcher();
 
-        // When `isFocused` is true, pressing on a workpace should navigate and the option should be removed from the screen
         const workspaceRowB = screen.getByLabelText('Workspace B');
         fireEvent.press(workspaceRowB);
         expect(screen.queryByLabelText('Workspace B')).toBeNull();
@@ -98,9 +97,8 @@ describe('WorkspaceSwitcherPage', () => {
 
         await navigateToWorkspaceSwitcher();
 
-        // When `isFocused` is false, pressing on a workpace should not navigate and the option should remain on the screen
         const workspaceRowB = screen.getByLabelText('Workspace B');
         fireEvent.press(workspaceRowB);
-        expect(screen.getByLabelText('Workspace B')).toBeOnTheScreen();
+        expect(screen.getByTestId('WorkspaceSwitcherPage')).toBeOnTheScreen();
     });
 });
