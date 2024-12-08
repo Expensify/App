@@ -2,7 +2,7 @@ import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams, RemoveDelegateParams} from '@libs/API/parameters';
+import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -330,7 +330,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         },
     ];
 
-    const parameters: AddDelegateParams = {delegate: email, validateCode, role};
+    const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
@@ -402,7 +402,7 @@ function removeDelegate(email: string) {
         },
     ];
 
-    const parameters: RemoveDelegateParams = {delegate: email};
+    const parameters: RemoveDelegateParams = {delegateEmail: email};
 
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
@@ -519,7 +519,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const parameters = {delegate: email, validateCode, role};
+    const parameters: UpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
