@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
+index e26d677..597be5a 100644
+--- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
++++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
+@@ -175,6 +175,13 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+   }
+ 
+   componentDidMount(): void {
++    // Fix KeyboardAvoidingView not aware of the keyboard closing after it is unmounted.
++    // Remove this patch after the upstream fix https://github.com/facebook/react-native/commit/08bd8ac47da60121225e7b281bbf566e2c5a291e is released.
++    if (!Keyboard.isVisible()) {
++      this._keyboardEvent = null;
++      this._setBottom(0);
++    }
++
+     if (Platform.OS === 'ios') {
+       this._subscriptions = [
+         Keyboard.addListener('keyboardWillChangeFrame', this._onKeyboardChange),
