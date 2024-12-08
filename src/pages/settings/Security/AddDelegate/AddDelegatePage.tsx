@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -130,24 +131,26 @@ function AddDelegatePage() {
             includeSafeAreaPaddingBottom={false}
             testID={AddDelegatePage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('delegate.addCopilot')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <SelectionList
-                    sections={areOptionsInitialized ? sections : []}
-                    ListItem={UserListItem}
-                    onSelectRow={onSelectRow}
-                    shouldSingleExecuteRowSelect
-                    onChangeText={setSearchValue}
-                    textInputValue={searchValue}
-                    headerMessage={headerMessage}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    showLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('delegate.addCopilot')}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
-            </View>
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={areOptionsInitialized ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={onSelectRow}
+                        shouldSingleExecuteRowSelect
+                        onChangeText={setSearchValue}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={!areOptionsInitialized}
+                        isLoadingNewOptions={!!isSearchingForReports}
+                    />
+                </View>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
