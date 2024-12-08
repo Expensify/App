@@ -45,7 +45,7 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
-                Welcome.dismissProductTraining(CONST.MIGRTED_USER_WELCOME_MODAL);
+                Welcome.dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}

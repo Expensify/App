@@ -6374,7 +6374,7 @@ const CONST = {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
 
-    MIGRTED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+    MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
