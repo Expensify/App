@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvi
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
+import {ReportActionHighlightContext} from '@components/ReportActionHighlightProvider';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
@@ -209,12 +210,13 @@ function ReportActionItem({
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-
-    const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
-    );
-
+    const {linkedReportActionID: contextlinkedReportActionID, setHighlight} = useContext(ReportActionHighlightContext);
+    useLayoutEffect(() => {
+        if (!isReportActionLinked) {
+            return;
+        }
+        setHighlight(linkedReportActionID);
+    }, [isReportActionLinked, linkedReportActionID, setHighlight]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
     const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
@@ -956,6 +958,8 @@ function ReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
+    const highlightedBackgroundColorStyles =
+        isReportActionLinked && contextlinkedReportActionID === action.reportActionID ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -975,7 +979,7 @@ function ReportActionItem({
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
             >
                 {(hovered) => (
-                    <View style={highlightedBackgroundColorIfNeeded}>
+                    <View style={highlightedBackgroundColorStyles}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         {shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu
