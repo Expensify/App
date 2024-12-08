@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
-import {activate as activateReauthenticator} from '@libs/actions/Session/Reauthenticator';
+import activateReauthenticator from '@libs/actions/Session/Reauthenticator';
 import CONST from '@src/CONST';
 import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
@@ -75,7 +75,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         if (isAuthTokenRequired) {
             previousSessionAge.current = validSessionAge;
         }
-        return;
     });
 
     /**
