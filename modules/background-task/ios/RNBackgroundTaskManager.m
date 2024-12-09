@@ -1,13 +1,5 @@
-//
-//  RNBackgroundTaskManager.m
-//  Pods
-//
-//  Created by Szymon Rybczak on 27/11/2024.
-//
-
 #import <BackgroundTasks/BackgroundTasks.h>
 
-// RNBackgroundTaskManager.m
 @implementation RNBackgroundTaskManager : NSObject  {
     NSMutableDictionary<NSString *, void (^)(BGTask * _Nonnull)> *_handlers;
 }
