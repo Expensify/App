@@ -27,7 +27,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
     const incorporationTypeListOptions = useMemo(() => {
-        if (!corpayOnboardingFields) {
+        if (!corpayOnboardingFields?.picklists.ApplicantType) {
             return {};
         }
 
@@ -38,7 +38,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     }, [corpayOnboardingFields]);
 
     const natureOfBusinessListOptions = useMemo(() => {
-        if (!corpayOnboardingFields) {
+        if (!corpayOnboardingFields?.picklists.NatureOfBusiness) {
             return {};
         }
 
