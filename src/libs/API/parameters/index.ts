@@ -354,3 +354,4 @@ export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankA
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
+export type {default as DismissProductTrainingParams} from './DismissProductTraining';
