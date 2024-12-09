@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {annualVolumeRange, applicantType, natureOfBusiness} from '@pages/ReimbursementAccount/NonUSD/BusinessInfo/mockedCorpayLists';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,12 +46,22 @@ function Confirmation({onNext, onMove}: SubStepProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const paymentVolume = useMemo(() => displayStringValue(annualVolumeRange, values[ANNUAL_VOLUME]), [values]);
-    const businessCategory = useMemo(() => displayStringValue(natureOfBusiness, values[BUSINESS_CATEGORY]), [values]);
-    const businessType = useMemo(() => displayStringValue(applicantType, values[APPLICANT_TYPE_ID]), [values]);
+    const paymentVolume = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], values[ANNUAL_VOLUME]),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange, values],
+    );
+    const businessCategory = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.NatureOfBusiness ?? [], values[BUSINESS_CATEGORY]),
+        [corpayOnboardingFields?.picklists.NatureOfBusiness, values],
+    );
+    const businessType = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]),
+        [corpayOnboardingFields?.picklists.ApplicantType, values],
+    );
 
     return (
         <SafeAreaConsumer>

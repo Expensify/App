@@ -27,7 +27,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
     const annualVolumeRangeListOptions = useMemo(() => {
-        if (!corpayOnboardingFields) {
+        if (!corpayOnboardingFields?.picklists.AnnualVolumeRange) {
             return {};
         }
 
