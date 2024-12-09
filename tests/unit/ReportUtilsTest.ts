@@ -1344,6 +1344,35 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return false when the report is an archived report and we are in the focus mode', async () => {
+            const archivedReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: true,
+            };
+            const currentReportId = '3';
+            const isInFocusMode = true;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            expect(
+                ReportUtils.shouldReportBeInOptionList({
+                    report: archivedReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    policies: {},
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                }),
+            ).toBeFalsy();
+        });
+
         it('should return true when the report is selfDM', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),

@@ -316,6 +316,16 @@ describe('SidebarLinksData', () => {
             // And the text is bold
             const displayNameText = getDisplayNames()?.at(0);
             expect(displayNameText).toHaveStyle({fontWeight: FontUtils.fontWeight.bold});
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the report is marked as read
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                lastReadTime: report.lastVisibleActionCreated,
+            });
+
+            // The repot should not disapper in the sidebar because we are in the focus mode
+            expect(getOptionRows()).toHaveLength(0);
         });
     });
 
