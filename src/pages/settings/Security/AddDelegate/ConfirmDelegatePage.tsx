@@ -79,6 +79,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal
+                    shouldHandleNavigationBack
                     login={login}
                     role={role}
                     onClose={() => {

@@ -81,12 +81,12 @@ function getMessageLine(prefix: string, messageFragments: string[]): string {
     return messageFragments.reduce((acc, value, index) => {
         if (index === messageFragments.length - 1) {
             if (messageFragments.length === 1) {
-                return `${acc} ${value}.`;
+                return `${acc} ${value}`;
             }
             if (messageFragments.length === 2) {
-                return `${acc} ${Localize.translateLocal('common.and')} ${value}.`;
+                return `${acc} ${Localize.translateLocal('common.and')} ${value}`;
             }
-            return `${acc}, ${Localize.translateLocal('common.and')} ${value}.`;
+            return `${acc}, ${Localize.translateLocal('common.and')} ${value}`;
         }
         if (index === 0) {
             return `${acc} ${value}`;

@@ -1387,8 +1387,8 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
+    WORKSPACE_CONFIRMATION: 'workspace/confirmation',
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
-
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
