@@ -1,10 +1,13 @@
+import {differenceInHours} from 'date-fns/differenceInHours';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ConnectionChanges} from '@src/types/onyx/Network';
 
 let isPoorConnectionSimulated: boolean | undefined;
+let connectionChanges: ConnectionChanges | undefined;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
@@ -20,8 +23,32 @@ Onyx.connect({
         }
 
         isPoorConnectionSimulated = !!value.shouldSimulatePoorConnection;
+        connectionChanges = value.connectionChanges;
     },
 });
+
+function trackConnectionChanges() {
+    if (!connectionChanges?.startTime) {
+        Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {startTime: new Date().getTime(), amount: 1}});
+        return;
+    }
+
+    const diffInHours = differenceInHours(new Date(), connectionChanges.startTime);
+    const newAmount = (connectionChanges.amount ?? 0) + 1;
+
+    if (diffInHours < 1) {
+        Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: newAmount}});
+        return;
+    }
+
+    Log.info(
+        `[NetworkConnection] Connection has changed ${newAmount} time(s) for the last ${diffInHours} hour(s). Poor connection simulation is turned ${
+            isPoorConnectionSimulated ? 'on' : 'off'
+        }`,
+    );
+
+    Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {startTime: new Date().getTime(), amount: 0}});
+}
 
 function setIsOffline(isOffline: boolean, reason = '') {
     if (reason) {
@@ -30,6 +57,9 @@ function setIsOffline(isOffline: boolean, reason = '') {
         textToLog += ` because: ${reason}`;
         Log.info(textToLog);
     }
+
+    trackConnectionChanges();
+
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 
