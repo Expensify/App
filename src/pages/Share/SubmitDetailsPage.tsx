@@ -55,10 +55,11 @@ function SubmitDetailsPage({
     const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
     const report = onyxReport ?? optimisticReport;
 
-    const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
     const participants = selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? -1;
-        return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+        const result = participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+        return result;
     });
 
     console.log('participants', participants);
