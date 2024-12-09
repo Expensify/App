@@ -1062,7 +1062,7 @@ describe('DebugUtils', () => {
                 ...MOCK_REPORTS,
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}2` as const]: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: false,
+                    private_isArchived: DateUtils.getDBTime(),
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
