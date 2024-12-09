@@ -506,7 +506,7 @@ function setupNewDotAfterTransitionFromOldDot(route: Route, hybridAppSettings: s
             return Promise.resolve();
         }
 
-        return Onyx.clear();
+        return redirectToSignIn();
     };
 
     const resetDidUserLoginDuringSessionIfNeeded = () => {
