@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import * as InputUtils from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
@@ -103,6 +104,7 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const didScrollToEndRef = useRef(false);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -427,7 +429,19 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                                <View
+                                    onLayout={() => {
+                                        if (didScrollToEndRef.current || !input.current) {
+                                            return;
+                                        }
+                                        InputUtils.scrollToRight(input.current);
+                                        didScrollToEndRef.current = true;
+                                    }}
+                                >
+                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                </View>
+                            )}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
