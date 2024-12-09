@@ -30,8 +30,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
-    const type = queryJSON.type;
-    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -59,7 +58,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             searchTriggeredRef.current = true;
         }
 
-        // Reset the ref when transactions (or report actions in chat search type) are updated
+        // Reset the ref when transactions or report actions in chat search type are updated
         return () => {
             searchTriggeredRef.current = false;
         };
