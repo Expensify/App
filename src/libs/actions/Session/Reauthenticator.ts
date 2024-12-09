@@ -71,7 +71,6 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
-    console.log('@51888 Authenticator request reauthentication');
     reauthenticate();
 }
 
