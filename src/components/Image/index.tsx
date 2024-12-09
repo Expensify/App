@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
