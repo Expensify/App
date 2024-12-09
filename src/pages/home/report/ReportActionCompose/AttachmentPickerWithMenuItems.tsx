@@ -118,7 +118,7 @@ function AttachmentPickerWithMenuItems({
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const {canUseCombinedTrackSubmit} = usePermissions();
@@ -370,7 +370,6 @@ function AttachmentPickerWithMenuItems({
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                             onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                            delegatorEmail={delegatorEmail ?? ''}
                         />
                     </>
                 );

@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
@@ -28,10 +27,12 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as Report from '@libs/actions/Report';
 import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +42,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-type ReportParticipantsPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
+type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
@@ -379,6 +380,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         }
                     }}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal

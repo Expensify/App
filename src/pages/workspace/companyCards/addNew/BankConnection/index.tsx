@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -8,7 +8,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import getCurrentUrl from '@navigation/currentUrl';
@@ -18,7 +20,6 @@ import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnect
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
@@ -34,9 +35,8 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const bankName: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | undefined = addNewCard?.data?.selectedBank;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const bankKey = Object.keys(CONST.COMPANY_CARDS.BANKS).find((value) => CONST.COMPANY_CARDS.BANKS?.[value as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
-    const feedName = bankKey && bankKey !== CONST.COMPANY_CARDS.BANKS.OTHER ? CONST.COMPANY_CARD.FEED_BANK_NAME?.[bankKey as keyof typeof CONST.COMPANY_CARD.FEED_BANK_NAME] : undefined;
-    const connectedBank = feedName ? cardFeeds?.settings?.oAuthAccountDetails?.[feedName] : undefined;
+    const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
+    const {isNewFeedConnected, newFeed} = useMemo(() => CardUtils.checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
 
     const currentUrl = getCurrentUrl();
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
@@ -73,9 +73,11 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         if (!url) {
             return;
         }
-        if (feedName && connectedBank && !isEmptyObject(connectedBank)) {
+        if (isNewFeedConnected) {
             customWindow?.close();
-            Card.updateSelectedFeed(feedName, policyID ?? '-1');
+            if (newFeed) {
+                Card.updateSelectedFeed(newFeed, policyID ?? '-1');
+            }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID ?? '-1'));
             return;
         }
@@ -84,12 +86,12 @@ function BankConnection({policyID}: BankConnectionStepProps) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [connectedBank, feedName, isBankConnectionCompleteRoute, policyID, url]);
+    }, [isNewFeedConnected, newFeed, isBankConnectionCompleteRoute, policyID, url]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <BlockingView

@@ -10,6 +10,7 @@ import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -794,7 +795,7 @@ describe('ReportUtils', () => {
 
         it('should disable on thread-disabled actions', () => {
             const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable thread on split expense actions', () => {
@@ -806,7 +807,7 @@ describe('ReportUtils', () => {
                 [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 NumberUtils.rand64(),
             ) as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on deleted and not-thread actions', () => {
@@ -822,10 +823,10 @@ describe('ReportUtils', () => {
                 ],
                 childVisibleActionCount: 1,
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeFalsy();
 
             reportAction.childVisibleActionCount = 0;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on archived reports and not-thread actions', () => {
@@ -838,10 +839,10 @@ describe('ReportUtils', () => {
                     const reportAction = {
                         childVisibleActionCount: 1,
                     } as ReportAction;
-                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeFalsy();
 
                     reportAction.childVisibleActionCount = 0;
-                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
                 });
         });
 
@@ -852,14 +853,14 @@ describe('ReportUtils', () => {
                     whisperedTo: [123456],
                 },
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
             const reportAction = {
                 childReportID: reportID,
             } as ReportAction;
-            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
         });
     });
 
@@ -1068,6 +1069,117 @@ describe('ReportUtils', () => {
         it('should return undefined when no report is found', () => {
             const report = ReportUtils.getChatByParticipants([currentUserAccountID, userAccountID2], undefined);
             expect(report).toEqual(undefined);
+        });
+    });
+
+    describe('getGroupChatName tests', () => {
+        afterEach(() => Onyx.clear());
+
+        const fourParticipants = [
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+        ];
+
+        const eightParticipants = [
+            {accountID: 1, login: 'email1@test.com'},
+            {accountID: 2, login: 'email2@test.com'},
+            {accountID: 3, login: 'email3@test.com'},
+            {accountID: 4, login: 'email4@test.com'},
+            {accountID: 5, login: 'email5@test.com'},
+            {accountID: 6, login: 'email6@test.com'},
+            {accountID: 7, login: 'email7@test.com'},
+            {accountID: 8, login: 'email8@test.com'},
+        ];
+
+        describe('When participantAccountIDs is passed to getGroupChatName', () => {
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+            });
+
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
+            });
+
+            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two');
+            });
+
+            it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
+
+            it('Should use correct display name for participants', async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                expect(ReportUtils.getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+            });
+        });
+
+        describe('When participantAccountIDs is not passed to getGroupChatName and report ID is passed', () => {
+            it('Should show report name if count <= 5 and shouldApplyLimit is false', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, true, report)).toEqual("Let's talk");
+            });
+
+            it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: "Let's talk",
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual("Let's talk");
+            });
+
+            it('Should show participant names if report name is not available', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
         });
     });
 });
