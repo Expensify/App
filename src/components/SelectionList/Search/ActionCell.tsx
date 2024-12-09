@@ -25,6 +25,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
+    shouldUseSuccessStyle?: boolean;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -35,6 +36,7 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
+    shouldUseSuccessStyle = true,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -99,7 +101,7 @@ function ActionCell({
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
             isLoading={isLoading}
-            success
+            success={shouldUseSuccessStyle}
             isDisabled={isOffline}
         />
     );
