@@ -28,45 +28,6 @@ RCT_EXPORT_MODULE()
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
-//
-//- (void)handleAppDidFinishLaunching:(NSNotification *)notification {
-//    NSLog(@"[ReactNativeBackgroundTask] handleAppDidFinishLaunching");
-//    
-//    if (@available(iOS 13.0, *)) {
-//        // Ensure we're on the main thread
-//        if ([NSThread isMainThread]) {
-//            [self registerBackgroundTask];
-//        } else {
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [self registerBackgroundTask];
-//            });
-//        }
-//    }
-//}
-
-- (void)handleBackgroundTask:(BGTask *)task API_AVAILABLE(ios(13.0)) {
-    // Create a task request to schedule the next background task
-    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
-    request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // Schedule for 15 minutes from now
-    
-    NSError *error = nil;
-    if (![[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error]) {
-        NSLog(@"[ReactNativeBackgroundTask] Failed to schedule next task: %@", error);
-    }
-
-    // Execute all registered tasks
-    [_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
-        NSLog(@"[ReactNativeBackgroundTask] Executing background task: %@", taskName);
-        executor(@[@{
-            @"taskName": taskName,
-            @"type": @"background",
-            @"identifier": task.identifier
-        }]);
-    }];
-
-    // Mark the task as complete
-    [task setTaskCompletedWithSuccess:YES];
-}
 
 RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
                   taskExecutor:(RCTResponseSenderBlock)taskExecutor
@@ -85,39 +46,49 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
         return;
     }
     
+    NSArray *backgroundIdentifiers = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BGTaskSchedulerPermittedIdentifiers"];
+    
+    
+    if (!backgroundIdentifiers || ![backgroundIdentifiers isKindOfClass:[NSArray class]]) {
+        NSLog(@"[ReactNativeBackgroundTask] No background identifiers found or invalid format");
+        reject(@"ERR_INVALID_TASK_SCHEDULER_IDENTIFIER", @"No background identifiers found or invalid format", nil);
+        return;
+    }
+    
     NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
     
-    [[RNBackgroundTaskManager shared] setHandlerForIdentifier:@"com.szymonrybczak.chat" completion:^(BGTask * _Nonnull task) {
-        NSLog(@"[ReactNativeBackgroundTask] Executing background task's handler");
-        
-        // Execute all registered tasks
-        [_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
-            NSLog(@"[ReactNativeBackgroundTask] Executing task: %@", taskName);
-            executor(@[@{
-                @"taskName": taskName,
-                @"type": @"background",
-                @"identifier": task.identifier
-            }]);
+    for (NSString *identifier in backgroundIdentifiers) {
+        [[RNBackgroundTaskManager shared] setHandlerForIdentifier:identifier completion:^(BGTask * _Nonnull task) {
+            NSLog(@"[ReactNativeBackgroundTask] Executing background task's handler");
+            
+            // Execute all registered tasks
+            [self->_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
+                NSLog(@"[ReactNativeBackgroundTask] Executing task: %@", taskName);
+                executor(@[@{
+                    @"taskName": taskName,
+                    @"type": @"background",
+                    @"identifier": task.identifier
+                }]);
+            }];
+            
+            [task setTaskCompletedWithSuccess:YES];
         }];
         
-        [task setTaskCompletedWithSuccess:YES];
-    }];
-    
-    
-    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:@"com.szymonrybczak.chat"];
-            // Set earliest begin date to some time in the future
-            request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
-            
-            NSError *error = nil;
-            if ([[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error]) {
-                resolve(@YES);
-            } else {
-                reject(@"error", error.localizedDescription, error);
-            }
-
-    
+        
+        BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:identifier];
+        
+        // Set earliest begin date to some time in the future
+        request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
+        
+        NSError *error = nil;
+        if ([[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error]) {
+            resolve(@YES);
+        } else {
+            reject(@"error", error.localizedDescription, error);
+        }
+    }
+        
     _taskExecutors[taskName] = taskExecutor;
-//    resolve(nil);
 }
 
 // Don't compile this code when we build for the old architecture.
