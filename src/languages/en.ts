@@ -2477,7 +2477,7 @@ const translations = {
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
-            profile: 'Profile',
+            profile: 'Workspace profile',
             perDiem: 'Per diem',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
