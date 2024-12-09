@@ -939,11 +939,11 @@ function orderReportOptionsWithSearch(
     searchValue: string,
     {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderOptionsConfig = {},
 ) {
+    const orderedByDate = orderReportOptions(options);
+
     return lodashOrderBy(
-        options,
+        orderedByDate,
         [
-            // Archived reports should always be at the bottom:
-            sortComparatorReportOptionByArchivedStatus,
             // Sorting by kind:
             (option) => {
                 if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
@@ -962,7 +962,7 @@ function orderReportOptionsWithSearch(
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
-                if (option.isChatRoom) {
+                if (!!option.isChatRoom || option.private_isArchived) {
                     return 3;
                 }
                 if (!option.login) {
@@ -975,13 +975,11 @@ function orderReportOptionsWithSearch(
                 // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
                 return 0;
             },
-            // Within the same kind, sort by the last visible action created date
-            sortComparatorReportOptionByDate,
             // For Submit Expense flow, prioritize the most recent expense reports and then policy expense chats (without expense requests)
             preferRecentExpenseReports ? (option) => option?.lastIOUCreationDate ?? '' : '',
             preferRecentExpenseReports ? (option) => option?.isPolicyExpenseChat : 0,
         ],
-        ['asc', 'asc', 'desc', 'desc', 'desc'],
+        ['asc', 'desc', 'desc'],
     );
 }
 
@@ -995,7 +993,11 @@ function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
     return options.lastVisibleActionCreated ?? '';
 }
 
-function orderOptions(options: Pick<Options, 'recentReports' | 'personalDetails'>, searchValue?: string, config?: OrderOptionsConfig) {
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
+
+function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderOptionsConfig) {
     let orderedReportOptions: ReportUtils.OptionData[];
     if (searchValue) {
         orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
@@ -1750,26 +1752,21 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     }
 
     const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
+    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
 
     // sortByReportTypeInSearch option will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
-        filteredReports = filteredReports.concat(personalDetailsWithoutDMs);
+        filteredReports = filteredReports.concat(orderedPersonalDetails);
         filteredPersonalDetails = [];
     } else {
-        filteredPersonalDetails = personalDetailsWithoutDMs;
+        filteredPersonalDetails = orderedPersonalDetails;
     }
 
-    const orderedOptions = orderOptions(
-        {
-            recentReports: filteredReports,
-            personalDetails: filteredPersonalDetails,
-        },
-        searchInputValue,
-        config,
-    );
+    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
 
     return {
-        ...orderedOptions,
+        recentReports: orderedReports,
+        personalDetails: filteredPersonalDetails,
         userToInvite: filterResult.userToInvite,
         currentUserOption: filterResult.currentUserOption,
     };
