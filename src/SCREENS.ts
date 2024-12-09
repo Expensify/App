@@ -33,6 +33,11 @@ const SCREENS = {
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
+        ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
+        ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
+        ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
+        ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
@@ -151,6 +156,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -311,6 +317,8 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
+
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -586,6 +594,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
