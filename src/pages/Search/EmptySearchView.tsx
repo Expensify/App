@@ -136,42 +136,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-
-                return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
-                    title: translate('search.searchResults.emptyExpenseResults.title'),
-                    subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
-                    buttons: [
-                        ...(!hasSeenTour
-                            ? [
-                                  {
-                                      buttonText: translate('emptySearchView.takeATour'),
-                                      buttonAction: () => {
-                                          Link.openExternalLink(navatticURL);
-                                          Welcome.setSelfTourViewed();
-                                          Task.completeTask(viewTourTaskReport);
-                                      },
-                                  },
-                              ]
-                            : []),
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () =>
-                                interceptAnonymousUser(() => {
-                                    if (shouldRedirectToExpensifyClassic) {
-                                        setModalVisible(true);
-                                        return;
-                                    }
-                                    IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
-                                }),
-                            success: true,
-                        },
-                    ],
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-                };
-            case CONST.SEARCH.DATA_TYPES.CHAT:
-
                 if (!hasResults) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
@@ -209,7 +173,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 }
             // We want to display the default nothing to show message if there is any filter applied.
             // eslint-disable-next-line no-fallthrough
-        
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 if (!hasResults) {
                     return {
@@ -269,12 +232,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         hasSeenTour,
         ctaErrorMessage,
         navatticURL,
-
         shouldRedirectToExpensifyClassic,
         hasResults,
-
         viewTourTaskReport,
-        shouldRedirectToExpensifyClassic,
     ]);
 
     return (

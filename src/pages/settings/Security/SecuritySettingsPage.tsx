@@ -66,10 +66,7 @@ function SecuritySettingsPage() {
     });
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
-
-
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -215,12 +212,10 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: Expensicons.Pencil,
             onPress: () => {
-
                 if (isActingAsDelegate) {
                     Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
-
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
                 setSelectedDelegate(undefined);
@@ -230,25 +225,17 @@ function SecuritySettingsPage() {
         {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
-
-            onPress: () =>
-
             onPress: () => {
                 if (isActingAsDelegate) {
                     Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
-
                 Modal.close(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
-
-                }),
-                  
                 });
             },
-
         },
     ];
 
