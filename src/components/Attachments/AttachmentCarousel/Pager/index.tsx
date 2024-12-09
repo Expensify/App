@@ -11,11 +11,16 @@ import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselIte
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldUseNewPager from '@libs/shouldUseNewPager';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
 const WrappedPagerView = createNativeWrapper(PagerView) as React.ForwardRefExoticComponent<
-    PagerViewProps & NativeViewGestureHandlerProps & React.RefAttributes<React.Component<PagerViewProps>>
+    PagerViewProps &
+        NativeViewGestureHandlerProps &
+        React.RefAttributes<React.Component<PagerViewProps>> & {
+            useNext: boolean;
+        }
 >;
 const AnimatedPagerView = Animated.createAnimatedComponent(WrappedPagerView);
 
@@ -53,12 +58,11 @@ function AttachmentCarouselPager(
     {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
-    const {handleTap, handleScaleChange} = useCarouselContextEvents(setShouldShowArrows);
+    const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
     const isPagerScrolling = useSharedValue(false);
-    const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialPage);
     const [activePageIndex, setActivePageIndex] = useState(initialPage);
@@ -66,14 +70,13 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        activePage.value = e.position;
-        isPagerScrolling.value = e.offset !== 0;
+        activePage.set(e.position);
+        isPagerScrolling.set(e.offset !== 0);
     }, []);
 
     useEffect(() => {
         setActivePageIndex(initialPage);
-        activePage.value = initialPage;
+        activePage.set(initialPage);
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
@@ -83,8 +86,7 @@ function AttachmentCarouselPager(
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
         [],
     );
 
@@ -103,7 +105,7 @@ function AttachmentCarouselPager(
     );
 
     const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: isScrollEnabled.value,
+        scrollEnabled: isScrollEnabled.get(),
     }));
 
     /**
@@ -122,7 +124,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={extractItemKey(item, index)}
+            key={extractItemKey(item)}
             style={styles.flex1}
         >
             <CarouselItem
@@ -141,6 +143,7 @@ function AttachmentCarouselPager(
                 onPageSelected={onPageSelected}
                 style={styles.flex1}
                 initialPage={initialPage}
+                useNext={shouldUseNewPager()}
                 animatedProps={animatedProps}
                 ref={pagerRef}
             >

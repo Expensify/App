@@ -6,6 +6,34 @@ import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
 
+function getCircularReplacer() {
+    const ancestors: unknown[] = [];
+    return function (this: unknown, key: string, value: unknown): unknown {
+        if (typeof value !== 'object' || value === null) {
+            return value;
+        }
+        // `this` is the object that value is contained in, i.e the direct parent
+        // eslint-disable-next-line no-invalid-this
+        while (ancestors.length > 0 && ancestors.at(-1) !== this) {
+            ancestors.pop();
+        }
+        if (ancestors.includes(value)) {
+            return '[Circular]';
+        }
+        ancestors.push(value);
+        return value;
+    };
+}
+
+function serializeLoggingData<T extends Record<string, unknown> | undefined>(logData: T): T | null {
+    try {
+        return JSON.parse(JSON.stringify(logData, getCircularReplacer())) as T;
+    } catch (error) {
+        Log.hmmm('Failed to serialize log data', {error});
+        return null;
+    }
+}
+
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
@@ -38,7 +66,10 @@ function logRequestDetails(message: string, request: Request, response?: Respons
      * requests because they contain sensitive information.
      */
     if (request.command !== 'AuthenticatePusher') {
-        extraData.request = request;
+        extraData.request = {
+            ...request,
+            data: serializeLoggingData(request.data),
+        };
         extraData.response = response;
     }
 
@@ -125,3 +156,5 @@ const Logging: Middleware = (response, request) => {
 };
 
 export default Logging;
+
+export {serializeLoggingData};

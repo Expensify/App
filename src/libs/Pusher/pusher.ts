@@ -156,7 +156,7 @@ function getChannel(channelName: string): Channel | undefined {
 /**
  * Binds an event callback to a channel + eventName
  */
-function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
+function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
     if (!eventName || !channel) {
         return;
     }
@@ -232,7 +232,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
  */
 function subscribe<EventName extends PusherEventName>(
     channelName: string,
-    eventName: EventName,
+    eventName?: EventName,
     eventCallback: (data: EventData<EventName>) => void = () => {},
     onResubscribe = () => {},
 ): Promise<void> {

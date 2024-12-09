@@ -4,15 +4,13 @@ description: Set up tax rates in your Expensify workspace
 ---
 <div id="new-expensify" markdown="1">
 
-# Track taxes
-
 Each Expensify workspace can be configured with one or more tax rates. Once tax rates are enabled on your workspace, all expenses will have a default tax rate applied based on the currency, and employees will be able to select the correct tax rate for each expense.
 
-Tax rates are only available on the Control plan. Collect plan users will need to upgrade to Control for access to tag tax codes.
+Tax rates are available on Collect and Control plans.
 
-## Enable taxes on a workspace
+# Enable taxes on a workspace
 
-Tax codes are only available on the Control plan. Taxes can be enabled on any workspace where the default currency is not USD. Please note that if you have a direct accounting integration, tax rates will be managed through the integration and cannot be manually enabled or disabled using the instructions below.
+Taxes can be enabled on any workspace where the default currency is not USD. Please note that if you have a direct accounting integration, tax rates will be managed through the integration and cannot be manually enabled or disabled using the instructions below.
 
 **To enable taxes on your workspace:**
 
@@ -24,7 +22,7 @@ Tax codes are only available on the Control plan. Taxes can be enabled on any wo
 
 After toggling on taxes, you will see a new **Taxes** option in the left menu.
 
-## Manually add, delete, or edit tax rates
+# Manually add, delete, or edit tax rates
 
 **To manually add a tax rate:**
 
@@ -53,7 +51,7 @@ Please note: The workspace currency default rate cannot be deleted or disabled.
 
 Please note: The workspace currency default rate cannot be deleted or disabled.
 
-## Change the default tax rates
+# Change the default tax rates
 
 After enabling taxes in your workspace, you can set two default rates:
 

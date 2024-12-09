@@ -31,7 +31,7 @@ const selectReportHandler = (option: unknown) => {
     }
 
     Task.setShareDestinationValue(optionItem?.reportID);
-    Navigation.goBack(ROUTES.NEW_TASK);
+    Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
 const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
@@ -63,23 +63,17 @@ function TaskShareDestinationSelectorModal() {
                 personalDetails: [],
                 userToInvite: null,
                 currentUserOption: null,
-                categoryOptions: [],
-                tagOptions: [],
-                taxRatesOptions: [],
                 header: '',
             };
         }
         const filteredReports = reportFilter(optionList.reports);
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], '', [], [], true);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], [], true);
         const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
             personalDetails: [],
             userToInvite: null,
             currentUserOption: null,
-            categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
             header,
         };
     }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
@@ -91,7 +85,6 @@ function TaskShareDestinationSelectorModal() {
         const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             canInviteUser: false,
-            includeChatRoomsByParticipants: true,
         });
         const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
@@ -131,7 +124,7 @@ function TaskShareDestinationSelectorModal() {
             <>
                 <HeaderWithBackButton
                     title={translate('common.share')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList

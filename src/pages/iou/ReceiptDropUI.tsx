@@ -21,16 +21,16 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>
-            <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
+            <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={styles.fileUploadImageWrapper(receiptImageTopPosition)}>
                     <ImageSVG
                         src={ReceiptUpload}
                         contentFit="contain"
                         width={CONST.RECEIPT.ICON_SIZE}
                         height={CONST.RECEIPT.ICON_SIZE}
                     />
-                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.dropTitle')}</Text>
-                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.dropMessage')}</Text>
+                    <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
+                    <Text style={[styles.subTextFileUpload]}>{translate('common.dropMessage')}</Text>
                 </View>
             </View>
         </DragAndDropConsumer>

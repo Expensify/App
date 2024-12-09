@@ -4,23 +4,31 @@ import type {Compiler} from 'webpack';
 import {version as APP_VERSION} from '../../package.json';
 
 /**
- * Simple webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
+ * Custom webpack plugin that writes the app version (from package.json) and the webpack hash to './version.json'
  */
 class CustomVersionFilePlugin {
     apply(compiler: Compiler) {
         compiler.hooks.done.tap(this.constructor.name, () => {
             const versionPath = path.join(__dirname, '/../../dist/version.json');
-            fs.mkdir(path.dirname(versionPath), {recursive: true}, (directoryError) => {
-                if (directoryError) {
-                    throw directoryError;
-                }
-                fs.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), {encoding: 'utf8'}, (error) => {
-                    if (!error) {
-                        return;
+
+            fs.promises
+                .mkdir(path.dirname(versionPath), {recursive: true})
+                .then(() => fs.promises.readFile(versionPath, 'utf8'))
+                .then((existingVersion) => {
+                    const {version} = JSON.parse(existingVersion) as {version: string};
+
+                    if (version !== APP_VERSION) {
+                        fs.promises.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), 'utf8');
                     }
-                    throw error;
+                })
+                .catch((err: NodeJS.ErrnoException) => {
+                    if (err.code === 'ENOENT') {
+                        // if file doesn't exist
+                        fs.promises.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), 'utf8');
+                    } else {
+                        throw err;
+                    }
                 });
-            });
         });
     }
 }

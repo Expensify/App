@@ -1,9 +1,9 @@
-import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import * as FormActions from '@userActions/FormActions';
@@ -19,19 +19,18 @@ type SearchHoldReasonPageRouteParams = {
 
 type SearchHoldReasonPageProps = {
     /** Navigation route context info provided by react navigation */
-    route: RouteProp<{params?: SearchHoldReasonPageRouteParams}>;
+    route: PlatformStackRouteProp<{params?: SearchHoldReasonPageRouteParams}>;
 };
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {currentSearchHash, selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {currentSearchHash, selectedTransactions} = useSearchContext();
     const {backTo = ''} = route.params ?? {};
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
-        clearSelectedTransactions();
         Navigation.goBack();
     };
 

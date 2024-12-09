@@ -53,7 +53,13 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
     };
 
     return fetch(url, fetchOptions)
-        .then((response) => response.blob())
+        .then((response) => {
+            const contentType = response.headers.get('content-type');
+            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+                throw new Error();
+            }
+            return response.blob();
+        })
         .then((blob) => {
             // Create blob link to download
             const href = URL.createObjectURL(new Blob([blob]));

@@ -107,12 +107,15 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             if (!response.ok) {
                 throw new Error('Failed to download file');
             }
+            const contentType = response.headers.get('content-type');
+            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+                throw new Error();
+            }
             return response.text();
         })
         .then((fileData) => {
             const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
-            const downloadPath = `${RNFS.DownloadDirectoryPath}/Expensify/${finalFileName}`;
-
+            const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
         .then((downloadPath) =>

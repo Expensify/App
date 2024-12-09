@@ -96,7 +96,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
-            const account = filteredMethods[0];
+            const account = filteredMethods.at(0);
             PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '-1');
             return;
         }

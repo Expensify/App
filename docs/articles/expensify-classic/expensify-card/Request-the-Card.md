@@ -2,6 +2,11 @@
 title: Request the Card
 description: Details on requesting the Expensify Card as an employee
 ---
+_Note: The Expensify Card is currently only available to companies that have:_
+_- A US Bank Account_
+_- US documentation_
+_- A private email domain i.e. we cannot provision Expensify cards for users with gmail.com, hotmail.com, yahoo.com etc_
+
 To start using the Expensify Card, do the following:
 1. **Enable Expensify Cards:** An admin must first enable the cards. Then, an admin can assign you a card by setting a limit, which allows access to the card.
 2. **Request the Card:**

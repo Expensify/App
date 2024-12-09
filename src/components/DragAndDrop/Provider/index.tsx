@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import {PortalHost} from '@gorhom/portal';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';

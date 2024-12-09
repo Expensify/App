@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -15,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
+type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
 
 function WorkspaceEditTaxPage({
     route: {
@@ -38,7 +38,7 @@ function WorkspaceEditTaxPage({
     const currentTaxID = PolicyUtils.getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, taxID);
+    const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, currentTaxID ?? taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections;
@@ -158,7 +158,7 @@ function WorkspaceEditTaxPage({
                             }}
                         />
                     </OfflineWithFeedback>
-                    {shouldShowDeleteMenuItem && (
+                    {!!shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}

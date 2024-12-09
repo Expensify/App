@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -17,19 +16,15 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
-type AllSettingsScreenOnyxProps = {
-    policies: OnyxCollection<Policy>;
-};
+function AllSettingsScreen() {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
-
-function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
@@ -48,7 +43,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                     })();
                 },
                 focused: !shouldUseNarrowLayout,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(privateSubscription
                 ? [
@@ -85,12 +80,10 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             shouldShowRightIcon: item.shouldShowRightIcon,
             shouldBlockSelection: !!item.link,
             wrapperStyle: styles.sectionMenuItem,
-            isPaneMenu: true,
             focused: item.focused,
-            hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles]);
+    }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles, allConnectionSyncProgresses]);
 
     return (
         <ScreenWrapper
@@ -122,8 +115,4 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
 
 AllSettingsScreen.displayName = 'AllSettingsScreen';
 
-export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(AllSettingsScreen);
+export default AllSettingsScreen;

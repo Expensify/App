@@ -11,7 +11,7 @@ describe('versionUpdater', () => {
 
         it('should return build as zero if not present in string', () => {
             const versionWithZeroBuild = [VERSION_NUMBER[0], VERSION_NUMBER[1], VERSION_NUMBER[2], 0];
-            expect(versionUpdater.getVersionNumberFromString(VERSION.split('-')[0])).toStrictEqual(versionWithZeroBuild);
+            expect(versionUpdater.getVersionNumberFromString(VERSION.split('-').at(0) ?? '')).toStrictEqual(versionWithZeroBuild);
         });
     });
 
@@ -61,7 +61,7 @@ describe('versionUpdater', () => {
         });
 
         it('should add BUILD number if there is no BUILD number', () => {
-            expect(versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD)).toStrictEqual('2.3.9-1');
+            expect(versionUpdater.incrementVersion(VERSION.split('-').at(0) ?? '', versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD)).toStrictEqual('2.3.9-1');
         });
 
         it('should increment patch if MINOR is above max level', () => {

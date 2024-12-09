@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -78,7 +78,7 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
     const styles = useThemeStyles();
     return (
         <>
-            {title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
+            {!!title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
             {children}
         </>
     );

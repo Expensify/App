@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import common from './common';
+import ExportOnyxState from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise<Record<string, unknown>>((resolve) => {
@@ -44,7 +44,7 @@ const shareAsFile = (value: string) => {
 };
 
 export default {
-    maskFragileData: common.maskFragileData,
+    maskOnyxState: ExportOnyxState.maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };

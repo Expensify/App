@@ -1,9 +1,10 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {translateLocal} from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -174,7 +175,7 @@ function hasAmountOwed(): boolean {
  * @returns Whether there is a card authentication error.
  */
 function hasCardAuthenticatedError() {
-    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
+    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
 /**
@@ -198,6 +199,9 @@ function hasInsufficientFundsError() {
     return billingStatus?.declineReason === 'insufficient_funds' && amountOwed !== 0;
 }
 
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
+}
 /**
  * @returns The card to be used for subscription billing.
  */
@@ -266,6 +270,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             // 2. Policy owner with amount owed, overdue (past grace period)
             if (hasGracePeriodOverdue()) {
                 return {
+                    isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 };
             }
@@ -274,6 +279,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+                    isError: true,
                 };
             }
 
@@ -281,6 +287,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
+                    isError: true,
                 };
             }
         }
@@ -289,6 +296,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasBillingDisputePending()) {
         return {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
+            isError: true,
         };
     }
 
@@ -296,6 +304,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasCardAuthenticatedError()) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
+            isError: true,
         };
     }
 
@@ -303,6 +312,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasInsufficientFundsError()) {
         return {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
+            isError: true,
         };
     }
 
@@ -310,6 +320,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasCardExpiredError()) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRED,
+            isError: true,
         };
     }
 
@@ -367,6 +378,26 @@ function calculateRemainingFreeTrialDays(): number {
     const diffInDays = Math.ceil(diffInSeconds / 86400);
 
     return diffInDays < 0 ? 0 : diffInDays;
+}
+
+/**
+ * @param policies - The policies collection.
+ * @returns The free trial badge text .
+ */
+function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
+    const ownedPaidPolicies = PolicyUtils.getOwnedPaidPolicies(policies, currentUserAccountID);
+    if (isEmptyObject(ownedPaidPolicies)) {
+        return undefined;
+    }
+
+    if (shouldShowPreTrialBillingBanner()) {
+        return translateLocal('subscription.billingBanner.preTrial.title');
+    }
+    if (isUserOnFreeTrial()) {
+        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+    }
+
+    return undefined;
 }
 
 /**
@@ -449,15 +480,18 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
+    getAmountOwed,
+    getCardForSubscriptionBilling,
+    getFreeTrialText,
+    getOverdueGracePeriodDate,
+    getSubscriptionStatus,
+    hasCardAuthenticatedError,
+    hasRetryBillingError,
+    hasSubscriptionGreenDotInfo,
+    hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
     isUserOnFreeTrial,
-    shouldRestrictUserBillableActions,
-    getSubscriptionStatus,
-    hasSubscriptionRedDotError,
-    getAmountOwed,
-    getOverdueGracePeriodDate,
-    getCardForSubscriptionBilling,
-    hasSubscriptionGreenDotInfo,
-    hasRetryBillingError,
     PAYMENT_STATUS,
+    shouldRestrictUserBillableActions,
+    shouldShowPreTrialBillingBanner,
 };

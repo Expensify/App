@@ -122,7 +122,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {isReceiptThumbnail && fileExtension && (
+                    {isReceiptThumbnail && !!fileExtension && (
                         <Text
                             selectable={false}
                             style={[

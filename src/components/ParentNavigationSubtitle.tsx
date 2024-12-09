@@ -1,12 +1,15 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {ParentNavigationSummaryParams} from '@src/languages/types';
+import type {ParentNavigationSummaryParams} from '@src/languages/params';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -23,8 +26,6 @@ type ParentNavigationSubtitleProps = {
     /** PressableWithoutFeedack additional styles */
     pressableStyles?: StyleProp<ViewStyle>;
 };
-
-import React, {useState, useEffect} from 'react';
 
 function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportActionID, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
     const styles = useThemeStyles();
@@ -92,4 +93,3 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
 
 ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;
-

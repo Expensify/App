@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,7 @@ let pusherEventsPromise = Promise.resolve();
 let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
+    Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -42,6 +44,14 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
                 return updateHandler(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
+                // 460 jsonCode in Expensify world means "admin required".
+                // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
+                // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
+                // Meaning that there's a red dot you can't dismiss.
+                if (response.jsonCode === 460) {
+                    Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
+                    return Promise.resolve();
+                }
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
@@ -53,12 +63,15 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
+            Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
+    Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
+
     pusherEventsPromise = pusherEventsPromise.then(() => {
         console.debug('[OnyxUpdateManager] Applying pusher update');
     });
@@ -66,6 +79,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
+            Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
             console.debug('[OnyxUpdateManager] Done applying Pusher update');
         });
 
@@ -73,6 +87,8 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
 }
 
 function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
+    Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
+
     airshipEventsPromise = airshipEventsPromise.then(() => {
         console.debug('[OnyxUpdateManager] Applying Airship updates');
     });
@@ -80,6 +96,7 @@ function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
     airshipEventsPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
         .then(() => {
+            Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
             console.debug('[OnyxUpdateManager] Done applying Airship updates');
         });
 

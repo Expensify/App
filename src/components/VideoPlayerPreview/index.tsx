@@ -38,9 +38,12 @@ type VideoPlayerPreviewProps = {
 
     /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+    /** Whether the video is deleted */
+    isDeleted?: boolean;
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -71,11 +74,12 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {shouldUseNarrowLayout || isThumbnail ? (
+            {shouldUseNarrowLayout || isThumbnail || isDeleted ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}
                     accessibilityLabel={fileName}
+                    isDeleted={isDeleted}
                 />
             ) : (
                 <View style={styles.flex1}>

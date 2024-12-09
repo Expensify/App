@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import path from 'path';
 import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
@@ -54,15 +56,15 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     },
                 },
                 headers: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'Document-Policy': 'js-profiling',
                 },
             },
             plugins: [
                 new DefinePlugin({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'process.env.PORT': port,
+                    'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
+                new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
             ],
             cache: {
                 type: 'filesystem',
@@ -76,13 +78,13 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             snapshot: {
                 // A list of paths webpack trusts would not be modified while webpack is running
                 managedPaths: [
-                    // Onyx can be modified on the fly, changes to other node_modules would not be reflected live
-                    /([\\/]node_modules[\\/](?!react-native-onyx))/,
+                    // Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules would not be reflected live
+                    /([\\/]node_modules[\\/](?!react-native-onyx|@expensify\/react-native-live-markdown))/,
                 ],
             },
         });
 
-        return TimeAnalyticsPlugin.wrap(config);
+        return TimeAnalyticsPlugin.wrap(config, {plugin: {exclude: ['ReactRefreshPlugin']}});
     });
 
 export default getConfiguration;

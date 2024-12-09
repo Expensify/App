@@ -59,7 +59,10 @@ function BasePicker<TPickerValue>(
 
         // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
         // so they don't have to spend extra time selecting the only possible value.
-        onInputChange(items[0].value, 0);
+        const item = items.at(0);
+        if (item) {
+            onInputChange(item.value, 0);
+        }
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [items]);
@@ -186,7 +189,7 @@ function BasePicker<TPickerValue>(
                     hasError && styles.borderColorDanger,
                 ]}
             >
-                {label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
+                {!!label && <Text style={[styles.pickerLabel, styles.textLabelSupporting, styles.pointerEventsNone]}>{label}</Text>}
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows

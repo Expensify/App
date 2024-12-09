@@ -1,10 +1,11 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -24,6 +25,7 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -132,6 +134,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
+    [CONST.AVATAR_SIZE.XLARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
@@ -272,8 +275,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
-
-    return workspaceColorOptions[colorHash];
+    return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
 /**
@@ -292,7 +294,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors[colorHash];
+    return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
 
 /**
@@ -326,7 +328,22 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+    const platform = getPlatform();
+    let insetsPercentage = insetsPercentageProp;
+    if (insetsPercentage == null) {
+        switch (platform) {
+            case CONST.PLATFORM.IOS:
+                insetsPercentage = variables.iosSafeAreaInsetsPercentage;
+                break;
+            case CONST.PLATFORM.ANDROID:
+                insetsPercentage = variables.androidSafeAreaInsetsPercentage;
+                break;
+            default:
+                insetsPercentage = 1;
+        }
+    }
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -339,10 +356,9 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = vari
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
+    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
-// NOTE: asserting some web style properties to a valid type, because it isn't possible to augment them.
 function getZoomSizingStyle(
     isZoomed: boolean,
     imgWidth: number,
@@ -356,23 +372,23 @@ function getZoomSizingStyle(
     if (isLoading || imgWidth === 0 || imgHeight === 0) {
         return undefined;
     }
-    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px` as DimensionValue;
-    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px` as DimensionValue;
+    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
+    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
 
     // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
             return {
-                height: `${imgHeight * zoomScale}px` as DimensionValue,
-                width: `${imgWidth * zoomScale}px` as DimensionValue,
+                height: `${imgHeight * zoomScale}px`,
+                width: `${imgWidth * zoomScale}px`,
             };
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
-            height: `${imgHeight}px` as DimensionValue,
-            width: `${imgWidth}px` as DimensionValue,
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
             top,
             left,
         };
@@ -381,8 +397,8 @@ function getZoomSizingStyle(
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
-            height: `${imgHeight}px` as DimensionValue,
-            width: `${imgWidth}px` as DimensionValue,
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
             top,
             left,
         };
@@ -390,11 +406,11 @@ function getZoomSizingStyle(
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
-    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px` as DimensionValue;
-    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px` as DimensionValue;
+    const scaledTop = `${Math.max((containerHeight - imgHeight * zoomScale) / 2, 0)}px`;
+    const scaledLeft = `${Math.max((containerWidth - imgWidth * zoomScale) / 2, 0)}px`;
     return {
-        height: `${imgHeight * zoomScale}px` as DimensionValue,
-        width: `${imgWidth * zoomScale}px` as DimensionValue,
+        height: `${imgHeight * zoomScale}px`,
+        width: `${imgWidth * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
     };
@@ -478,7 +494,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     const result = hexadecimalToRGBArray(backgroundColor);
     if (result !== undefined) {
         return {
-            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
+            backgroundColor: `rgba(${result.at(0)}, ${result.at(1)}, ${result.at(2)}, ${opacity})`,
         };
     }
     return {};
@@ -491,14 +507,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -538,6 +554,8 @@ function getButtonStyleWithIcon(
     }
 }
 
+type MarginPaddingValue = ViewStyle['marginTop' | 'marginBottom' | 'paddingTop' | 'paddingBottom'];
+
 /**
  * Combine margin/padding with safe area inset
  *
@@ -545,10 +563,14 @@ function getButtonStyleWithIcon(
  * @param safeAreaValue - safe area inset
  * @param shouldAddSafeAreaValue - indicator whether safe area inset should be applied
  */
-function getCombinedSpacing(modalContainerValue: DimensionValue | undefined, safeAreaValue: number, shouldAddSafeAreaValue: boolean): number | DimensionValue | undefined {
+function getCombinedSpacing(modalContainerValue: MarginPaddingValue, safeAreaValue: number, shouldAddSafeAreaValue: boolean): MarginPaddingValue {
     // modalContainerValue can only be added to safe area inset if it's a number, otherwise it's returned as is
-    if (typeof modalContainerValue === 'number' || !modalContainerValue) {
-        return (modalContainerValue ?? 0) + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    if (typeof modalContainerValue === 'number') {
+        return modalContainerValue + (shouldAddSafeAreaValue ? safeAreaValue : 0);
+    }
+
+    if (!modalContainerValue) {
+        return shouldAddSafeAreaValue ? safeAreaValue : 0;
     }
 
     return modalContainerValue;
@@ -563,10 +585,10 @@ type ModalPaddingStylesParams = {
     safeAreaPaddingBottom: number;
     safeAreaPaddingLeft: number;
     safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: DimensionValue | undefined;
-    modalContainerStyleMarginBottom: DimensionValue | undefined;
-    modalContainerStylePaddingTop: DimensionValue | undefined;
-    modalContainerStylePaddingBottom: DimensionValue | undefined;
+    modalContainerStyleMarginTop: MarginPaddingValue;
+    modalContainerStyleMarginBottom: MarginPaddingValue;
+    modalContainerStylePaddingTop: MarginPaddingValue;
+    modalContainerStylePaddingBottom: MarginPaddingValue;
     insets: EdgeInsets;
 };
 
@@ -656,6 +678,15 @@ function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
 function getPaddingLeft(paddingLeft: number): ViewStyle {
     return {
         paddingLeft,
+    };
+}
+
+/**
+ * Get variable padding-right as style
+ */
+function getPaddingRight(paddingRight: number): ViewStyle {
+    return {
+        paddingRight,
     };
 }
 
@@ -964,8 +995,7 @@ function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
     return {
         justifyContent: 'center',
         alignItems: 'center',
-        // eslint-disable-next-line object-shorthand
-        borderRadius: borderRadius,
+        borderRadius,
     };
 }
 
@@ -978,6 +1008,13 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
             height: variables.componentSizeLarge,
         };
     }
+
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL) {
+        return {
+            height: variables.componentSizeSmall,
+        };
+    }
+
     return {
         height: variables.componentSizeNormal,
     };
@@ -1099,6 +1136,27 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
+    if (isSelected) {
+        return {backgroundColor: selectedBG};
+    }
+
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1115,6 +1173,7 @@ const staticStyleUtils = {
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
     getPaddingLeft,
+    getPaddingRight,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1147,6 +1206,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
@@ -1172,6 +1232,7 @@ const staticStyleUtils = {
     getAmountWidth,
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
+    getItemBackgroundColorStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1227,6 +1288,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns the actual maxHeight of the auto-growing markdown text input.
+     */
+    getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
     },
 
     /**
@@ -1290,7 +1360,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getButtonBackgroundColorStyle: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false): ViewStyle => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.PRESSED:
-                return {backgroundColor: theme.buttonPressedBG};
+                return isMenuItem ? {backgroundColor: theme.buttonHoveredBG} : {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
                 return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
@@ -1311,8 +1381,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
-        // eslint-disable-next-line object-shorthand
-        borderRadius: borderRadius,
+        borderRadius,
     }),
 
     /**
@@ -1338,13 +1407,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Get the style for the AM and PM buttons in the TimePicker
      */
-    getStatusAMandPMButtonStyle: (amPmValue: string): {styleForAM: ViewStyle; styleForPM: ViewStyle} => {
+    getStatusAMandPMButtonStyle: (amPmValue: string): {styleForAM: StyleProp<ViewStyle>; styleForPM: StyleProp<ViewStyle>} => {
         const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: theme.componentBG} : {};
         const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
         return {
-            styleForAM: [styles.timePickerWidth100, computedStyleForAM] as unknown as ViewStyle,
-            styleForPM: [styles.timePickerWidth100, computedStyleForPM] as unknown as ViewStyle,
+            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
+            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
         };
     },
 
@@ -1648,6 +1717,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         alignItems: 'center',
         justifyContent: 'center',
     }),
+
+    getTaskPreviewIconWrapper: (avatarSize?: AvatarSizeName) => ({
+        height: avatarSize ? getAvatarSize(avatarSize) : variables.fontSizeNormalHeight,
+        ...styles.justifyContentCenter,
+    }),
+
+    getTaskPreviewTitleStyle: (iconHeight: number, isTaskCompleted: boolean): StyleProp<TextStyle> => [
+        styles.flex1,
+        isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
+        {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
+    ],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

@@ -1,0 +1,15 @@
+diff --git a/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle b/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
+index 6891fa3..8397f95 100644
+--- a/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
++++ b/node_modules/@react-native-camera-roll/camera-roll/android/build.gradle
+@@ -81,7 +81,9 @@ def findNodeModulePath(baseDir, packageName) {
+ }
+ 
+ def resolveReactNativeDirectory() {
+-    def reactNative = file("${findNodeModulePath(rootProject.projectDir, "react-native")}")
++    def projectDir = this.hasProperty('reactNativeProject') ? this.reactNativeProject : rootProject.projectDir
++    def modulePath = file(projectDir);
++    def reactNative = file("${findNodeModulePath(modulePath, 'react-native')}")
+     if (reactNative.exists()) {
+         return reactNative
+     }

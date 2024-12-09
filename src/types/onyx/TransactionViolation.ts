@@ -8,6 +8,12 @@ import type CONST from '@src/CONST';
 type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
 
 /**
+ * Types of violations.
+ * Derived from `CONST.VIOLATION_TYPES` to maintain a single source of truth.
+ */
+type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
+
+/**
  * Types for the data in the modifiedAmount violation
  * Derived from CONST.VIOLATION_DATA_TYPES to maintain a single source of truth.
  */
@@ -77,6 +83,12 @@ type TransactionViolationData = {
 
     /** List of duplicate transactions */
     duplicates?: string[];
+
+    /** Type of the RTER violation */
+    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+
+    /** Message to display to the user */
+    tooltip?: string;
 };
 
 /** Model of a transaction violation */
@@ -89,10 +101,13 @@ type TransactionViolation = {
 
     /** Additional violation information to provide the user */
     data?: TransactionViolationData;
+
+    /** Indicates if this violation should be shown in review */
+    showInReview?: boolean;
 };
 
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationDataType};
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData};
 export default TransactionViolations;

@@ -54,6 +54,9 @@ type MultipleAvatarsProps = {
 
     /** Prop to limit the amount of avatars displayed horizontally */
     maxAvatarsInRow?: number;
+
+    /** Prop to limit the amount of avatars displayed horizontally */
+    overlapDivider?: number;
 };
 
 type AvatarStyles = {
@@ -79,6 +82,7 @@ function MultipleAvatars({
     shouldShowTooltip = true,
     shouldUseCardBackground = false,
     maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT,
+    overlapDivider = 3,
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -144,21 +148,21 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={Number(icons[0].id)}
-                icon={icons[0]}
+                accountID={Number(icons.at(0)?.id)}
+                icon={icons.at(0)}
                 fallbackUserDetails={{
-                    displayName: icons[0].name,
+                    displayName: icons.at(0)?.name,
                 }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
-                        source={icons[0].source}
+                        source={icons.at(0)?.source}
                         size={size}
-                        fill={icons[0].fill}
-                        name={icons[0].name}
-                        avatarID={icons[0].id}
-                        type={icons[0].type}
-                        fallbackIcon={icons[0].fallbackIcon}
+                        fill={icons.at(0)?.fill}
+                        name={icons.at(0)?.name}
+                        avatarID={icons.at(0)?.id}
+                        type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
+                        fallbackIcon={icons.at(0)?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -167,7 +171,7 @@ function MultipleAvatars({
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
-    const overlapSize = oneAvatarSize.width / 3;
+    const overlapSize = oneAvatarSize.width / overlapDivider;
 
     if (shouldStackHorizontally) {
         // Height of one avatar + border space
@@ -233,7 +237,7 @@ function MultipleAvatars({
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                                 StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
-                                icons[3].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[3].type),
+                                icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
                             ]}
                         >
                             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
@@ -249,45 +253,45 @@ function MultipleAvatars({
         ))
     ) : (
         <View style={avatarContainerStyles}>
-            <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[0].type)]}>
+            <View style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}>
                 <UserDetailsTooltip
-                    accountID={Number(icons[0].id)}
-                    icon={icons[0]}
+                    accountID={Number(icons.at(0)?.id)}
+                    icon={icons.at(0)}
                     fallbackUserDetails={{
-                        displayName: icons[0].name,
+                        displayName: icons.at(0)?.name,
                     }}
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
                         <Avatar
-                            source={icons[0].source ?? fallbackIcon}
+                            source={icons.at(0)?.source ?? fallbackIcon}
                             size={avatarSize}
                             imageStyles={[singleAvatarStyle]}
-                            name={icons[0].name}
-                            type={icons[0].type}
-                            avatarID={icons[0].id}
-                            fallbackIcon={icons[0].fallbackIcon}
+                            name={icons.at(0)?.name}
+                            type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
+                            avatarID={icons.at(0)?.id}
+                            fallbackIcon={icons.at(0)?.fallbackIcon}
                         />
                     </View>
                 </UserDetailsTooltip>
-                <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
+                <View style={[secondAvatarStyles, secondAvatarStyle, icons.at(1)?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons.at(1)?.type) : {}]}>
                     {icons.length === 2 ? (
                         <UserDetailsTooltip
-                            accountID={Number(icons[1].id)}
-                            icon={icons[1]}
+                            accountID={Number(icons.at(1)?.id)}
+                            icon={icons.at(1)}
                             fallbackUserDetails={{
-                                displayName: icons[1].name,
+                                displayName: icons.at(1)?.name,
                             }}
                         >
                             <View>
                                 <Avatar
-                                    source={icons[1].source ?? fallbackIcon}
+                                    source={icons.at(1)?.source ?? fallbackIcon}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
-                                    name={icons[1].name}
-                                    avatarID={icons[1].id}
-                                    type={icons[1].type}
-                                    fallbackIcon={icons[1].fallbackIcon}
+                                    name={icons.at(1)?.name}
+                                    avatarID={icons.at(1)?.id}
+                                    type={icons.at(1)?.type ?? CONST.ICON_TYPE_AVATAR}
+                                    fallbackIcon={icons.at(1)?.fallbackIcon}
                                 />
                             </View>
                         </UserDetailsTooltip>
