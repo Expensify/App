@@ -477,10 +477,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'isPinned':
         case 'hasParentAccess':
         case 'isDeletedParentAction':
-        case 'isOptimisticReport':
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
-        case 'isHidden':
             return validateBoolean(value);
         case 'lastReadSequenceNumber':
         case 'managerID':
@@ -489,6 +487,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'total':
         case 'unheldTotal':
         case 'nonReimbursableTotal':
+        case 'unheldNonReimbursableTotal':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -606,7 +605,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 lastMessageTranslationKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isOptimisticReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionLastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -616,12 +614,12 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isHidden: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -925,6 +923,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
+        case 'posted':
             return validateDate(value);
         case 'isLoading':
         case 'billable':
@@ -1048,6 +1047,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );

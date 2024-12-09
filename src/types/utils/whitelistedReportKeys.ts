@@ -37,7 +37,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
@@ -47,6 +46,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;
+        unheldNonReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
         isWaitingOnBankAccount: unknown;
@@ -54,7 +54,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
-        isHidden: unknown;
         privateNotes: unknown;
         pendingChatMembers: unknown;
         fieldList: unknown;

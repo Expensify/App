@@ -81,7 +81,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={KnowATeacherPage.displayName}
         >
             <HeaderWithBackButton

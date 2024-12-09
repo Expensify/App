@@ -23,9 +23,15 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Current policy id */
     policyID: string;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
+
+    /** Whether to disable assign card button */
+    isDisabledAssignCardButton?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -36,7 +42,6 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
-            const cardName = CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN);
             const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
                 <OfflineWithFeedback
@@ -60,8 +65,8 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.maskCardNumber(cardName, item.bank)}
-                            name={customCardNames?.[item.cardID] ?? ''}
+                            cardNumber={item.lastFourPAN ?? ''}
+                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
@@ -83,7 +88,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {translate('workspace.companyCards.cardNumber')}
+                    {translate('workspace.expensifyCard.lastFour')}
                 </Text>
             </View>
         ),
@@ -91,7 +96,12 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     );
 
     if (sortedCards.length === 0) {
-        return <WorkspaceCompanyCardsFeedAddedEmptyPage />;
+        return (
+            <WorkspaceCompanyCardsFeedAddedEmptyPage
+                handleAssignCard={handleAssignCard}
+                isDisabledAssignCardButton={isDisabledAssignCardButton}
+            />
+        );
     }
 
     return (
