@@ -1108,8 +1108,7 @@ function isInvoiceRoomWithID(reportID?: string): boolean {
         return false;
     }
 
-    const report = getReport(reportID);
-    return isInvoiceRoom(report);
+    return isInvoiceRoom(getReport(reportID));
 }
 
 /**
@@ -1516,8 +1515,7 @@ function isArchivedRoomWithID(reportID?: string) {
         return false;
     }
 
-    const report = getReport(reportID);
-    return isArchivedRoom(report, getReportNameValuePairs(reportID));
+    return isArchivedRoom(getReport(reportID), getReportNameValuePairs(reportID));
 }
 
 /**
@@ -6776,8 +6774,7 @@ function chatIncludesChronosWithID(reportID?: string): boolean {
         return false;
     }
 
-    const report = getReport(reportID);
-    return chatIncludesChronos(report);
+    return chatIncludesChronos(getReport(reportID));
 }
 
 /**
