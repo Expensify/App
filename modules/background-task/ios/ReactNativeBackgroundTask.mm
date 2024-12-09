@@ -29,6 +29,22 @@ RCT_EXPORT_MODULE()
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
+- (BOOL)scheduleNewBackgroundTask:(NSString *)identifier {
+    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:identifier];
+    
+    // Set earliest begin date to some time in the future
+    request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
+    
+    NSError *error = nil;
+    BOOL success = [[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error];
+    
+    if (!success) {
+        NSLog(@"[ReactNativeBackgroundTask] Failed to schedule task: %@", error.localizedDescription);
+    }
+    
+    return success;
+}
+
 RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
                   taskExecutor:(RCTResponseSenderBlock)taskExecutor
                   resolve:(RCTPromiseResolveBlock)resolve
@@ -71,20 +87,18 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
                 }]);
             }];
             
+            [self scheduleNewBackgroundTask:identifier];
+            
             [task setTaskCompletedWithSuccess:YES];
         }];
         
-        
-        BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:identifier];
-        
-        // Set earliest begin date to some time in the future
-        request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
-        
-        NSError *error = nil;
-        if ([[BGTaskScheduler sharedScheduler] submitTaskRequest:request error:&error]) {
+        BOOL success = [self scheduleNewBackgroundTask:identifier];
+
+        if (success) {
+            _taskExecutors[taskName] = taskExecutor;
             resolve(@YES);
         } else {
-            reject(@"error", error.localizedDescription, error);
+            reject(@"error", @"Failed to schedule initial background task", nil);
         }
     }
         
