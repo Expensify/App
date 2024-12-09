@@ -26,7 +26,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateLastContactPermissionPrompt} from '@libs/actions/IOU';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import {getContactPermission} from '@libs/ContactPermission';
@@ -95,7 +94,6 @@ function MoneyRequestParticipantsSelector({
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_CONTACT_PERMISSION_PROMPT);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -453,7 +451,6 @@ function MoneyRequestParticipantsSelector({
 
     const handleSoftPermissionDeny = useCallback(() => {
         setSoftPermissionModalVisible(false);
-        updateLastContactPermissionPrompt();
     }, []);
 
     const footerContent = useMemo(() => {
@@ -550,7 +547,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            {!lastLocationPermissionPrompt && softPermissionModalVisible && (
+            {softPermissionModalVisible && (
                 <ContactPermissionModal
                     startPermissionFlow={softPermissionModalVisible}
                     resetPermissionFlow={handleSoftPermissionDeny}

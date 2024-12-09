@@ -8391,10 +8391,6 @@ function updateLastLocationPermissionPrompt() {
     Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
 }
 
-function updateLastContactPermissionPrompt() {
-    Onyx.set(ONYXKEYS.NVP_LAST_CONTACT_PERMISSION_PROMPT, new Date().toISOString());
-}
-
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
 function resolveDuplicates(params: TransactionMergeParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
@@ -8610,6 +8606,5 @@ export {
     updateLastLocationPermissionPrompt,
     resolveDuplicates,
     getIOUReportActionToApproveOrPay,
-    updateLastContactPermissionPrompt,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
