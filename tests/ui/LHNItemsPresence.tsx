@@ -250,7 +250,7 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
         });
 
-        it('should disaply the archived report in the default mode', async () => {
+        it('should display the archived report in the default mode', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
