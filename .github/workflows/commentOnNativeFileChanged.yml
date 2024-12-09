@@ -1,0 +1,21 @@
+name: Comment on native files changed
+
+on:
+  pull_request:
+    branches: 
+      - 'main'
+    paths:
+      - '**.kt'
+      - '**.java'
+      - '**.swift'
+      - '**.mm'
+      - '**.h'
+
+jobs:
+  commentOnNativeFilesChanged:
+    name: Create comment
+    run: |
+      gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body \
+      ":warning: This PR changes native code. It may cause problems in Hybrid App. Please notify people working on it to review those changes. :warning:"
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
