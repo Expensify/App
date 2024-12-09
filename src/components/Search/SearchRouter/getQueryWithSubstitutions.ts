@@ -1,11 +1,10 @@
-import type {ValueOf} from 'type-fest';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
-import type CONST from '@src/CONST';
+import {getUserFriendlyKey} from '@libs/SearchQueryUtils';
 
 type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterKey: SearchFilterKey | ValueOf<typeof CONST.SEARCH.SEARCH_UI_KEYS>, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchFilterKey | UserFriendlyKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
@@ -33,7 +32,8 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
 
     for (const range of searchAutocompleteQueryRanges) {
         const itemKey = getSubstitutionMapKey(range.key, range.value);
-        const substitutionEntry = substitutions[itemKey];
+        const alternativeItemKey = getSubstitutionMapKey(getUserFriendlyKey(range.key), range.value);
+        const substitutionEntry = substitutions[itemKey] ?? substitutions[alternativeItemKey];
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;

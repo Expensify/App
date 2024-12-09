@@ -89,6 +89,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
+type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+
 type QueryFilters = Array<{
     key: SearchFilterKey;
     filters: QueryFilter[];
@@ -139,6 +141,7 @@ export type {
     QueryFilter,
     QueryFilters,
     SearchFilterKey,
+    UserFriendlyKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,

@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchQueryJSON, SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {ASTNode, QueryFilter, QueryFilters, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -569,7 +569,7 @@ function buildUserReadableQueryString(
                 value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports),
             }));
         }
-        title += buildFilterValuesString(CONST.SEARCH.SEARCH_UI_KEYS[key], displayQueryFilters);
+        title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 
     return title;
@@ -658,6 +658,44 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
     return buildSearchQueryString(standardizedQuery);
 }
 
+/**
+ * A mapping object that transforms filter names from the internal codebase format to user-friendly names.
+ */
+const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, UserFriendlyKey> = {
+    type: 'type',
+    status: 'status',
+    sortBy: 'sort-by',
+    sortOrder: 'sort-order',
+    policyID: 'workspace',
+    date: 'date',
+    amount: 'amount',
+    expenseType: 'expense-type',
+    currency: 'currency',
+    merchant: 'merchant',
+    description: 'description',
+    from: 'from',
+    to: 'to',
+    category: 'category',
+    tag: 'tag',
+    taxRate: 'tax-rate',
+    cardID: 'card',
+    reportID: 'reportid',
+    keyword: 'keyword',
+    in: 'in',
+};
+
+/**
+ * Converts a filter key from camelCase to user friendly kebab-case.
+ *
+ * This function is designed to translate filter names used in the codebase (in camelCase)
+ * to a user-friendly format (kebab-case).
+ * @example
+ * getUserFriendlyKey("taxRate") //returns "tax-rate"
+ */
+function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
+    return UserFriendlyKeyMap[keyName];
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -670,4 +708,5 @@ export {
     isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getUserFriendlyKey,
 };
