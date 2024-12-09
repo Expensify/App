@@ -1,0 +1,146 @@
+home:
+  href: home
+  title: Welcome to ExpensifyHelp!
+  description: Find answers using the search bar or click on the version of Expensify you're using to access the relevant resources.
+
+platforms:
+  - href: expensify-classic
+    title: Expensify Classic
+    hub-title: Expensify Classic - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
+    url: www.expensify.com
+    description: "Your account settings look like this:"
+    image: /assets/images/settings-old-dot.svg
+  
+    # Hubs are comprised of subcategories and articles. Subcategories contain multiple related articles, but there can be standalone articles as well
+    hubs:
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: Set up your account to optimize Expensify's features.
+
+      - href: workspaces
+        title: Workspaces
+        icon: /assets/images/shield.svg
+        description: Configure rules, settings, and limits for your company’s spending.
+
+      - href: expenses
+        title: Expenses
+        icon: /assets/images/money-into-wallet.svg
+        description: Learn more about expense tracking and submission.
+
+      - href: reports
+        title: Reports
+        icon: /assets/images/money-receipt.svg
+        description: Set approval workflows and use Expensify’s automated report features.
+
+      - href: domains
+        title: Domains
+        icon: /assets/images/domains.svg
+        description: Claim and verify your company’s domain to access additional management and security features.
+      
+      - href: bank-accounts-and-payments
+        title: Bank Accounts & Payments
+        icon: /assets/images/send-money.svg
+        description: Send direct reimbursements, pay invoices, and receive payment.
+
+      - href: connect-credit-cards
+        title: Connect Credit Cards
+        icon: /assets/images/bank-card.svg
+        description: Track credit card transactions and reconcile company cards.
+
+      - href: expensify-card
+        title: Expensify Card
+        icon: /assets/images/hand-card.svg
+        description: Explore the perks and benefits of the Expensify Card.
+
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
+
+      - href: copilots-and-delegates
+        title: Copilots & Delegates
+        icon: /assets/images/envelope-receipt.svg
+        description: Assign Copilots and delegate report approvals.
+
+      - href: expensify-partner-program
+        title: Expensify Partner Program
+        icon: /assets/images/handshake.svg
+        description: Discover the benefits of becoming an Expensify Partner.
+
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
+        description: Integrate with accounting or HR software to streamline expense approvals.
+
+      - href: spending-insights
+        title: Spending Insights
+        icon: /assets/images/monitor.svg
+        description: Create custom export templates to understand spending insights.
+
+      - href: settings
+        title: Settings
+        icon: /assets/images/gears.svg
+        description: Manage profile settings and notifications.
+
+      - href: expensify-billing
+        title: Expensify Billing
+        icon: /assets/images/subscription-annual.svg
+        description: Review Expensify's subscription options, plan types, and payment methods.
+     
+        
+  - href: new-expensify
+    title: New Expensify
+    hub-title: New Expensify - Help & Resources
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar.
+    url: new.expensify.com
+    description: "Your account settings look like this:"
+    image: /assets/images/settings-new-dot.svg
+  
+    hubs:
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: Set up your account to optimize Expensify's features.
+
+      - href: chat
+        title: Chat
+        icon: /assets/images/chat-bubble.svg
+        description: Use Expensify's chat feature to split bills, chat with employees, and manage payments.
+
+      - href: workspaces
+        title: Workspaces
+        icon: /assets/images/shield.svg
+        description: Configure rules, settings, and limits for your company’s spending.
+      
+      - href: expenses-&-payments
+        title: Expenses & Payments
+        icon: /assets/images/money-into-wallet.svg
+        description: Learn more about expense tracking and submission.
+
+      - href: expensify-card
+        title: Expensify Card
+        icon: /assets/images/hand-card.svg
+        description: Explore the perks and benefits of the Expensify Card.
+      
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
+
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
+        description: Connect to accounting software to streamline expense approvals.
+
+      - href: settings
+        title: Settings
+        icon: /assets/images/gears.svg
+        description: Manage profile settings and notifications.
+        
+      - href: billing-and-subscriptions
+        title: Expensify Billing & Subscriptions
+        icon: /assets/images/subscription-annual.svg
+        description: Review Expensify's subscription options, plan types, and payment methods.
+        

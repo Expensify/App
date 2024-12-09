@@ -1,0 +1,15 @@
+$breakpoint-tablet: 800px;
+$breakpoint-desktop: 1120px;
+$breakpoint-wide: 1600px;
+
+@mixin breakpoint($breakpoint) {
+  @media screen and (min-width: $breakpoint) {
+    @content
+  }
+}
+
+@mixin maxBreakpoint($breakpoint) {
+  @media screen and (max-width: $breakpoint) {
+    @content
+  }
+}
