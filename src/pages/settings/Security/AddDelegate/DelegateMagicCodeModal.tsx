@@ -16,9 +16,10 @@ type DelegateMagicCodeModalProps = {
     role: ValueOf<typeof CONST.DELEGATE_ROLE>;
     isValidateCodeActionModalVisible: boolean;
     onClose?: () => void;
+    shouldHandleNavigationBack?: boolean;
 };
 
-function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible}: DelegateMagicCodeModalProps) {
+function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible, shouldHandleNavigationBack}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -48,6 +49,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
 
     return (
         <ValidateCodeActionModal
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             clearError={clearError}
             onClose={onBackButtonPress}
             validateError={validateLoginError}
