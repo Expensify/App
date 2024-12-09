@@ -230,7 +230,7 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
 
-        it('should display the report with needing user action', async () => {
+        it('should display the report awaiting user action', async () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
