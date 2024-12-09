@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {UserFriendlyKey} from '@components/Search/types';
+import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -43,6 +43,7 @@ type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
     text: string;
     autocompleteID?: string;
+    substitutionMapKey?: SearchFilterKey;
 };
 
 type SearchRouterListProps = {
@@ -261,6 +262,7 @@ function SearchRouterList(
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAX_RATE,
                     text: tax.taxRateName,
                     autocompleteID: tax.taxRateIds.join(','),
+                    substitutionMapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
@@ -272,6 +274,7 @@ function SearchRouterList(
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FROM,
                     text: participant.name,
                     autocompleteID: participant.accountID,
+                    substitutionMapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
@@ -283,6 +286,7 @@ function SearchRouterList(
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO,
                     text: participant.name,
                     autocompleteID: participant.accountID,
+                    substitutionMapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
@@ -294,6 +298,7 @@ function SearchRouterList(
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
                     text: chat.text ?? '',
                     autocompleteID: chat.reportID,
+                    substitutionMapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
                 }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
@@ -334,6 +339,7 @@ function SearchRouterList(
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
                     text: CardUtils.getCardDescription(card.cardID),
                     autocompleteID: card.cardID.toString(),
+                    substitutionMapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
             default: {
@@ -411,9 +417,10 @@ function SearchRouterList(
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
-        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID}) => {
+        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, substitutionMapKey}) => {
             return {
                 text: getSubstitutionMapKey(filterKey, text),
+                mapKey: substitutionMapKey ? getSubstitutionMapKey(substitutionMapKey, text) : undefined,
                 singleIcon: Expensicons.MagnifyingGlass,
                 searchQuery: text,
                 autocompleteID,

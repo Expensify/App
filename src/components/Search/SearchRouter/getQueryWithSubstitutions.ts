@@ -1,6 +1,5 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import * as parser from '@libs/SearchParser/autocompleteParser';
-import {getUserFriendlyKey} from '@libs/SearchQueryUtils';
 
 type SubstitutionMap = Record<string, string>;
 
@@ -32,8 +31,7 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
 
     for (const range of searchAutocompleteQueryRanges) {
         const itemKey = getSubstitutionMapKey(range.key, range.value);
-        const alternativeItemKey = getSubstitutionMapKey(getUserFriendlyKey(range.key), range.value);
-        const substitutionEntry = substitutions[itemKey] ?? substitutions[alternativeItemKey];
+        const substitutionEntry = substitutions[itemKey];
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;
