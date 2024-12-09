@@ -1,7 +1,63 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as autocompleteParser from '@libs/SearchParser/autocompleteParser';
+import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
+    {
+        query: parserCommonTests.simple,
+        expected: {
+            autocomplete: {
+                key: 'status',
+                value: 'all',
+                start: 20,
+                length: 3,
+            },
+            ranges: [
+                {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'status', value: 'all', start: 20, length: 3},
+            ],
+        },
+    },
+    {
+        query: parserCommonTests.userFriendlyNames,
+        expected: {
+            autocomplete: null,
+            ranges: [
+                {key: 'taxRate', value: 'rate1', start: 9, length: 5},
+                {key: 'expenseType', value: 'card', start: 28, length: 4},
+                {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
+            ],
+        },
+    },
+    {
+        query: parserCommonTests.oldNames,
+        expected: {
+            autocomplete: null,
+            ranges: [
+                {key: 'taxRate', value: 'rate1', start: 8, length: 5},
+                {key: 'expenseType', value: 'card', start: 26, length: 4},
+                {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
+            ],
+        },
+    },
+    {
+        query: parserCommonTests.complex,
+        expected: {
+            autocomplete: {
+                key: 'category',
+                length: 22,
+                start: 102,
+                value: 'meal & entertainment',
+            },
+            ranges: [
+                {key: 'expenseType', length: 4, start: 24, value: 'cash'},
+                {key: 'expenseType', length: 4, start: 29, value: 'card'},
+                {key: 'category', length: 6, start: 89, value: 'travel'},
+                {key: 'category', length: 5, start: 96, value: 'hotel'},
+                {key: 'category', length: 22, start: 102, value: 'meal & entertainment'},
+            ],
+        },
+    },
     {
         query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportid:123456789 word',
         expected: {
@@ -21,21 +77,6 @@ const tests = [
         expected: {
             autocomplete: null,
             ranges: [],
-        },
-    },
-    {
-        query: 'type:expense status:all',
-        expected: {
-            autocomplete: {
-                key: 'status',
-                value: 'all',
-                start: 20,
-                length: 3,
-            },
-            ranges: [
-                {key: 'type', value: 'expense', start: 5, length: 7},
-                {key: 'status', value: 'all', start: 20, length: 3},
-            ],
         },
     },
     {

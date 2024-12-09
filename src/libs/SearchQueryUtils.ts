@@ -662,7 +662,7 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
 }
 
 /**
- * A mapping object that transforms filter names from the internal codebase format to user-friendly names.
+ * A mapping object that maps filter names from the internal codebase format to user-friendly names.
  */
 const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, UserFriendlyKey> = {
     type: 'type',

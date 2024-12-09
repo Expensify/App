@@ -1,15 +1,138 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as searchParser from '@libs/SearchParser/searchParser';
+import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
     {
-        query: 'type:expense status:all',
+        query: parserCommonTests.simple,
         expected: {
             type: 'expense',
             status: 'all',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
+        },
+    },
+    {
+        query: parserCommonTests.userFriendlyNames,
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'and',
+                    left: {
+                        operator: 'and',
+                        left: {
+                            operator: 'eq',
+                            left: 'taxRate',
+                            right: 'rate1',
+                        },
+                        right: {
+                            operator: 'eq',
+                            left: 'expenseType',
+                            right: 'card',
+                        },
+                    },
+                    right: {
+                        operator: 'eq',
+                        left: 'cardID',
+                        right: 'Big Bank',
+                    },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'reportID',
+                    right: 'report',
+                },
+            },
+        },
+    },
+    {
+        query: parserCommonTests.oldNames,
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'and',
+                    left: {
+                        operator: 'and',
+                        left: {
+                            operator: 'eq',
+                            left: 'taxRate',
+                            right: 'rate1',
+                        },
+                        right: {
+                            operator: 'eq',
+                            left: 'expenseType',
+                            right: 'card',
+                        },
+                    },
+                    right: {
+                        operator: 'eq',
+                        left: 'cardID',
+                        right: 'Big Bank',
+                    },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'reportID',
+                    right: 'report',
+                },
+            },
+        },
+    },
+    {
+        query: parserCommonTests.complex,
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'and',
+                    left: {
+                        operator: 'and',
+                        left: {
+                            operator: 'and',
+                            left: {
+                                operator: 'gt',
+                                left: 'amount',
+                                right: '200',
+                            },
+                            right: {
+                                operator: 'eq',
+                                left: 'expenseType',
+                                right: ['cash', 'card'],
+                            },
+                        },
+                        right: {
+                            operator: 'eq',
+                            left: 'description',
+                            right: 'Las Vegas party',
+                        },
+                    },
+                    right: {
+                        operator: 'eq',
+                        left: 'date',
+                        right: '2024-06-01',
+                    },
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'category',
+                    right: ['travel', 'hotel', 'meal & entertainment'],
+                },
+            },
         },
     },
     {
@@ -224,52 +347,6 @@ const tests = [
                     operator: 'gt',
                     left: 'date',
                     right: '2023-01-01',
-                },
-            },
-        },
-    },
-    {
-        query: 'amount>200 expense-type:cash,card description:"Las Vegas party" date:2024-06-01 category:travel,hotel,"meal & entertainment"',
-        expected: {
-            type: 'expense',
-            status: 'all',
-            sortBy: 'date',
-            sortOrder: 'desc',
-            filters: {
-                operator: 'and',
-                left: {
-                    operator: 'and',
-                    left: {
-                        operator: 'and',
-                        left: {
-                            operator: 'and',
-                            left: {
-                                operator: 'gt',
-                                left: 'amount',
-                                right: '200',
-                            },
-                            right: {
-                                operator: 'eq',
-                                left: 'expenseType',
-                                right: ['cash', 'card'],
-                            },
-                        },
-                        right: {
-                            operator: 'eq',
-                            left: 'description',
-                            right: 'Las Vegas party',
-                        },
-                    },
-                    right: {
-                        operator: 'eq',
-                        left: 'date',
-                        right: '2024-06-01',
-                    },
-                },
-                right: {
-                    operator: 'eq',
-                    left: 'category',
-                    right: ['travel', 'hotel', 'meal & entertainment'],
                 },
             },
         },
