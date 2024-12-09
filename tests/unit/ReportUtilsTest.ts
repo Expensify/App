@@ -4,9 +4,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Beta, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1177,6 +1178,169 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(ReportUtils.getGroupChatName(undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
+        });
+
+        describe('shouldReportBeInOptionList tests', () => {
+            afterEach(() => Onyx.clear());
+
+            it('should return false when the report is marked as hidden', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    participants: {
+                        '1': {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                };
+                const currentReportId = '';
+                const isInFocusMode = true;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report does not have participants', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    participants: {},
+                };
+                const currentReportId = '';
+                const isInFocusMode = true;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+                };
+                const currentReportId = '';
+                const isInFocusMode = false;
+                const betas: Beta[] = [];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report is the single transaction thread', async () => {
+                const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+                const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+                const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+                    'create',
+                    100,
+                    'USD',
+                    '',
+                    [],
+                    expenseTransaction.transactionID,
+                    undefined,
+                    expenseReport.reportID,
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    undefined,
+                );
+                const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
+                expenseCreatedAction.childReportID = transactionThreadReport.reportID;
+                const currentReportId = '1';
+                const isInFocusMode = false;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                    [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+                });
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({
+                        report: transactionThreadReport,
+                        currentReportId,
+                        isInFocusMode,
+                        betas,
+                        policies: {},
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report is empty chat and the excludeEmptyChats setting is true', () => {
+                const report = LHNTestUtils.getFakeReport();
+                const currentReportId = '';
+                const isInFocusMode = false;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: true}),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
+                const report = LHNTestUtils.getFakeReport();
+                const currentReportId = '';
+                const isInFocusMode = false;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({
+                        report,
+                        currentReportId,
+                        isInFocusMode,
+                        betas,
+                        policies: {},
+                        doesReportHaveViolations: false,
+                        login: '+@domain.com',
+                        excludeEmptyChats: false,
+                        includeDomainEmail: false,
+                    }),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report has the parent message is pending removal', async () => {
+                const parentReport = LHNTestUtils.getFakeReport();
+                const report = LHNTestUtils.getFakeReport();
+                const parentReportAction: ReportAction = {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'hey',
+                            text: 'hey',
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                            moderationDecision: {
+                                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                            },
+                        },
+                    ],
+                    childReportID: report.reportID,
+                };
+                report.parentReportID = parentReport.reportID;
+                report.parentReportActionID = parentReportAction.reportActionID;
+                const currentReportId = '';
+                const isInFocusMode = false;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                    [parentReportAction.reportActionID]: parentReportAction,
+                });
+
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+                ).toBeFalsy();
+            });
+
+            it('should return false when the report is read and we are in the focus mode', () => {
+                const report = LHNTestUtils.getFakeReport();
+                const currentReportId = '';
+                const isInFocusMode = true;
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
+                expect(
+                    ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
+                ).toBeFalsy();
             });
         });
     });
