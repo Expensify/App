@@ -150,7 +150,7 @@ function GenericPressable(
             disabled={fullDisabled}
             // eslint-disable-next-line react-compiler/react-compiler
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
-            onLongPress={isDisabled && onLongPress ? onLongPressHandler : undefined}
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
