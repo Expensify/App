@@ -37,6 +37,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -54,6 +55,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -485,10 +487,16 @@ function signUpUser() {
 
     const params: SignUpUserParams = {email: credentials.login, preferredLocale};
 
-    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData}).then((response) => {
+        if (!response) {
+            return;
+        }
+        Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {classicRedirect: {dismissed: !response.tryNewDot}});
+    });
 }
 
-function setupNewDotAfterTransitionFromOldDot(route: Route, hybridAppSettings: string) {
+function setupNewDotAfterTransitionFromOldDot(route: Route, hybridAppSettings: string, tryNewDot: TryNewDot | undefined) {
     const parsedHybridAppSettings = HybridAppActions.parseHybridAppSettings(hybridAppSettings);
     const {initialOnyxValues} = parsedHybridAppSettings;
     const {hybridApp, ...newDotOnyxValues} = initialOnyxValues;
@@ -501,16 +509,28 @@ function setupNewDotAfterTransitionFromOldDot(route: Route, hybridAppSettings: s
         return Onyx.clear();
     };
 
+    const resetDidUserLoginDuringSessionIfNeeded = () => {
+        if (newDotOnyxValues.nvp_tryNewDot === undefined || tryNewDot?.classicRedirect.dismissed !== true) {
+            return Promise.resolve();
+        }
+
+        Log.info("[HybridApp] OpenApp hasn't been called yet. Calling `resetDidUserLogInDuringSession`");
+        resetDidUserLogInDuringSession();
+    };
+
+    const handleDelegateAccess = () => {
+        if (!hybridApp.shouldRemoveDelegatedAccess) {
+            return;
+        }
+        return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+    };
+
     return new Promise<Route>((resolve) => {
         clearOnyxBeforeSignIn()
             .then(() => HybridAppActions.prepareHybridAppAfterTransitionToNewDot(hybridApp))
+            .then(resetDidUserLoginDuringSessionIfNeeded)
             .then(() => Onyx.multiSet(newDotOnyxValues))
-            .then(() => {
-                if (!hybridApp.shouldRemoveDelegatedAccess) {
-                    return;
-                }
-                return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
-            })
+            .then(handleDelegateAccess)
             .catch((error) => {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })

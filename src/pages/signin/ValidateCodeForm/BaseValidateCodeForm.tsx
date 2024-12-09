@@ -21,7 +21,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {shouldUseOldApp} from '@libs/HybridApp';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
@@ -52,10 +51,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {
-        initialValue: {oldDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED, newDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED},
-    });
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -75,7 +70,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const input2FARef = useRef<MagicCodeInputHandle>();
     const timerRef = useRef<NodeJS.Timeout>();
 
-    const hasError = (!!account && !isEmptyObject(account?.errors) && !needToClearError) || !!hybridApp?.oldDotSignInError;
+    const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
@@ -184,13 +179,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Clears local and Onyx sign in states
      */
     const clearSignInData = useCallback(() => {
-        if (NativeModules.HybridAppModule && session?.authToken) {
-            HybridAppActions.resetSignInFlow(true);
-        }
-
         clearLocalSignInData();
         SessionActions.clearSignInData();
-    }, [clearLocalSignInData, session?.authToken]);
+    }, [clearLocalSignInData]);
 
     useImperativeHandle(forwardedRef, () => ({
         clearSignInData,
@@ -247,7 +238,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const validateAndSubmitForm = useCallback(() => {
         if (NativeModules.HybridAppModule && session?.authToken) {
-            HybridAppActions.resetSignInFlow(true);
+            HybridAppActions.resetSignInFlow();
         }
 
         if (account?.isLoading) {
@@ -381,7 +372,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && <FormHelpMessage message={hybridApp?.oldDotSignInError ?? ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
                             <Text style={[styles.mt2]}>
@@ -413,9 +404,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     large
                     style={[styles.mv3]}
                     text={translate('common.signIn')}
-                    isLoading={
-                        shouldUseOldApp(tryNewDot) ? isValidateCodeFormSubmitting || hybridApp?.oldDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED : isValidateCodeFormSubmitting
-                    }
+                    isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />

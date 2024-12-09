@@ -1,4 +1,4 @@
-import React, {createContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type InitialUrlContextType = {
     initialURL: Route | undefined;
@@ -35,6 +36,9 @@ function InitialURLContextProvider({children, url, hybridAppSettings}: InitialUR
     const [initialURL, setInitialURL] = useState<Route | ValueOf<typeof CONST.HYBRID_APP> | undefined>(url);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const {splashScreenState, setSplashScreenState} = useSplashScreenStateContext();
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    // We use `setupCalled` ref to guarantee that `signInAfterTransitionFromOldDot` is called once.
+    const setupCalled = useRef(false);
 
     useEffect(() => {
         if (url !== CONST.HYBRID_APP.REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT) {
@@ -53,16 +57,19 @@ function InitialURLContextProvider({children, url, hybridAppSettings}: InitialUR
         }
 
         if (url && hybridAppSettings) {
-            setupNewDotAfterTransitionFromOldDot(url, hybridAppSettings).then((route) => {
-                setInitialURL(route);
-                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-            });
+            if (!isLoadingOnyxValue(tryNewDotMetadata) && !setupCalled.current) {
+                setupCalled.current = true;
+                setupNewDotAfterTransitionFromOldDot(url, hybridAppSettings, tryNewDot).then((route) => {
+                    setInitialURL(route);
+                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+                });
+            }
             return;
         }
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [hybridAppSettings, setSplashScreenState, url]);
+    }, [hybridAppSettings, setSplashScreenState, tryNewDot, tryNewDotMetadata, url]);
 
     const initialUrlContext = useMemo(
         () => ({

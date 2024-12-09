@@ -2,6 +2,7 @@ import React, {memo, useContext, useEffect, useMemo} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
+import HybridApp from '@libs/HybridApp';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
@@ -12,10 +13,6 @@ type AppNavigatorProps = {
     authenticated: boolean;
 };
 
-function shouldUseOldApp(tryNewDot?: TryNewDot) {
-    return tryNewDot?.classicRedirect.dismissed === true;
-}
-
 function AppNavigator({authenticated}: AppNavigatorProps) {
     const {initialURL, setInitialURL} = useContext(InitialURLContext);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
@@ -25,7 +22,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
         if (!NativeModules.HybridAppModule) {
             return authenticated;
         }
-        if (shouldUseOldApp(tryNewDot) && !hybridApp?.isSingleNewDotEntry) {
+        if (HybridApp.shouldUseOldApp(tryNewDot) && !hybridApp?.isSingleNewDotEntry) {
             return false;
         }
 
