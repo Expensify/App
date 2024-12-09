@@ -324,7 +324,7 @@ describe('SidebarLinksData', () => {
                 lastReadTime: report.lastVisibleActionCreated,
             });
 
-            // The repot should not disapper in the sidebar because we are in the focus mode
+            // The report should not disappear in the sidebar because we are in the focus mode
             expect(getOptionRows()).toHaveLength(0);
         });
     });
