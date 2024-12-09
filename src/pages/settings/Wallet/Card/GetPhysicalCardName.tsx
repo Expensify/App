@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
@@ -22,21 +22,17 @@ type OnValidateResult = {
     legalLastName?: string;
 };
 
-type GetPhysicalCardNameOnyxProps = {
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-};
-
-type GetPhysicalCardNameProps = GetPhysicalCardNameOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
+type GetPhysicalCardNameProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
 
 function GetPhysicalCardName({
-    draftValues,
     route: {
         params: {domain},
     },
 }: GetPhysicalCardNameProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
 
     const {legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
@@ -98,8 +94,4 @@ function GetPhysicalCardName({
 
 GetPhysicalCardName.displayName = 'GetPhysicalCardName';
 
-export default withOnyx<GetPhysicalCardNameProps, GetPhysicalCardNameOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardName);
+export default GetPhysicalCardName;
