@@ -670,7 +670,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -680,6 +679,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
+        PRODUCT_TRAINING: 'productTraining',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1302,6 +1302,7 @@ const CONST = {
         },
     },
     TIMING: {
+        GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
@@ -1310,6 +1311,9 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
+        APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
+        APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
+        APPLY_HTTPS_UPDATES: 'apply_https_updates',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -3176,6 +3180,7 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
+        GO_TO_WORKSPACE: 'goToWorkspace',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4561,6 +4566,12 @@ const CONST = {
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
+    },
+    DELEGATE: {
+        DENIED_ACCESS_VARIANTS: {
+            DELEGATE: 'delegate',
+            SUBMITTER: 'submitter',
+        },
     },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
@@ -6069,12 +6080,21 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+            PAID: 'paid',
+            EXPORTED: 'exported',
+            POSTED: 'posted',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+        },
+        DATE_MODIFIERS: {
+            BEFORE: 'Before',
+            AFTER: 'After',
         },
     },
 
@@ -6372,6 +6392,8 @@ const CONST = {
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
+
+    MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
