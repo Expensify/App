@@ -126,15 +126,13 @@ function MoneyRequestParticipantsSelector({
             },
         );
 
-        const orderedOptions = OptionsListUtils.orderOptions(optionList, undefined, {
-            sortByReportTypeInSearch: isPaidGroupPolicy,
-        });
+        const orderedOptions = OptionsListUtils.orderOptions(optionList);
 
         return {
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, isPaidGroupPolicy, options.personalDetails, options.reports, participants]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
