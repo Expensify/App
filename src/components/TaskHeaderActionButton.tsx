@@ -1,30 +1,24 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
+import {useSession} from './OnyxProvider';
 
-type TaskHeaderActionButtonOnyxProps = {
-    /** Current user session */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-
-type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
+type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 
-function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const session = useSession();
 
     if (!ReportUtils.canWriteInReport(report)) {
         return null;
@@ -55,8 +49,4 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
 
 TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
-export default withOnyx<TaskHeaderActionButtonProps, TaskHeaderActionButtonOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(TaskHeaderActionButton);
+export default TaskHeaderActionButton;
