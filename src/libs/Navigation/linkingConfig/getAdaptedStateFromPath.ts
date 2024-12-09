@@ -180,6 +180,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
+    const migratedUserModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR);
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
 
@@ -224,7 +225,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (lhpNavigator ?? onboardingModalNavigator ?? welcomeVideoModalNavigator ?? featureTrainingModalNavigator) {
+    if (lhpNavigator ?? onboardingModalNavigator ?? welcomeVideoModalNavigator ?? featureTrainingModalNavigator ?? migratedUserModalNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
@@ -267,6 +268,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         if (welcomeVideoModalNavigator) {
             routes.push(welcomeVideoModalNavigator);
+        }
+
+        if (migratedUserModalNavigator) {
+            routes.push(migratedUserModalNavigator);
         }
 
         if (featureTrainingModalNavigator) {
