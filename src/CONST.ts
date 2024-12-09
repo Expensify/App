@@ -6262,6 +6262,14 @@ const CONST = {
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
             },
+            travel: {
+                id: 'travel' as const,
+                alias: 'travel',
+                name: 'Travel',
+                title: 'workspace.upgrade.travel.title' as const,
+                description: 'workspace.upgrade.travel.description' as const,
+                icon: 'Luggage',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
