@@ -150,6 +150,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                     />
                     <Text style={styles.renderHTMLTitle}>
                         <RenderHTML html={processedContent()} />
+                        {/* {processedContent()} */}
                     </Text>
                 </View>
             );
@@ -170,7 +171,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldRegister = true) => {
+const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
     const context = useContext(ProductTrainingContext);
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -179,18 +180,18 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip, renderProductTrainingTooltip} = context;
 
     useEffect(() => {
-        if (shouldRegister) {
+        if (shouldShow) {
             registerTooltip(tooltipName);
             return () => {
                 unregisterTooltip(tooltipName);
             };
         }
         return undefined;
-    }, [tooltipName, registerTooltip, unregisterTooltip, shouldRegister]);
+    }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldRenderTooltip(tooltipName);
-    }, [tooltipName, shouldRenderTooltip]);
+        return shouldShow && shouldRenderTooltip(tooltipName);
+    }, [shouldShow, shouldRenderTooltip, tooltipName]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
@@ -198,7 +199,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         unregisterTooltip(tooltipName);
     }, [tooltipName, unregisterTooltip]);
 
-    if (!tooltipName) {
+    if (!shouldShow) {
         return {
             renderProductTrainingTooltip: () => null,
             hideProductTrainingTooltip: () => {},
