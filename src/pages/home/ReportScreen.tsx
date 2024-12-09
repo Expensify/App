@@ -854,20 +854,18 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                     </>
                                 )}
 
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        onComposerFocus={onComposerFocus}
-                                        onComposerBlur={onComposerBlur}
-                                        report={report}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        isEmptyChat={isEmptyChat}
-                                        lastReportAction={lastReportAction}
-                                        workspaceTooltip={workspaceTooltip}
-                                    />
-                                ) : null}
+                                <ReportFooter
+                                    onComposerFocus={onComposerFocus}
+                                    onComposerBlur={onComposerBlur}
+                                    report={report}
+                                    reportMetadata={reportMetadata}
+                                    policy={policy}
+                                    pendingAction={reportPendingAction}
+                                    isComposerFullSize={!!isComposerFullSize}
+                                    isEmptyChat={isEmptyChat}
+                                    lastReportAction={lastReportAction}
+                                    workspaceTooltip={workspaceTooltip}
+                                />
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
