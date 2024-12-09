@@ -6,12 +6,13 @@ import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as ReportUtils from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -48,16 +49,9 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
-    const data = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data ?? {}) as SearchResults['data'];
-    const allReportTransactions = (
-        isReportListItemType(item)
-            ? Object.entries(data)
-                  .filter(([itemKey, value]) => itemKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && (value as SearchTransaction)?.reportID === item.reportID)
-                  .map((report) => report[1])
-            : [data[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]]
-    ) as SearchTransaction[];
-
+    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = ReportUtils.hasHeldExpenses('', allReportTransactions);
+
     if (hasHeldExpense) {
         goToItem();
         return;
@@ -280,7 +274,15 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
     const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
-    API.write(WRITE_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData}).then(
+        (response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+            playSound(SOUNDS.SUCCESS);
+        },
+    );
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
