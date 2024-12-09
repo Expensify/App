@@ -1928,21 +1928,14 @@ describe('actions/IOU', () => {
                     PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
                     return waitForBatchedUpdates();
                 })
-                .then(
-                    () =>
-                        // And
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connection);
-                                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                        },
+                    }),
                 )
                 .then(() => {
                     if (chatReport) {
@@ -1990,21 +1983,16 @@ describe('actions/IOU', () => {
                     }
                     return waitForBatchedUpdates();
                 })
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connection);
-                                    const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
-                                    // Then the policy expense chat report has the iouReportID of the IOU expense report
-                                    expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
+                            // Then the policy expense chat report has the iouReportID of the IOU expense report
+                            expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
+                        },
+                    }),
                 );
         });
     });
