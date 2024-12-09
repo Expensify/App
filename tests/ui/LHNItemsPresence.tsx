@@ -225,5 +225,28 @@ describe('SidebarLinksData', () => {
             // Then hidden report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
+
+        it('should not display the report the user cannot access due to policy restrictions', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+
+            // An admin room is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // The admin room should appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(1);
+
+            // When the defaultRooms beta is removed
+            await Onyx.merge(ONYXKEYS.BETAS, []);
+
+            // The admin room should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
     });
 });
