@@ -54,9 +54,7 @@ type CustomBaseTextInputProps = {
      */
     autoGrow?: boolean;
 
-    /**
-     * If autoGrow is enabled, this reserves extra space for incoming characters to prevent flickering on native platforms.
-     */
+    /** If autoGrow is enabled, this reserves extra space for incoming characters to prevent flickering. */
     autoGrowExtraSpace?: number;
 
     /**
