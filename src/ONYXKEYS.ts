@@ -362,6 +362,9 @@ const ONYXKEYS = {
     // Stores onboarding last visited path
     ONBOARDING_LAST_VISITED_PATH: 'onboardingLastVisitedPath',
 
+    // Object containing names/timestamps of dismissed product training elements (Modal, Tooltip, etc.)
+    NVP_DISMISSED_PRODUCT_TRAINING: 'nvp_dismissedProductTraining',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -550,6 +553,8 @@ const ONYXKEYS = {
         ADD_PAYMENT_CARD_FORM_DRAFT: 'addPaymentCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
+        WORKSPACE_CONFIRMATION_FORM: 'workspaceConfirmationForm',
+        WORKSPACE_CONFIRMATION_FORM_DRAFT: 'workspaceConfirmationFormDraft',
         WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
         WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM: 'workspaceCategoryDescriptionHintForm',
         WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM_DRAFT: 'workspaceCategoryDescriptionHintFormDraft',
@@ -729,6 +734,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM]: FormTypes.AddPaymentCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
+    [ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM]: FormTypes.WorkspaceConfirmationForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
@@ -1025,6 +1031,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

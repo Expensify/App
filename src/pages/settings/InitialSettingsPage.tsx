@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -93,6 +94,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const network = useNetwork();
     const theme = useTheme();
@@ -277,6 +282,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
+                                  if (isActingAsDelegate) {
+                                      setIsNoDelegateAccessMenuVisible(true);
+                                      return;
+                                  }
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
@@ -326,6 +335,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         setInitialURL,
         shouldOpenBookACall,
         signOut,
+        isActingAsDelegate
     ]);
 
     /**
@@ -505,6 +515,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldShowCancelButton={false}
                 />
             </ScrollView>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }
