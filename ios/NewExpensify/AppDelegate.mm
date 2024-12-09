@@ -52,23 +52,7 @@
       [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
   }
   
-  NSArray *backgroundIdentifiers = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"BGTaskSchedulerPermittedIdentifiers"];
-
-  if (!backgroundIdentifiers || ![backgroundIdentifiers isKindOfClass:[NSArray class]]) {
-      NSLog(@"[ReactNativeBackgroundTask] No background identifiers found or invalid format");
-  } else {
-    for (NSString *identifier in backgroundIdentifiers) {
-        [[BGTaskScheduler sharedScheduler] registerForTaskWithIdentifier:identifier
-                                                            usingQueue:nil
-                                                         launchHandler:^(BGTask * _Nonnull task) {
-            NSLog(@"[ReactNativeBackgroundTask] Executing background task: %@", task.identifier);
-            void (^handler)(BGTask * _Nonnull) = [[RNBackgroundTaskManager shared] handlerForIdentifier:task.identifier];
-            if (handler) {
-                handler(task);
-            }
-        }];
-    }
-  }
+  [RNBackgroundTaskManager setup];
 
   return YES;
 }

@@ -15,7 +15,8 @@
 @property (nonatomic, copy) void (^taskHandler)(BGTask * _Nonnull);
 
 + (instancetype)shared;
-- (void)setHandlerForIdentifier:(NSString *)identifier 
++ (void)setup;
+- (void)setHandlerForIdentifier:(NSString *)identifier
                      completion:(void (^)(BGTask * _Nonnull))handler;
 - (void (^)(BGTask * _Nonnull))handlerForIdentifier:(NSString *)identifier;
 

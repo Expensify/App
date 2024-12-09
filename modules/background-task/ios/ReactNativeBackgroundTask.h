@@ -15,7 +15,4 @@
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject;
 
-- (void)handleAppDidFinishLaunching:(NSNotification *)notification;
-- (void)handleBackgroundTask:(BGTask *)task API_AVAILABLE(ios(13.0));
-
 @end
