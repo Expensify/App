@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
