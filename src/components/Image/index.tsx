@@ -119,20 +119,20 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         if (forwardedProps?.onLoadStart) {
             forwardedProps.onLoadStart();
         }
-    }, [source]);
+    }, [source, isAuthTokenRequired, forwardedProps]);
 
     /**
      * If the image fails to load and the object position is top, we should hide the image by setting the opacity to 0.
      */
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
-    return source === undefined ? (
-        forwardedProps?.onLoadStart ? (
-            <Fragment />
-        ) : (
-            <FullScreenLoadingIndicator />
-        )
-    ) : (
+    if (source === undefined) {
+        if (forwardedProps?.onLoadStart) {
+            return undefined;
+        }
+        return <FullScreenLoadingIndicator />;
+    }
+    return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
