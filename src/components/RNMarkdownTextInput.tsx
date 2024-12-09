@@ -2,7 +2,6 @@ import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown
 import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React from 'react';
-import type {TextInput} from 'react-native';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 
