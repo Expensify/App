@@ -144,6 +144,9 @@ const ONYXKEYS = {
     /** Last date (yyyy-MM-dd HH:mm:ss) when the location permission prompt was shown. */
     NVP_LAST_LOCATION_PERMISSION_PROMPT: 'nvp_lastLocalPermissionPrompt',
 
+    /** Last date (yyyy-MM-dd HH:mm:ss) when the location permission prompt was shown. */
+    NVP_LAST_CONTACT_PERMISSION_PROMPT: 'nvp_lastLocalPermissionPrompt',
+
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
@@ -924,6 +927,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
+    [ONYXKEYS.NVP_LAST_CONTACT_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
