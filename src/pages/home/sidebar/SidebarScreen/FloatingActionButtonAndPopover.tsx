@@ -523,6 +523,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         navigateToQuickAction,
         selectOption,
         isValidReport,
+        quickActionPolicy,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
