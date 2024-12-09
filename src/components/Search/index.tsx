@@ -343,7 +343,10 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     if (shouldShowEmptyState) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <EmptySearchView type={type} />
+                <EmptySearchView
+                    type={type}
+                    hasResults={searchResults.search.hasResults}
+                />
             </View>
         );
     }

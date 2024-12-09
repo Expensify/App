@@ -54,6 +54,10 @@ type SearchResultsInfo = {
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
+
     /** Whether the search results are currently loading */
     isLoading: boolean;
 

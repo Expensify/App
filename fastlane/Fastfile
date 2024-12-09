@@ -258,16 +258,11 @@ platform :android do
     lane :upload_google_play_production_hybrid_rollout do
       # Google is very unreliable, so we retry a few times
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-      google_play_track_version_codes(
-        package_name: "org.me.mobiexpensifyg",
-        json_key: './android-fastlane-json-key.json',
-        track: 'internal'
-      )
       upload_to_play_store(
         package_name: "org.me.mobiexpensifyg",
         json_key: './android-fastlane-json-key.json',
         version_code: ENV["VERSION"].to_i,
-        track: 'internal',
+        track: 'beta',
         track_promote_to: 'production',
         rollout: '0.01',
         skip_upload_apk: true,
@@ -613,11 +608,20 @@ platform :ios do
 
   desc "Submit HybridApp to 100% rollout on App Store"
     lane :complete_hybrid_rollout do
-        api_token = Spaceship::ConnectAPI::Token.from_json_file("./ios-fastlane-json-key.json")
+        # Local path is different when using Spaceship::ConnectAPI::Token.from_json_file,
+        # the working directory is: /Users/runner/work/App/App/Mobile-Expensify/react-native/fastlane
+        api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios/ios-fastlane-json-key.json")
         Spaceship::ConnectAPI.token = api_token
 
         app = Spaceship::ConnectAPI::App.find("com.expensify.expensifylite")
         version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+
+        # Skip if the version is already at 100% rollout
+        if version.fetch_app_store_version_phased_release.phased_release_state == "COMPLETE"
+          UI.important "Version is already at 100% rollout, skipping completing the rollout"
+          next
+        end
+
         version.fetch_app_store_version_phased_release.complete
     end
 
@@ -625,7 +629,7 @@ platform :ios do
     lane :submit_hybrid_for_rollout do
       deliver(
         app_identifier: "com.expensify.expensifylite",
-        api_key_path: "./ios-fastlane-json-key.json",
+        api_key_path: "./ios/ios-fastlane-json-key.json",
 
         # Skip HTML report verification
         force: true,

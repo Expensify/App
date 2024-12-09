@@ -70,11 +70,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!NativeModules.HybridAppModule && exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        if (!NativeModules.HybridAppModule && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();
-                Navigation.navigate(exitTo);
+                if (exitTo) {
+                    Navigation.navigate(exitTo);
+                }
             });
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

@@ -113,6 +113,11 @@ key "key"
       / "cardID"
       / "from"
       / "expenseType"
+      / "submitted"
+      / "approved"
+      / "paid"
+      / "exported"
+      / "posted"
     )
 
 defaultKey "default key"

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -9,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,7 +52,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             offlineIndicatorStyle={styles.mtAuto}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <>
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton
                         title={translate('delegate.makeSureItIsYou')}
                         onBackButtonPress={onBackButtonPress}
@@ -63,7 +64,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
                         role={role}
                         wrapperStyle={safeAreaPaddingBottomStyle}
                     />
-                </>
+                </DelegateNoAccessWrapper>
             )}
         </ScreenWrapper>
     );
