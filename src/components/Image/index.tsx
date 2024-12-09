@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
@@ -103,7 +103,6 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 if (session) {
                     activateReauthenticator(session);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return undefined;
             }
         }
@@ -113,6 +112,14 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired, validSessionAge]);
+    useEffect(() => {
+        if (!isAuthTokenRequired || source !== undefined) {
+            return;
+        }
+        if (forwardedProps?.onLoadStart) {
+            forwardedProps.onLoadStart();
+        }
+    }, [source]);
 
     /**
      * If the image fails to load and the object position is top, we should hide the image by setting the opacity to 0.
@@ -120,7 +127,11 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
     return source === undefined ? (
-        <FullScreenLoadingIndicator />
+        forwardedProps?.onLoadStart ? (
+            <Fragment />
+        ) : (
+            <FullScreenLoadingIndicator />
+        )
     ) : (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading

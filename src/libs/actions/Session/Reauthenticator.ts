@@ -7,7 +7,10 @@ let isOffline = false;
 let active = false;
 let currentActiveSession: Session = {};
 let timer: NodeJS.Timeout;
-const TIMING_BEFORE_REAUTHENTICATION_MS = 8500; // 8.5s
+// the delay before requesting a reauthentication once activated
+// we think in that timing a "natural" reauthentication could happen (a session expired in the carousel is the only exception)
+// and we wish not to overlap and make a double reauthentication
+const TIMING_BEFORE_REAUTHENTICATION_MS = 6700; // 6.7s
 
 // We subscribe to network's online/offline status
 Onyx.connect({
@@ -17,6 +20,13 @@ Onyx.connect({
             return;
         }
         isOffline = !!network.shouldForceOffline || !!network.isOffline;
+        // if offline we make sure of that by requesting the status 0.5s later
+        if (!isOffline) {
+            return;
+        }
+        setTimeout(() => {
+            isOffline = !!network.shouldForceOffline || !!network.isOffline;
+        }, 500);
     },
 });
 
@@ -61,6 +71,7 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
+    console.log('@51888 Authenticator request reauthentication');
     reauthenticate();
 }
 

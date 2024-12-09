@@ -118,6 +118,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
         authToken: supportAuthToken,
         email,
         accountID,
+        creationDate: new Date().getTime(),
     }).then(() => {
         Log.info('[Supportal] Authtoken set');
     });
@@ -775,7 +776,7 @@ function invalidateCredentials() {
 
 function invalidateAuthToken() {
     NetworkStore.setAuthToken('pizza');
-    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza'});
+    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza', creationDate: new Date().getTime()});
 }
 
 /**
