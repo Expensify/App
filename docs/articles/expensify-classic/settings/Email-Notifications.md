@@ -28,8 +28,6 @@ Emails can sometimes be delayed, and they could take up to 30-60 minutes to arri
    - If the error message includes "mimecast.com," consult with your company's IT team.
    - If the error message includes "blacklist," it means your company has configured its email servers to use a third-party email reputation or blocklisting service. Consult with your company's IT team.
 
-   ![ExpensifyHelp_SMTPError]({{site.url}}/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
-
 # Further Troubleshooting for Public Domains
 
 If you are still not receiving Expensify notifications and have an email address on a public domain such as `gmail.com` or `yahoo.com`, you may need to add Expensify's domain `expensify.com` to your email's whitelist by taking the following steps:
