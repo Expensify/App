@@ -71,9 +71,9 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(pendingContactAction?.contactMethod ?? ''));
         User.clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified]);
+    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod]);
 
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
