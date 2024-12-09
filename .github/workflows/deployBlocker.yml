@@ -12,7 +12,7 @@ jobs:
 
   deployBlocker:
     if: github.event.label.name == 'DeployBlockerCash'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4

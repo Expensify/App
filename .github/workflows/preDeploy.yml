@@ -20,7 +20,7 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   confirmPassingBuild:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [typecheck, lint, test]
     if: ${{ always() }}
 

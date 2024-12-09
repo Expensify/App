@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   prep:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Find the baseline and delta refs, and check for an existing build artifact for that commit
     outputs:
       BASELINE_REF: ${{ steps.getBaselineRef.outputs.BASELINE_REF }}

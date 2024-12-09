@@ -32,7 +32,7 @@ jobs:
 
   cherryPick:
     needs: createNewVersion
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout staging branch
         uses: actions/checkout@v4
