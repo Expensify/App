@@ -4,7 +4,7 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   cla-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Run CLA Assistant
         uses: contributor-assistant/github-action@latest
