@@ -33,6 +33,11 @@ const SCREENS = {
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
+        ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
+        ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
+        ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
+        ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
@@ -116,6 +121,7 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
+            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
@@ -150,6 +156,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -198,6 +205,7 @@ const SCREENS = {
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
+        STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',
@@ -309,6 +317,8 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
+
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -545,6 +555,9 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         PER_DIEM: 'Per_Diem',
+        PER_DIEM_IMPORT: 'Per_Diem_Import',
+        PER_DIEM_IMPORTED: 'Per_Diem_Imported',
+        PER_DIEM_SETTINGS: 'Per_Diem_Settings',
     },
 
     EDIT_REQUEST: {
@@ -579,6 +592,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
@@ -624,6 +641,9 @@ const SCREENS = {
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
         DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        TRANSACTION: 'Debug_Transaction',
+        TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
 } as const;
 

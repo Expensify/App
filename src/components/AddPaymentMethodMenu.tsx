@@ -117,7 +117,6 @@ function AddPaymentMethodMenu({
                               text: translate('common.businessBankAccount'),
                               icon: Expensicons.Building,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA);
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },
                           },

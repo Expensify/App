@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -34,6 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -49,7 +49,6 @@ import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -70,7 +69,7 @@ type ReportDetailsPageMenuItem = {
     shouldShowRightIcon?: boolean;
 };
 
-type ReportDetailsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
+type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 const CASES = {
     DEFAULT: 'default',
@@ -80,8 +79,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
-    console.log('ReportDetailsPage');
+function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -184,7 +182,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         // 1. HeaderView
         return CASES.DEFAULT;
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
-    const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
+    const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
 
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
@@ -257,7 +255,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`);
     const isMoneyRequestExported = ReportUtils.isExported(moneyRequestReportActions);
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
@@ -292,6 +290,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
     const shouldShowNotificationPref = !isMoneyRequestReport && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+    const shouldShowGoToWorkspace = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
@@ -376,7 +375,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             });
         }
 
-        if (isTrackExpenseReport) {
+        if (isTrackExpenseReport && !isDeletedParentAction) {
             const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction) ?? '0';
             const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID ?? '0');
             const actionableWhisperReportActionID = whisperAction?.reportActionID ?? '0';
@@ -451,23 +450,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             });
         }
 
-        if (shouldShowLeaveButton) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: true,
-                action: () => {
-                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    leaveChat();
-                },
-            });
-        }
-
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -509,6 +491,23 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             });
         }
 
+        if (shouldShowGoToWorkspace) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
+                translationKey: 'workspace.common.goToWorkspace',
+                icon: Expensicons.Building,
+                action: () => {
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID ?? '-1'));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
         if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
@@ -525,7 +524,6 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -544,14 +542,12 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
-        shouldShowLeaveButton,
         activeChatMembers.length,
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         isOffline,
         transactionIDList,
-        leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
@@ -562,6 +558,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         iouTransactionID,
         parentReportAction,
         moneyRequestReport?.reportID,
+        isDeletedParentAction,
+        isSmallScreenWidth,
+        shouldShowGoToWorkspace,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -744,6 +743,8 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
+                    numberOfLinesTitle={isThread ? 2 : 0}
+                    shouldBreakWord
                 />
             </View>
         </OfflineWithFeedback>
@@ -769,7 +770,7 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
 
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey] ?? report.pendingFields?.reportName}
+            pendingAction={report.pendingFields?.[fieldKey as keyof typeof report.pendingFields] ?? report.pendingFields?.reportName}
             errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
@@ -795,16 +796,9 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
         </OfflineWithFeedback>
     );
 
-    // A flag to indicate whether the user choose to delete the transaction or not
-    const isTransactionDeleted = useRef<boolean>(false);
-    // Where to go back after deleting the transaction and its report. It's empty if the transaction report isn't deleted.
-    const navigateBackToAfterDelete = useRef<Route>();
-
     const deleteTransaction = useCallback(() => {
-        setIsDeleteModalVisible(false);
-
         if (caseID === CASES.DEFAULT) {
-            navigateBackToAfterDelete.current = Task.deleteTask(report);
+            Task.deleteTask(report);
             return;
         }
 
@@ -812,14 +806,63 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
             return;
         }
 
-        if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+
+        if (isTrackExpense) {
+            IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
+
+    // A flag to indicate whether the user chose to delete the transaction or not
+    const isTransactionDeleted = useRef<boolean>(false);
+
+    useEffect(() => {
+        return () => {
+            // Perform the actual deletion after the details page is unmounted. This prevents the [Deleted ...] text from briefly appearing when dismissing the modal.
+            if (!isTransactionDeleted.current) {
+                return;
+            }
+
+            deleteTransaction();
+        };
+    }, [deleteTransaction]);
+
+    // Where to navigate back to after deleting the transaction and its report.
+    const navigateToTargetUrl = useCallback(() => {
+        let urlToNavigateBack: string | undefined;
+
+        if (!isTransactionDeleted.current) {
+            if (caseID === CASES.DEFAULT) {
+                urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
+                if (urlToNavigateBack) {
+                    Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+                    Navigation.goBack(urlToNavigateBack);
+                } else {
+                    Navigation.dismissModal();
+                }
+                return;
+            }
+            return;
         }
 
-        isTransactionDeleted.current = true;
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
+        if (!isEmptyObject(requestParentReportAction)) {
+            const isTrackExpense = ReportActionsUtils.isTrackExpenseAction(requestParentReportAction);
+            if (isTrackExpense) {
+                urlToNavigateBack = IOU.getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            } else {
+                urlToNavigateBack = IOU.getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            }
+        }
+
+        if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else {
+            Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack, true);
+        }
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -876,6 +919,23 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                         />
                     ))}
 
+                    {shouldShowLeaveButton && (
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
+                            icon={Expensicons.Exit}
+                            title={translate('common.leave')}
+                            isAnonymousAction
+                            onPress={() => {
+                                if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                                    setIsLastMemberLeavingGroupModalVisible(true);
+                                    return;
+                                }
+
+                                leaveChat();
+                            }}
+                        />
+                    )}
+
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
@@ -912,37 +972,21 @@ function ReportDetailsPage({policies, report, route}: ReportDetailsPageProps) {
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTransaction}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => {
-                        // We use isTransactionDeleted to know if the modal hides because the user deletes the transaction.
-                        if (!isTransactionDeleted.current) {
-                            if (caseID === CASES.DEFAULT) {
-                                if (navigateBackToAfterDelete.current) {
-                                    Navigation.goBack(navigateBackToAfterDelete.current);
-                                } else {
-                                    Navigation.dismissModal();
-                                }
-                            }
-                            return;
-                        }
-
-                        if (!navigateBackToAfterDelete.current) {
-                            Navigation.dismissModal();
-                        } else {
-                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current, true);
-                        }
+                    onConfirm={() => {
+                        setIsDeleteModalVisible(false);
+                        isTransactionDeleted.current = true;
                     }}
+                    onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                    onModalHide={navigateToTargetUrl}
                 />
                 <DelegateNoAccessModal
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                     onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    delegatorEmail={delegatorEmail ?? ''}
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}

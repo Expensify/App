@@ -443,6 +443,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
+                contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
@@ -583,7 +584,7 @@ function validateLogin(accountID: number, validateCode: string) {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -728,6 +729,19 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
             value: {isLoading: false},
         },
     ];
+
+    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
+    if (shouldResetActionCode) {
+        const optimisticResetActionCode = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        };
+        successData.push(optimisticResetActionCode);
+        failureData.push(optimisticResetActionCode);
+    }
 
     const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode};
 

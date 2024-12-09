@@ -1,10 +1,9 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,24 +15,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
-import type {Session} from '@src/types/onyx';
 
-type CloseAccountPageOnyxProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<Session>;
-};
+function CloseAccountPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
-type CloseAccountPageProps = CloseAccountPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
-
-function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
@@ -81,69 +72,67 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={CloseAccountPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('closeAccountPage.closeAccount')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                validate={validate}
-                onSubmit={showConfirmModal}
-                submitButtonText={translate('closeAccountPage.closeAccount')}
-                style={[styles.flexGrow1, styles.mh5]}
-                isSubmitActionDangerous
-            >
-                <View style={[styles.flexGrow1]}>
-                    <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.REASON_FOR_LEAVING}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        label={translate('closeAccountPage.enterMessageHere')}
-                        aria-label={translate('closeAccountPage.enterMessageHere')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
-                    />
-                    <Text style={[styles.mt5]}>
-                        {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
-                    </Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                        autoCapitalize="none"
-                        label={translate('closeAccountPage.enterDefaultContact')}
-                        aria-label={translate('closeAccountPage.enterDefaultContact')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
-                        autoCorrect={false}
-                        inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
-                    />
-                    <ConfirmModal
-                        danger
-                        title={translate('closeAccountPage.closeAccountWarning')}
-                        onConfirm={onConfirm}
-                        onCancel={hideConfirmModal}
-                        isVisible={isConfirmModalVisible}
-                        prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        confirmText={translate('common.yesContinue')}
-                        cancelText={translate('common.cancel')}
-                        shouldDisableConfirmButtonWhenOffline
-                        shouldShowCancelButton
-                    />
-                </View>
-            </FormProvider>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('closeAccountPage.closeAccount')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                    validate={validate}
+                    onSubmit={showConfirmModal}
+                    submitButtonText={translate('closeAccountPage.closeAccount')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                    isSubmitActionDangerous
+                >
+                    <View style={[styles.flexGrow1]}>
+                        <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.REASON_FOR_LEAVING}
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            label={translate('closeAccountPage.enterMessageHere')}
+                            aria-label={translate('closeAccountPage.enterMessageHere')}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.mt5]}
+                        />
+                        <Text style={[styles.mt5]}>
+                            {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                        </Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                            autoCapitalize="none"
+                            label={translate('closeAccountPage.enterDefaultContact')}
+                            aria-label={translate('closeAccountPage.enterDefaultContact')}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.mt5]}
+                            autoCorrect={false}
+                            inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                        />
+                        <ConfirmModal
+                            danger
+                            title={translate('closeAccountPage.closeAccountWarning')}
+                            onConfirm={onConfirm}
+                            onCancel={hideConfirmModal}
+                            isVisible={isConfirmModalVisible}
+                            prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                            confirmText={translate('common.yesContinue')}
+                            cancelText={translate('common.cancel')}
+                            shouldDisableConfirmButtonWhenOffline
+                            shouldShowCancelButton
+                        />
+                    </View>
+                </FormProvider>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
 
 CloseAccountPage.displayName = 'CloseAccountPage';
 
-export default withOnyx<CloseAccountPageProps, CloseAccountPageOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(CloseAccountPage);
+export default CloseAccountPage;

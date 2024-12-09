@@ -1,18 +1,18 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -134,6 +134,8 @@ type AttachmentModalProps = {
     canEditReceipt?: boolean;
 
     shouldDisableSendButton?: boolean;
+
+    attachmentLink?: string;
 };
 
 function AttachmentModal({
@@ -161,9 +163,9 @@ function AttachmentModal({
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
+    attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -174,7 +176,6 @@ function AttachmentModal({
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
@@ -185,6 +186,7 @@ function AttachmentModal({
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -211,6 +213,7 @@ function AttachmentModal({
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
+            setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange],
     );
@@ -382,7 +385,7 @@ function AttachmentModal({
         setIsModalOpen(false);
 
         if (typeof onModalClose === 'function') {
-            onModalClose();
+            attachmentModalHandler.handleModalClose(onModalClose);
         }
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -486,7 +489,6 @@ function AttachmentModal({
         <>
             <Modal
                 type={modalType}
-                onSubmit={submitAndClose}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 onModalShow={() => {
@@ -527,6 +529,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
+                        subTitleLink={currentAttachmentLink ?? ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -552,6 +555,7 @@ function AttachmentModal({
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    attachmentLink={currentAttachmentLink}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
@@ -583,7 +587,10 @@ function AttachmentModal({
                     {!!onConfirm && !isConfirmButtonDisabled && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Animated.View
+                                    style={safeAreaPaddingBottomStyle}
+                                    entering={FadeIn}
+                                >
                                     <Button
                                         ref={viewRef(submitRef)}
                                         success

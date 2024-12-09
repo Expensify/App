@@ -9,7 +9,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
-import type {CompanyCardNicknames, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {FilteredCardList} from '@src/types/onyx/Card';
+import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -135,15 +136,26 @@ function maskCard(lastFour = ''): string {
  * Converts given 'X' to '•' for the entire card string.
  *
  * @param cardName - card name with XXXX in the middle.
+ * @param feed - card feed.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string): string {
+function maskCardNumber(cardName: string, feed: string | undefined): string {
     if (!cardName || cardName === '') {
         return '';
     }
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replace(/X/g, '•');
-    return hasSpace ? cardName : maskedString.replace(/(.{4})/g, '$1 ').trim();
+    const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
+
+    if (hasSpace) {
+        return cardName;
+    }
+
+    if (isAmexBank && maskedString.length === 15) {
+        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+    }
+
+    return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -199,14 +211,6 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
 
         return localeCompare(aName, bName);
     });
-}
-
-function getCompanyCardNumber(cardList: Record<string, string>, lastFourPAN?: string, cardName = ''): string {
-    if (!lastFourPAN) {
-        return '';
-    }
-
-    return Object.keys(cardList).find((card) => card.endsWith(lastFourPAN)) ?? cardName;
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
@@ -275,7 +279,14 @@ function getCardFeedName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
     };
 
-    return feedNamesMapping[feedType];
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+
+    if (!feedKey) {
+        return '';
+    }
+
+    return feedNamesMapping[feedKey];
 }
 
 const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
@@ -341,6 +352,40 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+/** Returns list of cards which can be assigned */
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+    const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    const assignedCards = Object.values(cards).map((card) => card.cardName);
+
+    if (directFeed) {
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
+    }
+
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
+}
+
+function hasOnlyOneCardToAssign(list: FilteredCardList) {
+    return Object.keys(list).length === 1;
+}
+
+function getDefaultCardName(cardholder?: string) {
+    if (!cardholder) {
+        return '';
+    }
+    return `${cardholder}'s card`;
+}
+
+function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds) {
+    const prevFeeds = Object.keys(prevFeedsData);
+    const currentFeeds = Object.keys(currentFeedsData);
+
+    return {
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length,
+        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeed | undefined,
+    };
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -357,7 +402,6 @@ export {
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
-    getCompanyCardNumber,
     getCardFeedIcon,
     getCardFeedName,
     getCompanyFeeds,
@@ -367,4 +411,8 @@ export {
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
     removeExpensifyCardFromCompanyCards,
+    getFilteredCardList,
+    hasOnlyOneCardToAssign,
+    checkIfNewFeedConnected,
+    getDefaultCardName,
 };

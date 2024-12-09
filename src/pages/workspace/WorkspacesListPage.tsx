@@ -17,6 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +32,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -124,8 +124,19 @@ function WorkspacesListPage() {
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyIDToDelete ?? '-1');
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const hasCardFeedOrExpensifyCard = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
+    const policyToDelete = PolicyUtils.getPolicy(policyIDToDelete);
+    const hasCardFeedOrExpensifyCard =
+        !isEmptyObject(cardFeeds) ||
+        !isEmptyObject(cardsList) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
 
+    const isSupportalAction = Session.isSupportAuthToken();
+
+    const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
+    const hideSupportalModal = () => {
+        setIsSupportalActionRestrictedModalOpen(false);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -151,13 +162,23 @@ function WorkspacesListPage() {
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
-            const threeDotsMenuItems: PopoverMenuItem[] = [];
+            const threeDotsMenuItems: PopoverMenuItem[] = [
+                {
+                    icon: Expensicons.Building,
+                    text: translate('workspace.common.goToWorkspace'),
+                    onSelected: item.action,
+                },
+            ];
 
             if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
+                        if (isSupportalAction) {
+                            setIsSupportalActionRestrictedModalOpen(true);
+                            return;
+                        }
                         setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
@@ -226,7 +247,18 @@ function WorkspacesListPage() {
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb2, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
+        [
+            isLessThanMediumScreen,
+            styles.mb2,
+            styles.mh5,
+            styles.ph5,
+            styles.hoveredComponentBG,
+            translate,
+            styles.offlineFeedback.deleted,
+            session?.accountID,
+            session?.email,
+            isSupportalAction,
+        ],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -271,7 +303,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
-            if (!report?.reportID || !report.policyID) {
+            if (!report?.reportID || !report.policyID || report.parentReportID) {
                 return result;
             }
 
@@ -333,12 +365,13 @@ function WorkspacesListPage() {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator:
-                        reimbursementAccountBrickRoadIndicator ??
-                        PolicyUtils.getPolicyBrickRoadIndicatorStatus(
-                            policy,
-                            isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                        ),
+                    brickRoadIndicator: !PolicyUtils.isPolicyAdmin(policy)
+                        ? undefined
+                        : reimbursementAccountBrickRoadIndicator ??
+                          PolicyUtils.getPolicyBrickRoadIndicatorStatus(
+                              policy,
+                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                          ),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -361,9 +394,8 @@ function WorkspacesListPage() {
     const getHeaderButton = () => (
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
-            success
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION))}
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
@@ -393,7 +425,7 @@ function WorkspacesListPage() {
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                            onCtaPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+                            onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION))}
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
@@ -438,6 +470,10 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <SupportalActionRestrictedModal
+                isModalOpen={isSupportalActionRestrictedModalOpen}
+                hideSupportalModal={hideSupportalModal}
             />
         </ScreenWrapper>
     );
