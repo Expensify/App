@@ -19,6 +19,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import Parser from './Parser';
+import Performance from './Performance';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -41,13 +42,15 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-
+        const report = ReportUtils.getReport(reportID);
+        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = actionsArray.filter(
-            (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            (reportAction) =>
+                ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
         const reportAction = reportActionsForDisplay.at(-1);
@@ -96,6 +99,7 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
+    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     const allReportsDictValues = Object.values(allReports ?? {});
@@ -227,6 +231,7 @@ function getOrderedReportIDs(
 
     const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
 
+    Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return LHNReports;
 }
 
@@ -481,7 +486,7 @@ function getOptionData({
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
+                    : ReportActionsUtils.getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
                 result.alternateText = ReportUtils.formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? Localize.translateLocal('report.noActivityYet'));
             }
