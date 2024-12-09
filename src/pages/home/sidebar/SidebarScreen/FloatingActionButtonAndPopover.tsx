@@ -189,7 +189,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
-        isCreateMenuActive,
+        isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
     );
 
     /**
