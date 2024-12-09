@@ -12,21 +12,8 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
     if (self = [super init]) {
         _taskExecutors = [NSMutableDictionary new];
-        
-        // Add observer in the next run loop to ensure proper registration
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter] addObserver:self
-                                                   selector:@selector(handleAppDidFinishLaunching:)
-                                                       name:UIApplicationDidFinishLaunchingNotification
-                                                     object:nil];
-        });
     }
     return self;
-}
-
-// Add dealloc to properly remove the observer
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (BOOL)scheduleNewBackgroundTask:(NSString *)identifier {
