@@ -20,6 +20,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
@@ -241,4 +242,5 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    DismissedProductTraining,
 };
