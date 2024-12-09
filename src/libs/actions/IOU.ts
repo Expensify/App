@@ -5689,7 +5689,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
-    const onyxUpdatesActions: OnyxUpdate[] = [];
+    const reportActionsOnyxUpdates: OnyxUpdate[] = [];
     const onyxUpdates: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -5697,7 +5697,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
             value: null,
         },
     ];
-    onyxUpdatesActions.push({
+    reportActionsOnyxUpdates.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
         value: {
@@ -5710,7 +5710,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     });
 
     if (reportPreviewAction?.reportActionID) {
-        onyxUpdatesActions.push({
+        reportActionsOnyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
@@ -5747,7 +5747,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // added operations to update IOU report and chat report
-    onyxUpdatesActions.push({
+    reportActionsOnyxUpdates.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
         value: updatedReportAction,
@@ -5804,7 +5804,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
-    Onyx.update(onyxUpdatesActions).then(() => {
+    Onyx.update(reportActionsOnyxUpdates).then(() => {
         Navigation.goBack(urlToNavigateBack);
         InteractionManager.runAfterInteractions(() => {
             // After navigation, update the remaining data.
@@ -8672,7 +8672,6 @@ export {
     completePaymentOnboarding,
     payInvoice,
     payMoneyRequest,
-    prepareToCleanUpMoneyRequest,
     putOnHold,
     replaceReceipt,
     requestMoney,
