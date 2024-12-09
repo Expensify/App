@@ -166,6 +166,14 @@ type Account = {
 
     /** Indicates SMS delivery failure status and associated information */
     smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** Datetime stamp if the user is already onboard */
+        wonTimestamp: string;
+    };
 };
 
 export default Account;
