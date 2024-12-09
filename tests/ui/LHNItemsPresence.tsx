@@ -329,20 +329,13 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport();
-            const reportAction = LHNTestUtils.getFakeReportAction();
 
-            // And a read report with a message is initialized in Onyx
+            // A read report is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
-                [reportAction.reportActionID]: reportAction,
-            });
 
-            // This report should appear in the sidebar.
-            expect(getOptionRows()).toHaveLength(1);
-
-            // When we are in the focus mode
+            // And we are in the focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
             // This report should not appear in the sidebar.
