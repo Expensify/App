@@ -855,6 +855,7 @@ const translations = {
         trackExpense: 'Seguimiento de gastos',
         chooseRecipient: 'Elige destinatario',
         confirmDetails: 'Confirma los detalles',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Crea un gasto de ${amount}`,
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
         cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
