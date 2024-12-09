@@ -3,7 +3,8 @@ import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasCompletedGuidedSetupFlowSelector, hasCompletedHybridAppOnboardingFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import Permissions from '@libs/Permissions';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,20 +19,29 @@ function useOnboardingFlowRouter() {
     const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [isHybridAppOnboardingCompleted, isHybridAppOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
-        selector: hasCompletedHybridAppOnboardingFlowSelector,
+    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+        selector: tryNewDotOnyxSelector,
     });
+    const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
+
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
             return;
         }
 
-        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isHybridAppOnboardingCompletedMetadata, isSingleNewDotEntryMetadata)) {
+        if (NativeModules.HybridAppModule && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+            return;
+        }
+
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+            Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
 
@@ -61,10 +71,16 @@ function useOnboardingFlowRouter() {
         isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        isHybridAppOnboardingCompletedMetadata,
-        isPrivateDomain,
+        tryNewDotdMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
+        hasBeenAddedToNudgeMigration,
+        dismissedProductTrainingMetadata,
+        dismissedProductTraining?.migratedUserWelcomeModal,
+        dismissedProductTraining,
+        allBetasMetadata,
+        allBetas,
+        isPrivateDomain,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
