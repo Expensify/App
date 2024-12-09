@@ -114,30 +114,31 @@ function WorkspaceConfirmationPage() {
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
-                <AvatarWithImagePicker
-                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    avatarID={policyID}
-                    source={stashedLocalAvatarImage}
-                    onImageSelected={(image) => {
-                        setAvatarFile(image);
-                        setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
-                    }}
-                    onImageRemoved={() => {
-                        setAvatarFile(undefined);
-                        setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
-                    }}
-                    size={CONST.AVATAR_SIZE.XLARGE}
-                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    shouldDisableViewPhoto
-                    editIcon={Expensicons.Camera}
-                    editIconStyle={styles.smallEditIconAccount}
-                    shouldUseStyleUtilityForAnchorPosition
-                    type={CONST.ICON_TYPE_WORKSPACE}
-                    style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
-                    DefaultAvatar={DefaultAvatar}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
-                />
+                <View style={styles.avatarSectionWrapper}>
+                    <AvatarWithImagePicker
+                        isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                        avatarID={policyID}
+                        source={stashedLocalAvatarImage}
+                        onImageSelected={(image) => {
+                            setAvatarFile(image);
+                            setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                        }}
+                        onImageRemoved={() => {
+                            setAvatarFile(undefined);
+                            setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                        }}
+                        size={CONST.AVATAR_SIZE.XLARGE}
+                        avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                        shouldDisableViewPhoto
+                        editIcon={Expensicons.Camera}
+                        editIconStyle={styles.smallEditIconAccount}
+                        shouldUseStyleUtilityForAnchorPosition
+                        type={CONST.ICON_TYPE_WORKSPACE}
+                        style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
+                        DefaultAvatar={DefaultAvatar}
+                        editorMaskImage={Expensicons.ImageCropSquareMask}
+                    />
+                </View>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
                     submitButtonText={translate('common.confirm')}
