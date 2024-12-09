@@ -672,6 +672,7 @@ export type {
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
+    ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
