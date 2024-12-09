@@ -2,10 +2,10 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -133,14 +133,12 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const renderProductTrainingTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
-            if (!tooltip) {
-                return null;
-            }
             const processedContent = () => {
                 const content = convertToLTR(translate(tooltip.content as TranslationPaths));
 
                 return content ? `<comment>${content}</comment>` : '';
             };
+
             return (
                 <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
                     <Icon
@@ -148,10 +146,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={styles.renderHTMLTitle}>
-                        <RenderHTML html={processedContent()} />
-                        {/* {processedContent()} */}
-                    </Text>
+                    <View style={styles.renderHTMLTitle}>
+                        <HTMLEngineProvider>
+                            <RenderHTML html={processedContent()} />
+                        </HTMLEngineProvider>
+                    </View>
                 </View>
             );
         },

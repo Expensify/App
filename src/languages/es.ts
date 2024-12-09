@@ -5964,7 +5964,7 @@ const translations = {
         conciergeLHNGBR: 'Get started <strong>here!</strong>',
         saveSearchTooltipText: 'You can <strong>rename your saved search</strong> here!',
         quickActionButton: '<strong>Quick action!</strong> Just a tap away',
-        workspaceChatCreate: '<strong>Get started!</strong> Submit your expenses here!',
+        workspaceChatCreate: 'Submit your <strong>expenses</strong> here!',
     },
 };
 
