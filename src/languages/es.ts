@@ -1318,6 +1318,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
         twoFactorAuthIsRequiredForAdminsDescription:
             'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
+        twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
     recoveryCodeForm: {
         error: {
