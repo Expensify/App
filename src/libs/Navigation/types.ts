@@ -1541,6 +1541,10 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
+type MigratedUserModalNavigatorParamList = {
+    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
+};
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
@@ -1614,6 +1618,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
@@ -1772,4 +1777,5 @@ export type {
     MissingPersonalDetailsParamList,
     DebugParamList,
     WorkspaceConfirmationNavigatorParamList,
+    MigratedUserModalNavigatorParamList,
 };
