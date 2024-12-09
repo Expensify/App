@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
@@ -162,7 +163,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
                     }}
                     onClose={() => {
-                        if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                        if (!isEmptyObject(loginData?.errorFields) && pendingContactAction?.contactMethod) {
                             User.clearContactMethod(pendingContactAction?.contactMethod);
                             User.clearUnvalidatedNewContactMethodAction();
                         }

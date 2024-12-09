@@ -679,6 +679,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
+        PRODUCT_TRAINING: 'productTraining',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3179,7 +3180,6 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
-        GO_TO_WORKSPACE: 'goToWorkspace',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -6391,6 +6391,8 @@ const CONST = {
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
+
+    MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
