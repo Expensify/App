@@ -7,7 +7,7 @@ on:
 # The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}

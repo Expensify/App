@@ -5,7 +5,7 @@ on:
 
 jobs:
   proposal-police-workflow:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: "!contains(fromJSON('[\"OSBotify\", \"imgbot[bot]\", \"melvin-bot[bot]\"]'), github.actor)"
     steps:
       - uses: actions/checkout@v4

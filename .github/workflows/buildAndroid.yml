@@ -53,7 +53,7 @@ on:
 jobs:
   build:
     name: Build Android app
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-20.04
     outputs:
       AAB_FILE_NAME: ${{ steps.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}

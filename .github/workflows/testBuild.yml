@@ -15,7 +15,7 @@ env:
 
 jobs:
   validateActor:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:

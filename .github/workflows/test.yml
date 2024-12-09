@@ -14,7 +14,7 @@ concurrency:
 jobs:
   jest:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       CI: true
     strategy:
