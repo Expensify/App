@@ -3,6 +3,7 @@ import Parser from '@libs/Parser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
+    // eslint-disable-next-line deprecation/deprecation
     document.execCommand('insertText', false, text);
 };
 
