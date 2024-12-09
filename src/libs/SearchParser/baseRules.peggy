@@ -28,6 +28,11 @@ status = "status"i {return "status"}
 sortBy = "sortBy"/"sort-by"i {return "sortBy"}
 sortOrder = "sortOrder"/"sort-order"i {return "sortOrder"}
 policyID =  "policyID"/"workspace"i {return "policyID"}
+submitted = 'submitted'i {return "submitted"}
+approved = 'approved'i {return "approved"}
+paid = 'paid'i {return "paid"}
+exported = 'exported'i {return "exported"}
+posted = 'posted'i {return "posted"}
 
 operator "operator"
   = (":" / "=") { return "eq"; }
