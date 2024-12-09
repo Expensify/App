@@ -48,6 +48,7 @@ import type {
     ConnectionParams,
     CurrencyCodeParams,
     CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -76,6 +77,7 @@ import type {
     ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -190,7 +192,6 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
-    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -479,6 +480,10 @@ const translations = {
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
+    supportalNoAccess: {
+        title: 'Not so fast',
+        description: 'You are not authorized to take this action when support logged in.',
+    },
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',
@@ -693,6 +698,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        create: 'create',
         iouTypes: {
             pay: 'pay',
             split: 'split',
@@ -777,6 +783,8 @@ const translations = {
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
         importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
+        importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
+            rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -793,6 +801,8 @@ const translations = {
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
+        deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
+        deniedCameraAccessInstructions: 'these instructions',
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
@@ -2496,7 +2506,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2534,7 +2544,6 @@ const translations = {
                         return 'Member';
                 }
             },
-            planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
@@ -2556,6 +2565,10 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
+            },
+            importPerDiemRates: 'Import per diem rates',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
@@ -3298,6 +3311,7 @@ const translations = {
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',
+                    pleaseSelectBank: 'Please select a bank before continuing.',
                     pleaseSelectFeedType: 'Please select a feed type before continuing.',
                 },
             },
@@ -4276,19 +4290,6 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
-            commonFeatures: {
-                title: 'Upgrade Workspace to Control',
-                note: 'Get access to all our most advanced functionality, including:',
-                benefits: {
-                    note: 'The Control plan starts at $9 per active member per month.',
-                    learnMore: 'Learn more',
-                    pricing: 'about our plans and pricing.',
-                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct and more)',
-                    benefit2: 'Expense rules',
-                    benefit3: 'Multiple approval workflows',
-                    benefit4: 'Enhanced security controls',
-                },
-            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -4391,23 +4392,6 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
-        },
-        planTypePage: {
-            planTypes: {
-                team: {
-                    label: 'Collect',
-                    description: 'For teams looking to automate their processes.',
-                },
-                corporate: {
-                    label: 'Control',
-                    description: 'For organizations with advanced requirements.',
-                },
-            },
-            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
-            subscriptionLink: 'plan types and pricing help page',
-            lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
-                `You've committed to ${subscriptionUsersCount} active users on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
-            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {
@@ -4552,6 +4536,10 @@ const translations = {
                 title: "You haven't created any expenses yet",
                 subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
             },
+            emptyInvoiceResults: {
+                title: "You haven't created any \ninvoices yet",
+                subtitle: 'Use the green button below to send an invoice or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -4593,6 +4581,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -5357,8 +5350,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
     },
     debug: {
         debug: 'Debug',
@@ -5443,6 +5438,16 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Take a 2-minute tour',
         exploreExpensify: 'Explore everything Expensify has to offer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Travel and expense, at the speed of chat',
+        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        confirmText: "Let's go!",
+        features: {
+            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
+            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
+            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
     },
 };
 

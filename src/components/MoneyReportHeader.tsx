@@ -170,11 +170,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -494,7 +494,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
 
             <ConfirmModal
@@ -502,7 +501,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
-                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
+                onModalHide={() => ReportUtils.navigateBackOnDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

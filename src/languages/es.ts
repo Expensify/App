@@ -47,6 +47,7 @@ import type {
     ConnectionParams,
     CurrencyCodeParams,
     CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -75,6 +76,7 @@ import type {
     ImportedTypesParams,
     ImportFieldParams,
     ImportMembersSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     ImportTagsSuccessfullDescriptionParams,
     IncorrectZipFormatParams,
     InstantSummaryParams,
@@ -190,7 +192,6 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
-    WorkspaceLockedPlanTypeParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
@@ -470,6 +471,10 @@ const translations = {
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
     },
+    supportalNoAccess: {
+        title: 'No tan rápido',
+        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
+    },
     connectionComplete: {
         title: 'Conexión completa',
         supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
@@ -688,6 +693,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        create: 'crear',
         iouTypes: {
             pay: 'pagar',
             split: 'dividir',
@@ -773,6 +779,8 @@ const translations = {
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
         importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
+        importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
+            rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
         importSuccessfullTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
@@ -788,6 +796,8 @@ const translations = {
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
+        deniedCameraAccessInstructions: 'estas instrucciones',
         cameraErrorTitle: 'Error en la cámara',
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
@@ -977,7 +987,7 @@ const translations = {
             invalidSplitYourself: 'Por favor, introduce una cantidad diferente de cero para tu parte.',
             noParticipantSelected: 'Por favor, selecciona un participante.',
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
-            genericHoldExpenseFailureMessage: 'Error inesperado al bloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
+            genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
@@ -997,34 +1007,34 @@ const translations = {
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
-        holdExpense: 'Bloquear gasto',
+        holdExpense: 'Retener gasto',
         unholdExpense: 'Desbloquear gasto',
-        heldExpense: 'bloqueó este gasto',
+        heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
-        explainHold: 'Explica la razón para bloquear esta solicitud.',
+        explainHold: 'Explica la razón para retener esta solicitud.',
         reason: 'Razón',
-        holdReasonRequired: 'Se requiere una razón para bloquear.',
-        expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        expensesOnHold: 'Todos los gastos quedaron bloqueados. Revisa los comentarios para saber como proceder.',
-        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar el bloqueo.',
+        holdReasonRequired: 'Se requiere una razón para retener.',
+        expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
+        expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
+        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar la retención.',
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: () => ({
-            one: 'Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?',
-            other: 'Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?',
+            one: 'Este gasto está retenido. ¿Quieres aprobarlo de todos modos?',
+            other: 'Estos gastos están retenidos. ¿Quieres aprobarlos de todos modos?',
         }),
         confirmPay: 'Confirmar importe de pago',
-        confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
+        confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
-            one: 'Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?',
-            other: 'Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?',
+            one: 'Este gasto está retenido. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están retenidos. ¿Quieres pagarlos de todos modos?',
         }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
-        hold: 'Bloquear',
+        hold: 'Retener',
         unhold: 'Desbloquear',
         holdEducationalTitle: 'Este gasto está',
         whatIsHoldTitle: '¿Qué es Bloquear?',
@@ -2519,7 +2529,7 @@ const translations = {
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+                `¡Has sido invitado a ${workspaceName || 'un espacio de trabajo'}! Saca el máximo provecho de Expensify descargando la aplicación en use.expensify.com/download.`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2558,7 +2568,6 @@ const translations = {
                         return 'Miembro';
                 }
             },
-            planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
@@ -2580,6 +2589,10 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
             },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
+            },
+            importPerDiemRates: 'Importar tasas de per diem',
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
@@ -3338,6 +3351,7 @@ const translations = {
                 error: {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
+                    pleaseSelectBank: 'Seleccione una bancaria antes de continuar.',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar.',
                 },
             },
@@ -4243,23 +4257,6 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
-        planTypePage: {
-            planTypes: {
-                team: {
-                    label: 'Collect',
-                    description: 'Para equipos que buscan automatizar sus procesos.',
-                },
-                corporate: {
-                    label: 'Recolectar',
-                    description: 'Para organizaciones con requisitos avanzados.',
-                },
-            },
-            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
-            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
-            lockedPlanDescription: ({subscriptionUsersCount, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) =>
-                `Tienes un compromiso anual de ${subscriptionUsersCount} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
-            subscriptions: 'Suscripciones',
-        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4340,19 +4337,6 @@ const translations = {
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
                 gotIt: 'Entendido, gracias.',
-            },
-            commonFeatures: {
-                title: 'Actualiza tu espacio de trabajo al plan Controlar',
-                note: 'Obtén acceso a todas nuestras funciones más avanzadas, incluyendo:',
-                benefits: {
-                    note: 'El plan Controlar comienza en $9 por miembro activo al mes.',
-                    learnMore: 'Obtén más información',
-                    pricing: 'sobre nuestros planes y precios.',
-                    benefit1: 'Conexiones contables avanzadas (NetSuite, Sage Intacct y más)',
-                    benefit2: 'Reglas de gastos',
-                    benefit3: 'Flujos de aprobación múltiples',
-                    benefit4: 'Controles de seguridad mejorados',
-                },
             },
         },
         restrictedAction: {
@@ -4601,6 +4585,10 @@ const translations = {
                 title: 'Aún no has creado ningún gasto',
                 subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
             },
+            emptyInvoiceResults: {
+                title: 'Aún no has creado \nninguna factura',
+                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+            },
             emptyTripResults: {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
@@ -4618,7 +4606,7 @@ const translations = {
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',
-            hold: 'Bloquear',
+            hold: 'Retener',
             unhold: 'Desbloquear',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
@@ -4642,6 +4630,11 @@ const translations = {
             },
             current: 'Actual',
             past: 'Anterior',
+            submitted: 'Enviado',
+            approved: 'Aprobado',
+            paid: 'Pagado',
+            exported: 'Exportado',
+            posted: 'Contabilizado',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -5558,7 +5551,7 @@ const translations = {
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
-        hold: 'Bloqueado',
+        hold: 'Retenido',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
@@ -5716,7 +5709,7 @@ const translations = {
                 phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
                 phrase2:
                     'Atención: Bajar tu cuenta de categoría significa que tu(s) espacio(s) de trabajo será(n) eliminado(s). Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
-                confirm: 'Eliminar y degradar',
+                confirm: 'Eliminar y bajar de categoría',
             },
             viewPaymentHistory: 'Ver historial de pagos',
         },
@@ -5877,8 +5870,10 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
+        notAllowedMessageStart: `Como`,
         notAllowedMessageHyperLinked: ' copiloto',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
     },
     debug: {
         debug: 'Depuración',
@@ -5963,6 +5958,16 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Haz un tour de 2 minutos',
         exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Viajes y gastos, a la velocidad del chat',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
+        features: {
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+        },
     },
 };
 

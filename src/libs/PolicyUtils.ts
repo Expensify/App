@@ -1079,6 +1079,11 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
+function hasVBBA(policyID: string) {
+    const policy = getPolicy(policyID);
+    return !!policy?.achAccount?.bankAccountID;
+}
+
 function getTagApproverRule(policyID: string, tagName: string) {
     const policy = getPolicy(policyID);
 
@@ -1112,17 +1117,6 @@ function getAllPoliciesLength() {
 
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
-}
-
-function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Localize.translateLocal('workspace.type.control');
-        case CONST.POLICY.TYPE.TEAM:
-            return Localize.translateLocal('workspace.type.collect');
-        default:
-            return Localize.translateLocal('workspace.type.free');
-    }
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
@@ -1197,6 +1191,7 @@ export {
     canSendInvoice,
     hasWorkspaceWithInvoices,
     hasDependentTags,
+    hasVBBA,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
@@ -1257,7 +1252,6 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
-    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };

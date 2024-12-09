@@ -3128,7 +3128,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: 20,
             padding: 15,
-            backgroundColor: theme.success,
         },
 
         switchInactive: {
@@ -3145,11 +3144,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.appBG,
         },
-
-        switchThumbTransformation: (translateX: AnimatableNumericValue) =>
-            ({
-                transform: [{translateX}],
-            } satisfies ViewStyle),
 
         radioButtonContainer: {
             backgroundColor: theme.componentBG,
@@ -3743,7 +3737,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
-            backgroundColor: theme.inverse,
+            backgroundColor: theme.appBG,
             flex: 1,
         },
 
@@ -4651,6 +4645,21 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
             borderWidth: 1,
+        },
+
+        moneyRequestAttachReceiptThumbnail: {
+            backgroundColor: theme.hoverComponentBG,
+            width: '100%',
+            borderWidth: 0,
+        },
+
+        moneyRequestAttachReceiptThumbnailIcon: {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+            borderRadius: '50%',
         },
 
         mapViewContainer: {

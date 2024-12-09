@@ -1,5 +1,4 @@
 import {useFocusEffect, useNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -26,6 +25,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
@@ -70,7 +70,7 @@ type WorkspaceMenuItem = {
     badgeText?: string;
 };
 
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
@@ -107,7 +107,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id ?? '-1')?.reportID ?? '-1';
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
-
+    const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
         () => ({
@@ -446,20 +446,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                        <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                        <OfflineWithFeedback pendingAction={reportPendingAction}>
-                            <MenuItem
-                                title={getReportName(currentUserPolicyExpenseChat)}
-                                description={translate('workspace.common.workspace')}
-                                icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                shouldShowSubscriptAvatar
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                    {isPolicyExpenseChatEnabled && (
+                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
+                            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                                <MenuItem
+                                    title={getReportName(currentUserPolicyExpenseChat)}
+                                    description={translate('workspace.common.workspace')}
+                                    icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? '-1'))}
+                                    shouldShowRightIcon
+                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
+                                    shouldShowSubscriptAvatar
+                                />
+                            </OfflineWithFeedback>
+                        </View>
+                    )}
                 </ScrollView>
                 <ConfirmModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}
