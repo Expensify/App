@@ -69,6 +69,7 @@ Onyx.connect({
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
