@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -66,29 +67,31 @@ function GetPhysicalCardName({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                name={INPUT_IDS.LEGAL_FIRST_NAME}
-                label={translate('getPhysicalCard.legalFirstName')}
-                aria-label={translate('getPhysicalCard.legalFirstName')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="words"
-                defaultValue={legalFirstName}
-                shouldSaveDraft
-            />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                name={INPUT_IDS.LEGAL_LAST_NAME}
-                label={translate('getPhysicalCard.legalLastName')}
-                aria-label={translate('getPhysicalCard.legalLastName')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="words"
-                defaultValue={legalLastName}
-                containerStyles={styles.mt5}
-                shouldSaveDraft
-            />
+            <View style={styles.mh5}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                    name={INPUT_IDS.LEGAL_FIRST_NAME}
+                    label={translate('getPhysicalCard.legalFirstName')}
+                    aria-label={translate('getPhysicalCard.legalFirstName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="words"
+                    defaultValue={legalFirstName}
+                    shouldSaveDraft
+                />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                    name={INPUT_IDS.LEGAL_LAST_NAME}
+                    label={translate('getPhysicalCard.legalLastName')}
+                    aria-label={translate('getPhysicalCard.legalLastName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="words"
+                    defaultValue={legalLastName}
+                    containerStyles={styles.mt5}
+                    shouldSaveDraft
+                />
+            </View>
         </BaseGetPhysicalCard>
     );
 }

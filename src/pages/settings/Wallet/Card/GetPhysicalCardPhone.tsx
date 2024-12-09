@@ -1,9 +1,11 @@
 import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as LoginUtils from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -33,6 +35,7 @@ function GetPhysicalCardPhone({
     draftValues,
 }: GetPhysicalCardPhoneProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const {phoneNumber = ''} = draftValues ?? {};
 
@@ -59,16 +62,18 @@ function GetPhysicalCardPhone({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.PHONE_NUMBER}
-                name={INPUT_IDS.PHONE_NUMBER}
-                label={translate('getPhysicalCard.phoneNumber')}
-                aria-label={translate('getPhysicalCard.phoneNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={phoneNumber}
-                shouldSaveDraft
-            />
+            <View style={styles.mh5}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.PHONE_NUMBER}
+                    name={INPUT_IDS.PHONE_NUMBER}
+                    label={translate('getPhysicalCard.phoneNumber')}
+                    aria-label={translate('getPhysicalCard.phoneNumber')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={phoneNumber}
+                    shouldSaveDraft
+                />
+            </View>
         </BaseGetPhysicalCard>
     );
 }
