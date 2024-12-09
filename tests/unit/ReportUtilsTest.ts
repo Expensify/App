@@ -1202,10 +1202,7 @@ describe('ReportUtils', () => {
             });
 
             it('should return false when the report does not have participants', () => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    participants: {},
-                };
+                const report = LHNTestUtils.getFakeReport([]);
                 const currentReportId = '';
                 const isInFocusMode = true;
                 const betas = [CONST.BETAS.DEFAULT_ROOMS];

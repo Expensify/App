@@ -5,7 +5,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -202,6 +202,27 @@ describe('SidebarLinksData', () => {
             });
 
             // Then the empty report should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the report marked as hidden', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+
+            // And a report marked as hidden is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then hidden report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
     });
