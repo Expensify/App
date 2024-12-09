@@ -105,6 +105,16 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
+                    path: ROUTES.MIGRATED_USER_WELCOME_MODAL,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -1138,6 +1148,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
