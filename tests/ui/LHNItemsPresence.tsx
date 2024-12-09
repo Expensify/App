@@ -231,21 +231,22 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+                lastMessageText: 'fake last message',
             };
 
-            // An admin room is initialized in Onyx
+            // A default room is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The admin room should appear in the sidebar.
+            // The default room should appear in the sidebar.
             expect(getOptionRows()).toHaveLength(1);
 
             // When the defaultRooms beta is removed
             await Onyx.merge(ONYXKEYS.BETAS, []);
 
-            // The admin room should not appear in the sidebar.
+            // The default room should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
     });
