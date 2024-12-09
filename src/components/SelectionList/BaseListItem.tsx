@@ -36,7 +36,6 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    isLongPressDisabled = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -80,7 +79,6 @@ function BaseListItem<TItem extends ListItem>({
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}
-                isLongPressDisabled={isLongPressDisabled}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
@@ -96,7 +94,7 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
+                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}

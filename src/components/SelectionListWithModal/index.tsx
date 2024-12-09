@@ -79,13 +79,8 @@ function SelectionListWithModal<TItem extends ListItem>(
     );
 
     const handleLongPressRow = (item: TItem) => {
-        if (
-            !turnOnSelectionModeOnLongPress ||
-            !isSmallScreenWidth ||
-            (!!item?.isDisabled && !item?.shouldPreventDisableCheckboxIfDisabled) ||
-            !!item?.isDisabledCheckbox ||
-            (!isFocused && !isScreenFocused)
-        ) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
         setLongPressedItem(item);
