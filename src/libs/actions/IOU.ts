@@ -3901,7 +3901,7 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt,
-            } as CategorizeTrackedExpenseTransactionParams;
+            };
             const policyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
@@ -3922,7 +3922,7 @@ function trackExpense(
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
-            } as CategorizeTrackedExpenseParams;
+            };
 
             categorizeTrackedExpense(trackedExpenseParams);
             break;
