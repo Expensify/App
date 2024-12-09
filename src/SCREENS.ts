@@ -498,7 +498,6 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
-        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -548,6 +547,8 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         PER_DIEM: 'Per_Diem',
+        PER_DIEM_IMPORT: 'Per_Diem_Import',
+        PER_DIEM_IMPORTED: 'Per_Diem_Imported',
         PER_DIEM_SETTINGS: 'Per_Diem_Settings',
     },
 

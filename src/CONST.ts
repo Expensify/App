@@ -146,6 +146,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -191,6 +192,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -622,6 +624,15 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BUSINESS_INFO_STEP: {
+            PICKLIST: {
+                ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
+                APPLICANT_TYPE: 'ApplicantType',
+                NATURE_OF_BUSINESS: 'NatureOfBusiness',
+                PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
+                TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+            },
+        },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
                 IS_USER_BENEFICIAL_OWNER: 1,
@@ -673,7 +684,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -916,6 +926,8 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
+        'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -1311,6 +1323,9 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
+        APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
+        APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
+        APPLY_HTTPS_UPDATES: 'apply_https_updates',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -5061,10 +5076,7 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: {
-            ...onboardingPersonalSpendMessage,
-            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
-        },
+        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -5214,6 +5226,7 @@ const CONST = {
                 state: BankAccount.STATE.SETUP,
             },
             isLoading: false,
+            isSuccess: false,
             errorFields: {},
             errors: {},
             maxAttemptsReached: false,
@@ -6293,6 +6306,7 @@ const CONST = {
         RATE_ID: 'rateID',
         ENABLED: 'enabled',
         IGNORE: 'ignore',
+        DESTINATION: 'destination',
     },
 
     IMPORT_SPREADSHEET: {

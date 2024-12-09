@@ -352,6 +352,8 @@ export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypePara
 export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
+export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
+export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
