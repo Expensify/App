@@ -20,6 +20,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -75,6 +76,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const {accountID} = useCurrentUserPersonalDetails();
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -290,7 +292,9 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
-                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && Task.canModifyTask(report, accountID, true) && (
+                                    <TaskHeaderActionButton report={report} />
+                                )}
                                 {canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
                             {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}

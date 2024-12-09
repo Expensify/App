@@ -56,7 +56,7 @@ function TaskView({report, ...props}: TaskViewProps) {
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, true);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -88,8 +88,8 @@ function TaskView({report, ...props}: TaskViewProps) {
                                 styles.pv2,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
+                                disableState && styles.cursorDisabled,
                             ]}
-                            disabled={disableState}
                             accessibilityLabel={taskTitle || translate('task.task')}
                         >
                             {({pressed}) => (
@@ -114,7 +114,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
-                                            disabled={!canModifyTask || !canActionTask}
+                                            disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text

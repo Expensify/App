@@ -42,6 +42,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -785,7 +786,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {!!report && ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {!!report && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && Task.canModifyTask(report, currentUserAccountID, true) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>
