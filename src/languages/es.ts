@@ -4585,6 +4585,10 @@ const translations = {
                 title: 'Aún no has creado ningún gasto',
                 subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
             },
+            emptyInvoiceResults: {
+                title: 'Aún no has creado \nninguna factura',
+                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+            },
             emptyTripResults: {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
@@ -4626,6 +4630,11 @@ const translations = {
             },
             current: 'Actual',
             past: 'Anterior',
+            submitted: 'Enviado',
+            approved: 'Aprobado',
+            paid: 'Pagado',
+            exported: 'Exportado',
+            posted: 'Contabilizado',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -5861,8 +5870,10 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
+        notAllowedMessageStart: `Como`,
         notAllowedMessageHyperLinked: ' copiloto',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
     },
     debug: {
         debug: 'Depuración',
@@ -5947,6 +5958,16 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Haz un tour de 2 minutos',
         exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Viajes y gastos, a la velocidad del chat',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
+        features: {
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+        },
     },
 };
 
