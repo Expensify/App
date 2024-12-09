@@ -27,10 +27,6 @@ type CardFilterItem = Partial<OptionData> & {bankIcon?: BankIcon; lastFourPAN?: 
 
 type DomainFeedData = {bank: string; domainName: string; correspospondingCardIDs: string[]};
 
-function isCard(item: Card | Record<string, string>): item is Card {
-    return 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
-}
-
 function buildIndividualCardItem(card: Card, isSelected: boolean, iconStyles: StyleProp<ViewStyle>): CardFilterItem {
     const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
     const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
@@ -116,18 +112,8 @@ function SearchFiltersCardPage() {
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
 
-    const {individualCardsSectionData, domainFeedsData} = useMemo(() => {
-        const domainFeeds: Record<string, DomainFeedData> = {};
-
+    const individualCardsSectionData = useMemo(() => {
         const userAssignedCards = Object.values(userCardList ?? {}).map((card) => {
-            // Cards in cardList can also be domain cards, we use them to compute domain feed
-            if (!card.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
-                if (domainFeeds[card.domainName]) {
-                    domainFeeds[card.domainName].correspospondingCardIDs.push(card.cardID.toString());
-                } else {
-                    domainFeeds[card.domainName] = {domainName: card.domainName, bank: card.bank, correspospondingCardIDs: [card.cardID.toString()]};
-                }
-            }
             const isSelected = selectedCards.includes(card.cardID.toString());
             const cardData = buildIndividualCardItem(card, isSelected, styles.cardIcon);
 
@@ -137,7 +123,7 @@ function SearchFiltersCardPage() {
         // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
         const allWorkspaceCards = filteredWorkspaceCardFeeds.flatMap(([, cardFeed]) => {
             return Object.values(cardFeed ?? {})
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID])
+                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
                 .map((card) => {
                     const isSelected = selectedCards.includes(card.cardID.toString());
                     const cardData = buildIndividualCardItem(card as Card, isSelected, styles.cardIcon);
@@ -145,8 +131,20 @@ function SearchFiltersCardPage() {
                     return cardData;
                 });
         });
-        return {individualCardsSectionData: [...userAssignedCards, ...allWorkspaceCards], domainFeedsData: domainFeeds};
+        return [...userAssignedCards, ...allWorkspaceCards];
     }, [filteredWorkspaceCardFeeds, selectedCards, styles.cardIcon, userCardList]);
+
+    const domainFeedsData = Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
+        // Cards in cardList can also be domain cards, we use them to compute domain feed
+        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
+            if (accumulator[currentCard.domainName]) {
+                accumulator[currentCard.domainName].correspospondingCardIDs.push(currentCard.cardID.toString());
+            } else {
+                accumulator[currentCard.domainName] = {domainName: currentCard.domainName, bank: currentCard.bank, correspospondingCardIDs: [currentCard.cardID.toString()]};
+            }
+        }
+        return accumulator;
+    }, {} as Record<string, DomainFeedData>);
 
     const cardFeedsSectionData = useMemo(() => {
         const repeatingBanks = getReapeatingBanks(Object.keys(filteredWorkspaceCardFeeds), domainFeedsData);
@@ -162,7 +160,7 @@ function SearchFiltersCardPage() {
 
         const workspaceFeeds = filteredWorkspaceCardFeeds
             .map(([, cardFeed]) => {
-                const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => isCard(cardFeedItem));
+                const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
                 if (!representativeCard) {
                     return;
                 }
@@ -276,4 +274,3 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
-export {isCard};

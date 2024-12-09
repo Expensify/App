@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as CardUtils from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,7 +31,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCard} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 
 const baseFilterConfig = {
     date: {
@@ -122,7 +122,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return filterValue
         ? Object.values(cards)
               .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => card.bank)
+              .map((card) => CardUtils.getCardDescription(card.cardID, cards))
               .join(', ')
         : undefined;
 }
@@ -275,17 +275,8 @@ function AdvancedSearchFilters() {
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID ?? '-1';
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const allCards = Object.values(workspaceCardFeeds ?? {}).reduce((cardsAccumulated, currentCardFeed) => {
-        Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card)) {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            cardsAccumulated[card.cardID] = card;
-        });
-        return cardsAccumulated;
-    }, userCardList);
+    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
