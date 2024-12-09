@@ -12,6 +12,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
@@ -240,13 +242,48 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The default room should appear in the sidebar.
-            expect(getOptionRows()).toHaveLength(1);
-
-            // When the defaultRooms beta is removed
+            // And the defaultRooms beta is removed
             await Onyx.merge(ONYXKEYS.BETAS, []);
 
             // The default room should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display the single transaction thread', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+            const expenseCreatedAction = ReportUtils.buildOptimisticIOUReportAction(
+                'create',
+                100,
+                'USD',
+                '',
+                [],
+                expenseTransaction.transactionID,
+                undefined,
+                expenseReport.reportID,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+            );
+            const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
+            expenseCreatedAction.childReportID = transactionThreadReport.reportID;
+
+            // A single transaction thread is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [expenseCreatedAction.reportActionID]: expenseCreatedAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
+
+            // This report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
     });
