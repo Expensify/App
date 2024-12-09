@@ -5,7 +5,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
+import * as Browser from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +17,7 @@ import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestPar
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -70,6 +73,8 @@ function IOURequestStepParticipants({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isMobileSafari = Browser.isMobileSafari();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -107,6 +112,19 @@ function IOURequestStepParticipants({
         [iouType, reportID, transactionID],
     );
 
+    const handleNavigation = useCallback(
+        (route: Route) => {
+            if (isAndroidNative || isMobileSafari) {
+                KeyboardUtils.dismiss().then(() => {
+                    Navigation.navigate(route);
+                });
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isAndroidNative, isMobileSafari],
+    );
+
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
@@ -137,10 +155,8 @@ function IOURequestStepParticipants({
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
-        KeyboardUtils.dismiss().then(() => {
-            Navigation.navigate(route);
-        });
-    }, [iouType, transactionID, transaction, reportID, action, participants]);
+        handleNavigation(route);
+    }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
@@ -157,9 +173,8 @@ function IOURequestStepParticipants({
         IOU.setCustomUnitRateID(transactionID, rateID);
         IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-        KeyboardUtils.dismiss().then(() => {
-            Navigation.navigate(iouConfirmationPageRoute);
-        });
+
+        handleNavigation(iouConfirmationPageRoute);
     };
 
     useEffect(() => {
