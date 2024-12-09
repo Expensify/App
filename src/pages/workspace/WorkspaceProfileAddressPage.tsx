@@ -1,8 +1,8 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
@@ -14,10 +14,11 @@ import withPolicy from './withPolicy';
 
 type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 
-type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
+type WorkspaceProfileAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
-function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps) {
+function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPageProps) {
     const {translate} = useLocalize();
+    const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
         const [street1, street2] = (tempAddress?.addressStreet ?? '').split('\n');
@@ -43,11 +44,12 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        Navigation.goBack();
+        Navigation.goBack(backTo);
     };
 
     return (
         <AddressPage
+            backTo={backTo}
             address={address}
             isLoadingApp={false}
             updateAddress={updatePolicyAddress}

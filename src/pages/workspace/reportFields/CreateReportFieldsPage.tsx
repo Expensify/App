@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -30,7 +30,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
-type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
@@ -52,16 +52,16 @@ function CreateReportFieldsPage({
             ReportField.createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
-                initialValue: values[INPUT_IDS.INITIAL_VALUE],
+                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
             });
             Navigation.goBack();
         },
-        [policyID],
+        [availableListValuesLength, policyID],
     );
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue} = values;
+            const {name, type} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -81,13 +81,9 @@ function CreateReportFieldsPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(initialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
-            }
-
             return errors;
         },
-        [availableListValuesLength, policy?.fieldList, translate],
+        [policy?.fieldList, translate],
     );
 
     useEffect(() => {
@@ -95,6 +91,8 @@ function CreateReportFieldsPage({
     }, []);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
         <AccessOrNotFoundWrapper
@@ -104,7 +102,7 @@ function CreateReportFieldsPage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={CreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
@@ -152,7 +150,7 @@ function CreateReportFieldsPage({
                                     description={translate('workspace.reportFields.listValues')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
-                                    title={formDraft?.[INPUT_IDS.LIST_VALUES]?.sort(localeCompare)?.join(', ')}
+                                    title={listValues}
                                     numberOfLinesTitle={5}
                                 />
                             )}
@@ -173,7 +171,7 @@ function CreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.currentDate')}
+                                    title={translate('common.initialValue')}
                                     description={translate('common.date')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
@@ -186,7 +184,6 @@ function CreateReportFieldsPage({
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
-                                    rightLabel={translate('common.required')}
                                 />
                             )}
                         </View>

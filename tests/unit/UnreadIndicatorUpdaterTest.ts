@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../src/CONST';
 import * as UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
+import * as TestHelper from '../utils/TestHelper';
+
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
 
 describe('UnreadIndicatorUpdaterTest', () => {
     describe('should return correct number of unread reports', () => {
@@ -24,7 +28,9 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 },
                 3: {reportID: '3', reportName: 'test', type: CONST.REPORT.TYPE.TASK, lastMessageText: 'test'},
             };
-            expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(2);
+            TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID).then(() => {
+                expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(2);
+            });
         });
 
         it('given some reports are incomplete', () => {
@@ -42,7 +48,11 @@ describe('UnreadIndicatorUpdaterTest', () => {
                     reportID: '1',
                     reportName: 'test',
                     type: CONST.REPORT.TYPE.EXPENSE,
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    participants: {
+                        [TEST_USER_ACCOUNT_ID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
                     lastReadTime: '2023-07-08 07:15:44.030',
                     lastVisibleActionCreated: '2023-08-08 07:15:44.030',
                     lastMessageText: 'test',
@@ -57,7 +67,9 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 },
                 3: {reportID: '3', reportName: 'test', type: CONST.REPORT.TYPE.TASK, lastMessageText: 'test'},
             };
-            expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(1);
+            TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID).then(() => {
+                expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(1);
+            });
         });
     });
 });

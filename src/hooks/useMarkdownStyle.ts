@@ -10,7 +10,7 @@ const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
     const hasMessageOnlyEmojis = message != null && message.length > 0 && containsOnlyEmojis(message);
-    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
+    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeEmojisWithinText;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
     const nonStylingDefaultValues: Record<string, string | number> = useMemo(
@@ -38,6 +38,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
             },
             emoji: {
                 fontSize: emojiFontSize,
+                lineHeight: variables.lineHeightXLarge,
             },
             blockquote: {
                 borderColor: theme.border,
@@ -75,6 +76,19 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
+            inlineImage: {
+                minWidth: variables.inlineImagePreviewMinSize,
+                minHeight: variables.inlineImagePreviewMinSize,
+                maxWidth: variables.inlineImagePreviewMaxSize,
+                maxHeight: variables.inlineImagePreviewMaxSize,
+                borderRadius: variables.componentBorderRadius,
+                marginTop: 4,
+            },
+            loadingIndicator: {
+                primaryColor: theme.spinner,
+                secondaryColor: `${theme.spinner}33`,
+            },
+            loadingIndicatorContainer: {},
         };
 
         if (excludeStyles.length) {

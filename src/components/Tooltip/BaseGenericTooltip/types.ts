@@ -1,4 +1,4 @@
-import type {Animated} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import type {SharedTooltipProps} from '@components/Tooltip/types';
 
 type BaseGenericTooltipProps = {
@@ -6,7 +6,7 @@ type BaseGenericTooltipProps = {
     windowWidth: number;
 
     /** Tooltip Animation value */
-    animation: Animated.Value;
+    animation: SharedValue<number>;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
     xOffset: number;
@@ -27,9 +27,12 @@ type BaseGenericTooltipProps = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
+
+    /** Handles what to do when hiding the tooltip */
+    onHideTooltip?: () => void;
 } & Pick<
     SharedTooltipProps,
-    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onPressOverlay'
+    'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onHideTooltip'
 >;
 
 // eslint-disable-next-line import/prefer-default-export

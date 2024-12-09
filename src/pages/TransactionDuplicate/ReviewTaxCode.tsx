@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -8,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -18,14 +18,20 @@ import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewTaxRate() {
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID ?? route.params.threadReportID}`);
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID ?? '');
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+        Object.keys(compareResult.change ?? {}),
+        'taxCode',
+        route.params.threadReportID ?? '',
+        route.params.backTo,
+    );
     const transaction = TransactionUtils.getTransaction(transactionID);
     const options = useMemo(
         () =>
@@ -59,7 +65,10 @@ function ReviewTaxRate() {
 
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+            <HeaderWithBackButton
+                title={translate('iou.reviewDuplicates')}
+                onBackButtonPress={goBack}
+            />
             <ReviewFields<'taxCode'>
                 stepNames={stepNames}
                 label={translate('violations.taxCodeToKeep')}

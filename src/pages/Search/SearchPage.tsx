@@ -1,29 +1,29 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import SearchPageHeader from '@components/Search/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchStatusBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchUtils';
-import CONST from '@src/CONST';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {policyIDs, q, isCustomQuery} = route.params;
+    const {q} = route.params;
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(q, policyIDs), [q, policyIDs]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(q), [q]);
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: CONST.SEARCH.TAB.EXPENSE.ALL}));
-
-    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
         return null;
@@ -41,12 +41,12 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {queryJSON && (
-                    <Search
-                        isCustomQuery={isCustomQuery}
-                        queryJSON={queryJSON}
-                        policyIDs={policyIDs}
-                    />
+                {!!queryJSON && (
+                    <>
+                        <SearchPageHeader queryJSON={queryJSON} />
+                        <SearchStatusBar queryJSON={queryJSON} />
+                        <Search queryJSON={queryJSON} />
+                    </>
                 )}
             </FullPageNotFoundView>
         </ScreenWrapper>

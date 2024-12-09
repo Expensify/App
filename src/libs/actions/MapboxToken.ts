@@ -1,6 +1,7 @@
 import {isAfter} from 'date-fns';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState} from 'react-native';
+import type {Connection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -17,8 +18,8 @@ Onyx.connect({
     },
 });
 
-let connectionIDForToken: number | null;
-let connectionIDForNetwork: number | null;
+let tokenConnection: Connection | null;
+let networkConnection: Connection | null;
 let appStateSubscription: NativeEventSubscription | null;
 let currentToken: MapboxAccessToken | undefined;
 let refreshTimeoutID: NodeJS.Timeout | undefined;
@@ -57,13 +58,13 @@ const fetchToken = () => {
 };
 
 const init = () => {
-    if (connectionIDForToken) {
+    if (tokenConnection) {
         console.debug('[MapboxToken] init() is already listening to Onyx so returning early');
         return;
     }
 
     // When the token changes in Onyx, the expiration needs to be checked so a new token can be retrieved.
-    connectionIDForToken = Onyx.connect({
+    tokenConnection = Onyx.connect({
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         callback: (token) => {
             // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
@@ -116,9 +117,9 @@ const init = () => {
         });
     }
 
-    if (!connectionIDForNetwork) {
+    if (!networkConnection) {
         let network: Network | undefined;
-        connectionIDForNetwork = Onyx.connect({
+        networkConnection = Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (value) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will
@@ -139,13 +140,13 @@ const init = () => {
 
 const stop = () => {
     console.debug('[MapboxToken] Stopping all listeners and timers');
-    if (connectionIDForToken) {
-        Onyx.disconnect(connectionIDForToken);
-        connectionIDForToken = null;
+    if (tokenConnection) {
+        Onyx.disconnect(tokenConnection);
+        tokenConnection = null;
     }
-    if (connectionIDForNetwork) {
-        Onyx.disconnect(connectionIDForNetwork);
-        connectionIDForNetwork = null;
+    if (networkConnection) {
+        Onyx.disconnect(networkConnection);
+        networkConnection = null;
     }
     if (appStateSubscription) {
         appStateSubscription.remove();

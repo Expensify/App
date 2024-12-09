@@ -1,11 +1,14 @@
 import Config from 'react-native-config';
+import type {NativeConfig} from 'react-native-config';
 import type {PerformanceEntry} from 'react-native-performance';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
+import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Performance from '@libs/Performance';
 
-const test = () => {
+const test = (config: NativeConfig) => {
+    const name = getConfigValueOrThrow('name', config);
     // check for login (if already logged in the action will simply resolve)
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -25,7 +28,7 @@ const test = () => {
             metrics.map((metric) =>
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: `App start ${metric.name}`,
+                    name: `${name} ${metric.name}`,
                     metric: metric.duration,
                     unit: 'ms',
                 }),

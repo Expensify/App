@@ -1,10 +1,9 @@
 import execAsync from '../utils/execAsync';
 import * as Logger from '../utils/logger';
 
-const adbBackspace = () => {
+const adbBackspace = (): Promise<boolean> => {
     Logger.log(`🔙 Pressing backspace`);
-    execAsync(`adb shell input keyevent KEYCODE_DEL`);
-    return true;
+    return execAsync(`adb shell input keyevent KEYCODE_DEL`).then(() => true);
 };
 
 export default adbBackspace;

@@ -17,9 +17,9 @@ import type {QRShareHandle, QRShareProps} from './types';
 function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const qrCodeContainerWidth = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
+    const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg>();

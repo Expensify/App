@@ -15,6 +15,8 @@ Upload your expenses and check your reports right from your phone by downloading
 [iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) 
 | [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
 
+For a full walkthrough on creating and submitting expenses via the mobile app, click [here](https://expensify.navattic.com/fl150n1n)!
+
 # 2. Add your name and photo
 
 {% include selector.html values="desktop, mobile" %}
@@ -66,11 +68,11 @@ Concierge will walk you through setting up your account and also provide:
 You can also get support at any time by clicking the green chat bubble in the right corner. This will open a chat with Concierge where you can ask questions and receive direct support. 
 
 # 4. Learn how to add an expense 
-As an employee, you may need to document reimbursable expenses (like business travel paid for with personal funds) or non-reimbursable expenses (like a lunch paid for with a company card). You can create an expense automatically by SmartScanning a receipt, or you can enter them manually. 
+As an employee, you may need to document reimbursable expenses (like business travel paid for with personal funds) or non-reimbursable expenses (like a lunch paid for with a company card). You can create an expense automatically by SmartScanning a receipt, or you can enter it manually. 
 
 ## SmartScan a receipt
 
-You can upload pictures of your receipts to Expensify and SmartScan will automatically capture the receipt details including the merchant, date, total, and currency.
+You can upload pictures of your receipts to Expensify, and SmartScan will automatically capture the receipt details, including the merchant, date, total, and currency.
 
 {% include selector.html values="desktop, mobile" %}
 {% include option.html value="desktop" %}
@@ -96,7 +98,7 @@ You can upload pictures of your receipts to Expensify and SmartScan will automat
 {% include end-option.html %}
 {% include end-selector.html %}
 
-You can open any receipt and select **Fill out details myself** to add or edit the merchant, date, total, description, category, or add attendees who took part in the expense. You can also check that the expense is correctly labeled as reimbursable or non-reimbursable, and split the expense if multiple expenses are included on one receipt.
+You can open any receipt and select **Fill out details myself** to add or edit the merchant, date, total, description, category, or add attendees who took part in the expense. You can also check that the expense is correctly labeled as reimbursable or non-reimbursable and split the expense if multiple expenses are included on one receipt.
 
 *Note: You can also email receipts to SmartScan by sending them to receipts@expensify.com from an email address tied to your Expensify account (either a primary or secondary email). SmartScan will automatically pull all of the details from the receipt, fill them in for you, and add the receipt to the Expenses tab on your account.*
 

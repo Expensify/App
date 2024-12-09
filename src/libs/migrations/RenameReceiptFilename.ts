@@ -13,11 +13,11 @@ export default function () {
     return new Promise<void>((resolve) => {
         // Connect to the TRANSACTION collection key in Onyx to get all of the stored transactions.
         // Go through each transaction and change the property name
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (transactions: OnyxCollection<OldTransaction>) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
 
                 if (!transactions || isEmptyObject(transactions)) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there are no transactions');

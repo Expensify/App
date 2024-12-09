@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,18 +15,22 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
+    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -70,7 +75,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => {
                 inputRef?.current?.focus();
             }}
@@ -79,7 +84,10 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton title={translate('task.task')} />
+                    <HeaderWithBackButton
+                        title={translate('task.task')}
+                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    />
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}

@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
@@ -63,6 +63,7 @@ function AddressSearch(
         onBlur,
         onInputChange,
         onPress,
+        onCountryChange,
         predefinedPlaces = [],
         preferredLocale,
         renamedInputKeys = {
@@ -94,6 +95,7 @@ function AddressSearch(
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
+    const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
     const query = useMemo(
         () => ({
@@ -194,7 +196,7 @@ function AddressSearch(
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US) {
+        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 
@@ -243,6 +245,7 @@ function AddressSearch(
             onInputChange?.(values);
         }
 
+        onCountryChange?.(values.country);
         onPress?.(values);
     };
 
@@ -326,15 +329,18 @@ function AddressSearch(
         if (!searchValue) {
             return predefinedPlaces ?? [];
         }
+        if (shouldHidePredefinedPlaces) {
+            return [];
+        }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [predefinedPlaces, searchValue]);
+    }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useCallback(
-        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+    const listEmptyComponent = useMemo(
+        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
         [isTyping, styles, translate],
     );
 
-    const listLoader = useCallback(
+    const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
@@ -429,6 +435,7 @@ function AddressSearch(
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
+                                setShouldHidePredefinedPlaces(!isOffline);
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
@@ -462,15 +469,14 @@ function AddressSearch(
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
-                            predefinedPlaces?.length === 0 &&
-                            shouldShowCurrentLocationButton && (
+                            predefinedPlaces?.length === 0 && shouldShowCurrentLocationButton ? (
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={isOffline}
                                     />
                                 </View>
-                            )
+                            ) : undefined
                         }
                         placeholder=""
                         listViewDisplayed

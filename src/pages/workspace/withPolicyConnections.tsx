@@ -8,6 +8,7 @@ import usePrevious from '@hooks/usePrevious';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -28,11 +29,10 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`, {
-            initWithStoredValues: false,
-        });
+        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`);
+        const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
         const isConnectionDataFetchNeeded =
-            !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+            !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
         const [isFetchingData, setIsFetchingData] = useState(false);
 
@@ -55,7 +55,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if ((isConnectionDataFetchNeeded || isFetchingData) && shouldBlockView) {
+        if ((isConnectionDataFetchNeeded || isFetchingData || isOnyxDataLoading) && shouldBlockView) {
             return <FullScreenLoadingIndicator />;
         }
 

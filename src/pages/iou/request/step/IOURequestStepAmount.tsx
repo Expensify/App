@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -11,6 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -32,25 +33,7 @@ type AmountParams = {
     paymentMethod?: PaymentMethodType;
 };
 
-type IOURequestStepAmountOnyxProps = {
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Whether the confirmation step should be skipped */
-    skipConfirmation: OnyxEntry<boolean>;
-
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-
-type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
+type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -62,15 +45,10 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
-    policy,
-    personalDetails,
     currentUserPersonalDetails,
-    splitDraftTransaction,
-    skipConfirmation,
-    draftTransaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
@@ -78,25 +56,32 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
+    const policyID = report?.policyID ?? '-1';
+
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (isSplitBill || !skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -133,9 +118,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, pageIndex, currency, Navigation.getActiveRoute()));
     };
 
     const navigateToParticipantPage = () => {
@@ -180,10 +163,13 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // If a reportID exists in the report object, it's because either:
+        // - The user started this flow from using the + button in the composer inside a report.
+        // - The user started this flow from using the global create menu by selecting the Track expense option.
+        // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs)) {
+        // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
@@ -192,61 +178,47 @@ function IOURequestStepAmount({
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
-                if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: backendAmount,
-                        comment: '',
-                        currency,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        tag: '',
-                        category: '',
-                        created: transaction?.created ?? '',
-                        billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
-
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    IOU.requestMoney(
+                    playSound(SOUNDS.DONE);
+                    IOU.requestMoney({
                         report,
-                        backendAmount,
-                        currency,
-                        transaction?.created ?? '',
-                        '',
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants[0],
-                        '',
-                        {},
-                    );
+                        participantParams: {
+                            participant: participants.at(0) ?? {},
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency,
+                            created: transaction?.created ?? '',
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            attendees: transaction?.attendees,
+                        },
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         backendAmount,
                         currency ?? 'USD',
                         transaction?.created ?? '',
-                        '',
+                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants.at(0) ?? {},
                         '',
+                        false,
                     );
                     return;
                 }
@@ -330,34 +302,7 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-})(IOURequestStepAmount);
-
-const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
+const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmount);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables

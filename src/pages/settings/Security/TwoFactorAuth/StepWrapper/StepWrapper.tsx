@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import type {StepCounterParams} from '@src/languages/types';
+import type {StepCounterParams} from '@src/languages/params';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type StepWrapperProps = ChildrenProps & {
@@ -41,6 +41,7 @@ function StepWrapper({
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+            shouldEnableMaxHeight
             testID={StepWrapper.displayName}
         >
             <AnimatedStep

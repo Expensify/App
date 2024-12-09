@@ -1,12 +1,11 @@
-import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
-import {Animated} from 'react-native';
+import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StringUtils from '@libs/StringUtils';
-import TooltipRefManager from '@libs/TooltipRefManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -35,7 +34,7 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
-    onPressOverlay: onPressOverlayProp = () => {},
+    onHideTooltip = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -60,9 +59,9 @@ function GenericTooltip({
     const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
     // Whether the tooltip is first tooltip to activate the TooltipSense
-    const isTooltipSenseInitiator = useRef(false);
-    const animation = useRef(new Animated.Value(0));
-    const isAnimationCanceled = useRef(false);
+    const animation = useSharedValue<number>(0);
+    const isTooltipSenseInitiator = useSharedValue<boolean>(true);
+    const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
 
     useEffect(() => {
@@ -79,34 +78,40 @@ function GenericTooltip({
         setIsRendered(true);
         setIsVisible(true);
 
-        animation.current.stopAnimation();
+        cancelAnimation(animation);
 
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
-            animation.current.setValue(1);
+            animation.set(1);
         } else {
-            isTooltipSenseInitiator.current = true;
-            Animated.timing(animation.current, {
-                toValue: 1,
-                duration: 140,
-                delay: 500,
-                useNativeDriver: false,
-            }).start(({finished}) => {
-                isAnimationCanceled.current = !finished;
-            });
+            isTooltipSenseInitiator.set(true);
+            animation.set(
+                withDelay(
+                    500,
+                    withTiming(
+                        1,
+                        {
+                            duration: 140,
+                        },
+                        (finished) => {
+                            isAnimationCanceled.set(!finished);
+                        },
+                    ),
+                ),
+            );
         }
         TooltipSense.activate();
-    }, [shouldForceAnimate]);
+    }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
-        if (isVisible && isAnimationCanceled.current && text && prevText !== text) {
-            isAnimationCanceled.current = false;
+        if (isVisible && isAnimationCanceled.get() && text && prevText !== text) {
+            isAnimationCanceled.set(false);
             showTooltip();
         }
-    }, [isVisible, text, prevText, showTooltip]);
+    }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
     /**
      * Update the tooltip's target bounding rectangle
@@ -125,24 +130,19 @@ function GenericTooltip({
      * Hide the tooltip in an animation.
      */
     const hideTooltip = useCallback(() => {
-        animation.current.stopAnimation();
+        cancelAnimation(animation);
 
-        if (TooltipSense.isActive() && !isTooltipSenseInitiator.current) {
-            animation.current.setValue(0);
+        if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
+            // eslint-disable-next-line react-compiler/react-compiler
+            animation.set(0);
         } else {
             // Hide the first tooltip which initiated the TooltipSense with animation
-            isTooltipSenseInitiator.current = false;
-            Animated.timing(animation.current, {
-                toValue: 0,
-                duration: 140,
-                useNativeDriver: false,
-            }).start();
+            isTooltipSenseInitiator.set(false);
+            animation.set(0);
         }
-
         TooltipSense.deactivate();
-
         setIsVisible(false);
-    }, []);
+    }, [animation, isTooltipSenseInitiator]);
 
     const onPressOverlay = useCallback(() => {
         if (!shouldUseOverlay) {
@@ -150,13 +150,12 @@ function GenericTooltip({
         }
         setShouldUseOverlay(false);
         hideTooltip();
-        onPressOverlayProp();
-    }, [shouldUseOverlay, onPressOverlayProp, hideTooltip]);
-
-    useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
+        onHideTooltip();
+    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
+        // eslint-disable-next-line react-compiler/react-compiler
         return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
     }
 
@@ -164,7 +163,8 @@ function GenericTooltip({
         <>
             {isRendered && (
                 <BaseGenericTooltip
-                    animation={animation.current}
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
                     yOffset={yOffset}
@@ -183,10 +183,10 @@ function GenericTooltip({
                     wrapperStyle={wrapperStyle}
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
-                    onPressOverlay={onPressOverlay}
+                    onHideTooltip={onPressOverlay}
                 />
             )}
-
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );

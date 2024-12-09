@@ -1,11 +1,24 @@
+diff --git a/node_modules/react-native-image-picker/android/build.gradle b/node_modules/react-native-image-picker/android/build.gradle
+index ab6f320..5c7b28f 100644
+--- a/node_modules/react-native-image-picker/android/build.gradle
++++ b/node_modules/react-native-image-picker/android/build.gradle
+@@ -25,7 +25,7 @@ android {
+     }
+ 
+     defaultConfig {
+-        minSdkVersion 21
++        minSdkVersion 23
+         targetSdkVersion 33
+         versionCode 1
+         versionName "1.0"
 diff --git a/node_modules/react-native-image-picker/android/src/main/java/com/imagepicker/ImagePickerModuleImpl.java b/node_modules/react-native-image-picker/android/src/main/java/com/imagepicker/ImagePickerModuleImpl.java
-index 89b69a8..d86ab1e 100644
+index afe4b3e..0f35bc2 100644
 --- a/node_modules/react-native-image-picker/android/src/main/java/com/imagepicker/ImagePickerModuleImpl.java
 +++ b/node_modules/react-native-image-picker/android/src/main/java/com/imagepicker/ImagePickerModuleImpl.java
-@@ -29,6 +29,120 @@ public class ImagePickerModuleImpl implements ActivityEventListener {
+@@ -31,6 +31,120 @@ public class ImagePickerModuleImpl implements ActivityEventListener {
      public static final int REQUEST_LAUNCH_VIDEO_CAPTURE = 13002;
      public static final int REQUEST_LAUNCH_LIBRARY = 13003;
-
+ 
 +    // Prevent svg images from being selected as they are not supported (Image component does not support them)
 +    // and also because iOS does not allow them to be selected (for consistency).
 +    // Since, we can't exclude a mime type, we instead allow all image mime types except 'image/svg+xml'.
@@ -121,10 +134,10 @@ index 89b69a8..d86ab1e 100644
 +    };
 +
      private Uri fileUri;
-
+ 
      private ReactApplicationContext reactContext;
-@@ -148,6 +262,7 @@ public class ImagePickerModuleImpl implements ActivityEventListener {
-
+@@ -150,6 +264,7 @@ public class ImagePickerModuleImpl implements ActivityEventListener {
+ 
          if (isPhoto) {
              libraryIntent.setType("image/*");
 +            libraryIntent.putExtra(Intent.EXTRA_MIME_TYPES, this.ALLOWED_IMAGE_MIME_TYPES);

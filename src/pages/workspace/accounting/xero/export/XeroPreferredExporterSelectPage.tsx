@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -8,13 +8,13 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {updateXeroExportExporter} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -67,13 +67,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== config?.export?.exporter) {
-                Connections.updatePolicyXeroConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.XERO,
-                    CONST.XERO_CONFIG.EXPORT,
-                    {exporter: row.value},
-                    {exporter: config?.export?.exporter ?? null},
-                );
+                updateXeroExportExporter(policyID, row.value, config?.export?.exporter);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },

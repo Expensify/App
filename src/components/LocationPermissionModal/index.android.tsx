@@ -50,7 +50,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 setHasError(true);
                 return;
             } else {
-                onDeny(status);
+                onDeny();
             }
             setShowModal(false);
             setHasError(false);
@@ -58,9 +58,14 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny(RESULTS.DENIED);
+        onDeny();
         setShowModal(false);
         setHasError(false);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        resetPermissionFlow();
     };
 
     return (
@@ -68,6 +73,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
+            onBackdropPress={closeModal}
             confirmText={hasError ? translate('common.settings') : translate('common.continue')}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}

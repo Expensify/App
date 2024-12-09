@@ -21,7 +21,7 @@ The pay-per-use rate is the full rate per active member without any discounts. T
 ## How the Expensify Card can reduce your bill
 Bundling the Expensify Card with an annual subscription ensures you pay the lowest possible monthly price for Expensify. And the more you spend on Expensify Cards, the lower your bill will be.
 
-If at least 50% of your approved USD spend in a given month is on your company’s Expensify Cards, you will receive an additional 50% discount on the price per member. This additional 50% discount, when coupled with an annual subscription, brings the price per member to $5 on a Collect plan and $9 on a Control plan.
+If at least 50% of your total settled US spend in a given month is on your company’s Expensify Cards, you will receive an additional 50% discount on the price per member. This additional 50% discount, when coupled with an annual subscription, brings the price per member to $5 on a Collect plan and $9 on a Control plan.
 
 Additionally, every month, you receive 1% cash back on all Expensify Card purchases, and 2% if the spend across your Expensify Cards is $250k or more (_applies to US purchases only_). Any cash back from the Expensify Card is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account.
 ## Savings calculator
@@ -30,11 +30,11 @@ To see how much money you can save (and even earn!) by using the Expensify Card,
 {% include faq-begin.md %}
 
 ## What if we put less than 50% of our total spend on the Expensify Card?
-If less than 50% of your total USD spend is on the Expensify Card, the bill is discounted on a sliding scale.
+If less than 50% of your total settled US spend in a given month is on the Expensify Card, your bill is discounted on a sliding scale.
 
 **Example:**
 - Annual subscription discount: 50%
-- % of Expensify Card spend (US purchases only) across all workspaces: 20% 
+- % of total settled Expensify Card spend (US purchases only) across all workspaces: 20% 
 - Expensify Card discount: 20%
 
 In that case, you'd save 70% on the price per member for that month's bill.

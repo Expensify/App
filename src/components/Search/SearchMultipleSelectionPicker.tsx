@@ -1,12 +1,14 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type SearchMultipleSelectionPickerItem = {
@@ -24,14 +26,30 @@ type SearchMultipleSelectionPickerProps = {
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
+    const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+        // Always show `No category` and `No tag` as the first option
+        if (a.value === CONST.SEARCH.EMPTY_VALUE) {
+            return -1;
+        }
+        if (b.value === CONST.SEARCH.EMPTY_VALUE) {
+            return 1;
+        }
+        return localeCompare(a.name, b.name);
+    };
+
+    useEffect(() => {
+        setSelectedItems(initiallySelectedItems ?? []);
+    }, [initiallySelectedItems]);
+
     const {sections, noResultsFound} = useMemo(() => {
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -40,7 +58,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             }));
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => localeCompare(a.name, b.name))
+            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
@@ -90,13 +108,14 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         () => (
             <Button
                 success
+                style={[styles.mt4]}
                 text={translate('common.save')}
                 pressOnEnter
                 onPress={handleConfirmSelection}
                 large
             />
         ),
-        [translate, handleConfirmSelection],
+        [translate, handleConfirmSelection, styles.mt4],
     );
     return (
         <SelectionList
