@@ -2,7 +2,7 @@
 #import "RNReactNativeBackgroundTaskSpec.h"
 #import <BackgroundTasks/BackgroundTasks.h>
 
-@interface ReactNativeBackgroundTask : NSObject <NativeReactNativeBackgroundTaskSpec>
+@interface ReactNativeBackgroundTask : NativeReactNativeBackgroundTaskSpecBase <NativeReactNativeBackgroundTaskSpec>
 #else
 #import <React/RCTBridgeModule.h>
 #import <BackgroundTasks/BackgroundTasks.h>
