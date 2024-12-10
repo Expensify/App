@@ -159,6 +159,9 @@ function Suggestions(
         policyID,
     };
 
+    // const preSortedPersonalDetails: Array<PersonalDetails & {weight: number}> = [];
+    // const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+
     return (
         <View testID="suggestions">
             <SuggestionEmoji
