@@ -353,6 +353,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.perDiem')}
                     icon={!selectionModeHeader ? Illustrations.PerDiem : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedPerDiem([]);

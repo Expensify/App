@@ -26,6 +26,9 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     icon,
     iconFill,
+    iconWidth,
+    iconHeight,
+    iconStyles,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -46,6 +49,7 @@ function HeaderWithBackButton({
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseHeadlineHeader = false,
     stepCounter,
     subtitle = '',
     title = '',
@@ -73,9 +77,6 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
-
-    // If the icon is present, the header bar should be taller and use different font.
-    const isCentralPaneSettings = !!icon;
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -108,14 +109,14 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
             />
         );
     }, [
         StyleUtils,
         subTitleLink,
-        isCentralPaneSettings,
+        shouldUseHeadlineHeader,
         policy,
         progressBarPercentage,
         report,
@@ -140,7 +141,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
@@ -180,9 +181,10 @@ function HeaderWithBackButton({
                 {!!icon && (
                     <Icon
                         src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+                        width={iconWidth ?? variables.iconHeader}
+                        height={iconHeight ?? variables.iconHeader}
+                        additionalStyles={[styles.mr2, iconStyles]}
+                        fill={iconFill ?? theme.icon}
                     />
                 )}
                 {!!policyAvatar && (
