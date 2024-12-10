@@ -1,3 +1,4 @@
+import {Receipt} from '@src/types/onyx/Transaction';
 import type {RequireAtLeastOne} from 'type-fest';
 
 type SendInvoiceParams = RequireAtLeastOne<
@@ -23,6 +24,7 @@ type SendInvoiceParams = RequireAtLeastOne<
         createdIOUReportActionID: string;
         createdReportActionIDForThread: string;
         reportActionID: string;
+        receipt?: Receipt;
     },
     'receiverEmail' | 'receiverInvoiceRoomID'
 >;
