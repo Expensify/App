@@ -956,7 +956,7 @@ function openReport(
                 value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                 value: {
                     isOptimisticReport: true,
