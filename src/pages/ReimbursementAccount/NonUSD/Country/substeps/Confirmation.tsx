@@ -50,7 +50,7 @@ function Confirmation({onNext}: SubStepProps) {
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [BANK_CURRENCY]);
+        return ValidationUtils.getFieldRequiredErrors(values, [DESTINATION_COUNTRY]);
     }, []);
 
     useEffect(() => {
@@ -110,7 +110,7 @@ function Confirmation({onNext}: SubStepProps) {
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
-                            inputID={BANK_CURRENCY}
+                            inputID={DESTINATION_COUNTRY}
                             shouldSaveDraft
                         />
                     </FormProvider>

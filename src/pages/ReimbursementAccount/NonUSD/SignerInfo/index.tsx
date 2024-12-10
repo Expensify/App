@@ -71,7 +71,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
 
-    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const country =
+        reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
 
     useEffect(() => {
         if (!country) {
