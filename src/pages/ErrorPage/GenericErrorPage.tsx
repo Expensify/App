@@ -18,12 +18,13 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
 
-function GenericErrorPage() {
+function GenericErrorPage({error}: {error?: {message?: string; name?: string}}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const refreshPage = usePageRefresh();
+    const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
+    const refreshPage = usePageRefresh(isChunkLoadError);
 
     return (
         <SafeAreaConsumer>
