@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 import lodashOrderBy from 'lodash/orderBy';
-import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
@@ -92,13 +91,11 @@ type Section = SectionBase & {
 type GetOptionsConfig = {
     betas?: OnyxEntry<Beta[]>;
     selectedOptions?: Option[];
-    maxRecentReportsToShow?: number;
     excludeLogins?: string[];
     includeMultipleParticipantReports?: boolean;
     includeRecentReports?: boolean;
     includeSelfDM?: boolean;
     showChatPreviewLine?: boolean;
-    sortPersonalDetailsByAlphaAsc?: boolean;
     forcePolicyNamePreview?: boolean;
     includeOwnedWorkspaceChats?: boolean;
     includeThreads?: boolean;
@@ -110,20 +107,16 @@ type GetOptionsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     action?: IOUAction;
-    shouldAcceptName?: boolean;
     recentAttendees?: Attendee[];
     shouldBoldTitleByDefault?: boolean;
 };
 
 type GetUserToInviteConfig = {
     searchValue: string;
-    excludeUnknownUsers?: boolean;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
-    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
-    showChatPreviewLine?: boolean;
     shouldAcceptName?: boolean;
-};
+} & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
     text: string;
@@ -150,15 +143,18 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<GetOptionsConfig, 'selectedOptions' | 'excludeLogins' | 'maxRecentReportsToShow' | 'shouldAcceptName'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
+    canInviteUser?: boolean;
+    excludeLogins?: string[];
+};
+
+type OrderOptionsConfig = {
+    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
+    sortByReportTypeInSearch?: boolean;
+    maxRecentReportsToShow?: number;
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
-    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
-    sortByReportTypeInSearch?: boolean;
-    reportActions?: ReportActions;
-    excludeUnknownUsers?: boolean;
-    canInviteUser?: boolean;
 };
 
 /**
@@ -640,6 +636,7 @@ function createOption(
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
+        lastVisibleActionCreated: undefined,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -676,6 +673,7 @@ function createOption(
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
         result.notificationPreference = ReportUtils.getReportNotificationPreference(report);
+        result.lastVisibleActionCreated = report.lastVisibleActionCreated;
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -917,20 +915,36 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
     };
 }
 
+function orderPersonalDetailsOptions(options: ReportUtils.OptionData[]) {
+    // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
+    return lodashOrderBy(options, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
+}
+
 /**
- * Options need to be sorted in the specific order
+ * Orders report options without grouping them by kind.
+ * Usually used when there is no search value
+ */
+function orderReportOptions(options: ReportUtils.OptionData[]) {
+    return lodashOrderBy(options, [sortComparatorReportOptionByArchivedStatus, sortComparatorReportOptionByDate], ['asc', 'desc']);
+}
+
+/**
+ * Ordering for report options when you have a search value, will order them by kind additionally.
  * @param options - list of options to be sorted
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(
+function orderReportOptionsWithSearch(
     options: ReportUtils.OptionData[],
-    searchValue: string | undefined,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false} = {},
+    searchValue: string,
+    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderOptionsConfig = {},
 ) {
+    const orderedByDate = orderReportOptions(options);
+
     return lodashOrderBy(
-        options,
+        orderedByDate,
         [
+            // Sorting by kind:
             (option) => {
                 if (option.isPolicyExpenseChat && preferPolicyExpenseChat && option.policyID === activePolicyID) {
                     return 0;
@@ -969,6 +983,35 @@ function orderOptions(
     );
 }
 
+function sortComparatorReportOptionByArchivedStatus(option: ReportUtils.OptionData) {
+    return option.private_isArchived ? 1 : 0;
+}
+
+function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
+    // If there is no date (ie. a personal detail option), the option will be sorted to the bottom
+    // (comparing a dateString > '' returns true, and we are sorting descending, so the dateString will come before '')
+    return options.lastVisibleActionCreated ?? '';
+}
+
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
+
+function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderOptionsConfig) {
+    let orderedReportOptions: ReportUtils.OptionData[];
+    if (searchValue) {
+        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
+    } else {
+        orderedReportOptions = orderReportOptions(options.recentReports);
+    }
+    const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
+
+    return {
+        recentReports: orderedReportOptions,
+        personalDetails: orderedPersonalDetailsOptions,
+    };
+}
+
 function canCreateOptimisticPersonalDetailOption({
     recentReportOptions,
     personalDetailsOptions,
@@ -977,7 +1020,6 @@ function canCreateOptimisticPersonalDetailOption({
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
-    excludeUnknownUsers: boolean;
 }) {
     return recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
 }
@@ -991,7 +1033,6 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    excludeUnknownUsers = false,
     optionsToExclude = [],
     selectedOptions = [],
     reportActions = {},
@@ -1006,7 +1047,7 @@ function getUserToInviteOption({
     const isInOptionToExclude =
         optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
 
-    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude || excludeUnknownUsers) {
+    if (!searchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber && !shouldAcceptName) || isInOptionToExclude) {
         return null;
     }
 
@@ -1043,19 +1084,17 @@ function getUserToInviteOption({
 }
 
 /**
- * filter options based on specific conditions
+ * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
-function getOptions(
+function getValidOptions(
     options: OptionList,
     {
         betas = [],
         selectedOptions = [],
-        maxRecentReportsToShow = 0,
         excludeLogins = [],
         includeMultipleParticipantReports = false,
         includeRecentReports = true,
         showChatPreviewLine = false,
-        sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
@@ -1093,25 +1132,11 @@ function getOptions(
         });
     });
 
-    // Sorting the reports works like this:
-    // - Order everything by the last message timestamp (descending)
-    // - When searching, self DM is put at the top
-    // - All archived reports should remain at the bottom
-    const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
-        const report = option.item;
-        if (option.private_isArchived) {
-            return CONST.DATE.UNIX_EPOCH;
-        }
-
-        return report?.lastVisibleActionCreated;
-    });
-    orderedReportOptions.reverse();
-
-    const allReportOptions = orderedReportOptions.filter((option) => {
+    const allReportOptions = filteredReportOptions.filter((option) => {
         const report = option.item;
 
         if (!report) {
-            return;
+            return false;
         }
 
         const isThread = option.isThread;
@@ -1123,51 +1148,45 @@ function getOptions(
         const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
-            return;
+            return false;
         }
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
-            return;
+            return false;
         }
 
         if (isSelfDM && !includeSelfDM) {
-            return;
+            return false;
         }
 
         if (isThread && !includeThreads) {
-            return;
+            return false;
         }
 
         if (isTaskReport && !includeTasks) {
-            return;
+            return false;
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
-            return;
+            return false;
         }
 
         // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
-            return;
+            return false;
         }
 
         if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-            return;
+            return false;
         }
 
-        return option;
+        return true;
     });
 
-    const havingLoginPersonalDetails = includeP2P
+    const allPersonalDetailsOptions = includeP2P
         ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
         : [];
-    let allPersonalDetailsOptions = havingLoginPersonalDetails;
-
-    if (sortPersonalDetailsByAlphaAsc) {
-        // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
-    }
 
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
@@ -1194,11 +1213,6 @@ function getOptions(
              * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
              */
             reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
-
-            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-                break;
-            }
 
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
@@ -1297,10 +1311,10 @@ function getOptions(
 function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-    const optionList = getOptions(options, {
+    const optionList = getValidOptions(options, {
         betas,
+        includeRecentReports: true,
         includeMultipleParticipantReports: true,
-        maxRecentReportsToShow: 0, // Unlimited
         showChatPreviewLine: isUsedInChatFinder,
         includeP2P: true,
         forcePolicyNamePreview: true,
@@ -1311,14 +1325,18 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
     });
+    const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    return optionList;
+    return {
+        ...optionList,
+        ...orderedOptions,
+    };
 }
 
 function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
-    return getOptions(options, {
+    return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
         includeP2P: true,
@@ -1363,7 +1381,7 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
-    return getOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -1373,7 +1391,6 @@ function getAttendeeOptions(
             includeRecentReports: false,
             includeP2P,
             includeSelectedOptions: false,
-            maxRecentReportsToShow: 0,
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
@@ -1394,12 +1411,11 @@ function getShareDestinationOptions(
     excludeLogins: string[] = [],
     includeOwnedWorkspaceChats = true,
 ) {
-    return getOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
             selectedOptions,
-            maxRecentReportsToShow: 0, // Unlimited
             includeMultipleParticipantReports: true,
             showChatPreviewLine: true,
             forcePolicyNamePreview: true,
@@ -1450,17 +1466,23 @@ function getMemberInviteOptions(
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
 ): Options {
-    return getOptions(
+    const options = getValidOptions(
         {reports, personalDetails},
         {
             betas,
             includeP2P: true,
             excludeLogins,
-            sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
             includeRecentReports,
         },
     );
+
+    const orderedOptions = orderOptions(options);
+    return {
+        ...options,
+        personalDetails: orderedOptions.personalDetails,
+        recentReports: orderedOptions.recentReports,
+    };
 }
 
 /**
@@ -1596,112 +1618,157 @@ function filteredPersonalDetailsOfRecentReports(recentReports: ReportUtils.Optio
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {
-        sortByReportTypeInSearch = false,
-        canInviteUser = true,
-        maxRecentReportsToShow = 0,
-        excludeLogins = [],
-        preferChatroomsOverThreads = false,
-        preferPolicyExpenseChat = false,
-        preferRecentExpenseReports = false,
-        excludeUnknownUsers = false,
-    } = config ?? {};
-    if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
-        const recentReports = options.recentReports.slice(0, maxRecentReportsToShow);
-        const personalDetails = filteredPersonalDetailsOfRecentReports(recentReports, options.personalDetails);
-        return {
-            ...options,
-            recentReports,
-            personalDetails,
-        };
+function filterReports(reports: ReportUtils.OptionData[], searchTerms: string[]): ReportUtils.OptionData[] {
+    // We search eventually for multiple whitespace separated search terms.
+    // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
+    // We repeat (reduce) this until all search terms have been used:
+    const filteredReports = searchTerms.reduceRight(
+        (items, term) =>
+            filterArrayByMatch(items, term, (item) => {
+                const values: string[] = [];
+                if (item.text) {
+                    values.push(item.text);
+                }
+
+                if (item.login) {
+                    values.push(item.login);
+                    values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+                }
+
+                if (item.isThread) {
+                    if (item.alternateText) {
+                        values.push(item.alternateText);
+                    }
+                } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                    if (item.subtitle) {
+                        values.push(item.subtitle);
+                    }
+                }
+
+                return uniqFast(values);
+            }),
+        // We start from all unfiltered reports:
+        reports,
+    );
+
+    return filteredReports;
+}
+
+function filterPersonalDetails(personalDetails: ReportUtils.OptionData[], searchTerms: string[]): ReportUtils.OptionData[] {
+    return searchTerms.reduceRight(
+        (items, term) =>
+            filterArrayByMatch(items, term, (item) => {
+                const values = getPersonalDetailSearchTerms(item);
+                return uniqFast(values);
+            }),
+        personalDetails,
+    );
+}
+
+function filterCurrentUserOption(currentUserOption: ReportUtils.OptionData | null | undefined, searchTerms: string[]): ReportUtils.OptionData | null | undefined {
+    return searchTerms.reduceRight((item, term) => {
+        if (!item) {
+            return null;
+        }
+
+        const currentUserOptionSearchText = uniqFast(getCurrentUserSearchTerms(item)).join(' ');
+        return isSearchStringMatch(term, currentUserOptionSearchText) ? item : null;
+    }, currentUserOption);
+}
+
+function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, config?: FilterUserToInviteConfig): ReportUtils.OptionData | null {
+    const {canInviteUser = true, excludeLogins = []} = config ?? {};
+    if (!canInviteUser) {
+        return null;
     }
 
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
-    const searchTerms = searchValue ? searchValue.split(' ') : [];
+    const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
+        recentReportOptions: options.recentReports,
+        personalDetailsOptions: options.personalDetails,
+        currentUserOption: options.currentUserOption,
+    });
+
+    if (!canCreateOptimisticDetail) {
+        return null;
+    }
 
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-
     excludeLogins.forEach((login) => {
         optionsToExclude.push({login});
     });
 
-    const matchResults = searchTerms.reduceRight((items, term) => {
-        const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
-            const values: string[] = [];
-            if (item.text) {
-                values.push(item.text);
-            }
+    return getUserToInviteOption({
+        searchValue,
+        optionsToExclude,
+        ...config,
+    });
+}
 
-            if (item.login) {
-                values.push(item.login);
-                values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
-            }
+function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-            if (item.isThread) {
-                if (item.alternateText) {
-                    values.push(item.alternateText);
-                }
-            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
-                if (item.subtitle) {
-                    values.push(item.subtitle);
-                }
-            }
-
-            return uniqFast(values);
-        });
-        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) => uniqFast(getPersonalDetailSearchTerms(item)));
-
-        const currentUserOptionSearchText = items.currentUserOption ? uniqFast(getCurrentUserSearchTerms(items.currentUserOption)).join(' ') : '';
-
-        const currentUserOption = isSearchStringMatch(term, currentUserOptionSearchText) ? items.currentUserOption : null;
-        return {
-            recentReports: recentReports ?? [],
-            personalDetails: personalDetails ?? [],
-            userToInvite: null,
+    const recentReports = filterReports(options.recentReports, searchTerms);
+    const personalDetails = filterPersonalDetails(options.personalDetails, searchTerms);
+    const currentUserOption = filterCurrentUserOption(options.currentUserOption, searchTerms);
+    const userToInvite = filterUserToInvite(
+        {
+            recentReports,
+            personalDetails,
             currentUserOption,
-        };
-    }, options);
+        },
+        searchValue,
+        config,
+    );
 
-    const {recentReports, personalDetails} = matchResults;
-
-    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(recentReports, personalDetails);
-
-    let filteredPersonalDetails: ReportUtils.OptionData[] = personalDetailsWithoutDMs;
-    let filteredRecentReports: ReportUtils.OptionData[] = recentReports;
-    if (sortByReportTypeInSearch) {
-        filteredRecentReports = recentReports.concat(personalDetailsWithoutDMs);
-        filteredPersonalDetails = [];
-    }
-
-    let userToInvite = null;
-    if (canInviteUser) {
-        const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
-            recentReportOptions: filteredRecentReports,
-            personalDetailsOptions: filteredPersonalDetails,
-            currentUserOption: matchResults.currentUserOption,
-            excludeUnknownUsers,
-        });
-        if (canCreateOptimisticDetail) {
-            userToInvite = getUserToInviteOption({
-                searchValue,
-                selectedOptions: config?.selectedOptions,
-                optionsToExclude,
-            });
-        }
-    }
-
-    if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
-        recentReports.splice(maxRecentReportsToShow);
-    }
-
-    const sortedRecentReports = orderOptions(filteredRecentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports});
     return {
-        personalDetails: filteredPersonalDetails,
-        recentReports: sortedRecentReports,
+        personalDetails,
+        recentReports,
         userToInvite,
-        currentUserOption: matchResults.currentUserOption,
+        currentUserOption,
+    };
+}
+
+type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
+
+/**
+ * Filters and orders the options based on the search input value.
+ * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
+ */
+function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
+    const {sortByReportTypeInSearch = false} = config;
+
+    let filterResult = options;
+    if (searchInputValue.trim().length > 0) {
+        filterResult = filterOptions(options, searchInputValue, config);
+    }
+
+    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
+
+    if (typeof config?.maxRecentReportsToShow === 'number') {
+        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
+        filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
+    }
+
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
+    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
+
+    // sortByReportTypeInSearch option will show the personal details as part of the recent reports
+    if (sortByReportTypeInSearch) {
+        filteredReports = filteredReports.concat(orderedPersonalDetails);
+        filteredPersonalDetails = [];
+    } else {
+        filteredPersonalDetails = orderedPersonalDetails;
+    }
+
+    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
+
+    return {
+        recentReports: orderedReports,
+        personalDetails: filteredPersonalDetails,
+        userToInvite: filterResult.userToInvite,
+        currentUserOption: filterResult.currentUserOption,
     };
 }
 
@@ -1727,7 +1794,7 @@ export {
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
-    getOptions,
+    getValidOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
@@ -1752,7 +1819,11 @@ export {
     getShareLogOptions,
     filterOptions,
     filteredPersonalDetailsOfRecentReports,
+    orderReportOptions,
+    orderReportOptionsWithSearch,
+    orderPersonalDetailsOptions,
     orderOptions,
+    filterAndOrderOptions,
     createOptionList,
     createOptionFromReport,
     getReportOption,
