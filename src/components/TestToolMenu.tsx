@@ -75,7 +75,7 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
-                    disabled={!!isUsingImportedState || network?.shouldSimulatePoorConnection}
+                    disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
                 />
             </TestToolRow>
 
@@ -85,7 +85,7 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
                     onToggle={() => NetworkConnection.simulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
-                    disabled={isUsingImportedState}
+                    disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
 
@@ -95,6 +95,7 @@ function TestToolMenu({network}: TestToolMenuProps) {
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
                     onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
+                    disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
 
