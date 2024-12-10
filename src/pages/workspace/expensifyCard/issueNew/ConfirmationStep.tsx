@@ -58,7 +58,6 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
-        Card.clearIssueNewCardFlow();
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
@@ -142,15 +141,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     sendValidateCode={() => User.requestValidateCodeAction()}
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
-                    clearError={() => {
-                        Card.clearIssueNewCardError(issueNewCard);
-                    }}
-                    onClose={() => {
-                        if (validateError) {
-                            Card.clearIssueNewCardError(issueNewCard);
-                        }
-                        setIsValidateCodeActionModalVisible(false);
-                    }}
+                    clearError={() => Card.clearIssueNewCardError()}
+                    onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
