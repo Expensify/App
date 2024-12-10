@@ -381,15 +381,22 @@ function AttachmentModal({
     /**
      * close the modal
      */
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
+    const closeModal = useCallback(
+        (shouldCallDirectly?: boolean) => {
+            setIsModalOpen(false);
 
-        if (typeof onModalClose === 'function') {
-            attachmentModalHandler.handleModalClose(onModalClose);
-        }
+            if (typeof onModalClose === 'function') {
+                if (shouldCallDirectly) {
+                    onModalClose();
+                    return;
+                }
+                attachmentModalHandler.handleModalClose(onModalClose);
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [onModalClose]);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [onModalClose],
+    );
 
     /**
      *  open the modal
@@ -419,7 +426,7 @@ function AttachmentModal({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal();
+                    closeModal(true);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
