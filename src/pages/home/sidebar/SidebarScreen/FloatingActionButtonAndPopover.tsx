@@ -125,6 +125,8 @@ const getIouType = (action: QuickActionName) => {
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return CONST.IOU.TYPE.TRACK;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return CONST.IOU.TYPE.PAY;
         default:
             return undefined;
     }
@@ -466,14 +468,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             renderTooltipContent: renderQuickActionTooltip,
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
         };
+
         if (quickAction?.action) {
             const iouType = getIouType(quickAction?.action);
             if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
                 return [];
             }
-        }
-
-        if (quickAction?.action) {
             return [
                 {
                     ...baseQuickAction,
