@@ -77,14 +77,14 @@ function ReservationView({reservation}: ReservationViewProps) {
 
         titleComponent = (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                <Text style={styles.labelStrong}>{startName}</Text>
+                <Text style={[styles.labelStrong, styles.flexShrink1]}>{startName}</Text>
                 <Icon
                     src={Expensicons.ArrowRightLong}
                     width={variables.iconSizeSmall}
                     height={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
-                <Text style={styles.labelStrong}>{endName}</Text>
+                <Text style={[styles.labelStrong, styles.flexShrink1]}>{endName}</Text>
             </View>
         );
     }

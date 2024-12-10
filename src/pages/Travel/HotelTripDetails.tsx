@@ -35,6 +35,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 description={translate('common.address')}
                 title={reservation.start.address}
                 interactive={false}
+                numberOfLinesTitle={2}
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
