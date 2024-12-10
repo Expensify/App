@@ -141,7 +141,7 @@ function ReportFooter({
             let assigneeChatReport;
             if (mentionWithDomain) {
                 if (isValidMention) {
-                    assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
                         const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
                         const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
