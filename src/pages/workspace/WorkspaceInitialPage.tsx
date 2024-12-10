@@ -325,7 +325,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const menuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.profile',
-            icon: Expensicons.Home,
+            icon: Expensicons.Building,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.PROFILE,
