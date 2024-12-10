@@ -355,3 +355,4 @@ export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
+export type {default as DismissProductTrainingParams} from './DismissProductTraining';

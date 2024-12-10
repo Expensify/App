@@ -137,4 +137,8 @@ To correct this, you must manually update the conversion rate after the report h
 - We set the exchange rate between the home currency and the Vendor’s currency
 - We convert line item amounts to the vendor’s currency
 
+## How will my Expensify Card transactions export to QuickBooks Online?
+
+The Expensify Card transactions will always export as Credit Card charges in QuickBooks Online, even if the non-reimbursable setting is configured differently, such as a Vendor Bill.
+
 {% include faq-end.md %}
