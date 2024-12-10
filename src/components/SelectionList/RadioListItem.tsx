@@ -59,6 +59,7 @@ function RadioListItem<TItem extends ListItem>({
                             item.alternateText ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
+                            styles.breakAll,
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}
                     />
