@@ -730,7 +730,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}

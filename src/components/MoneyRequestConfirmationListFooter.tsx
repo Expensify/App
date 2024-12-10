@@ -529,7 +529,6 @@ function MoneyRequestConfirmationListFooter({
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
                         isActive={iouIsBillable}
                         disabled={isReadOnly}
-                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
                         wrapperStyle={styles.flex1}
                     />
                 </View>
