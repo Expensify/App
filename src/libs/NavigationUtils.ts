@@ -1,7 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
 import type {CentralPaneName, FullScreenName, OnboardingFlowName, RootStackParamList, SplitNavigatorName, State} from './Navigation/types';
 
 const SPLIT_NAVIGATORS = [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
@@ -34,10 +33,10 @@ const ONBOARDING_SCREEN_NAMES = new Set([
 
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = cloneDeep(state);
-    const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
-    if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
-        delete bottomTabRoute.params.policyID;
-    }
+    // const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
+    // if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
+    //     delete bottomTabRoute.params.policyID;
+    // }
     return stateCopy;
 };
 

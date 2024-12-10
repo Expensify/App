@@ -2,7 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
-import type {NavigationPartialRoute, RootStackParamList, SettingsSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {isFullScreenName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import * as ReportConnection from '@libs/ReportConnection';

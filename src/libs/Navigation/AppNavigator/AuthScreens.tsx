@@ -1,4 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,9 +13,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
-import usePermissions from '@hooks/usePermissions';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -25,16 +24,16 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import SIDEBAR_TO_SPLIT from '@libs/Navigation/linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
-import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -211,23 +210,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
-    const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {toggleSearchRouter} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
     const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const [initialReportID] = useState(() => {
-        const currentURL = getCurrentUrl();
-        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
-        if (reportIdFromPath) {
-            return reportIdFromPath;
-        }
-
-        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
-    });
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -381,6 +368,26 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    // Animation is disabled when navigating to the sidebar screen
+    const getSplitNavigatorOptions = (route: RouteProp<AuthScreensParamList>) => {
+        if (!shouldUseNarrowLayout || !route?.params) {
+            return rootNavigatorOptions.fullScreen;
+        }
+
+        const screenName = 'screen' in route.params ? route.params.screen : undefined;
+
+        if (!screenName) {
+            return rootNavigatorOptions.fullScreen;
+        }
+
+        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+
+        return {
+            ...rootNavigatorOptions.fullScreen,
+            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+        };
+    };
+
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
@@ -388,12 +395,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadReportSplitNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadSettingsSplitNavigator}
                     />
                     <RootStack.Screen
@@ -404,7 +411,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
+                        options={({route}) => getSplitNavigatorOptions(route)}
                         getComponent={loadWorkspaceSplitNavigator}
                     />
                     <RootStack.Screen

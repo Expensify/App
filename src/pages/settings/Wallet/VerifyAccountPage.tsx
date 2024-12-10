@@ -62,7 +62,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         setIsValidateCodeActionModalVisible(false);
 
         if (navigateForwardTo) {
-            Navigation.navigate(navigateForwardTo, CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(navigateForwardTo, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
         } else {
             Navigation.goBack();
         }

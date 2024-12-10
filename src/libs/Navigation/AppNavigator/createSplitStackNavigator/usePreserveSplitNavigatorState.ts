@@ -15,8 +15,11 @@ const cleanPreservedSplitNavigatorStates = (state: NavigationState) => {
 
 const getPreservedSplitNavigatorState = (key: string) => preservedSplitNavigatorStates[key];
 
-function usePreserveSplitNavigatorState(route: RouteProp<ParamListBase>, state: StackNavigationState<ParamListBase>) {
+function usePreserveSplitNavigatorState(state: StackNavigationState<ParamListBase>, route: RouteProp<ParamListBase> | undefined) {
     useEffect(() => {
+        if (!route) {
+            return;
+        }
         preservedSplitNavigatorStates[route.key] = state;
     }, [route, state]);
 }
