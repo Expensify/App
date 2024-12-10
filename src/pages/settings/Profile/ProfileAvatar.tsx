@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,9 +11,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from '@src/types/onyx';
 
-type ProfileAvatarProps = ProfileAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
+type ProfileAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
 
 function ProfileAvatar({route}: ProfileAvatarProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -50,14 +48,4 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
 
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-export default withOnyx<ProfileAvatarProps, ProfileAvatarOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    personalDetailsMetadata: {
-        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(ProfileAvatar);
+export default ProfileAvatar;
