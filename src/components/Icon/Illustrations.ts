@@ -91,6 +91,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
+import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -106,6 +107,7 @@ import LockOpen from '@assets/images/simple-illustrations/simple-illustration__l
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
+import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
@@ -296,4 +298,6 @@ export {
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
+    Flash,
+    ExpensifyMobileApp,
 };

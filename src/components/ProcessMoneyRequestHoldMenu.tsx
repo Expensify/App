@@ -49,6 +49,9 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={39 / 22}
+            contentInnerContainerStyles={styles.mb5}
+            modalInnerContainerStyle={styles.pt0}
+            illustrationOuterContainerStyle={styles.p0}
             onClose={onClose}
             onConfirm={onConfirm}
         >

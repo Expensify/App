@@ -39,7 +39,7 @@ function HoldMenuSectionList() {
                 <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={i}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
                 >
                     <Icon
                         width={variables.menuIconSize}
