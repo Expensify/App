@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -385,7 +384,7 @@ function AttachmentModal({
         setIsModalOpen(false);
 
         if (typeof onModalClose === 'function') {
-            attachmentModalHandler.handleModalClose(onModalClose);
+            onModalClose();
         }
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
