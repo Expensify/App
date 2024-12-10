@@ -35,6 +35,41 @@ const test = (config: NativeConfig) => {
 
         const [appearMessagePromise, appearMessageResolve] = getPromiseWithResolve();
         const [openReportPromise, openReportResolve] = getPromiseWithResolve();
+        let lastVisibleMessageId: string | undefined;
+        let verificationStarted = false;
+        let hasNavigatedToLinkedMessage = false;
+
+        const subscription = DeviceEventEmitter.addListener('onViewableItemsChanged', (res: ViewableItemResponse) => {
+            console.debug('[E2E] Viewable items event triggered at:', Date.now());
+
+            // update the last visible message
+            lastVisibleMessageId = res?.at(0)?.item?.reportActionID;
+            console.debug('[E2E] Current visible message:', lastVisibleMessageId);
+
+            if (!verificationStarted && lastVisibleMessageId === linkedReportActionID) {
+                console.debug('[E2E] Target message found, starting verification');
+                verificationStarted = true;
+
+                setTimeout(() => {
+                    console.debug('[E2E] Verification timeout completed');
+                    console.debug('[E2E] Last visible message ID:', lastVisibleMessageId);
+                    console.debug('[E2E] Expected message ID:', linkedReportActionID);
+
+                    subscription.remove();
+                    if (lastVisibleMessageId === linkedReportActionID) {
+                        console.debug('[E2E] Message position verified successfully');
+                        appearMessageResolve();
+                    } else {
+                        console.debug('[E2E] Linked message not found, failing test!');
+                        E2EClient.submitTestResults({
+                            branch: Config.E2E_BRANCH,
+                            error: 'Linked message not found',
+                            name: `${name} test can't find linked message`,
+                        }).then(() => E2EClient.submitTestDone());
+                    }
+                }, 3000);
+            }
+        });
 
         Promise.all([appearMessagePromise, openReportPromise])
             .then(() => {
@@ -45,19 +80,6 @@ const test = (config: NativeConfig) => {
             .catch((err) => {
                 console.debug('[E2E] Error while submitting test results:', err);
             });
-
-        const subscription = DeviceEventEmitter.addListener('onViewableItemsChanged', (res: ViewableItemResponse) => {
-            console.debug('[E2E] Viewable items event triggered at:', Date.now());
-            console.debug('[E2E] Event details:', res);
-
-            if (!!res && res?.at(0)?.item?.reportActionID === linkedReportActionID) {
-                console.debug('[E2E] Viewable item matched at:', Date.now());
-                appearMessageResolve();
-                subscription.remove();
-            } else {
-                console.debug(`[E2E] Provided message id '${res?.at(0)?.item?.reportActionID}' doesn't match to an expected '${linkedReportActionID}'. Waiting for a next one…`);
-            }
-        });
 
         Performance.subscribeToMeasurements((entry) => {
             console.debug(`[E2E] Performance entry captured: ${entry.name} at ${entry.startTime}, duration: ${entry.duration} ms`);
@@ -71,9 +93,10 @@ const test = (config: NativeConfig) => {
                 return;
             }
 
-            if (entry.name === CONST.TIMING.OPEN_REPORT) {
+            if (entry.name === CONST.TIMING.OPEN_REPORT && !hasNavigatedToLinkedMessage) {
                 console.debug('[E2E] Navigating to the linked report action at:', Date.now());
                 const startLinkedNavigateTime = Date.now();
+                hasNavigatedToLinkedMessage = true; // Set flag to prevent duplicate navigation
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
                 console.debug('[E2E] Navigation to linked report took:', Date.now() - startLinkedNavigateTime, 'ms');
 
