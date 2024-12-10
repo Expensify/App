@@ -140,7 +140,7 @@ describe('PolicyUtils', () => {
             };
             // When calling getFilteredPolicies with policies
             const result = PolicyUtils.getFilteredPolicies(policies as OnyxCollection<Policy>);
-            // The result should be empty array since the policies contains only one policy which has pendingAction is 'delete' .
+            // The result should be empty array since the policies contains only one policy which has pendingAction is 'delete'.
             expect(result).toEqual([]);
         });
     });
