@@ -443,7 +443,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
-                contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
