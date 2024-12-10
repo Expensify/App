@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {ACHAccount} from './Policy';
 import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -52,6 +53,10 @@ type SearchResultsInfo = {
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
+
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
@@ -209,7 +214,7 @@ type SearchPolicy = {
     autoReimbursementLimit?: number;
 
     /** The verified bank account linked to the policy */
-    achAccount?: Record<string, string>;
+    achAccount?: ACHAccount;
 
     /** The current user's role in the policy */
     role: ValueOf<typeof CONST.POLICY.ROLE>;
@@ -222,6 +227,9 @@ type SearchPolicy = {
         /** The auto reimbursement limit */
         limit: number;
     };
+
+    /** Whether the self approval or submitting is enabled */
+    preventSelfApproval?: boolean;
 };
 
 /** Model of transaction search result */
@@ -299,7 +307,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -307,8 +315,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;

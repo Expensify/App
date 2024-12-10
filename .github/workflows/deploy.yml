@@ -81,8 +81,6 @@ jobs:
     name: Upload Android build to Google Play Store
     needs: buildAndroid
     runs-on: ubuntu-latest
-    env:
-      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -121,8 +119,6 @@ jobs:
     needs: prep
     if: ${{ github.ref == 'refs/heads/production' }}
     runs-on: ubuntu-latest
-    env:
-      RUBYOPT: '-rostruct'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -167,15 +163,14 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
-    # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
-    env:
-      RUBYOPT: '-rostruct'
     steps:
-      - name: Checkout
+      - name: Checkout App repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
           repository: 'Expensify/Mobile-Expensify'
@@ -249,7 +244,7 @@ jobs:
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' ../Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -260,7 +255,31 @@ jobs:
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
 
       - name: Upload Android app to Google Play
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android upload_google_play_internal_hybrid
+        env:
+          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+
+      - name: Get current Android rollout percentage
+        id: getAndroidRolloutPercentage
+        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+        with:
+          GOOGLE_KEY_FILE: Mobile-Expensify/react-native/android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
+      - name: Submit production build for Google Play review and a slow rollout
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
+              echo "Completing the previous version rollout"
+              bundle exec fastlane android complete_hybrid_rollout
+          else
+              echo "Skipping the completion of the previous version rollout"
+          fi
+          
+          # Submit the new version for review and slow rollout when it's approved
+          bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
@@ -477,8 +496,6 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    # Only deploy HybridApp to staging
-    if: ${{ github.ref == 'refs/heads/staging' }}
     defaults:
       run:
         working-directory: Mobile-Expensify/react-native
@@ -552,6 +569,7 @@ jobs:
         run: |
           op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
           op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
+          op document get --output ./OldApp_AppStore_Notification_Service.mobileprovision OldApp_AppStore_Notification_Service
 
       - name: Decrypt AppStore profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
@@ -592,6 +610,17 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+      - name: Submit production build for App Store review and a slow rollout
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          # Complete the previous version rollout
+          bundle exec fastlane ios complete_hybrid_rollout
+          
+          # Submit the new version for review and phased rollout when it's approved 
+          bundle exec fastlane ios submit_hybrid_for_rollout
+        env:
+          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
 
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

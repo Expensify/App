@@ -8,11 +8,14 @@ type ValidateCodeActionModalProps = {
     /** Title of the modal */
     title: string;
 
-    /** Description of the modal */
-    description: string;
+    /** Primary description of the modal */
+    descriptionPrimary: string;
+
+    /** Secondary description of the modal */
+    descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Function to be called when the modal is closed */
     onModalHide?: () => void;
@@ -37,6 +40,12 @@ type ValidateCodeActionModalProps = {
 
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent?: boolean;
+
+    /** Whether the form is loading or not */
+    isLoading?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

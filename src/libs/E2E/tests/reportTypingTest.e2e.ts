@@ -43,7 +43,7 @@ const test = (config: NativeConfig) => {
         });
 
         Performance.subscribeToMeasurements((entry) => {
-            if (entry.name === CONST.TIMING.MESSAGE_SENT) {
+            if (entry.name === CONST.TIMING.SEND_MESSAGE) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: `${name} Message sent`,

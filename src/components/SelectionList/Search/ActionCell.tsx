@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +25,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
+    shouldUseSuccessStyle?: boolean;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -34,6 +36,7 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
+    shouldUseSuccessStyle = true,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -45,6 +48,7 @@ function ActionCell({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -97,7 +101,8 @@ function ActionCell({
             style={[styles.w100]}
             innerStyles={buttonInnerStyles}
             isLoading={isLoading}
-            success
+            success={shouldUseSuccessStyle}
+            isDisabled={isOffline}
         />
     );
 }

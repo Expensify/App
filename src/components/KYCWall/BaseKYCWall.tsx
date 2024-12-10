@@ -5,6 +5,7 @@ import type {EmitterSubscription, GestureResponderEvent, View} from 'react-nativ
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
+import {completePaymentOnboarding} from '@libs/actions/IOU';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -108,7 +109,8 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && ReportUtils.isIOUReport(iouReport)) {
-                    const {policyID, workspaceChatReportID, reportPreviewReportActionID} = Policy.createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = Policy.createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }

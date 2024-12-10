@@ -130,6 +130,7 @@ type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
     reportPreviewReportActionID?: string;
+    adminsChatReportID: string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -199,6 +200,12 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -224,15 +231,6 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
-/**
- * Returns a primary policy for the user
- */
-function getPrimaryPolicy(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
-    const primaryPolicy: Policy | null | undefined = activeAdminWorkspaces.find((policy) => policy.id === activePolicyID);
-    return primaryPolicy ?? activeAdminWorkspaces.at(0);
-}
-
 /** Check if the policy has invoicing company details */
 function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.invoice?.companyName && !!policy?.invoice?.companyWebsite;
@@ -241,8 +239,8 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(activePolicyID: OnyxEntry<string>, currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID ?? '-1')) {
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
     }
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
@@ -960,47 +958,63 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             reportActionID: optimisticCreatedAction.reportActionID,
         };
 
-        workspaceMembersChats.onyxOptimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
-            value: {
-                ...optimisticReport,
-                pendingFields: {
-                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                isOptimisticReport: true,
-                hasOutstandingChildRequest,
-                pendingChatMembers: [
-                    {
-                        accountID: accountID.toString(),
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        workspaceMembersChats.onyxOptimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+                value: {
+                    ...optimisticReport,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
-                ],
+                    hasOutstandingChildRequest,
+                    pendingChatMembers: [
+                        {
+                            accountID: accountID.toString(),
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    ],
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+        );
         workspaceMembersChats.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
 
-        workspaceMembersChats.onyxSuccessData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
-                },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
-                pendingChatMembers: null,
-                participants: {
-                    [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+        workspaceMembersChats.onyxSuccessData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                    errorFields: {
+                        createChat: null,
+                    },
+                    pendingChatMembers: null,
+                    participants: {
+                        [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+                    },
                 },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
         workspaceMembersChats.onyxSuccessData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReport.reportID}`,
@@ -1621,6 +1635,8 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
+    const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1706,7 +1722,20 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+            value: null,
+        },
     ];
+
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: policyID,
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -1734,6 +1763,12 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 pendingAction: null,
                 pendingChatMembers: [],
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -1754,6 +1789,12 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -1795,6 +1836,14 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             value: null,
         },
     ];
+
+    if (shouldSetCreatedWorkspaceAsActivePolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+            value: activePolicyID ?? '',
+        });
+    }
 
     if (optimisticCategoriesData.optimisticData) {
         optimisticData.push(...optimisticCategoriesData.optimisticData);
@@ -2294,6 +2343,13 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
                 [Object.keys(adminsChatData).at(0) ?? '']: {
@@ -2309,6 +2365,13 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${workspaceChatReportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
         {
@@ -2543,7 +2606,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
 
-    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID};
+    return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreview?.reportActionID, adminsChatReportID};
 }
 
 function enablePolicyConnections(policyID: string, enabled: boolean) {
@@ -4597,7 +4660,6 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
-    getPrimaryPolicy,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,

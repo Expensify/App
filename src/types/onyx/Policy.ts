@@ -1,3 +1,4 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -1008,6 +1009,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
+        /** The accounting Method for NetSuite conenction config */
+        accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
@@ -1919,4 +1923,5 @@ export type {
     ApprovalRule,
     ExpenseRule,
     NetSuiteConnectionConfig,
+    MccGroup,
 };
