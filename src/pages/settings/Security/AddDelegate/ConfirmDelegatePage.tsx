@@ -60,6 +60,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
             testID={ConfirmDelegatePage.displayName}
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
+            keyboardShouldPersistTaps="handled"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
@@ -79,6 +80,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                     shouldShowRightIcon
                 />
                 <DelegateMagicCodeModal
+                    shouldHandleNavigationBack
                     login={login}
                     role={role}
                     onClose={() => {
