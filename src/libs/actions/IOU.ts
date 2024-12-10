@@ -6737,6 +6737,17 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
+function hasOutstandingChildRequest(reportID: string, excludedIOUReportID: string){
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    return !!Object.values(reportActions).find(action => {
+        const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
+        if(iouReportID === excludedIOUReportID){
+            return false;
+        }
+        return ReportUtils.getReport(iouReportID)?.hasOutstandingChildRequest;
+    })
+}
+
 function getPayMoneyRequestParams(
     initialChatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -6824,7 +6835,7 @@ function getPayMoneyRequestParams(
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
         lastVisibleActionCreated: optimisticIOUReportAction.created,
-        hasOutstandingChildRequest: false,
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport.reportID, iouReport?.reportID ?? ''),
         iouReportID: null,
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
