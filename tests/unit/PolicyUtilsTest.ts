@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -109,6 +109,7 @@ describe('PolicyUtils', () => {
         it('should return empty array', () => {
             // Given mock data for policies
             const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     role: '',
@@ -123,6 +124,7 @@ describe('PolicyUtils', () => {
             // Given mock data for policies
             const randomPolicy1 = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
             const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: randomPolicy1,
             };
             // When calling getFilteredPolicies with policies
@@ -133,6 +135,7 @@ describe('PolicyUtils', () => {
         it('should return empty array', () => {
             // Given mock data for policies
             const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
