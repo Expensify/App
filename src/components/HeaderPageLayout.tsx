@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,6 +44,8 @@ type HeaderPageLayoutProps = ChildrenProps &
 
         /** Whether or not to show the offline indicator */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+        keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
     };
 function HeaderPageLayout({
     backgroundColor,
@@ -56,6 +58,7 @@ function HeaderPageLayout({
     headerContent,
     shouldShowOfflineIndicatorInWideScreen = false,
     testID,
+    keyboardShouldPersistTaps,
     ...rest
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
@@ -98,7 +101,10 @@ function HeaderPageLayout({
                                 <View style={[shouldUseNarrowLayout ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
-                        <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}>
+                        <ScrollView
+                            contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
+                            keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+                        >
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}

@@ -22,6 +22,8 @@ function setup() {
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
+
+    window.getPusherInstance()?.connection.emit('connected');
 }
 
 function emitOnyxUpdate(args: OnyxServerUpdate[]) {
