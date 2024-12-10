@@ -369,11 +369,14 @@ function ReportActionsList({
             if (linkedReportActionID !== ctxlinkedReportActionID) {
                 return;
             }
+            if (shouldUseNarrowLayout) {
+                navigation.setParams({reportActionID: ''});
+            }
             removeHighlight();
         });
 
         return unsubscribe;
-    }, [linkedReportActionID, removeHighlight, report.reportID, navigation, ctxlinkedReportActionID]);
+    }, [linkedReportActionID, removeHighlight, report.reportID, navigation, ctxlinkedReportActionID, shouldUseNarrowLayout]);
 
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
