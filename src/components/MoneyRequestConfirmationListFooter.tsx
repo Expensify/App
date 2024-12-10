@@ -429,7 +429,12 @@ function MoneyRequestConfirmationListFooter({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                            CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                        )
+                    }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
