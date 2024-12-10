@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
+import {getEnforcing} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import type StartupTimer from '@libs/StartupTimer/types';
 
 const {BootSplash} = ReactNative.NativeModules;
@@ -42,6 +43,21 @@ jest.doMock('react-native', () => {
 
     const reactNativeMock = Object.setPrototypeOf(
         {
+            TurboModuleRegistry: {
+                ...ReactNative.TurboModuleRegistry,
+                get(name: string) {
+                    if (name === 'LiveMarkdownModule') {
+                        return {install: () => true} as ReactNative.TurboModule;
+                    }
+                    return ReactNative.TurboModuleRegistry.get(name);
+                },
+                getEnforcing(name: string) {
+                    if (name === 'LiveMarkdownModule') {
+                        return {install: () => true} as ReactNative.TurboModule;
+                    }
+                    return ReactNative.TurboModuleRegistry.getEnforcing(name);
+                },
+            },
             NativeModules: {
                 ...ReactNative.NativeModules,
                 BootSplash: {
