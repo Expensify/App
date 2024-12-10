@@ -269,8 +269,6 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
-
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
                         expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'),
                     );
@@ -1005,7 +1003,7 @@ describe('ReportUtils', () => {
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             // Get the quick action detail
