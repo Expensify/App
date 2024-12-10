@@ -108,6 +108,9 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 maxRecentReportsToShow: 0,
+                shouldSeparateSelfDMChat: true,
+                shouldSeparateWorkspaceChat: true,
+                includeSelfDM: true,
             },
         );
 
@@ -130,6 +133,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
+                recentWorkspaceChats: [],
+                selfDMChat: null,
             };
         }
 
@@ -164,6 +169,17 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         );
 
         newSections.push(formatResults.section);
+
+        newSections.push({
+            title: translate('workspace.common.workspace'),
+            data: chatOptions.recentWorkspaceChats ?? [],
+            shouldShow: (chatOptions.recentWorkspaceChats ?? []).length > 0,
+        });
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
 
         newSections.push({
             title: translate('common.recents'),
@@ -206,6 +222,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
+        chatOptions.selfDMChat,
+        chatOptions.recentWorkspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
@@ -221,7 +239,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         (option: Participant) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM'),
                     selected: true,
                     iouType,
                 },
@@ -238,7 +256,10 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             }
 
             onParticipantsAdded(newParticipants);
-            onFinish();
+
+            if (!option.isSelfDM) {
+                onFinish();
+            }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
