@@ -936,6 +936,7 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
         return {
             ...style,
             maxHeight: windowHeight - dimensions,
+            height: Math.min(style.height, windowHeight - dimensions),
         };
     }
     return style;
