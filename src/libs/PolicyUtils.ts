@@ -62,6 +62,14 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+let currentUserEmail: string;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = val?.email ?? '';
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
@@ -1131,6 +1139,12 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+function getFilteredPolicies(policies: OnyxCollection<Policy>) {
+    return Object.values(policies ?? {}).filter(
+        (policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getPolicyRole(policy, currentUserEmail),
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1254,6 +1268,7 @@ export {
     getActivePolicy,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    getFilteredPolicies,
 };
 
 export type {MemberEmailsToAccountIDs};
