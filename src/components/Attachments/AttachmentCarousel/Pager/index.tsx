@@ -70,14 +70,13 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        activePage.value = e.position;
-        isPagerScrolling.value = e.offset !== 0;
+        activePage.set(e.position);
+        isPagerScrolling.set(e.offset !== 0);
     }, []);
 
     useEffect(() => {
         setActivePageIndex(initialPage);
-        activePage.value = initialPage;
+        activePage.set(initialPage);
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
@@ -87,8 +86,7 @@ function AttachmentCarouselPager(
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
+        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
         [],
     );
 
@@ -107,7 +105,7 @@ function AttachmentCarouselPager(
     );
 
     const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: isScrollEnabled.value,
+        scrollEnabled: isScrollEnabled.get(),
     }));
 
     /**
@@ -126,7 +124,7 @@ function AttachmentCarouselPager(
 
     const carouselItems = items.map((item, index) => (
         <View
-            key={extractItemKey(item, index)}
+            key={extractItemKey(item)}
             style={styles.flex1}
         >
             <CarouselItem

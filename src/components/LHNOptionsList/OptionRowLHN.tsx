@@ -30,6 +30,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
+import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,6 +194,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 ref={popoverAnchor}
                                 onPress={(event) => {
                                     Performance.markStart(CONST.TIMING.OPEN_REPORT);
+                                    Timing.start(CONST.TIMING.OPEN_REPORT);
 
                                     event?.preventDefault();
                                     // Enable Composer to focus on clicking the same chat after opening the context menu.
@@ -305,6 +307,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                         {hasBrickError && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
+                                                    testID="RBR Icon"
                                                     src={Expensicons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
@@ -319,6 +322,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     {shouldShowGreenDotIndicator && (
                                         <View style={styles.ml2}>
                                             <Icon
+                                                testID="GBR Icon"
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.success}
                                             />

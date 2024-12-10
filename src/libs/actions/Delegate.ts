@@ -1,11 +1,13 @@
+import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams, RemoveDelegateParams} from '@libs/API/parameters';
+import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +109,8 @@ function connect(email: string) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp();
+
+                    NativeModules.HybridAppModule.switchAccount(email);
                 });
         })
         .catch((error) => {
@@ -170,6 +174,8 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
                     confirmReadyToOpenApp();
                     openApp();
+
+                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '');
                 });
         })
         .catch((error) => {
@@ -324,7 +330,16 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         },
     ];
 
-    const parameters: AddDelegateParams = {delegate: email, validateCode, role};
+    const optimisticResetActionCode = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.VALIDATE_ACTION_CODE,
+        value: {
+            validateCodeSent: null,
+        },
+    };
+    optimisticData.push(optimisticResetActionCode);
+
+    const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
@@ -396,7 +411,7 @@ function removeDelegate(email: string) {
         },
     ];
 
-    const parameters: RemoveDelegateParams = {delegate: email};
+    const parameters: RemoveDelegateParams = {delegateEmail: email};
 
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
@@ -513,7 +528,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const parameters = {delegate: email, validateCode, role};
+    const parameters: UpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
@@ -607,4 +622,5 @@ export {
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,
+    KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };

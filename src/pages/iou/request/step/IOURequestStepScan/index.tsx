@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
@@ -20,11 +21,11 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -35,6 +36,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
@@ -91,8 +93,7 @@ function IOURequestStepScan({
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
-    const tabIndex = 1;
-    const isTabActive = useTabNavigatorFocus({tabIndex});
+    const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
@@ -116,7 +117,7 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!isEmptyObject(videoConstraints) || !Browser.isMobile()) {
+        if (!Browser.isMobile()) {
             return;
         }
 
@@ -127,7 +128,7 @@ function IOURequestStepScan({
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
                 // Only Safari 17+ supports zoom constraint
-                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                if (Browser.isMobileWebKit() && stream.getTracks().length > 0) {
                     let deviceId;
                     for (const track of stream.getTracks()) {
                         const setting = track.getSettings();
@@ -165,11 +166,11 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
+            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -279,22 +280,26 @@ function IOURequestStepScan({
                     currentUserPersonalDetails.accountID,
                     participant,
                     '',
+                    false,
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
+                IOU.requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -328,6 +333,7 @@ function IOURequestStepScan({
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    playSound(SOUNDS.DONE);
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -351,6 +357,7 @@ function IOURequestStepScan({
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
+                            playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                 IOU.trackExpense(
                                     report,
@@ -362,6 +369,7 @@ function IOURequestStepScan({
                                     currentUserPersonalDetails.accountID,
                                     participant,
                                     '',
+                                    false,
                                     receipt,
                                     '',
                                     '',
@@ -377,36 +385,36 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
+                                IOU.requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {
                             Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            playSound(SOUNDS.DONE);
                             createTransaction(receipt, participant);
                         },
                         {
@@ -416,6 +424,7 @@ function IOURequestStepScan({
                     );
                     return;
                 }
+                playSound(SOUNDS.DONE);
                 createTransaction(receipt, participant);
                 return;
             }
@@ -629,7 +638,14 @@ function IOURequestStepScan({
                             additionalStyles={[styles.pb5]}
                         />
                         <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        {cameraPermissionState === 'denied' ? (
+                            <Text style={[styles.subTextFileUpload]}>
+                                {translate('receipt.deniedCameraAccess')}
+                                <TextLink href={CONST.DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL}>{translate('receipt.deniedCameraAccessInstructions')}</TextLink>.
+                            </Text>
+                        ) : (
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        )}
                         <Button
                             success
                             text={translate('common.continue')}
@@ -648,7 +664,6 @@ function IOURequestStepScan({
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
-                        cameraTabIndex={tabIndex}
                         audio={false}
                         disablePictureInPicture={false}
                         imageSmoothing={false}
@@ -700,8 +715,8 @@ function IOURequestStepScan({
                     <Icon
                         height={32}
                         width={32}
-                        src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
+                        src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
+                        fill={theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

@@ -10,6 +10,7 @@ import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -127,7 +128,7 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
-    useNetwork({onReconnect: () => setImageError(false)});
+    const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
         FileUtils.getFileResolution(file).then((resolution) => {
@@ -226,15 +227,20 @@ function AttachmentView({
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
-                <Icon
-                    src={fallbackSource}
-                    height={variables.defaultAvatarPreviewSize}
-                    width={variables.defaultAvatarPreviewSize}
-                    additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-                    fill={theme.border}
-                />
+                <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={fallbackSource}
+                        width={variables.iconSizeSuperLarge}
+                        height={variables.iconSizeSuperLarge}
+                        fill={theme.icon}
+                    />
+                    <View>
+                        <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
+                    </View>
+                </View>
             );
         }
+
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
 
         if (isHighResolution) {
@@ -268,6 +274,9 @@ function AttachmentView({
                         isImage={isFileImage}
                         onPress={onPress}
                         onError={() => {
+                            if (isOffline) {
+                                return;
+                            }
                             setImageError(true);
                         }}
                     />

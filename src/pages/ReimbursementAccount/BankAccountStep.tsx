@@ -181,7 +181,7 @@ function BankAccountStep({
                                         return;
                                     }
                                     if (!account?.validated) {
-                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
                                         toggleValidateCodeActionModal?.(true);
                                         return;
                                     }
@@ -198,7 +198,7 @@ function BankAccountStep({
                                 title={translate('bankAccount.connectManually')}
                                 onPress={() => {
                                     if (!account?.validated) {
-                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                                         toggleValidateCodeActionModal?.(true);
                                         return;
                                     }
@@ -225,20 +225,21 @@ function BankAccountStep({
                                 />
                             </View>
                         </PressableWithoutFeedback>
-                        <ValidateCodeActionModal
-                            title={translate('contacts.validateAccount')}
-                            description={translate('contacts.featureRequiresValidate')}
-                            isVisible={!!isValidateCodeActionModalVisible}
-                            hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                            validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                            sendValidateCode={() => User.requestValidateCodeAction()}
-                            handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                            validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                            clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                            onClose={() => toggleValidateCodeActionModal?.(false)}
-                        />
                     </View>
                 </ScrollView>
+                <ValidateCodeActionModal
+                    title={translate('contacts.validateAccount')}
+                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+                    isVisible={!!isValidateCodeActionModalVisible}
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    validatePendingAction={loginData?.pendingFields?.validateCodeSent}
+                    sendValidateCode={() => User.requestValidateCodeAction()}
+                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                    onClose={() => toggleValidateCodeActionModal?.(false)}
+                />
             </View>
         </ScreenWrapper>
     );

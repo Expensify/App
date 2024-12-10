@@ -30,11 +30,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -74,7 +76,9 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const platform = getPlatform(true);
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
@@ -120,8 +124,8 @@ function IOURequestStepScan({
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.value,
-        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+        opacity: focusIndicatorOpacity.get(),
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
     const focusCamera = (point: Point) => {
@@ -143,11 +147,10 @@ function IOURequestStepScan({
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
-            focusIndicatorScale.value = 2;
-            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
-            focusIndicatorPosition.value = point;
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
 
             runOnJS(focusCamera)(point);
         });
@@ -247,22 +250,26 @@ function IOURequestStepScan({
                     currentUserPersonalDetails.accountID,
                     participant,
                     '',
+                    false,
                     receipt,
                 );
             } else {
-                IOU.requestMoney(
+                IOU.requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
@@ -295,6 +302,7 @@ function IOURequestStepScan({
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    playSound(SOUNDS.DONE);
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -318,6 +326,7 @@ function IOURequestStepScan({
                 if (locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
+                            playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                 IOU.trackExpense(
                                     report,
@@ -329,6 +338,7 @@ function IOURequestStepScan({
                                     currentUserPersonalDetails.accountID,
                                     participant,
                                     '',
+                                    false,
                                     receipt,
                                     '',
                                     '',
@@ -344,36 +354,36 @@ function IOURequestStepScan({
                                     },
                                 );
                             } else {
-                                IOU.requestMoney(
+                                IOU.requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {
                             Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            playSound(SOUNDS.DONE);
                             createTransaction(receipt, participant);
                         },
                         {
@@ -383,6 +393,7 @@ function IOURequestStepScan({
                     );
                     return;
                 }
+                playSound(SOUNDS.DONE);
                 createTransaction(receipt, participant);
                 return;
             }
@@ -489,7 +500,7 @@ function IOURequestStepScan({
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user?.isMutedAllSounds,
+                enableShutterSound: !isPlatformMuted,
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
@@ -535,7 +546,7 @@ function IOURequestStepScan({
         didCapturePhoto,
         flash,
         hasFlash,
-        user?.isMutedAllSounds,
+        isPlatformMuted,
         translate,
         transactionID,
         isEditing,
@@ -621,7 +632,6 @@ function IOURequestStepScan({
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
-                                orientation="portrait"
                             />
                             <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                         </View>
@@ -674,8 +684,8 @@ function IOURequestStepScan({
                         <Icon
                             height={32}
                             width={32}
-                            src={Expensicons.Bolt}
-                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
                         />
                     </PressableWithFeedback>
                 )}

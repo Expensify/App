@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const platform = Browser.isMobile() ? CONST.PLATFORM.MOBILEWEB : getPlatform();
+    const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
@@ -53,19 +52,11 @@ function PreferencesPage() {
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
-                        subtitle={translate('preferencesPage.appSection.subtitle')}
                         isCentralPane
-                        subtitleMuted
                         illustration={LottieAnimations.PreferencesDJ}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mb2]}
-                                numberOfLines={1}
-                            >
-                                {translate('common.notifications')}
-                            </Text>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
                                     <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>

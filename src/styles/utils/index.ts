@@ -5,6 +5,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -24,6 +25,7 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -326,7 +328,22 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = variables.safeInsertPercentage): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+    const platform = getPlatform();
+    let insetsPercentage = insetsPercentageProp;
+    if (insetsPercentage == null) {
+        switch (platform) {
+            case CONST.PLATFORM.IOS:
+                insetsPercentage = variables.iosSafeAreaInsetsPercentage;
+                break;
+            case CONST.PLATFORM.ANDROID:
+                insetsPercentage = variables.androidSafeAreaInsetsPercentage;
+                break;
+            default:
+                insetsPercentage = 1;
+        }
+    }
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -339,7 +356,7 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = vari
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
+    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
 function getZoomSizingStyle(
@@ -490,14 +507,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, isButtonIcon: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+            return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+            return {width: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal, height: isButtonIcon ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+            return {width: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge, height: isButtonIcon ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -1119,17 +1136,25 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
-function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, selectedBG: string, focusedBG: string): ViewStyle {
-    let backgroundColor;
+/**
+ * When the item is selected and disabled, we want selected item styles.
+ * When the item is focused and disabled, we want disabled item styles.
+ * Single true value will give result accordingly.
+ */
+function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, isDisabled: boolean, selectedBG: string, focusedBG: string): ViewStyle {
     if (isSelected) {
-        backgroundColor = selectedBG;
-    } else if (isFocused) {
-        backgroundColor = focusedBG;
+        return {backgroundColor: selectedBG};
     }
 
-    return {
-        backgroundColor,
-    };
+    if (isDisabled) {
+        return {backgroundColor: undefined};
+    }
+
+    if (isFocused) {
+        return {backgroundColor: focusedBG};
+    }
+
+    return {};
 }
 
 const staticStyleUtils = {
@@ -1181,6 +1206,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,
