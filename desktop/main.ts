@@ -4,7 +4,9 @@ import contextMenu from 'electron-context-menu';
 import log from 'electron-log';
 import type {ElectronLog} from 'electron-log';
 import {autoUpdater} from 'electron-updater';
+import fs from 'fs';
 import {machineId} from 'node-machine-id';
+import path from 'path';
 import checkForUpdates from '@libs/checkForUpdates';
 import * as Localize from '@libs/Localize';
 import CONFIG from '@src/CONFIG';
@@ -16,6 +18,11 @@ import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueu
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
+const windowSizePath: string = path.join(app.getPath('userData'), 'windowSize.json');
+type WindowSize = {
+    width: number;
+    height: number;
+};
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
@@ -296,11 +303,23 @@ const mainWindow = (): Promise<void> => {
                 if (__DEV__) {
                     app.setAsDefaultProtocolClient(appProtocol);
                 }
+                let width = 1200;
+                let height = 900;
+                try {
+                    const data: string = fs.readFileSync(windowSizePath, 'utf-8');
+                    const size = JSON.parse(data) as WindowSize;
+                    if (typeof size.width === 'number' && typeof size.height === 'number') {
+                        width = size.width;
+                        height = size.height;
+                    }
+                } catch (error) {
+                    console.error('Could not read window size, using default size', error);
+                }
 
                 browserWindow = new BrowserWindow({
                     backgroundColor: '#FAFAFA',
-                    width: 1200,
-                    height: 900,
+                    width,
+                    height,
                     webPreferences: {
                         preload: `${__dirname}/contextBridge.js`,
                         contextIsolation: true,
@@ -532,6 +551,15 @@ const mainWindow = (): Promise<void> => {
                 // Closing the chat window should just hide it (vs. fully quitting the application)
                 browserWindow.on('close', (evt) => {
                     if (quitting || hasUpdate) {
+                        const [newWidth, newHeight]: number[] = browserWindow.getSize();
+                        const windowSize: WindowSize = {width: newWidth, height: newHeight};
+
+                        try {
+                            fs.writeFileSync(windowSizePath, JSON.stringify(windowSize), 'utf-8');
+                        } catch (error) {
+                            console.error('Failed to save window size', error);
+                        }
+
                         return;
                     }
 
