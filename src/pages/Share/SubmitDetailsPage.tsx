@@ -69,39 +69,38 @@ function SubmitDetailsPage({
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
 
-    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: IOU.GpsPoint) => {
+    const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoints?: IOU.GpsPoint) => {
         if (!transaction) {
             return;
         }
 
         console.log('report', report);
         console.log('reportID', reportID);
-        IOU.requestMoney(
+
+        IOU.requestMoney({
             report,
-            transactionAmount,
-            transaction.attendees,
-            transaction.currency,
-            transaction.created,
-            transaction.merchant ?? '',
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            participant,
-            trimmedComment,
-            receipt,
-            transaction.category,
-            transaction.tag,
-            transactionTaxCode,
-            transactionTaxAmount,
-            transaction.billable,
-            policy,
-            policyTags,
-            policyCategories,
-            gpsPoint,
-            CONST.IOU.TYPE.CREATE,
-            transaction.actionableWhisperReportActionID,
-            transaction.linkedTrackedExpenseReportAction,
-            transaction.linkedTrackedExpenseReportID,
-        );
+            participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+            policyParams: {policy, policyTagList: policyTags, policyCategories},
+            gpsPoints,
+            action: CONST.IOU.TYPE.CREATE,
+            transactionParams: {
+                attendees: transaction.attendees,
+                amount: transactionAmount,
+                currency: transaction.currency,
+                comment: trimmedComment,
+                receipt,
+                category: transaction.category,
+                tag: transaction.tag,
+                taxCode: transactionTaxCode,
+                taxAmount: transactionTaxAmount,
+                billable: transaction.billable,
+                merchant: transaction.merchant ?? '',
+                created: transaction.created,
+                actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+            },
+        });
         console.log('navigating reportID', reportID);
         const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
