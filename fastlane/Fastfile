@@ -406,6 +406,42 @@ platform :ios do
       setIOSBuildOutputsInEnv()
     end
 
+  desc "Build an iOS HybridApp Adhoc build"
+    lane :build_adhoc_hybrid do
+      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Share_Extension.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Notification_Service.mobileprovision"
+      )
+
+      build_app(
+        workspace: "../iOS/Expensify.xcworkspace",
+        scheme: "Expensify",
+        output_name: "Expensify.ipa",
+        export_method: "app-store",
+        export_options: {
+          manageAppVersionAndBuildNumber: false,
+          provisioningProfiles: {
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AppStore",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
+          }
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
   desc "Build an unsigned iOS production build"
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
