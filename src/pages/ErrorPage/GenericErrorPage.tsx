@@ -18,7 +18,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
 
-function GenericErrorPage({error}: {error?: {message?: string; name?: string}}) {
+function GenericErrorPage({error}: {error?: Error}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
