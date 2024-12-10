@@ -171,8 +171,8 @@ type Account = {
     guideDetails?: {
         /** The email of the guide details */
         email: string;
-        /** Datetime stamp if the user is already onboard */
-        wonTimestamp: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
     };
 };
 
