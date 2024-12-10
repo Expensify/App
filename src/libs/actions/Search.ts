@@ -67,7 +67,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+            const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
             submitMoneyRequestOnSearch(hash, [item], [policy], transactionID);
             return;
         }
