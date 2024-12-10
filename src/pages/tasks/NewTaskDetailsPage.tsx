@@ -136,7 +136,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
                         defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
-                        isMarkdownEnabled
+                        isParserEnabled
                     />
                 </View>
             </FormProvider>

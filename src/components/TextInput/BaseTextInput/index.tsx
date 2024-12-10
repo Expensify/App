@@ -1,3 +1,4 @@
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
 import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -64,7 +65,8 @@ function BaseTextInput(
         prefixCharacter = '',
         suffixCharacter = '',
         inputID,
-        isMarkdownEnabled = false,
+        isParserEnabled = false,
+        parser = parseExpensiMark,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         shouldUseDisabledStyles = true,
@@ -78,8 +80,8 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
-    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const InputComponent = isParserEnabled ? RNMarkdownTextInput : RNTextInput;
+    const isAutoGrowHeightMarkdown = isParserEnabled && autoGrowHeight;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -104,7 +106,7 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
-    useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, false, isMarkdownEnabled);
+    useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, false, isParserEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -358,6 +360,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             <InputComponent
+                                parser={parser}
                                 ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {

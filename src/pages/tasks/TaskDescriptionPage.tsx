@@ -132,7 +132,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            isMarkdownEnabled
+                            isParserEnabled
                         />
                     </View>
                 </FormProvider>

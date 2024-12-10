@@ -289,7 +289,7 @@ function WorkspaceNewRoomPage() {
                                 maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                 autoCapitalize="none"
                                 shouldInterceptSwipe
-                                isMarkdownEnabled
+                                isParserEnabled
                             />
                         </View>
                         <View style={[styles.mhn5]}>

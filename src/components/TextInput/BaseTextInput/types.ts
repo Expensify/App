@@ -1,4 +1,4 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -114,7 +114,10 @@ type CustomBaseTextInputProps = {
     autoCompleteType?: string;
 
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
-    isMarkdownEnabled?: boolean;
+    isParserEnabled?: boolean;
+
+    /** The parser to use with the RNMarkdownTextInput component. It will default to ExpensiMark */
+    parser?: (value: string) => MarkdownRange[];
 
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;

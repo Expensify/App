@@ -61,7 +61,8 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
-        isMarkdownEnabled = false,
+        isParserEnabled = false,
+        parser,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
@@ -72,8 +73,8 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
-    const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const InputComponent = isParserEnabled ? RNMarkdownTextInput : RNTextInput;
+    const isAutoGrowHeightMarkdown = isParserEnabled && autoGrowHeight;
 
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
@@ -99,7 +100,7 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
-    useHtmlPaste(input, undefined, false, isMarkdownEnabled);
+    useHtmlPaste(input, undefined, false, isParserEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -384,6 +385,7 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                parser={parser}
                             />
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {!!inputProps.isLoading && (

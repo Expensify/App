@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.187",
+    "@expensify/react-native-live-markdown": "0.1.198",
     "@expo/metro-runtime": "~3.2.3",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
@@ -108,7 +108,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "2.0.106",
+    "expensify-common": "2.0.109",
     "expo": "51.0.31",
     "expo-av": "14.0.7",
     "expo-image": "1.12.15",
