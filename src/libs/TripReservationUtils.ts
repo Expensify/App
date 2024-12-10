@@ -90,6 +90,10 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
         return;
     }
     const policy = PolicyUtils.getPolicy(activePolicyID);
+    if (!PolicyUtils.isControlPolicy(policy)) {
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(activePolicyID ?? '-1', CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel.alias, Navigation.getActiveRoute()));
+        return;
+    }
     if (isEmptyObject(policy?.address)) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(activePolicyID ?? '-1', Navigation.getActiveRoute()));
         return;

@@ -4272,6 +4272,11 @@ const translations = {
                     'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
+            travel: {
+                title: 'Travel',
+                description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
+                onlyAvailableOnPlan: 'Travel is only available on the Control plan, starting at ',
+            },
             pricing: {
                 collect: '$5 ',
                 amount: '$9 ',
