@@ -99,7 +99,7 @@ describe('ReportUtils', () => {
             const workspace = LHNTestUtils.getFakePolicy('1', 'ws');
             const workspaceChat = LHNTestUtils.getFakeReport();
             workspaceChat.policyID = workspace.id;
-            
+
             expect(ReportUtils.getWorkspaceIcon(workspaceChat, workspace).source).toBe(ReportUtils.getDefaultWorkspaceAvatar(workspace.name));
 
             // When the user uploads a new avatar
