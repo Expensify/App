@@ -330,6 +330,15 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         },
     ];
 
+    const optimisticResetActionCode = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.VALIDATE_ACTION_CODE,
+        value: {
+            validateCodeSent: null,
+        },
+    };
+    optimisticData.push(optimisticResetActionCode);
+
     const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
