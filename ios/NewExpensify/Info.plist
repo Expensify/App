@@ -100,10 +100,10 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
-  <key>BGTaskSchedulerPermittedIdentifiers</key>
-  <array>
-      <string>com.szymonrybczak.chat</string>
-  </array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.expensify.chat.dev</string>
+	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
