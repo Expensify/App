@@ -100,6 +100,7 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
+		<string>com.expensify.chat.chat</string>
 		<string>com.expensify.chat.dev</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
