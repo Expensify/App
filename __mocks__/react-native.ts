@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import * as ReactNative from 'react-native';
-import {getEnforcing} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import type StartupTimer from '@libs/StartupTimer/types';
 
 const {BootSplash} = ReactNative.NativeModules;
