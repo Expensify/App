@@ -694,6 +694,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        conciergeSupport: 'Soporte 24/7',
         create: 'crear',
         iouTypes: {
             pay: 'pagar',
