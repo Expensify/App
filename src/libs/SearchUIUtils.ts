@@ -257,6 +257,12 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const transaction = isTransaction ? data[key] : undefined;
     const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
 
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.hasError || report.hasError) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     if (ReportUtils.isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
