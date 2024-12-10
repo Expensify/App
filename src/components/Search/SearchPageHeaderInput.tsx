@@ -156,8 +156,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
                     onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
 
-                    if (item.text && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+                    if (item.mapKey && item.autocompleteID) {
+                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
 
                         setAutocompleteSubstitutions(substitutions);
                     }
@@ -175,11 +175,11 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const updateAutocompleteSubstitutions = useCallback(
         (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.text) {
+            if (!item.autocompleteID || !item.mapKey) {
                 return;
             }
 
-            const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
             setAutocompleteSubstitutions(substitutions);
         },
         [autocompleteSubstitutions],
