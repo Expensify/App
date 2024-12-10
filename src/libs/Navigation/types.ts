@@ -17,7 +17,7 @@ import type {SaveSearchParams} from '@libs/API/parameters';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {Route as ExpensifyRoute, HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -1177,6 +1177,19 @@ type MoneyRequestNavigatorParamList = {
         backTo?: Routes;
         currency?: string;
     };
+    [SCREENS.MONEY_REQUEST.HOLD]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+
+        /** Hash that includes info about what is searched for */
+        searchHash?: number;
+    };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -1523,6 +1536,10 @@ type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
+type MigratedUserModalNavigatorParamList = {
+    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
+};
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
     [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
@@ -1596,6 +1613,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
@@ -1610,6 +1628,19 @@ type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
         reportID: string;
         reportActionID?: string;
+    };
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+
+        /** Hash that includes info about what is searched for */
+        searchHash?: number;
     };
 };
 
@@ -1740,4 +1771,5 @@ export type {
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
     DebugParamList,
+    MigratedUserModalNavigatorParamList,
 };

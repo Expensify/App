@@ -46,6 +46,9 @@ type ValidateCodeActionModalProps = {
 
     /** Whether adding new contact action is in progress */
     isAddingNewContact?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

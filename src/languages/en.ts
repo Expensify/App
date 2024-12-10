@@ -48,6 +48,7 @@ import type {
     ConnectionParams,
     CurrencyCodeParams,
     CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -479,6 +480,10 @@ const translations = {
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
+    supportalNoAccess: {
+        title: 'Not so fast',
+        description: 'You are not authorized to take this action when support logged in.',
+    },
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',
@@ -528,6 +533,7 @@ const translations = {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -693,6 +699,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        create: 'create',
         iouTypes: {
             pay: 'pay',
             split: 'split',
@@ -1309,7 +1316,7 @@ const translations = {
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
-        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
+        twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
@@ -2500,7 +2507,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2558,6 +2565,9 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
+            },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
             },
             importPerDiemRates: 'Import per diem rates',
         },
@@ -3302,6 +3312,7 @@ const translations = {
                 error: {
                     pleaseSelectProvider: 'Please select a card provider before continuing.',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing.',
+                    pleaseSelectBank: 'Please select a bank before continuing.',
                     pleaseSelectFeedType: 'Please select a feed type before continuing.',
                 },
             },
@@ -4526,6 +4537,10 @@ const translations = {
                 title: "You haven't created any expenses yet",
                 subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
             },
+            emptyInvoiceResults: {
+                title: "You haven't created any \ninvoices yet",
+                subtitle: 'Use the green button below to send an invoice or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -4567,6 +4582,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -5331,8 +5351,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
     },
     debug: {
         debug: 'Debug',
@@ -5417,6 +5439,16 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Take a 2-minute tour',
         exploreExpensify: 'Explore everything Expensify has to offer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Travel and expense, at the speed of chat',
+        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        confirmText: "Let's go!",
+        features: {
+            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
+            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
+            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
     },
 };
 

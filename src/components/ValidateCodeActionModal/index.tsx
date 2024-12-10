@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -30,9 +29,9 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
     isLoading,
     isAddingNewContact,
+    shouldHandleNavigationBack,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
 
@@ -41,6 +40,7 @@ function ValidateCodeActionModal({
     const hide = useCallback(() => {
         clearError();
         onClose?.();
+        firstRenderRef.current = true;
     }, [onClose, clearError]);
 
     useEffect(() => {
@@ -55,6 +55,7 @@ function ValidateCodeActionModal({
 
     return (
         <Modal
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
@@ -65,7 +66,8 @@ function ValidateCodeActionModal({
             shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
+                includePaddingTop
                 shouldEnableMaxHeight
                 testID={ValidateCodeActionModal.displayName}
                 offlineIndicatorStyle={themeStyles.mtAuto}
@@ -86,7 +88,7 @@ function ValidateCodeActionModal({
                         handleSubmitForm={handleSubmitForm}
                         sendValidateCode={sendValidateCode}
                         clearError={clearError}
-                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1, safePaddingBottomStyle]}
+                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         menuItems={footer}
