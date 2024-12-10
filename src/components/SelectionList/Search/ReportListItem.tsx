@@ -41,7 +41,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
 
     // Only invert non-zero values otherwise we'll end up with -0.00
     if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1;
+        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
     }
 
     return (
