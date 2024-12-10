@@ -311,8 +311,6 @@ function createTaskAndNavigate(
 
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {lastReadTime: currentTime});
-
     if (!isCreatedUsingMarkdown) {
         clearOutTaskInfo();
         Navigation.dismissModal(parentReportID);

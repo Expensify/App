@@ -206,10 +206,6 @@ function ReportActionsList({
     );
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const reportLastReadTime = useMemo(() => {
-        return report.lastReadTime ?? '';
-    }, [report.lastReadTime]);
-
     /**
      * The timestamp for the unread marker.
      *
@@ -218,9 +214,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime ?? '');
     useEffect(() => {
-        setUnreadMarkerTime(reportLastReadTime);
+        setUnreadMarkerTime(report.lastReadTime ?? '');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
