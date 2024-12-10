@@ -1,4 +1,5 @@
-import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
+import type {parseExpensiMark} from '@expensify/react-native-live-markdown';
 
 global.jsi_registerMarkdownWorklet = jest.fn();
 global.jsi_setMarkdownRuntime = jest.fn();
