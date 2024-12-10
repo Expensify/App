@@ -175,7 +175,6 @@ function BaseReportActionContextMenu({
     }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
     const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
 
@@ -185,7 +184,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
 
     const areHoldRequirementsMet =
-        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedRoom(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
+        !isInvoiceReport && isMoneyRequestOrReport && !ReportUtils.isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, parentReportNameValuePairs);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -284,7 +283,7 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.isArchivedNonExpenseReportWithID(originalReportID),
             ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
