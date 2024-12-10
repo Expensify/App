@@ -126,7 +126,6 @@ function ReportPreview({
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const getCanIOUBePaid = useCallback(
@@ -140,6 +139,7 @@ function ReportPreview({
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '');
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -204,7 +204,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
@@ -534,6 +534,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
+                                        shouldUseSuccessStyle={!hasHeldExpenses}
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
@@ -590,7 +591,6 @@ function ReportPreview({
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
 
             {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
