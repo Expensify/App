@@ -500,6 +500,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <ReceiptEmptyState
                             hasError={hasErrors}
                             disabled={!canEditReceipt}
+                            transactionID={transaction?.transactionID ?? '-1'}
                             onPress={() =>
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(

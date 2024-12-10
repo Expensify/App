@@ -114,6 +114,7 @@ function ReceiptImage({
                 isThumbnail
                 onPress={onPress}
                 disabled={!onPress}
+                transactionID={transactionID ?? '-1'}
             />
         );
     }

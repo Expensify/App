@@ -21,8 +21,8 @@ import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -642,11 +642,13 @@ function MoneyRequestConfirmationListFooter({
                     ? receiptThumbnailContent
                     : shouldShowReceiptEmptyState && (
                           <ReceiptEmptyState
+                              transactionID={transactionID}
                               onPress={() =>
                                   Navigation.navigate(
                                       ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                                   )
                               }
+                              shouldAllowReceiptDrop
                           />
                       ))}
             {primaryFields}
