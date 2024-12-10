@@ -42,6 +42,21 @@ jest.doMock('react-native', () => {
 
     const reactNativeMock = Object.setPrototypeOf(
         {
+            TurboModuleRegistry: {
+                ...ReactNative.TurboModuleRegistry,
+                get(name: string) {
+                    if (name === 'LiveMarkdownModule') {
+                        return {install: () => true} as ReactNative.TurboModule;
+                    }
+                    return ReactNative.TurboModuleRegistry.get(name);
+                },
+                getEnforcing(name: string) {
+                    if (name === 'LiveMarkdownModule') {
+                        return {install: () => true} as ReactNative.TurboModule;
+                    }
+                    return ReactNative.TurboModuleRegistry.getEnforcing(name);
+                },
+            },
             NativeModules: {
                 ...ReactNative.NativeModules,
                 BootSplash: {
