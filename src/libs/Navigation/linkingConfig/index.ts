@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
-import config from './config';
+import {config} from './config';
 import customGetPathFromState from './customGetPathFromState';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 import prefixes from './prefixes';
-import subscribe from './subscribe';
+import {subscribe} from './subscribe';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     getStateFromPath: (...args) => {
@@ -20,4 +20,5 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
     config,
 };
 
-export default linkingConfig;
+// eslint-disable-next-line import/prefer-default-export
+export {linkingConfig};

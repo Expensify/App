@@ -4,7 +4,7 @@ import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import extractPathFromURL from '@react-navigation/native/src/extractPathFromURL';
 import {Linking} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
-import config from '@navigation/linkingConfig/config';
+import {config} from '@navigation/linkingConfig/config';
 import prefixes from '@navigation/linkingConfig/prefixes';
 import type {RootStackParamList} from '@navigation/types';
 import type {Route} from '@src/ROUTES';
@@ -37,4 +37,5 @@ const subscribe: LinkingOptions<RootStackParamList>['subscribe'] = (listener) =>
     };
 };
 
-export default subscribe;
+// eslint-disable-next-line import/prefer-default-export
+export {subscribe};

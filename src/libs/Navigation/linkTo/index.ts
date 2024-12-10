@@ -18,7 +18,7 @@ import getTopmostBottomTabRoute from '@navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@navigation/getTopmostCentralPaneRoute';
 import getTopmostReportId from '@navigation/getTopmostReportId';
 import isSideModalNavigator from '@navigation/isSideModalNavigator';
-import linkingConfig from '@navigation/linkingConfig';
+import {linkingConfig} from '@navigation/linkingConfig';
 import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from '@navigation/linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from '@navigation/linkingConfig/getMatchingCentralPaneRouteForState';

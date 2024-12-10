@@ -5,7 +5,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as Localize from '@libs/Localize';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import linkingConfig from '@libs/Navigation/linkingConfig';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
