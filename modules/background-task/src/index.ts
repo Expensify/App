@@ -2,6 +2,16 @@ import NativeReactNativeBackgroundTask from './NativeReactNativeBackgroundTask';
 
 type TaskManagerTaskExecutor<T = unknown> = (data: T) => void | Promise<void>;
 
+const taskExecutors = new Map<string, TaskManagerTaskExecutor>();
+
+NativeReactNativeBackgroundTask.onBackgroundTaskExecution((taskName) => {
+    const executor = taskExecutors.get(taskName);
+
+    if (executor) {
+        executor(taskName);
+    }
+});
+
 const TaskManager = {
     /**
      * Defines a task that can be executed in the background.
@@ -15,6 +25,8 @@ const TaskManager = {
         if (typeof taskExecutor !== 'function') {
             throw new Error('Task executor must be a function');
         }
+
+        taskExecutors.set(taskName, taskExecutor);
 
         return NativeReactNativeBackgroundTask.defineTask(taskName, taskExecutor);
     },

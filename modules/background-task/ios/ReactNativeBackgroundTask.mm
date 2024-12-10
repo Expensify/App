@@ -67,11 +67,7 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
             // Execute all registered tasks
             [self->_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
                 NSLog(@"[ReactNativeBackgroundTask] Executing task: %@", taskName);
-                executor(@[@{
-                    @"taskName": taskName,
-                    @"type": @"background",
-                    @"identifier": task.identifier
-                }]);
+                [self emitOnBackgroundTaskExecution:(taskName)];
             }];
             
             [self scheduleNewBackgroundTask:identifier];
