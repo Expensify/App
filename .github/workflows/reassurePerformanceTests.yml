@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -23,22 +21,6 @@ jobs:
         run: |
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
-
-      - name: Get common ancestor commit
-        run: |
-            git fetch origin main
-            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
-            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
-
-      - name: Clean up deleted files
-        run: |
-            DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
-            for file in $DELETED_FILES; do
-              if [ -n "$file" ]; then
-                rm -f "$file"
-                echo "Deleted file: $file"
-              fi
-            done
 
       - name: Run performance testing script
         shell: bash
