@@ -24,18 +24,14 @@ const PRODUCT_TRAINING_TOOLTIP_DATA: Record<ProductTrainingTooltipName, TooltipD
         onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => {
-            return !!shouldUseNarrowLayout;
-        },
+        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
     },
     [RENAME_SAVED_SEARCH]: {
         content: 'productTrainingTooltip.saveSearchTooltipText',
         onHideTooltip: () => dismissProductTraining(RENAME_SAVED_SEARCH),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
-        shouldShow: ({shouldUseNarrowLayout}) => {
-            return !shouldUseNarrowLayout;
-        },
+        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
     [QUICK_ACTION_BUTTON]: {
         content: 'productTrainingTooltip.quickActionButton',
