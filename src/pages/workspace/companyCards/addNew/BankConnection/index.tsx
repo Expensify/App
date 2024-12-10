@@ -1,19 +1,22 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import BlockingView from '@components/BlockingViews/BlockingView';
+// import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+// import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+// import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+// import DebugUtils from '@libs/DebugUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import getCurrentUrl from '@navigation/currentUrl';
+import DebugJSON from '@pages/Debug/DebugJSON';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
@@ -42,12 +45,12 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const isBankConnectionCompleteRoute = currentUrl.includes(ROUTES.BANK_CONNECTION_COMPLETE);
     const url = getCompanyCardBankConnection(policyID, bankName);
 
-    const onOpenBankConnectionFlow = useCallback(() => {
-        if (!url) {
-            return;
-        }
-        customWindow = openBankConnection(url);
-    }, [url]);
+    // const onOpenBankConnectionFlow = useCallback(() => {
+    //     if (!url) {
+    //         return;
+    //     }
+    //     customWindow = openBankConnection(url);
+    // }, [url]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();
@@ -62,12 +65,12 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
-    const CustomSubtitle = (
-        <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-            {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {bankName})}
-            <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>
-        </Text>
-    );
+    // const CustomSubtitle = (
+    //     <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+    //         {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {bankName})}
+    //         <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>
+    //     </Text>
+    // );
 
     useEffect(() => {
         if (!url) {
@@ -94,16 +97,25 @@ function BankConnection({policyID}: BankConnectionStepProps) {
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <BlockingView
-                icon={Illustrations.PendingBank}
-                iconWidth={styles.pendingBankCardIllustration.width}
-                iconHeight={styles.pendingBankCardIllustration.height}
-                title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
-                CustomSubtitle={CustomSubtitle}
-                shouldShowLink
-                onLinkPress={onOpenBankConnectionFlow}
-            />
+            <Text style={[styles.textBold, styles.alignSelfCenter]}>{translate('workspace.moreFeatures.companyCards.pendingBankTitle')}</Text>
+            {/* <BlockingView */}
+            {/*    icon={Illustrations.PendingBank} */}
+            {/*    iconWidth={styles.pendingBankCardIllustration.width} */}
+            {/*    iconHeight={styles.pendingBankCardIllustration.height} */}
+            {/*    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')} */}
+            {/*    linkKey="workspace.moreFeatures.companyCards.pendingBankLink" */}
+            {/*    CustomSubtitle={CustomSubtitle} */}
+            {/*    shouldShowLink */}
+            {/*    onLinkPress={onOpenBankConnectionFlow} */}
+            {/* /> */}
+            <View style={[styles.ph5, styles.mt2]}>
+                <Text>{`isNewFeedConnected: ${isNewFeedConnected}`}</Text>
+                <Text>{`newFeed: ${newFeed}`}</Text>
+                <Text>{`isBankConnectionCompleteRoute: ${isBankConnectionCompleteRoute}`}</Text>
+            </View>
+            <View style={styles.flex1}>
+                <DebugJSON data={cardFeeds?.settings ?? {}} />
+            </View>
         </ScreenWrapper>
     );
 }

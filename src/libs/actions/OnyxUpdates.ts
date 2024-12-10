@@ -112,6 +112,8 @@ function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdat
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
+    // eslint-disable-next-line -- testing
+    console.log(updates, 'UPDATES');
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
