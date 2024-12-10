@@ -94,7 +94,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getWorkspaceIcon', () => {
-        it('should not used cached icon when avatar is updated', () => {
+        it('should not use cached icon when avatar is updated', () => {
             // Given a new workspace and a workspace chat with undefined `policyAvatar`
             const workspace = LHNTestUtils.getFakePolicy('1', 'ws');
             const workspaceChat = LHNTestUtils.getFakeReport();
