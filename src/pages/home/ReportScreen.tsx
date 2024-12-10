@@ -854,18 +854,20 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                     </>
                                 )}
 
-                                <ReportFooter
-                                    onComposerFocus={onComposerFocus}
-                                    onComposerBlur={onComposerBlur}
-                                    report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
-                                    pendingAction={reportPendingAction}
-                                    isComposerFullSize={!!isComposerFullSize}
-                                    isEmptyChat={isEmptyChat}
-                                    lastReportAction={lastReportAction}
-                                    workspaceTooltip={workspaceTooltip}
-                                />
+                                {!shouldShowSkeleton && (
+                                    <ReportFooter
+                                        onComposerFocus={onComposerFocus}
+                                        onComposerBlur={onComposerBlur}
+                                        report={report}
+                                        reportMetadata={reportMetadata}
+                                        policy={policy}
+                                        pendingAction={reportPendingAction}
+                                        isComposerFullSize={!!isComposerFullSize}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
+                                        workspaceTooltip={workspaceTooltip}
+                                    />
+                                )}
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
