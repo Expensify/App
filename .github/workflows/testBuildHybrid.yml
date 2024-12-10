@@ -169,10 +169,6 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Get Android native version
-        id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
-
       - name: Build Android app
         id: build
         env:
@@ -234,6 +230,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - uses: actions/setup-node@v4
+        id: setup-node
         with:
           node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
           cache: npm
@@ -276,7 +273,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd Mobile-Expensify/iOS && pod install
+          command: cd Mobile-Expensify/iOS && bundle exec pod install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
@@ -293,14 +290,6 @@ jobs:
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
-
-      - name: Get iOS native version
-        id: getIOSVersion
-        run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
-      
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid
@@ -346,7 +335,7 @@ jobs:
 
       - name: Read JSONs with iOS paths
         id: get_ios_path
-        if: ${{ needs.iOS.result == 'success' }}
+        if: ${{ needs.iosHybrid.result == 'success' }}
         run: |
           content_ios="$(cat ./ios/ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
@@ -362,6 +351,6 @@ jobs:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
-          IOS: ${{ needs.iOS.result }}
+          IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
           IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
