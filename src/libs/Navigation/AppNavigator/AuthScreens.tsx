@@ -1,4 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import {format} from 'date-fns';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,12 +14,14 @@ import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal
 import TestToolsModal from '@components/TestToolsModal';
 import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -238,6 +241,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorOptions = useRootNavigatorOptions();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
@@ -402,6 +406,32 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    const clearStatus = () => {
+        User.clearCustomStatus();
+        User.updateDraftCustomStatus({
+            text: '',
+            emojiCode: '',
+            clearAfter: DateUtils.getEndOfToday(),
+        });
+    };
+    useEffect(() => {
+        const currentTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+        if (!currentUserPersonalDetails.status?.clearAfter) {
+            return;
+        }
+        if (currentUserPersonalDetails.status?.clearAfter > currentTime) {
+            const subMilisecondsTime = new Date(currentUserPersonalDetails.status?.clearAfter).getTime() - new Date(currentTime).getTime();
+            const timeoutID = setTimeout(() => {
+                clearStatus();
+            }, subMilisecondsTime);
+            return () => {
+                clearTimeout(timeoutID);
+            };
+        }
+
+        clearStatus();
+    }, [currentUserPersonalDetails.status?.clearAfter]);
 
     const CentralPaneScreenOptions: PlatformStackNavigationOptions = {
         ...hideKeyboardOnSwipe,
