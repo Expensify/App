@@ -101,9 +101,9 @@ const selfGuidedTourTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     video: {
-        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
+        url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v3.mp4`,
         thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
-        duration: 55,
+        duration: 26,
         width: 1280,
         height: 960,
     },
@@ -146,6 +146,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -191,6 +192,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
         height: 960,
     },
     tasks: [
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -294,6 +296,9 @@ type OnboardingMessage = {
     /** Type of task described in a string format */
     type?: string;
 };
+
+const EMAIL_WITH_OPTIONAL_DOMAIN =
+    /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
 
 const CONST = {
     HEIC_SIGNATURES: [
@@ -668,7 +673,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         DEFAULT_ROOMS: 'defaultRooms',
-        DUPE_DETECTION: 'dupeDetection',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -678,6 +682,7 @@ const CONST = {
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
+        PRODUCT_TRAINING: 'productTraining',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -911,6 +916,8 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
+        'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
         'https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account',
     PERSONAL_DATA_PROTECTION_INFO_URL: 'https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information',
@@ -932,6 +939,7 @@ const CONST = {
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
+    PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     NAVATTIC: {
@@ -1297,6 +1305,7 @@ const CONST = {
         },
     },
     TIMING: {
+        GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
@@ -1305,6 +1314,9 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
+        APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
+        APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
+        APPLY_HTTPS_UPDATES: 'apply_https_updates',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1312,7 +1324,7 @@ const CONST = {
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
-        COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -2575,8 +2587,8 @@ const CONST = {
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                quickbooksOnline: 'Quickbooks Online',
-                quickbooksDesktop: 'Quickbooks Desktop',
+                quickbooksOnline: 'QuickBooks Online',
+                quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
@@ -3042,6 +3054,14 @@ const CONST = {
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
         },
+
+        /**
+         * Matching task rule by group
+         * Group 1: Start task rule with []
+         * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
+         * Group 3: Title is remaining characters
+         */
+        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -4557,6 +4577,12 @@ const CONST = {
         ALL: 'all',
         SUBMITTER: 'submitter',
     },
+    DELEGATE: {
+        DENIED_ACCESS_VARIANTS: {
+            DELEGATE: 'delegate',
+            SUBMITTER: 'submitter',
+        },
+    },
     DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
@@ -4974,9 +5000,8 @@ const CONST = {
                         '2. Go to *Workspaces*.\n' +
                         '3. Select your workspace.\n' +
                         '4. Click *Categories*.\n' +
-                        '5. Add or import your own categories.\n' +
-                        "6. Disable any default categories you don't need.\n" +
-                        '7. Require a category for every expense in *Settings*.\n' +
+                        "5. Disable any categories you don't need.\n" +
+                        '6. Add your own categories in the top right.\n' +
                         '\n' +
                         `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
                 },
@@ -5056,10 +5081,7 @@ const CONST = {
                 },
             ],
         },
-        [onboardingChoices.PERSONAL_SPEND]: {
-            ...onboardingPersonalSpendMessage,
-            tasks: [selfGuidedTourTask, ...onboardingPersonalSpendMessage.tasks],
-        },
+        [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
@@ -5979,6 +6001,8 @@ const CONST = {
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
+            APPROVE: 'approve',
+            PAY: 'pay',
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
@@ -6066,12 +6090,21 @@ const CONST = {
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+            PAID: 'paid',
+            EXPORTED: 'exported',
+            POSTED: 'posted',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+        },
+        DATE_MODIFIERS: {
+            BEFORE: 'Before',
+            AFTER: 'After',
         },
     },
 
@@ -6150,6 +6183,14 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+            },
+            categories: {
+                id: 'categories' as const,
+                alias: 'categories',
+                name: 'Categories',
+                title: 'workspace.upgrade.categories.title' as const,
+                description: 'workspace.upgrade.categories.description' as const,
+                icon: 'FolderOpen',
             },
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
@@ -6278,6 +6319,7 @@ const CONST = {
         RATE_ID: 'rateID',
         ENABLED: 'enabled',
         IGNORE: 'ignore',
+        DESTINATION: 'destination',
     },
 
     IMPORT_SPREADSHEET: {
@@ -6360,6 +6402,8 @@ const CONST = {
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
+
+    MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
