@@ -1012,7 +1012,7 @@ function ReportActionItem({
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
-                                shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, reportID)}
+                                shouldHideOnDelete={!isThreadReportParentAction}
                                 errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
