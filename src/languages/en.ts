@@ -5443,7 +5443,7 @@ const translations = {
     },
     productTrainingTooltip: {
         conciergeLHNGBR: 'Get started <strong>here!</strong>',
-        saveSearchTooltipText: 'You can <strong>rename your saved search</strong> here!',
+        saveSearchTooltipText: '<strong>Rename your saved searches</strong> here!',
         quickActionButton: '<strong>Quick action!</strong> Just a tap away',
         workspaceChatCreate: 'Submit your <strong>expenses</strong> here!',
     },

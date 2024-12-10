@@ -5962,10 +5962,10 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        conciergeLHNGBR: 'Get started <strong>here!</strong>',
-        saveSearchTooltipText: 'You can <strong>rename your saved search</strong> here!',
-        quickActionButton: '<strong>Quick action!</strong> Just a tap away',
-        workspaceChatCreate: 'Submit your <strong>expenses</strong> here!',
+        conciergeLHNGBR: '¡Comienza <strong>aquí!</strong>',
+        saveSearchTooltipText: 'Puedes <strong>renombrar tu búsqueda guardada</strong> aquí.',
+        quickActionButton: '<strong>¡Acción rápida!</strong> A solo un toque',
+        workspaceChatCreate: 'Envía tus <strong>gastos</strong> aquí.',
     },
 };
 
