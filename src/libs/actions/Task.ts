@@ -361,8 +361,8 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction ?? '-1';
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -446,8 +446,8 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Reopen a closed task
  */
-function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction ?? '-1';
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
     const parentReport = getParentReport(taskReport);
@@ -1212,33 +1212,26 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
-    if (ReportUtils.isCanceledTaskReport(taskReport)) {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, allowEditingConciergeTask?: boolean): boolean {
+    if (getTaskOwnerAccountID(taskReport) === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
         return false;
     }
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
-        return false;
-    }
 
-    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
-        return true;
+    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs) || ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
     }
 
     if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
         return false;
     }
 
-    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
-}
-
-/**
- * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
- */
-function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
-    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+    return (
+        (!isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport) && sessionAccountID === getTaskOwnerAccountID(taskReport)) ||
+        sessionAccountID === getTaskAssigneeAccountID(taskReport)
+    );
 }
 
 function clearTaskErrors(reportID: string) {
@@ -1282,7 +1275,6 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    canActionTask,
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
 };
