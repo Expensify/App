@@ -66,6 +66,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -474,6 +475,23 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
+    if (!action) {
+        return;
+    }
+
+    let requestType;
+    if ([CONST.QUICK_ACTIONS.REQUEST_MANUAL, CONST.QUICK_ACTIONS.SPLIT_MANUAL, CONST.QUICK_ACTIONS.TRACK_MANUAL].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_SCAN, CONST.QUICK_ACTIONS.SPLIT_SCAN, CONST.QUICK_ACTIONS.TRACK_SCAN].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.SCAN;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+
+    return requestType;
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
@@ -8729,6 +8747,7 @@ export {
     putOnHold,
     replaceReceipt,
     requestMoney,
+    getQuickActionRequestType,
     resetSplitShares,
     savePreferredPaymentMethod,
     sendInvoice,
