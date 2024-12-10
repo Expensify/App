@@ -16,40 +16,40 @@ const {TAX_ID_EIN_NUMBER} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
 
 function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
-  const {translate} = useLocalize();
+    const {translate} = useLocalize();
 
-  const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-  const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-  const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[TAX_ID_EIN_NUMBER] ?? reimbursementAccountDraft?.[TAX_ID_EIN_NUMBER] ?? '';
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[TAX_ID_EIN_NUMBER] ?? reimbursementAccountDraft?.[TAX_ID_EIN_NUMBER] ?? '';
 
-  const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    return errors;
-  }, []);
+        return errors;
+    }, []);
 
-  const handleSubmit = useReimbursementAccountStepFormSubmit({
-    fieldIds: STEP_FIELDS,
-    onNext,
-    shouldSaveDraft: isEditing,
-  });
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
 
-  return (
-    <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
-      isEditing={isEditing}
-      onNext={onNext}
-      onMove={onMove}
-      formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-      formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN')}
-      validate={validate}
-      onSubmit={handleSubmit}
-      inputId={TAX_ID_EIN_NUMBER}
-      inputLabel={translate('businessInfoStep.taxIDEIN')}
-      inputMode={CONST.INPUT_MODE.NUMERIC}
-      defaultValue={defaultValue}
-      shouldShowHelpLinks={false}
-    />
-  );
+    return (
+        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN')}
+            validate={validate}
+            onSubmit={handleSubmit}
+            inputId={TAX_ID_EIN_NUMBER}
+            inputLabel={translate('businessInfoStep.taxIDEIN')}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
+            defaultValue={defaultValue}
+            shouldShowHelpLinks={false}
+        />
+    );
 }
 
 TaxIDEINNumber.displayName = 'TaxIDEINNumber';

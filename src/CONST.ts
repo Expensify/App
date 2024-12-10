@@ -624,6 +624,15 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BUSINESS_INFO_STEP: {
+            PICKLIST: {
+                ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
+                APPLICANT_TYPE: 'ApplicantType',
+                NATURE_OF_BUSINESS: 'NatureOfBusiness',
+                PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
+                TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+            },
+        },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
                 IS_USER_BENEFICIAL_OWNER: 1,
@@ -659,6 +668,7 @@ const CONST = {
                 HANG_TIGHT: 4,
             },
         },
+        BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -5222,6 +5232,7 @@ const CONST = {
                 state: BankAccount.STATE.SETUP,
             },
             isLoading: false,
+            isSuccess: false,
             errorFields: {},
             errors: {},
             maxAttemptsReached: false,
