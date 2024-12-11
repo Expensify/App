@@ -6,6 +6,7 @@ import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,10 @@ function ValidateLoginPage({
             if (exitTo) {
                 Session.handleExitToNavigation(exitTo);
             }
+            return;
+        }
+
+        if (!ValidationUtils.isValidValidateCode(validateCode)) {
             return;
         }
 
