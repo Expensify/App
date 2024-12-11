@@ -286,7 +286,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
                                 onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}
-                                wrapperStyle={styles.breakAll}
+                                wrapperStyle={styles.breakAllNonNative}
                                 shouldShowRightIcon
                                 brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />

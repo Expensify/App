@@ -4,6 +4,9 @@ const wordBreak: WordBreakStyles = {
     breakWord: {
         wordBreak: 'break-word',
     },
+    breakAllNonNative: {
+        wordBreak: 'break-all',
+    },
     breakAll: {
         wordBreak: 'break-all',
     },

@@ -2,7 +2,10 @@ import type WordBreakStyles from './types';
 
 const wordBreak: WordBreakStyles = {
     breakWord: {},
-    breakAll: {},
+    breakAllNonNative: {},
+    breakAll: {
+        wordBreak: 'break-all',
+    },
 };
 
 export default wordBreak;
