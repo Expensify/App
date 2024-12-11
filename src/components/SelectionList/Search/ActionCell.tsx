@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -36,7 +36,7 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    shouldUseSuccessStyle = true,
+    shouldUseSuccessStyle: shouldUseSuccessStyleProp = true,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -51,6 +51,16 @@ function ActionCell({
     const {isOffline} = useNetwork();
 
     const text = translate(actionTranslationsMap[action]);
+
+    const getButtonInnerStyles = useCallback(
+        (shouldUseSuccessStyle: boolean) => {
+            if (!isSelected) {
+                return {};
+            }
+            return shouldUseSuccessStyle ? styles.buttonSuccessHovered : styles.buttonDefaultHovered;
+        },
+        [isSelected, styles],
+    );
 
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
@@ -78,30 +88,28 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || shouldUseViewAction) {
-        const buttonInnerStyles = isSelected ? styles.buttonDefaultHovered : {};
         return isLargeScreenWidth ? (
             <Button
                 text={translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW])}
                 onPress={goToItem}
                 small
                 style={[styles.w100]}
-                innerStyles={buttonInnerStyles}
+                innerStyles={getButtonInnerStyles(false)}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
             />
         ) : null;
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
     return (
         <Button
             text={text}
             onPress={goToItem}
             small
             style={[styles.w100]}
-            innerStyles={buttonInnerStyles}
+            innerStyles={getButtonInnerStyles(shouldUseSuccessStyleProp)}
             isLoading={isLoading}
-            success={shouldUseSuccessStyle}
+            success={shouldUseSuccessStyleProp}
             isDisabled={isOffline}
         />
     );
