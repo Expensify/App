@@ -38,7 +38,11 @@ function setPoorConnectionTimeoutID(poorConnectionTimeoutID: NodeJS.Timeout | un
     Onyx.merge(ONYXKEYS.NETWORK, {poorConnectionTimeoutID});
 }
 
-function setShouldSimulatePoorConnection(shouldSimulatePoorConnection: boolean) {
+function setShouldSimulatePoorConnection(shouldSimulatePoorConnection: boolean, poorConnectionTimeoutID: NodeJS.Timeout | undefined) {
+    if (!shouldSimulatePoorConnection) {
+        clearTimeout(poorConnectionTimeoutID);
+        Onyx.merge(ONYXKEYS.NETWORK, {shouldSimulatePoorConnection, poorConnectionTimeoutID: undefined});
+    }
     Onyx.merge(ONYXKEYS.NETWORK, {shouldSimulatePoorConnection});
 }
 

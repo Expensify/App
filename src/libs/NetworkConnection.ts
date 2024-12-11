@@ -83,6 +83,18 @@ Onyx.connect({
             setRandomNetworkStatus(true);
         }
 
+        // Stops random network status change when shouldSimulatePoorConnection is turned into false
+        if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
+            NetInfo.fetch().then((state) => {
+                const isInternetUnreachable = !state.isInternetReachable;
+                const stringifiedState = JSON.stringify(state);
+                setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
+                Log.info(
+                    `[NetworkStatus] The poor connection simulation mode was turned off. Getting the device network status from NetInfo. Network state: ${stringifiedState}. Setting the offline status to: ${isInternetUnreachable}.`,
+                );
+            });
+        }
+
         isPoorConnectionSimulated = !!network.shouldSimulatePoorConnection;
         connectionChanges = network.connectionChanges;
 
@@ -137,16 +149,6 @@ function setRandomNetworkStatus(initialCall = false) {
 
     const timeoutID = setTimeout(setRandomNetworkStatus, randomInterval);
     NetworkActions.setPoorConnectionTimeoutID(timeoutID);
-}
-
-function simulatePoorConnection(shouldSimulatePoorConnection: boolean, poorConnectionTimeoutID: NodeJS.Timeout | undefined) {
-    if (!shouldSimulatePoorConnection) {
-        clearTimeout(poorConnectionTimeoutID);
-        NetworkActions.setPoorConnectionTimeoutID(undefined);
-        setOfflineStatus(false);
-    }
-
-    NetworkActions.setShouldSimulatePoorConnection(shouldSimulatePoorConnection);
 }
 
 /** Tracks how many times the connection has changed within the time period */
@@ -296,6 +298,5 @@ export default {
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
     subscribeToNetInfo,
-    simulatePoorConnection,
 };
 export type {NetworkStatus};
