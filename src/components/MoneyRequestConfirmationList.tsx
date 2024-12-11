@@ -723,6 +723,7 @@ function MoneyRequestConfirmationList({
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
             if (routeError) {
+                console.log("LOG1");
                 return;
             }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
@@ -731,10 +732,12 @@ function MoneyRequestConfirmationList({
             }
 
             if (selectedParticipants.length === 0) {
+                console.log("LOG2");
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)))) {
+                console.log("LOG3");
                 setFormError('iou.error.invalidMerchant');
                 return;
             }
@@ -747,17 +750,20 @@ function MoneyRequestConfirmationList({
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
+                    console.log("LOG4");
                     setFormError('common.error.invalidAmount');
                     return;
                 }
 
                 if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
+                    console.log("LOG5");
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
 
                 if (formError) {
+                    console.log("LOG6", formError);
                     return;
                 }
 
