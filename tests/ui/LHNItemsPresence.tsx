@@ -382,7 +382,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report the user cannot access due to policy restrictions', async () => {
-            // When the SidebarLinks are rendered.
+            // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(),
