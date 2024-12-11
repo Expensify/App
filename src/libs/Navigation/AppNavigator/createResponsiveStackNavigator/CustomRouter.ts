@@ -68,7 +68,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             }
 
             if (isDismissModalAction(action)) {
-                return GetStateForActionHandlers.handleDismissModalAction(state, action, configOptions, stackRouter);
+                return GetStateForActionHandlers.handleDismissModalAction(state, configOptions, stackRouter);
             }
 
             if (isPushAction(action)) {

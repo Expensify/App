@@ -1587,6 +1587,8 @@ type AuthScreensParamList = SharedScreensParamList & {
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         accountID: string;
         isAuthTokenRequired?: string;
+        fileName?: string;
+        attachmentLink?: string;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
