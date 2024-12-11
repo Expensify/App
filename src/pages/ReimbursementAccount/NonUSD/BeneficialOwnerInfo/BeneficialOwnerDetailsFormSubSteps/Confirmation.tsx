@@ -10,9 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
+
+const {PREFIX, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -20,6 +23,8 @@ function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps)
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const values = getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft);
+    const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
 
     return (
         <SafeAreaConsumer>
@@ -53,14 +58,16 @@ function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps)
                             onMove(2);
                         }}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('ownershipInfoStep.last4')}
-                        title={values.ssnLast4}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(4);
-                        }}
-                    />
+                    {beneficialOwnerCountry === CONST.COUNTRY.US && (
+                        <MenuItemWithTopDescription
+                            description={translate('ownershipInfoStep.last4')}
+                            title={values.ssnLast4}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                onMove(4);
+                            }}
+                        />
+                    )}
                     <MenuItemWithTopDescription
                         description={translate('ownershipInfoStep.address')}
                         title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}

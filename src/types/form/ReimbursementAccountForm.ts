@@ -58,7 +58,8 @@ const INPUT_IDS = {
         ADDRESS_CITY: 'addressCity',
         ADDRESS_STATE: 'addressState',
         ADDRESS_ZIP_CODE: 'addressZipCode',
-        COUNTRY: 'country',
+        DESTINATION_COUNTRY: 'destinationCountry',
+        BANK_CURRENCY: 'bankCurrency',
         CORPAY: {
             ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
             SWIFT_CODE: 'swiftCode',
@@ -82,13 +83,13 @@ const INPUT_IDS = {
             BUSINESS_CATEGORY: 'natureOfBusiness',
             APPLICANT_TYPE_ID: 'applicantTypeID',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
+            PREFERRED_METHOD: 'preferredMethod',
             CURRENCY_NEEDED: 'currencyNeeded',
             TRADE_VOLUME: 'tradeVolume',
             ANNUAL_VOLUME: 'annualVolume',
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
@@ -135,7 +136,7 @@ type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
 type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
 type BeneficialOwnersStepExtraProps = {
-    [key: BeneficialOwnerDataKey]: string;
+    [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
 
@@ -194,7 +195,13 @@ type ReimbursementAccountProps = {
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
-    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY]: Country | '';
+
+    /** Currency of the reimbursement account */
+    [INPUT_IDS.ADDITIONAL_DATA.BANK_CURRENCY]: string;
+
+    /** Preferred method of payment */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PREFERRED_METHOD]: string;
 
     /** Name of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
@@ -282,9 +289,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 
     /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
