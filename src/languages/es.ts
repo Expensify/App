@@ -524,6 +524,7 @@ const translations = {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -693,6 +694,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        conciergeSupport: 'Soporte 24/7',
         create: 'crear',
         iouTypes: {
             pay: 'pagar',
@@ -1309,13 +1311,13 @@ const translations = {
         addKey: 'O añade esta clave secreta a tu aplicación de autenticación:',
         enterCode: 'Luego introduce el código de seis dígitos generado por tu aplicación de autenticación.',
         stepSuccess: 'Finalizado',
-        enabled: '¡La autenticación de dos factores está ahora habilitada!',
-        congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
+        enabled: 'La autenticación de dos factores habilitada',
+        congrats: '¡Felicidades! Ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
         disable: 'Deshabilitar',
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
-        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsDescription:
             'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
@@ -3821,6 +3823,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
+            talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
+            talkToConcierge: 'Chatear con Concierge.',
+            needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

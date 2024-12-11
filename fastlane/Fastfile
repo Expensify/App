@@ -71,9 +71,9 @@ platform :android do
 
   desc "Generate a production HybridApp AAB"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: "bundleRelease",
         flags: "--refresh-dependencies",
         properties: {
@@ -118,7 +118,7 @@ platform :android do
     lane :build_local_hybrid do
       ENV["ENVFILE"]=".env.production"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
         flavor: 'Production',
         build_type: 'Release',
@@ -372,7 +372,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp production build"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp"
 
       setupIOSSigningCertificate()
 
@@ -389,7 +389,7 @@ platform :ios do
       )
 
       build_app(
-        workspace: "../iOS/Expensify.xcworkspace",
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
         export_method: "app-store",
@@ -399,6 +399,42 @@ platform :ios do
               "com.expensify.expensifylite" => "(OldApp) AppStore",
               "com.expensify.expensifylite.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
               "com.expensify.expensifylite.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
+          }
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
+  desc "Build an iOS HybridApp Adhoc build"
+    lane :build_adhoc_hybrid do
+      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Share_Extension.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Notification_Service.mobileprovision"
+      )
+
+      build_app(
+        workspace: "../iOS/Expensify.xcworkspace",
+        scheme: "Expensify",
+        output_name: "Expensify.ipa",
+        export_method: "app-store",
+        export_options: {
+          manageAppVersionAndBuildNumber: false,
+          provisioningProfiles: {
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AppStore",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AppStore: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AppStore: Notification Service",
           }
         }
       )
@@ -418,9 +454,9 @@ platform :ios do
 
   desc "Build an unsigned iOS HybridApp production build"
     lane :build_unsigned_hybrid do
-      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp"
       build_app(
-          workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
+          workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
           scheme: "Expensify"
       )
       setIOSBuildOutputsInEnv()
@@ -537,7 +573,7 @@ platform :ios do
       dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       # Assuming we are running this from the react-native submodule directory for HybridApp
-      binary_path: "../iOS/Pods/FirebaseCrashlytics/upload-symbols"
+      binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
     end
 
