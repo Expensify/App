@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
@@ -14,8 +13,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
-    if (isAuthTokenRequired && session?.creationDate)
+    if (isAuthTokenRequired && session?.creationDate) {
         Log.info(`@51888 image initialized with session  ${session.authToken?.substring(0, 10)} creationDate ${new Date(session.creationDate).toISOString()} `);
+    }
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
