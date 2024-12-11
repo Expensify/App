@@ -441,7 +441,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report with parent message is pending removal', async () => {
-            // When the SidebarLinks are rendered.
+            // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const parentReport = createReport();
             const report = createReport();
