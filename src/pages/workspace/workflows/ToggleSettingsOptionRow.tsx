@@ -50,7 +50,7 @@ type ToggleSettingOptionRowProps = {
     subtitleStyle?: StyleProp<TextStyle>;
 
     /** Whether the option is enabled or not */
-    isActive: boolean | SharedValue<boolean>;
+    isActive: boolean;
 
     /** Callback to be called when the switch is toggled */
     onToggle: (isEnabled: boolean) => void;
@@ -101,15 +101,11 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
-    const innerActive = typeof isActive === 'boolean' ? isActive : isActive.get();
-    const isExpanded = useSharedValue(innerActive);
+    const isExpanded = useSharedValue(isActive);
     const setIsExpanded = (value: boolean) => {
         isExpanded.set(value);
     };
 
-    const newToggle = (value: boolean) => {
-        onToggle(value);
-    };
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
             return '';
@@ -182,15 +178,15 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={newToggle}
-                        isOn={innerActive}
+                        onToggle={onToggle}
+                        isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
                         callback={setIsExpanded}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                <AccordionItem isExpanded={isExpanded} onTogleAfterAnimation={onToggle}>{subMenuItems}</AccordionItem>
+                <AccordionItem isExpanded={isExpanded}>{subMenuItems}</AccordionItem>
             </View>
         </OfflineWithFeedback>
     );

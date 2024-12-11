@@ -1,9 +1,10 @@
+import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
-function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: any; duration?: number}) {
+function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: ReactNode; duration?: number}) {
     const height = useSharedValue(0);
 
     const derivedHeight = useDerivedValue(() =>
