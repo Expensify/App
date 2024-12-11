@@ -4,7 +4,8 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
@@ -28,11 +29,21 @@ import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction, User} from '@src/types/onyx';
+import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+
+let allReports: OnyxCollection<ReportType>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -476,7 +487,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {label, errorMessage} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(Localize.translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
                 } else if (ReportActionsUtils.isCardIssuedAction(reportAction)) {
-                    const report = ReportUtils.getReport(reportID);
+                    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     setClipboardMessage(ReportActionsUtils.getCardIssuedMessage(reportAction, true, report?.policyID, hasCard));
                 } else if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(ReportActionsUtils.getRemovedConnectionMessage(reportAction));
@@ -604,7 +615,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: ({type, isProduction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {reportID}) => {
-            const report = ReportUtils.getReport(reportID);
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             Clipboard.setString(JSON.stringify(report, null, 4));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
