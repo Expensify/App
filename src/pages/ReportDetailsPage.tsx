@@ -290,7 +290,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowNotificationPref = !isMoneyRequestReport && ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
-    const shouldShowGoToWorkspace = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID ?? '-1');
@@ -450,6 +449,23 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
+        if (shouldShowLeaveButton) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
+            });
+        }
+
         if (isMoneyRequestReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
@@ -491,23 +507,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (shouldShowGoToWorkspace) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
-                translationKey: 'workspace.common.goToWorkspace',
-                icon: Expensicons.Building,
-                action: () => {
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID ?? '-1'));
-                },
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-            });
-        }
-
         if (report?.reportID && isDebugModeEnabled) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
@@ -524,6 +523,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
+        isRootGroupChat,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -542,12 +542,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         shouldShowMenuItem,
         isTaskReport,
         isCanceledTaskReport,
+        shouldShowLeaveButton,
         activeChatMembers.length,
         shouldOpenRoomMembersPage,
         shouldShowCancelPaymentButton,
         session,
         isOffline,
         transactionIDList,
+        leaveChat,
         canUnapproveRequest,
         isDebugModeEnabled,
         unapproveExpenseReportOrShowModal,
@@ -559,8 +561,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         parentReportAction,
         moneyRequestReport?.reportID,
         isDeletedParentAction,
-        isSmallScreenWidth,
-        shouldShowGoToWorkspace,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -918,23 +918,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             brickRoadIndicator={item.brickRoadIndicator}
                         />
                     ))}
-
-                    {shouldShowLeaveButton && (
-                        <MenuItem
-                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
-                            icon={Expensicons.Exit}
-                            title={translate('common.leave')}
-                            isAnonymousAction
-                            onPress={() => {
-                                if (ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
-                                    setIsLastMemberLeavingGroupModalVisible(true);
-                                    return;
-                                }
-
-                                leaveChat();
-                            }}
-                        />
-                    )}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
