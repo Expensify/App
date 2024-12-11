@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -8,17 +9,19 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList, PersonalDetailsMetadata} from '@src/types/onyx';
 
-type ProfileAvatarProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
+type ProfileAvatarOnyxProps = {
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    personalDetailsMetadata: OnyxEntry<Record<string, PersonalDetailsMetadata>>;
+    isLoadingApp: OnyxEntry<boolean>;
+};
 
-function ProfileAvatar({route}: ProfileAvatarProps) {
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+type ProfileAvatarProps = ProfileAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
 
+function ProfileAvatar({route, personalDetails, personalDetailsMetadata, isLoadingApp = true}: ProfileAvatarProps) {
     const personalDetail = personalDetails?.[route.params.accountID];
     const avatarURL = personalDetail?.avatar ?? '';
     const accountID = Number(route.params.accountID ?? '-1');
@@ -26,7 +29,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail);
 
     useEffect(() => {
-        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) || !!avatarURL) {
+        if (!ValidationUtils.isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
             return;
         }
         PersonalDetails.openPublicProfilePage(accountID);
@@ -34,13 +37,11 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
 
     return (
         <AttachmentModal
-            defaultOpen
             headerTitle={displayName}
+            defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                setTimeout(() => {
-                    Navigation.goBack();
-                }, CONST.ANIMATED_TRANSITION);
+                Navigation.goBack();
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
@@ -51,4 +52,14 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
 
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-export default ProfileAvatar;
+export default withOnyx<ProfileAvatarProps, ProfileAvatarOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    personalDetailsMetadata: {
+        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+})(ProfileAvatar);
