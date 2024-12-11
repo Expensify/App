@@ -8,6 +8,22 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
+/**
+ * Given a plaintext query and specific entities data,
+ * this function will build the substitutions map from scratch for this query
+ *
+ * Ex:
+ * query: `Test from:12345 to:9876`
+ * personalDetails: {
+ *     12345: JohnDoe
+ *     98765: SomeoneElse
+ * }
+ *
+ * return: {
+ *     from:JohnDoe: 12345,
+ *     to:SomeoneElse: 98765,
+ * }
+ */
 function buildSubstitutionsMap(
     query: string,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,

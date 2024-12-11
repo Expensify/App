@@ -5,14 +5,6 @@ import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSu
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-// jest.mock('@libs/CardUtils', () => {
-//     return {
-//         getCardDescription(cardID: number) {
-//             return 'Visa - 1234';
-//         },
-//     };
-// });
-
 jest.mock('@libs/ReportUtils', () => {
     return {
         parseReportRouteParams: jest.fn(() => ({})),
