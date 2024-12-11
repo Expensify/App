@@ -105,7 +105,6 @@ function SAMLSignInPage() {
                 <HeaderWithBackButton
                     title=""
                     onBackButtonPress={() => {
-                        setSAMLUrl('');
                         Session.clearSignInData();
                         Navigation.isNavigationReady().then(() => {
                             Navigation.goBack();
