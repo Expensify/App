@@ -695,6 +695,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        conciergeSupport: '24/7 support',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -3806,6 +3807,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourAccountManager: 'Chat with your account manager.',
+            talkToConcierge: 'Chat with Concierge.',
+            needAnotherAccounting: 'Need another accounting software? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
