@@ -103,6 +103,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }, [isCannedQuery, isFocused, registerSearchPageInput, unregisterSearchPageInput]);
 
     useEffect(() => {
+        setTextInputValue(queryText);
+    }, [queryText]);
+
+    useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates);
         setAutocompleteSubstitutions(substitutionsMap);
     }, [originalInputQuery, personalDetails, reports, taxRates]);
