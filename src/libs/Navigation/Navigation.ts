@@ -202,17 +202,10 @@ type GoBackOptions = {
      * In that case we want to goUp to a country picker with any params so we don't compare them.
      */
     compareParams?: boolean;
-
-    /**
-     * Specifies whether goBack should pop to top when invoked.
-     * Additionaly, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
-     */
-    shouldPopToTop?: boolean;
 };
 
 const defaultGoBackOptions: Required<GoBackOptions> = {
     compareParams: true,
-    shouldPopToTop: false,
 };
 
 /**
@@ -274,19 +267,11 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
 
 /**
  * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param options - Optional configuration that affects navigation logic, e.g. whether goBack should popToTop.
+ * @param options - Optional configuration that affects navigation logic.
  */
 function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     if (!canNavigate('goBack')) {
         return;
-    }
-
-    if (options?.shouldPopToTop) {
-        if (shouldPopAllStateOnUP) {
-            shouldPopAllStateOnUP = false;
-            navigationRef.current?.dispatch(StackActions.popToTop());
-            return;
-        }
     }
 
     if (fallbackRoute) {
@@ -485,6 +470,18 @@ const dismissModalWithReport = (report: OnyxEntry<Report>) => {
     isNavigationReady().then(() => navigateToReportWithPolicyCheck({report}));
 };
 
+/**
+ * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopAllStateOnUP is set to true.
+ */
+function popToTop() {
+    if (!shouldPopAllStateOnUP) {
+        return;
+    }
+
+    shouldPopAllStateOnUP = false;
+    navigationRef.current?.dispatch(StackActions.popToTop());
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -508,6 +505,7 @@ export default {
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
+    popToTop,
 };
 
 export {navigationRef};
