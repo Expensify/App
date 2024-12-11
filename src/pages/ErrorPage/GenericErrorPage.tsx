@@ -24,7 +24,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
-    const refreshPage = usePageRefresh(isChunkLoadError);
+    const refreshPage = usePageRefresh();
 
     return (
         <SafeAreaConsumer>
@@ -61,7 +61,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         success
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
-                                        onPress={refreshPage}
+                                        onPress={() => refreshPage(isChunkLoadError)}
                                     />
                                     <Button
                                         text={translate('initialSettingsPage.signOut')}
