@@ -127,7 +127,6 @@ function ReportPreview({
     const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const getCanIOUBePaid = useCallback(
@@ -146,6 +145,7 @@ function ReportPreview({
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '');
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -569,6 +569,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
+                                        shouldUseSuccessStyle={!hasHeldExpenses}
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
