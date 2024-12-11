@@ -4123,6 +4123,9 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isInvoiceRoom(report)) {
         return Localize.translateLocal('workspace.common.invoices');
     }
+    if (isConciergeChatReport(report)) {
+        return Localize.translateLocal('reportActionsView.conciergeSupport');
+    }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
