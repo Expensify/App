@@ -372,7 +372,7 @@ describe('SidebarLinksData', () => {
                 },
             };
 
-            // And a report marked as hidden is initialized in Onyx
+            // And a report with notification preference set as hidden is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
