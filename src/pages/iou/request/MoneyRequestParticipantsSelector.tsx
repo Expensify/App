@@ -89,7 +89,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const optionList = OptionsListUtils.getOptions(
+        const optionList = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -107,23 +107,19 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                maxRecentReportsToShow: 0,
                 shouldSeparateSelfDMChat: true,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: true,
             },
         );
 
-        if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, undefined, {
-                preferChatroomsOverThreads: true,
-                preferPolicyExpenseChat: !!action,
-                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            });
-        }
+        const orderedOptions = OptionsListUtils.orderOptions(optionList);
 
-        return optionList;
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, isPaidGroupPolicy, options.personalDetails, options.reports, participants]);
+        return {
+            ...optionList,
+            ...orderedOptions,
+        };
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -138,7 +134,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
