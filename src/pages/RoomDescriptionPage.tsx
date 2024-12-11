@@ -80,7 +80,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={RoomDescriptionPage.displayName}
         >
             <HeaderWithBackButton

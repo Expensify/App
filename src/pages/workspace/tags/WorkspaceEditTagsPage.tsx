@@ -69,7 +69,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={WorkspaceEditTagsPage.displayName}
             >

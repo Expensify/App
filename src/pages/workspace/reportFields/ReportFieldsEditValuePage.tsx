@@ -70,7 +70,7 @@ function ReportFieldsEditValuePage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsEditValuePage.displayName}
                 shouldEnableMaxHeight

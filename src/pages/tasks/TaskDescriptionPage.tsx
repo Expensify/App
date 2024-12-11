@@ -94,7 +94,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={TaskDescriptionPage.displayName}
         >

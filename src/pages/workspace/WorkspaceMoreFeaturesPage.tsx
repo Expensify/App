@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -63,6 +64,7 @@ type SectionObject = {
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const {translate} = useLocalize();
     const {canUsePerDiem} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
@@ -422,7 +424,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={styles.pb2}>
+                <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
                     <Text style={[styles.ph5, styles.mb4, styles.mt3, styles.textSupporting, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         {translate('workspace.moreFeatures.subtitle')}
                     </Text>

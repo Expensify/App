@@ -106,6 +106,9 @@ function ReportPreview({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
+    );
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -127,12 +130,20 @@ function ReportPreview({
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
+
+    const getCanIOUBePaid = useCallback(
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, onlyShowPayElsewhere),
+        [iouReport, chatReport, policy, allTransactions],
     );
+
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '');
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -166,8 +177,8 @@ function ReportPreview({
         ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
-    const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
-    const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
+    const lastThreeTransactions = allTransactions.slice(-3);
+    const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
         TransactionUtils.hasPendingUI(allTransactions.at(0), TransactionUtils.getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
@@ -197,7 +208,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
@@ -333,14 +344,6 @@ function ReportPreview({
     ]);
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(iouReport, chatReport, policy, allTransactions, onlyShowPayElsewhere),
-        [iouReport, chatReport, policy, allTransactions],
-    );
-
-    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, policy), [iouReport, policy]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
@@ -449,6 +452,12 @@ function ReportPreview({
         checkMarkScale.set(isPaidAnimationRunning ? withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION})) : 1);
     }, [isPaidAnimationRunning, iouSettled, checkMarkScale]);
 
+    const openReportFromPreview = useCallback(() => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+    }, [iouReportID]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -457,11 +466,7 @@ function ReportPreview({
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
-                    onPress={() => {
-                        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-                        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
-                    }}
+                    onPress={openReportFromPreview}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive))}
@@ -471,13 +476,12 @@ function ReportPreview({
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {hasReceipts && (
-                            <ReportActionItemImages
-                                images={lastThreeReceipts}
-                                total={transactionsWithReceipts.length}
-                                size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                            />
-                        )}
+                        <ReportActionItemImages
+                            images={lastThreeReceipts}
+                            total={allTransactions.length}
+                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                            onPress={openReportFromPreview}
+                        />
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
@@ -534,6 +538,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
+                                        shouldUseSuccessStyle={!hasHeldExpenses}
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
@@ -590,7 +595,6 @@ function ReportPreview({
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
 
             {isHoldMenuVisible && !!iouReport && requestType !== undefined && (

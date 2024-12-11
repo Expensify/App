@@ -10,7 +10,6 @@ import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
@@ -22,6 +21,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
@@ -117,6 +117,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
+        onContentSizeChange,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -494,8 +495,6 @@ function BaseSelectionList<TItem extends ListItem>(
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
@@ -508,7 +507,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
-                    showTooltip={showTooltip}
+                    showTooltip={shouldShowTooltips}
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
@@ -768,91 +767,90 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+
+    // TODO: test _every_ component that uses SelectionList
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle, containerStyle]}>
-                    {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
-                    {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
-                    {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-                    {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-                        !!headerMessage && (
-                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-                            </View>
-                        )}
-                    {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
-                        renderListEmptyContent()
-                    ) : (
-                        <>
-                            {!listHeaderContent && header()}
-                            <SectionList
-                                removeClippedSubviews={removeClippedSubviews}
-                                ref={listRef}
-                                sections={slicedSections}
-                                stickySectionHeadersEnabled={false}
-                                renderSectionHeader={(arg) => (
-                                    <>
-                                        {renderSectionHeader(arg)}
-                                        {listHeaderContent && header()}
-                                    </>
-                                )}
-                                renderItem={renderItem}
-                                getItemLayout={getItemLayout}
-                                onScroll={onScroll}
-                                onScrollBeginDrag={onScrollBeginDrag}
-                                keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                                extraData={focusedIndex}
-                                // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash
-                                indicatorStyle="white"
-                                keyboardShouldPersistTaps="always"
-                                showsVerticalScrollIndicator={showScrollIndicator}
-                                initialNumToRender={12}
-                                maxToRenderPerBatch={maxToRenderPerBatch}
-                                windowSize={windowSize}
-                                updateCellsBatchingPeriod={updateCellsBatchingPeriod}
-                                viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                                testID="selection-list"
-                                onLayout={onSectionListLayout}
-                                style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
-                                ListHeaderComponent={
-                                    shouldShowTextInput && shouldShowTextInputAfterHeader ? (
-                                        <>
-                                            {listHeaderContent}
-                                            {renderInput()}
-                                        </>
-                                    ) : (
-                                        listHeaderContent
-                                    )
-                                }
-                                ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                onEndReached={onEndReached}
-                                onEndReachedThreshold={onEndReachedThreshold}
-                                scrollEventThrottle={scrollEventThrottle}
-                                contentContainerStyle={contentContainerStyle}
-                                CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
-                            />
-                            {children}
-                        </>
-                    )}
-                    {showConfirmButton && (
-                        <FixedFooter style={[styles.mtAuto]}>
-                            <Button
-                                success={!shouldUseDefaultTheme}
-                                large
-                                style={[styles.w100, confirmButtonStyles]}
-                                text={confirmButtonText || translate('common.confirm')}
-                                onPress={onConfirm}
-                                pressOnEnter
-                                enterKeyEventListenerPriority={1}
-                            />
-                        </FixedFooter>
-                    )}
-                    {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+        <View style={[styles.flex1, (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle, containerStyle]}>
+            {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
+            {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
+            {/* This is misleading because we might be in the process of loading fresh options from the server. */}
+            {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) && !!headerMessage && (
+                <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
-        </SafeAreaConsumer>
+            {!!headerContent && headerContent}
+            {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+                renderListEmptyContent()
+            ) : (
+                <>
+                    {!listHeaderContent && header()}
+                    <SectionList
+                        removeClippedSubviews={removeClippedSubviews}
+                        ref={listRef}
+                        sections={slicedSections}
+                        stickySectionHeadersEnabled={false}
+                        renderSectionHeader={(arg) => (
+                            <>
+                                {renderSectionHeader(arg)}
+                                {listHeaderContent && header()}
+                            </>
+                        )}
+                        renderItem={renderItem}
+                        getItemLayout={getItemLayout}
+                        onScroll={onScroll}
+                        onScrollBeginDrag={onScrollBeginDrag}
+                        onContentSizeChange={onContentSizeChange}
+                        keyExtractor={(item, index) => item.keyForList ?? `${index}`}
+                        extraData={focusedIndex}
+                        // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        showsVerticalScrollIndicator={showScrollIndicator}
+                        initialNumToRender={12}
+                        maxToRenderPerBatch={maxToRenderPerBatch}
+                        windowSize={windowSize}
+                        updateCellsBatchingPeriod={updateCellsBatchingPeriod}
+                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        testID="selection-list"
+                        onLayout={onSectionListLayout}
+                        style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
+                        ListHeaderComponent={
+                            shouldShowTextInput && shouldShowTextInputAfterHeader ? (
+                                <>
+                                    {listHeaderContent}
+                                    {renderInput()}
+                                </>
+                            ) : (
+                                listHeaderContent
+                            )
+                        }
+                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={onEndReachedThreshold}
+                        scrollEventThrottle={scrollEventThrottle}
+                        contentContainerStyle={contentContainerStyle}
+                        CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
+                    />
+                    {children}
+                </>
+            )}
+            {showConfirmButton && (
+                <FixedFooter style={[styles.mtAuto]}>
+                    <Button
+                        success={!shouldUseDefaultTheme}
+                        large
+                        style={[styles.w100, confirmButtonStyles]}
+                        text={confirmButtonText || translate('common.confirm')}
+                        onPress={onConfirm}
+                        pressOnEnter
+                        enterKeyEventListenerPriority={1}
+                    />
+                </FixedFooter>
+            )}
+            {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+        </View>
     );
 }
 
