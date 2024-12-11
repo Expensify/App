@@ -164,10 +164,7 @@ jobs:
     needs: prep
     runs-on: ubuntu-latest-xl
     steps:
-      - name: Checkout App repo
-        uses: actions/checkout@v4
-
-      - name: Checkout Mobile-Expensify repo
+      - name: Checkout App and Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -175,12 +172,9 @@ jobs:
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule
+      - name: Update submodule to match main
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -491,10 +485,7 @@ jobs:
 
       - name: Update submodule
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: |
@@ -516,12 +507,12 @@ jobs:
         uses: actions/cache@v4
         id: pods-cache
         with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+          path: Mobile-Expensify/ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/ios/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/ios/Podfile.lock') == hashFiles('Mobile-Expensify/ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
