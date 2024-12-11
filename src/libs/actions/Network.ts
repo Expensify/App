@@ -11,7 +11,6 @@ function setIsOffline(isOffline: boolean, reason = '') {
         textToLog += ` because: ${reason}`;
         Log.info(textToLog);
     }
-
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 

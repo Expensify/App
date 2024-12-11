@@ -136,7 +136,6 @@ Onyx.connect({
 function setRandomNetworkStatus(initialCall = false) {
     // The check to ensure no new timeouts are scheduled after poor connection simulation is stopped
     if (!isPoorConnectionSimulated && !initialCall) {
-        setOfflineStatus(false);
         return;
     }
 
