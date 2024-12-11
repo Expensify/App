@@ -5968,21 +5968,21 @@ const translations = {
     },
     productTrainingTooltip: {
         conciergeLHNGBR: {
-            part1: 'Empieza',
+            part1: '¡Comienza',
             part2: ' aquí!',
         },
         saveSearchTooltip: {
             part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí!',
+            part2: ' aquí',
         },
         quickActionButton: {
             part1: '¡Acción rápida!',
-            part2: ' a solo un toque.',
+            part2: ' A solo un toque',
         },
         workspaceChatCreate: {
             part1: 'Envía tus',
             part2: ' gastos',
-            part3: ' aquí!',
+            part3: ' aquí',
         },
     },
 };

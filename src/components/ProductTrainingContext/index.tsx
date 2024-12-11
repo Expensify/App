@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import Permissions from '@libs/Permissions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProductTrainingTooltipName} from './PRODUCT_TRAINING_TOOLTIP_DATA';
@@ -33,6 +34,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
@@ -73,7 +75,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         (tooltipName: ProductTrainingTooltipName) => {
             const isDismissed = !!dismissedProductTraining?.[tooltipName];
 
-            if (isDismissed) {
+            if (isDismissed || !Permissions.shouldShowProductTrainingElements(allBetas)) {
                 return false;
             }
             const tooltipConfig = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
@@ -86,7 +88,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 shouldUseNarrowLayout,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
+        [allBetas, dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
     );
 
     const registerTooltip = useCallback(
