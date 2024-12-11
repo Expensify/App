@@ -172,7 +172,7 @@ index 4795564..0510705 100644
 +
 +    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 +      isStatusBarContrastEnforced = false
-+      isNavigationBarContrastEnforced = true
++      isNavigationBarContrastEnforced = false
 +    }
 +
 +    statusBarColor = Color.TRANSPARENT
