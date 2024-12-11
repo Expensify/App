@@ -942,7 +942,6 @@ function openReport(
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                 },
-                isOptimisticReport: true,
             };
         }
 
@@ -951,16 +950,34 @@ function openReport(
             emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+        );
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -987,21 +1004,29 @@ function openReport(
             redundantParticipants[accountID] = null;
         });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: {
-                    createChat: null,
-                    reportName: null,
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: {
+                        createChat: null,
+                        reportName: null,
+                    },
+                    errorFields: {
+                        createChat: null,
+                    },
                 },
-                errorFields: {
-                    createChat: null,
-                },
-                isOptimisticReport: false,
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2331,6 +2356,12 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyReport.reportID}`,
+            value: {
                 isOptimisticReport: false,
             },
         },
@@ -3638,8 +3669,14 @@ function prepareOnboardingOptimisticData(
                         description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
-                    isOptimisticReport: true,
                     managerID: currentUserAccountID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${currentTask.reportID}`,
+                value: {
+                    isOptimisticReport: true,
                 },
             },
             {
@@ -3719,6 +3756,12 @@ function prepareOnboardingOptimisticData(
                         description: null,
                         managerID: null,
                     },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${currentTask.reportID}`,
+                value: {
                     isOptimisticReport: false,
                 },
             },
@@ -4402,6 +4445,9 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
+function getConciergeReportID() {
+    return conciergeChatReportID;
+}
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
     Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
@@ -4500,6 +4546,7 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    getConciergeReportID,
     setDeleteTransactionNavigateBackUrl,
     clearDeleteTransactionNavigateBackUrl,
 };
