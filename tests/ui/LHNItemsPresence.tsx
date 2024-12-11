@@ -381,6 +381,20 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
         });
 
+        it('should not display the report has empty notification preference', async () => {
+            // When the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report = createReport(false, [2]);
+
+            // And a report with empty notification preference is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then the report should not appear in the sidebar.
+            expect(getOptionRows()).toHaveLength(0);
+        });
+
         it('should not display the report the user cannot access due to policy restrictions', async () => {
             // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
