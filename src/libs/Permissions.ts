@@ -26,9 +26,8 @@ function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseCombinedTrackSubmit(): boolean {
-    // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
-    const session = SessionUtils.getSession();
-    return isAccountIDEven(session?.accountID ?? -1);
+    // We are in the process of removing this beta after A/B testing.
+    return true;
 }
 
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
