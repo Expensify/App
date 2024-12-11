@@ -17,9 +17,9 @@ import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
 import Documents from './BeneficialOwnerDetailsFormSubSteps/Documents';
+import Last4SSN from './BeneficialOwnerDetailsFormSubSteps/Last4SSN';
 import Name from './BeneficialOwnerDetailsFormSubSteps/Name';
 import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipPercentage';
-import SSN from './BeneficialOwnerDetailsFormSubSteps/SSN';
 import BeneficialOwnersList from './BeneficialOwnersList';
 
 type BeneficialOwnerInfoProps = {
@@ -43,7 +43,7 @@ type BeneficialOwnerDetailsFormProps = SubStepProps & {
     setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
-const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, SSN, Documents, Confirmation];
+const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
 
 function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
@@ -136,6 +136,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         setIsEditingCreatedOwner(true);
         setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM);
     };
+
+    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
 
     const handleBackButtonPress = () => {
         if (isEditing) {

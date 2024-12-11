@@ -9,33 +9,33 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SSNProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+type Last4SSNProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
 const {SSN_LAST_4, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: SSNProps) {
+function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: Last4SSNProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const SSNInputID = `${PREFIX}_${ownerBeingModifiedID}_${SSN_LAST_4}` as const;
-    const defaultSSN = reimbursementAccountDraft?.[SSNInputID] ?? '';
+    const last4SSNInputID = `${PREFIX}_${ownerBeingModifiedID}_${SSN_LAST_4}` as const;
+    const defaultLast4SSN = String(reimbursementAccountDraft?.[last4SSNInputID] ?? '');
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourLast' : 'ownershipInfoStep.whatAreTheLast');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [SSNInputID]);
+            const errors = ValidationUtils.getFieldRequiredErrors(values, [last4SSNInputID]);
 
-            if (values[SSNInputID] && !ValidationUtils.isValidSSNLastFour(values[SSNInputID])) {
-                errors[SSNInputID] = translate('bankAccount.error.ssnLast4');
+            if (values[last4SSNInputID] && !ValidationUtils.isValidSSNLastFour(String(values[last4SSNInputID]))) {
+                errors[last4SSNInputID] = translate('bankAccount.error.ssnLast4');
             }
 
             return errors;
         },
-        [SSNInputID, translate],
+        [last4SSNInputID, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [SSNInputID],
+        fieldIds: [last4SSNInputID],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -50,16 +50,16 @@ function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMod
             formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={SSNInputID}
+            inputId={last4SSNInputID}
             inputLabel={translate('ownershipInfoStep.last4')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
-            defaultValue={defaultSSN}
+            defaultValue={defaultLast4SSN}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
         />
     );
 }
 
-SSN.displayName = 'SSN';
+Last4SSN.displayName = 'Last4SSN';
 
-export default SSN;
+export default Last4SSN;

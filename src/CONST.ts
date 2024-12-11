@@ -657,7 +657,7 @@ const CONST = {
                 PROOF_OF_OWNERSHIP: 'proofOfOwnership',
                 COPY_OF_ID: 'copyOfID',
                 ADDRESS_PROOF: 'addressProof',
-                TAX_ID: 'taxID',
+                CODICE_FISCALE: 'codiceFisacle',
             },
             CURRENT_USER_KEY: 'currentUser',
         },
@@ -710,6 +710,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        IT: 'IT',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
