@@ -150,7 +150,7 @@ function SearchRouterList(
             return [];
         }
 
-        const filteredOptions = OptionsListUtils.getOptions(
+        const filteredOptions = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -382,7 +382,7 @@ function SearchRouterList(
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        const filteredOptions = OptionsListUtils.filterOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...filteredOptions.recentReports, ...filteredOptions.personalDetails];

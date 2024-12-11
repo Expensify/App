@@ -107,6 +107,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }, [isCannedQuery, isFocused, registerSearchPageInput, unregisterSearchPageInput]);
 
     useEffect(() => {
+        setTextInputValue(queryText);
+    }, [queryText]);
+
+    useEffect(() => {
+        setTextInputValue(queryText);
+    }, [queryText]);
+
+    useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
         setAutocompleteSubstitutions(substitutionsMap);
     }, [allCards, originalInputQuery, personalDetails, reports, taxRates]);
