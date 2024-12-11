@@ -428,15 +428,15 @@ function MoneyRequestParticipantsSelector({
         );
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
+    const handleSoftPermissionDeny = useCallback(() => {
+        setSoftPermissionModalVisible(false);
+    }, []);
+
     const handleSoftPermissionGrant = useCallback(() => {
         setSoftPermissionModalVisible(false);
         InteractionManager.runAfterInteractions(handleContactImport);
         setTextInputAutoFocus(true);
     }, [handleContactImport]);
-
-    const handleSoftPermissionDeny = useCallback(() => {
-        setSoftPermissionModalVisible(false);
-    }, []);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
