@@ -43,6 +43,9 @@ type ValidateCodeActionModalProps = {
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

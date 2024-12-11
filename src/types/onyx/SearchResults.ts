@@ -54,6 +54,10 @@ type SearchResultsInfo = {
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
+
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
@@ -306,7 +310,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -314,8 +318,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;
