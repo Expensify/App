@@ -8311,7 +8311,7 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * DM, and we saved the report ID in the user's `onboarding` NVP. As a fallback for users who don't have the NVP, we now
  * only use the Concierge chat.
  */
-function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingPurposeSelected? : OnboardingPurpose ): boolean {
+function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingPurposeSelected?: OnboardingPurpose): boolean {
     // onboarding can be an array or an empty object for old accounts and accounts created from olddot
     if (onboarding && !Array.isArray(onboarding) && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
@@ -8320,8 +8320,9 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
     // For users with emails that do not contain a ‘+’, and who select the MANAGE_TEAM intent, the onboarding tasks are in the #admins room.
-    return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+') ? isAdminRoom(optionOrReport) : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
-    
+    return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+')
+        ? isAdminRoom(optionOrReport)
+        : (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
 }
 
 /**
