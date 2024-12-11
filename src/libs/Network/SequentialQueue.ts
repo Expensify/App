@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {clear, deleteRequestsByIndices, endRequestAndRemoveFromQueue, getAll, processNextRequest, rollbackOngoingRequest, save, update} from '@libs/actions/PersistedRequests';
+import {deleteRequestsByIndices, endRequestAndRemoveFromQueue, getAll, processNextRequest, rollbackOngoingRequest, save, update} from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -100,7 +100,7 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endRequestAndRemoveFromQueue(requestToProcess);
-            clear();
+            sequentialQueueRequestThrottle.clear();
             return process();
         })
         .catch((error: RequestError) => {
@@ -109,7 +109,7 @@ function process(): Promise<void> {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endRequestAndRemoveFromQueue(requestToProcess);
-                clear();
+                sequentialQueueRequestThrottle.clear();
                 return process();
             }
             rollbackOngoingRequest();
@@ -120,7 +120,7 @@ function process(): Promise<void> {
                     Onyx.update(requestToProcess.failureData ?? []);
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endRequestAndRemoveFromQueue(requestToProcess);
-                    clear();
+                    sequentialQueueRequestThrottle.clear();
                     return process();
                 });
         });
