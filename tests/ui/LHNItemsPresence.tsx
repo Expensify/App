@@ -474,7 +474,7 @@ describe('SidebarLinksData', () => {
                 [parentReportAction.reportActionID]: parentReportAction,
             });
 
-            // This report should not appear in the sidebar.
+            // This report should not appear in the sidebar until the moderation feature decides if the message should be removed
             expect(getOptionRows()).toHaveLength(0);
         });
 
