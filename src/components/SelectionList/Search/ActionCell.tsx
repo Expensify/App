@@ -92,7 +92,8 @@ function ActionCell({
         ) : null;
     }
 
-    const buttonInnerStyles = isSelected ? styles.buttonSuccessHovered : {};
+    const buttonInnerStyles = isSelected ? (shouldUseSuccessStyle ? styles.buttonSuccessHovered : styles.buttonDefaultHovered) : {};
+
     return (
         <Button
             text={text}
