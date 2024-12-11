@@ -563,6 +563,10 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type CustomUnitRateParams = {
+    rate: number;
+};
+
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
@@ -770,5 +774,6 @@ export type {
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     CompanyNameParams,
+    CustomUnitRateParams,
     ChatWithAccountManagerParams,
 };
