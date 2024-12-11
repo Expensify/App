@@ -173,7 +173,7 @@ function WorkspaceConfirmationPage() {
                                 value={`${currencyCode} - ${currency?.symbol}`}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                selectedCurrency={currency?.symbol}
+                                selectedCurrency={currencyCode}
                                 onValueChange={(val) => {
                                     setCurrencyCode(val as string);
                                 }}
