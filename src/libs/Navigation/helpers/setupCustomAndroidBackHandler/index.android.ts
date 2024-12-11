@@ -1,7 +1,7 @@
 import {BackHandler, NativeModules} from 'react-native';
 import navigationRef from '@navigation/navigationRef';
 
-// We need to do some custom handling for the back button on Android for actions related to the search page.
+// We need to do some custom handling for the back button on Android for actions related to the hybrid app.
 function setupCustomAndroidBackHandler() {
     const onBackPress = () => {
         const rootState = navigationRef.getRootState();

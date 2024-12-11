@@ -60,7 +60,7 @@ function StateSelectionPage() {
                 Navigation.goBack();
             } else {
                 // Set compareParams to false because we want to goUp to this particular screen and update params (state).
-                Navigation.goUp(appendParam(backTo, 'state', option.value), {compareParams: false});
+                Navigation.goBack(appendParam(backTo, 'state', option.value), {compareParams: false});
             }
         },
         [params?.backTo],

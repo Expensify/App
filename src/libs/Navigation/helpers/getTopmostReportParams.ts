@@ -1,17 +1,20 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {ReportsSplitNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {RootStackParamList} from './types';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 /**
- * Find the last visited report screen in the navigation state and get the id of it.
+ * Find the last visited report screen in the navigation state and get its params.
  *
  * @param state - The react-navigation state
  * @returns - It's possible that there is no report screen
  */
-function getTopmostReportId(state: NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>): string | undefined {
+
+type State = NavigationState | NavigationState<RootStackParamList> | PartialState<NavigationState>;
+
+function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined {
     if (!state) {
         return;
     }
@@ -28,12 +31,7 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    const topmostReportId = topmostReport.params && 'reportID' in topmostReport.params && topmostReport.params?.reportID;
-    if (typeof topmostReportId !== 'string') {
-        return;
-    }
-
-    return topmostReportId;
+    return topmostReport?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 }
 
-export default getTopmostReportId;
+export default getTopmostReportParams;

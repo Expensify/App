@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitStackNavigator/usePreserveSplitNavigatorState';
+import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -45,12 +45,12 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         }
 
         if (route.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
-            Navigation.goUp(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.SETTINGS);
             return;
         }
 
         if (route.name === SCREENS.WORKSPACE.INITIAL) {
-            Navigation.goUp(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.SETTINGS);
             if (shouldUseNarrowLayout) {
                 Navigation.navigate(ROUTES.SETTINGS, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
             }

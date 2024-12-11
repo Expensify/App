@@ -1,5 +1,5 @@
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import type {NavigationPartialRoute} from './types';
 
 function extractPolicyIDFromQuery(route?: NavigationPartialRoute<string>) {
     if (!route?.params) {

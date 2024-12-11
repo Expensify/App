@@ -3,8 +3,7 @@ import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
-import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
-import {isOnboardingFlowName} from '@libs/NavigationUtils';
+import {isOnboardingFlowName, isSideModalNavigator} from '@libs/Navigation/helpers';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -69,7 +68,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
             }
 
             if (isDismissModalAction(action)) {
-                return GetStateForActionHandlers.handleDismissModalAction(state, action, configOptions, stackRouter);
+                return GetStateForActionHandlers.handleDismissModalAction(state, configOptions, stackRouter);
             }
 
             if (isPushAction(action)) {

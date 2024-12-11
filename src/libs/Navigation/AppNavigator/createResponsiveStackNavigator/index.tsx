@@ -1,10 +1,10 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+import {isFullScreenName} from '@libs/Navigation/helpers';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomStateHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isFullScreenName} from '@libs/NavigationUtils';
 import CustomRouter from './CustomRouter';
 
 function useCustomRouterState({state}: CustomStateHookProps) {

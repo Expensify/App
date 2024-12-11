@@ -1,8 +1,8 @@
 import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {RootStackParamList} from './types';
 
 /**
  * Closes the last RHP flow, if there is only one, closes the entire RHP.

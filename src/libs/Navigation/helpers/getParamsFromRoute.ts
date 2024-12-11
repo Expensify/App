@@ -1,5 +1,5 @@
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {Screen} from '@src/SCREENS';
-import {normalizedConfigs} from './config';
 
 function getParamsFromRoute(screenName: string): string[] {
     const routeConfig = normalizedConfigs[screenName as Screen];

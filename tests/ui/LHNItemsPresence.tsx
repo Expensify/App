@@ -16,7 +16,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;

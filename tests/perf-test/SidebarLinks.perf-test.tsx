@@ -10,7 +10,7 @@ import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),

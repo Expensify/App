@@ -32,7 +32,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
-import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
+import getTopmostRouteName from '@libs/Navigation/helpers/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';

@@ -4,7 +4,6 @@
  * */
 export default {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
-    BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
     LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',

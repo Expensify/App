@@ -1,7 +1,7 @@
 import ROUTES from '@src/ROUTES';
 import * as Report from './actions/Report';
+import {shouldOpenOnAdminRoom} from './Navigation/helpers';
 import Navigation from './Navigation/Navigation';
-import shouldOpenOnAdminRoom from './Navigation/shouldOpenOnAdminRoom';
 import * as ReportUtils from './ReportUtils';
 
 const navigateAfterOnboarding = (

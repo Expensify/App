@@ -1,7 +1,7 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import linkingConfig from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
-import linkingConfig from './linkingConfig';
 
 /**
  * @param path - The path to parse

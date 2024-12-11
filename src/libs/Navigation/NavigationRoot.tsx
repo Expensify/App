@@ -22,12 +22,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitStackNavigator/usePreserveSplitNavigatorState';
+import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {customGetPathFromState, getAdaptedStateFromPath, setupCustomAndroidBackHandler} from './helpers';
 import linkingConfig from './linkingConfig';
-import customGetPathFromState from './linkingConfig/customGetPathFromState';
-import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
-import setupCustomAndroidBackHandler from './setupCustomAndroidBackHandler';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */

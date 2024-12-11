@@ -1,13 +1,13 @@
+import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
-import type {NavigationPartialRoute, RootStackParamList, State} from './types';
 
 /**
  * returns policyID value if one exists in navigation state
  *
  * PolicyID in this app can be stored in two ways:
- *  - on most screens but NOT Search as `policyID` param (on bottom tab screens)
+ *  - on NAVIGATORS.REPORTS_SPLIT_NAVIGATOR as `policyID` param
  *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for SEARCH_CENTRAL_PANE)
  */
 const getPolicyIDFromState = (state: State<RootStackParamList>): string | undefined => {

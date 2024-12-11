@@ -1,16 +1,14 @@
 import type {LinkingOptions} from '@react-navigation/native';
+import {createNormalizedConfigs} from '@libs/Navigation/helpers';
+import type {RouteConfig} from '@libs/Navigation/helpers';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import type {RouteConfig} from './createNormalizedConfigs';
-import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
-    // initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
-    // initialRouteName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -61,18 +59,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
         // [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
         // [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
-
-        // Sidebar
-        // [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-        //     path: ROUTES.ROOT,
-        //     initialRouteName: SCREENS.HOME,
-        //     screens: {
-        //         [SCREENS.HOME]: ROUTES.HOME,
-        //         // [SCREENS.SETTINGS.ROOT]: {
-        //         //     path: ROUTES.SETTINGS,
-        //         // },
-        //     },
-        // },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {

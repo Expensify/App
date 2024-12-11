@@ -1,4 +1,4 @@
-import getCurrentUrl from './currentUrl';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
 
 export default function shouldOpenOnAdminRoom() {
     const url = getCurrentUrl();
