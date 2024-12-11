@@ -1526,7 +1526,7 @@ function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchVal
  * Helper method to check whether an option can show tooltip or not
  */
 function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
-    return (!option.isChatRoom || !!option.isThread) && !option.private_isArchived;
+    return !option.private_isArchived;
 }
 
 /**
