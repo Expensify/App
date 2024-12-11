@@ -403,7 +403,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the single transaction thread', async () => {
-            // When the SidebarLinks are rendered.
+            // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
             const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
