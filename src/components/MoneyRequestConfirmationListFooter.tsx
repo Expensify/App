@@ -216,7 +216,6 @@ function MoneyRequestConfirmationListFooter({
     unit,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

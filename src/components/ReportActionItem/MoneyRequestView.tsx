@@ -79,7 +79,6 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
