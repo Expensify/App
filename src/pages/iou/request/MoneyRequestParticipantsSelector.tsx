@@ -429,14 +429,12 @@ function MoneyRequestParticipantsSelector({
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
     const handleSoftPermissionGrant = useCallback(() => {
-      console.log('ContactPermission.handleSoftPermissionGrant');
         setSoftPermissionModalVisible(false);
         InteractionManager.runAfterInteractions(handleContactImport);
         setTextInputAutoFocus(true);
     }, [handleContactImport]);
 
     const handleSoftPermissionDeny = useCallback(() => {
-      console.log('ContactPermission.handleSoftPermissionDeny');
         setSoftPermissionModalVisible(false);
     }, []);
 
@@ -532,7 +530,6 @@ function MoneyRequestParticipantsSelector({
         return <EmptySelectionListContent contentType={iouType} />;
     }, [iouType]);
 
-    console.log('ContactPermission.useEffect', softPermissionModalVisible);
     return (
         <>
             {softPermissionModalVisible && (
