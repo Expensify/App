@@ -112,7 +112,41 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
-
+type CategorizeTrackedExpenseTransactionParams = {
+    transactionID: string;
+    amount: number;
+    currency: string;
+    comment: string;
+    merchant: string;
+    created: string;
+    taxCode: string;
+    taxAmount: number;
+    category?: string;
+    tag?: string;
+    billable?: boolean;
+    receipt?: Receipt;
+};
+type CategorizeTrackedExpensePolicyParams = {
+    policyID: string;
+    isDraftPolicy: boolean;
+};
+type CategorizeTrackedExpenseReportInformation = {
+    moneyRequestPreviewReportActionID: string;
+    moneyRequestReportID: string;
+    moneyRequestCreatedReportActionID: string;
+    actionableWhisperReportActionID: string;
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID: string;
+    transactionThreadReportID: string;
+    reportPreviewReportActionID: string;
+};
+type CategorizeTrackedExpenseParams = {
+    onyxData: OnyxData | undefined;
+    reportInformation: CategorizeTrackedExpenseReportInformation;
+    transactionParams: CategorizeTrackedExpenseTransactionParams;
+    policyParams: CategorizeTrackedExpensePolicyParams;
+    createdWorkspaceParams?: CreateWorkspaceParams;
+};
 type SendInvoiceInformation = {
     senderWorkspaceID: string;
     receiver: Partial<OnyxTypes.PersonalDetails>;
@@ -3528,34 +3562,12 @@ function convertTrackedExpenseToRequest(
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function categorizeTrackedExpense(
-    policyID: string,
-    transactionID: string,
-    moneyRequestPreviewReportActionID: string,
-    moneyRequestReportID: string,
-    moneyRequestCreatedReportActionID: string,
-    actionableWhisperReportActionID: string,
-    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID: string,
-    transactionThreadReportID: string,
-    reportPreviewReportActionID: string,
-    onyxData: OnyxData | undefined,
-    amount: number,
-    currency: string,
-    comment: string,
-    merchant: string,
-    created: string,
-    isDraftPolicy: boolean,
-    category?: string,
-    tag?: string,
-    taxCode = '',
-    taxAmount = 0,
-    billable?: boolean,
-    receipt?: Receipt,
-    createdWorkspaceParams?: CreateWorkspaceParams,
-) {
+function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
-
+    const {transactionID} = transactionParams;
+    const {isDraftPolicy} = policyParams;
+    const {actionableWhisperReportActionID, moneyRequestReportID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID} = reportInformation;
     const {
         optimisticData: moveTransactionOptimisticData,
         successData: moveTransactionSuccessData,
@@ -3574,27 +3586,12 @@ function categorizeTrackedExpense(
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-
     const parameters = {
-        policyID,
-        transactionID,
-        moneyRequestPreviewReportActionID,
-        moneyRequestReportID,
-        moneyRequestCreatedReportActionID,
-        actionableWhisperReportActionID,
+        onyxData,
+        ...reportInformation,
+        ...policyParams,
+        ...transactionParams,
         modifiedExpenseReportActionID,
-        reportPreviewReportActionID,
-        amount,
-        currency,
-        comment,
-        merchant,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        created,
-        receipt,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3967,32 +3964,43 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            categorizeTrackedExpense(
-                chatReport?.policyID ?? '-1',
-                transaction?.transactionID ?? '-1',
-                iouAction?.reportActionID ?? '-1',
-                iouReport?.reportID ?? '-1',
-                createdIOUReportActionID ?? '-1',
-                actionableWhisperReportActionID,
-                linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID,
-                transactionThreadReportID ?? '-1',
-                reportPreviewAction?.reportActionID ?? '-1',
-                onyxData,
+            const transactionParams = {
+                transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
                 comment,
                 merchant,
                 created,
-                isDraftPolicy,
-                category,
-                tag,
                 taxCode,
                 taxAmount,
+                category,
+                tag,
                 billable,
-                trackedReceipt,
+                receipt: trackedReceipt,
+            };
+            const policyParams = {
+                policyID: chatReport?.policyID ?? '-1',
+                isDraftPolicy,
+            };
+            const reportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
+                moneyRequestReportID: iouReport?.reportID ?? '-1',
+                moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID: transactionThreadReportID ?? '-1',
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
+            };
+            const trackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
                 createdWorkspaceParams,
-            );
+            };
+
+            categorizeTrackedExpense(trackedExpenseParams);
             break;
         }
         case CONST.IOU.ACTION.SHARE: {
@@ -5729,27 +5737,28 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
+    const reportActionsOnyxUpdates: OnyxUpdate[] = [];
     const onyxUpdates: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                      },
-            },
-        },
     ];
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: {
+            [reportAction.reportActionID]: shouldDeleteIOUReport
+                ? null
+                : {
+                      pendingAction: null,
+                  },
+        },
+    });
 
     if (reportPreviewAction?.reportActionID) {
-        onyxUpdates.push({
+        reportActionsOnyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
@@ -5786,12 +5795,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // added operations to update IOU report and chat report
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: updatedReportAction,
+    });
     onyxUpdates.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: updatedReportAction,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -5842,9 +5851,14 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
-    Onyx.update(onyxUpdates);
-
-    return urlToNavigateBack;
+    // First, update the reportActions to ensure related actions are not displayed.
+    Onyx.update(reportActionsOnyxUpdates).then(() => {
+        Navigation.goBack(urlToNavigateBack);
+        InteractionManager.runAfterInteractions(() => {
+            // After navigation, update the remaining data.
+            Onyx.update(onyxUpdates);
+        });
+    });
 }
 
 /**

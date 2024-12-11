@@ -207,7 +207,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Ahora no',
-        learnMore: 'Más información',
+        learnMore: 'Más información.',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -694,6 +694,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        conciergeSupport: 'Soporte 24/7',
         create: 'crear',
         iouTypes: {
             pay: 'pagar',
@@ -1310,8 +1311,8 @@ const translations = {
         addKey: 'O añade esta clave secreta a tu aplicación de autenticación:',
         enterCode: 'Luego introduce el código de seis dígitos generado por tu aplicación de autenticación.',
         stepSuccess: 'Finalizado',
-        enabled: '¡La autenticación de dos factores está ahora habilitada!',
-        congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
+        enabled: 'La autenticación de dos factores habilitada',
+        congrats: '¡Felicidades! Ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
         disable: 'Deshabilitar',
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
@@ -3822,6 +3823,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
+            talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
+            talkToConcierge: 'Chatear con Concierge.',
+            needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

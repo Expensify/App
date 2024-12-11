@@ -163,46 +163,25 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
     steps:
-      - name: Checkout App repo
-        uses: actions/checkout@v4
-
-      - name: Checkout Mobile-Expensify repo
+      - name: Checkout App and Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule
+      - name: Update submodule to match main
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache: npm
-          cache-dependency-path: 'Mobile-Expensify/react-native'
-
-      - name: Install node modules
-        run: |
-          npm install
-          cd .. && npm install
-          
-          # Fixes https://github.com/Expensify/App/issues/51682
-          npm run grunt:build:shared
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -214,7 +193,6 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -229,7 +207,7 @@ jobs:
           op document get --output ./upload-key.keystore upload-key.keystore 
           op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
           # Copy the keystore to the Android directory for Fullstory
-          cp ./upload-key.keystore ../Android 
+          cp ./upload-key.keystore Mobile-Expensify/Android 
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
@@ -244,7 +222,7 @@ jobs:
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' ../Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -496,47 +474,31 @@ jobs:
     runs-on: macos-13-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
       - name: Update submodule
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: |
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
         id: setup-node
-        with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache-dependency-path: 'Mobile-Expensify/react-native'
-
-      - name: Install node modules
-        run: |
-          npm install
-          cd .. && npm install
+        uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -545,12 +507,12 @@ jobs:
         uses: actions/cache@v4
         id: pods-cache
         with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+          path: Mobile-Expensify/ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/ios/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/ios/Podfile.lock') == hashFiles('Mobile-Expensify/ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
@@ -558,7 +520,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd Mobile-Expensify/iOS && pod install
+          command: npm run pod-install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1

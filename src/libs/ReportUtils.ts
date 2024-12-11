@@ -4050,6 +4050,10 @@ function getReportName(
     }
 
     if (isInvoiceReport(report)) {
+        if (!isInvoiceRoom(getReport(report?.chatReportID ?? ''))) {
+            return report?.reportName ?? getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+        }
+
         formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
     }
 
@@ -4122,6 +4126,9 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isInvoiceRoom(report)) {
         return Localize.translateLocal('workspace.common.invoices');
+    }
+    if (isConciergeChatReport(report)) {
+        return Localize.translateLocal('reportActionsView.conciergeSupport');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';

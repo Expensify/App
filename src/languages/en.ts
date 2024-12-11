@@ -216,7 +216,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
-        learnMore: 'Learn more',
+        learnMore: 'Learn more.',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -699,6 +699,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        conciergeSupport: '24/7 support',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -1310,8 +1311,8 @@ const translations = {
         addKey: 'Or add this secret key to your authenticator app:',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
-        enabled: 'Two-factor authentication is now enabled!',
-        congrats: 'Congrats, now you’ve got that extra security.',
+        enabled: 'Two-factor authentication enabled',
+        congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
@@ -3814,6 +3815,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourAccountManager: 'Chat with your account manager.',
+            talkToConcierge: 'Chat with Concierge.',
+            needAnotherAccounting: 'Need another accounting software? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
