@@ -35,6 +35,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
+    hasResults: boolean;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -48,7 +49,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type}: EmptySearchViewProps) {
+function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -121,8 +122,7 @@ function EmptySearchView({type}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    headerContentStyles: StyleUtils.getWidthAndHeightStyle(375, 240),
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     subtitle: subtitleComponent,
@@ -133,50 +133,91 @@ function EmptySearchView({type}: EmptySearchViewProps) {
                             success: true,
                         },
                     ],
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    title: translate('search.searchResults.emptyExpenseResults.title'),
-                    subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
-                    buttons: [
-                        ...(!hasSeenTour
-                            ? [
-                                  {
-                                      buttonText: translate('emptySearchView.takeATour'),
-                                      buttonAction: () => {
-                                          Link.openExternalLink(navatticURL);
-                                          Welcome.setSelfTourViewed();
-                                          Task.completeTask(viewTourTaskReport);
+                if (!hasResults) {
+                    return {
+                        headerMedia: LottieAnimations.GenericEmptyState,
+                        title: translate('search.searchResults.emptyExpenseResults.title'),
+                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        buttons: [
+                            ...(!hasSeenTour
+                                ? [
+                                      {
+                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonAction: () => {
+                                              Link.openExternalLink(navatticURL);
+                                              Welcome.setSelfTourViewed();
+                                              Task.completeTask(viewTourTaskReport);
+                                          },
                                       },
-                                  },
-                              ]
-                            : []),
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () =>
-                                interceptAnonymousUser(() => {
-                                    if (shouldRedirectToExpensifyClassic) {
-                                        setModalVisible(true);
-                                        return;
-                                    }
-                                    IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
-                                }),
-                            success: true,
-                        },
-                    ],
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
-                };
-            case CONST.SEARCH.DATA_TYPES.CHAT:
+                                  ]
+                                : []),
+                            {
+                                buttonText: translate('iou.createExpense'),
+                                buttonAction: () =>
+                                    interceptAnonymousUser(() => {
+                                        if (shouldRedirectToExpensifyClassic) {
+                                            setModalVisible(true);
+                                            return;
+                                        }
+                                        IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
+                                    }),
+                                success: true,
+                            },
+                        ],
+                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                    };
+                }
+            // We want to display the default nothing to show message if there is any filter applied.
+            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.INVOICE:
+                if (!hasResults) {
+                    return {
+                        headerMedia: LottieAnimations.GenericEmptyState,
+                        title: translate('search.searchResults.emptyInvoiceResults.title'),
+                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        buttons: [
+                            ...(!hasSeenTour
+                                ? [
+                                      {
+                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonAction: () => {
+                                              Link.openExternalLink(navatticURL);
+                                              Welcome.setSelfTourViewed();
+                                              Task.completeTask(viewTourTaskReport);
+                                          },
+                                      },
+                                  ]
+                                : []),
+                            {
+                                buttonText: translate('workspace.invoices.sendInvoice'),
+                                buttonAction: () =>
+                                    interceptAnonymousUser(() => {
+                                        if (shouldRedirectToExpensifyClassic) {
+                                            setModalVisible(true);
+                                            return;
+                                        }
+                                        IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
+                                    }),
+                                success: true,
+                            },
+                        ],
+                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                    };
+                }
+            // eslint-disable-next-line no-fallthrough
+            case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
                     headerMedia: LottieAnimations.GenericEmptyState,
-                    headerStyles: [StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: styles.emptyStateFolderWebStyles,
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -188,10 +229,11 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
         subtitleComponent,
+        hasSeenTour,
         ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
-        hasSeenTour,
+        hasResults,
         viewTourTaskReport,
     ]);
 
@@ -199,15 +241,16 @@ function EmptySearchView({type}: EmptySearchViewProps) {
         <>
             <EmptyStateComponent
                 SkeletonComponent={SearchRowSkeleton}
+                showsVerticalScrollIndicator={false}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                 headerMedia={content.headerMedia}
-                headerStyles={[content.headerStyles, styles.emptyStateCardIllustrationContainer]}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}
                 buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, content.headerContentStyles]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                lottieWebViewStyles={content.lottieWebViewStyles}
             />
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}

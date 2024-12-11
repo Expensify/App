@@ -265,8 +265,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!ReportUtils.isMoneyRequestReport(report) || (isTransaction && !data[key].isFromOneTransactionReport)) {
+    // We don't need to run the logic if this is not an iou/expense report, so let's shortcircuit the logic for performance reasons
+    if (!ReportUtils.isMoneyRequestReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -461,7 +461,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
         // We are guaranteed that both a and b will be string or number at the same time
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
+            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
 
         const aNum = aValue as number;
