@@ -291,7 +291,7 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  */
 function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
