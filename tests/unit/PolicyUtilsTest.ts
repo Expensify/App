@@ -96,7 +96,6 @@ describe('PolicyUtils', () => {
             Onyx.init({
                 keys: ONYXKEYS,
                 initialKeyStates: {
-                    // Given mock data for session
                     [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
                 },
             });
@@ -107,7 +106,7 @@ describe('PolicyUtils', () => {
             return Onyx.clear().then(waitForBatchedUpdates);
         });
         it('should return empty array', () => {
-            // Given mock data for policies, contains only one workspace does not has role prop.
+            // Given a user with a single archived paid policy.
             const policies = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
@@ -115,23 +114,23 @@ describe('PolicyUtils', () => {
                     role: '',
                 },
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>);
-            // The result should be empty array since the policies contains only one policy which does not have role field.
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            // The result should be empty array since the policies contains only archived paid policy.
             expect(result.length).toBe(0);
         });
         it('should return array contains policy which has id = 1', () => {
-            // Given mock data for policies, contains only one control workspace
+            // Given a user with only a paid policy.
             const randomPolicy1 = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
             const policies = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: randomPolicy1,
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>);
-            // The result should contains the policy which has id = 1 since it is a valid policy.
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            // The result should contain the mock paid policy.
             expect(result).toContainEqual(randomPolicy1);
         });
         it('should return empty array', () => {
-            // Given mock data for policies, contains only one control workspace which is pending delete.
+            // Given a user with only one control workspace which is pending delete.
             const policies = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
@@ -139,8 +138,8 @@ describe('PolicyUtils', () => {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>);
-            // The result should be empty array since the policies contains only one policy which has pendingAction is 'delete'.
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            // The result should be empty array since there is only one policy which has pendingAction is 'delete'.
             expect(result).toEqual([]);
         });
     });
