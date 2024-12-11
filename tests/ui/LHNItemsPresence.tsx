@@ -361,7 +361,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report marked as hidden', async () => {
-            // When the SidebarLinks are rendered.
+            // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(),
