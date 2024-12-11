@@ -60,6 +60,9 @@ type ReportActionsListProps = {
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
+    /** Sorted actions that should be visible to the user */
+    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID?: string | null;
 
@@ -138,6 +141,7 @@ function ReportActionsList({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     sortedReportActions,
+    sortedVisibleReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
     loadNewerChats,
@@ -182,20 +186,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-
-    const sortedVisibleReportActions = useMemo(
-        () =>
-            sortedReportActions.filter(
-                (reportAction) =>
-                    (isOffline ||
-                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
-                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                        reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
-            ),
-        [sortedReportActions, isOffline, canUserPerformWriteAction],
-    );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
