@@ -618,14 +618,14 @@ function IOURequestStepScan({
         />
     ) : null;
 
-    const getConfirmModalTitle = () => {
-        if (!attachmentInvalidReasonTitle) {
+    const getConfirmModalPrompt = () => {
+        if (!attachmentInvalidReason) {
             return '';
         }
-        if (attachmentInvalidReasonTitle === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReasonTitle, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
         }
-        return translate(attachmentInvalidReasonTitle);
+        return translate(attachmentInvalidReason);
     };
 
     const mobileCameraView = () => (
@@ -800,11 +800,11 @@ function IOURequestStepScan({
                             receiptImageTopPosition={receiptImageTopPosition}
                         />
                         <ConfirmModal
-                            title={getConfirmModalTitle()}
+                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideRecieptModal}
                             onCancel={hideRecieptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
