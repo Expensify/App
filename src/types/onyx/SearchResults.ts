@@ -307,7 +307,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -315,8 +315,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;

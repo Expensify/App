@@ -1,7 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -26,20 +24,13 @@ import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
-type TaskViewOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+type TaskViewProps = WithCurrentUserPersonalDetailsProps & {
+    /** The report currently being looked at */
+    report: Report;
 };
-
-type TaskViewProps = TaskViewOnyxProps &
-    WithCurrentUserPersonalDetailsProps & {
-        /** The report currently being looked at */
-        report: Report;
-    };
 
 function TaskView({report, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
@@ -47,10 +38,10 @@ function TaskView({report, ...props}: TaskViewProps) {
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-
+    const personalDetails = usePersonalDetails();
     const taskTitle = convertToLTR(report.reportName ?? '');
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
         false,
     );
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
@@ -59,7 +50,6 @@ function TaskView({report, ...props}: TaskViewProps) {
     const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
 
     return (
@@ -190,10 +180,4 @@ function TaskView({report, ...props}: TaskViewProps) {
 
 TaskView.displayName = 'TaskView';
 
-const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(TaskView);
-
-export default withCurrentUserPersonalDetails(TaskViewWithOnyx);
+export default withCurrentUserPersonalDetails(TaskView);
