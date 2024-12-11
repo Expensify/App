@@ -8,7 +8,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
-    CategorizeTrackedExpenseParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreateWorkspaceParams,
@@ -22,7 +22,7 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
-    ShareTrackedExpenseParams,
+    ShareTrackedExpenseParams as ShareTrackedExpenseApiParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -127,6 +127,8 @@ type CategorizeTrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
+    waypoints?: string;
+    customUnitRateID?: string;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -3612,8 +3614,8 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-    const parameters = {
-        onyxData,
+
+    const parameters: CategorizeTrackedExpenseApiParams = {
         ...reportInformation,
         ...policyParams,
         ...transactionParams,
@@ -3681,7 +3683,7 @@ function shareTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters: ShareTrackedExpenseParams = {
+    const parameters: ShareTrackedExpenseApiParams = {
         policyID,
         transactionID,
         moneyRequestPreviewReportActionID,
@@ -3995,7 +3997,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: CategorizeTrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
@@ -4008,14 +4010,14 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt,
-                sanitizedWaypoints,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
-            const policyParams = {
+            const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
             };
-            const reportInformation = {
+            const reportInformation: CategorizeTrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
@@ -4025,7 +4027,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: CategorizeTrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
