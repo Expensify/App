@@ -139,7 +139,6 @@ describe('PolicyUtils', () => {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             };
-            // When calling getFilteredPolicies with policies
             const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>);
             // The result should be empty array since the policies contains only one policy which has pendingAction is 'delete'.
             expect(result).toEqual([]);
