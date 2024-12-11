@@ -36,15 +36,6 @@ import RELATIONS from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
 
-// Get the sidebar screen parameters from the split navigator passed as a param
-function getSidebarScreenParams(splitNavigatorRoute: NavigationStateRoute) {
-    if (splitNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        return splitNavigatorRoute.state?.routes?.at(0)?.params;
-    }
-
-    return undefined;
-}
-
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
@@ -61,6 +52,21 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
     shouldPopAllStateOnUP = shouldPopAllStateFlag;
 }
 
+/**
+ * @private
+ * Get the sidebar screen parameters from the split navigator passed as a param.
+ */
+function getSidebarScreenParams(splitNavigatorRoute: NavigationStateRoute) {
+    if (splitNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+        return splitNavigatorRoute.state?.routes?.at(0)?.params;
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if the navigationRef is ready to perform a method.
+ */
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
     if (navigationRef.isReady()) {
         return true;
@@ -69,16 +75,24 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
     return false;
 }
 
-// Extracts from the topmost report its id.
+/**
+ * Extracts from the topmost report its id.
+ */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
 
-// Extracts from the topmost report its action id.
+/**
+ * Extracts from the topmost report its action id.
+ */
 const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportActionID;
 
-// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
+/**
+ * Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
+ */
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
-// Function that generates dynamic urls from paths passed from OldDot.
+/**
+ * Function that generates dynamic urls from paths passed from OldDot.
+ */
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
@@ -93,7 +107,9 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     }
 }
 
-// Returns the current active route.
+/**
+ * Returns the current active route.
+ */
 function getActiveRoute(): string {
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     if (!currentRoute?.name) {
@@ -108,7 +124,9 @@ function getActiveRoute(): string {
 
     return '';
 }
-// Returns the route of a report opened in RHP.
+/**
+ * Returns the route of a report opened in RHP.
+ */
 function getReportRHPActiveRoute(): string {
     if (isReportOpenInRHP(navigationRef.getRootState())) {
         return getActiveRoute();
@@ -155,11 +173,18 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
  */
 const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
 
-// If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
+/**
+ * @private
+ * If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
+ */
 function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
     return omit(routeParams, routeParamsIgnore);
 }
 
+/**
+ * @private
+ * Private method used in goUp to determine whether a target route is present in the navigation state.
+ */
 function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | NavigationPartialRoute, minimalAction: Writable<NavigationAction>, compareParams: boolean) {
     if (!minimalAction.payload) {
         return false;
@@ -189,7 +214,10 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
     return shallowCompare(routeParams, minimalActionParams);
 }
 
-// Checks whether the given state is the root navigator state
+/**
+ * @private
+ * Checks whether the given state is the root navigator state
+ */
 function isRootNavigatorState(state: State): state is State<RootStackParamList> {
     return state.key === navigationRef.current?.getRootState().key;
 }
@@ -209,6 +237,7 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
 };
 
 /**
+ * @private
  * Navigate to the given fallbackRoute taking into account whether it is possible to go back to this screen. Within one nested navigator, we can go back by any number
  * of screens, but if as a result of going back we would have to remove more than one screen from the rootState,
  * replace is performed so as not to lose the visited pages.
@@ -267,7 +296,7 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
 
 /**
  * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
- * @param options - Optional configuration that affects navigation logic.
+ * @param options - Optional configuration that affects navigation logic
  */
 function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     if (!canNavigate('goBack')) {
@@ -305,7 +334,9 @@ function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     navigationRef.current?.goBack();
 }
 
-// Reset the navigation state to Home page
+/**
+ * Reset the navigation state to Home page.
+ */
 function resetToHome() {
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
@@ -319,7 +350,9 @@ function resetToHome() {
     navigationRef.dispatch({payload, type: 'REPLACE', target: rootState.key});
 }
 
-// Update route params for the specified route.
+/**
+ * Update route params for the specified route.
+ */
 function setParams(params: Record<string, unknown>, routeKey = '') {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
@@ -327,12 +360,16 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
     });
 }
 
-// Returns the current active route without the URL params.
+/**
+ * Returns the current active route without the URL params.
+ */
 function getActiveRouteWithoutParams(): string {
     return getActiveRoute().replace(/\?.*/, '');
 }
 
-// Returns the active route name from a state event from the navigationRef.
+/**
+ * Returns the active route name from a state event from the navigationRef.
+ */
 function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>): string | undefined {
     if (!event.data.state) {
         return;
@@ -346,6 +383,7 @@ function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationCo
 }
 
 /**
+ * @private
  * Navigate to the route that we originally intended to go to
  * but the NavigationContainer was not ready when navigate() was called
  */
@@ -368,6 +406,7 @@ function setIsNavigationReady() {
 }
 
 /**
+ * @private
  * Checks if the navigation state contains routes that are protected (over the auth wall).
  *
  * @param state - react-navigation state object
@@ -412,7 +451,9 @@ function waitForProtectedRoutes() {
     });
 }
 
-// Changes the currently selected policy in the app.
+/**
+ * Changes the currently selected policy in the app.
+ */
 function switchPolicyID(policyID?: string) {
     navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID}});
 }
@@ -455,7 +496,9 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     );
 }
 
-// Closes the modal navigator (RHP, LHP, onboarding).
+/**
+ * Closes the modal navigator (RHP, LHP, onboarding).
+ */
 const dismissModal = (reportID?: string, ref = navigationRef) => {
     ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
     if (!reportID) {
@@ -464,7 +507,9 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     isNavigationReady().then(() => navigateToReportWithPolicyCheck({reportID}));
 };
 
-// Dismisses the modal and opens the given report.
+/**
+ * Dismisses the modal and opens the given report.
+ */
 const dismissModalWithReport = (report: OnyxEntry<Report>) => {
     dismissModal();
     isNavigationReady().then(() => navigateToReportWithPolicyCheck({report}));
