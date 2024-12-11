@@ -87,7 +87,7 @@ function Banner({
                             styles.p5,
                             styles.borderRadiusNormal,
                             shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
-                            styles.breakAllNonNative,
+                            styles.breakAll,
                             containerStyles,
                         ]}
                     >
