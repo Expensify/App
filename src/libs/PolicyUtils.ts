@@ -79,9 +79,15 @@ Onyx.connect({
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy> | null): Policy[] {
+function getActivePolicies(policies: OnyxCollection<Policy> | null, excludePersonalPolicy = false): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+        (policy): policy is Policy =>
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            (!excludePersonalPolicy || policy.type !== CONST.POLICY.TYPE.PERSONAL) &&
+            !!getPolicyRole(policy, currentUserEmail),
     );
 }
 /**
@@ -1139,12 +1145,6 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
-function getFilteredPolicies(policies: OnyxCollection<Policy>) {
-    return Object.values(policies ?? {}).filter(
-        (policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getPolicyRole(policy, currentUserEmail),
-    );
-}
-
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1268,7 +1268,6 @@ export {
     getActivePolicy,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
-    getFilteredPolicies,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -8216,7 +8216,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = PolicyUtils.getFilteredPolicies(allPolicies);
+    const filteredPolicies = PolicyUtils.getActivePolicies(allPolicies, true);
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         const activePolicy = getPolicy(activePolicyID);
