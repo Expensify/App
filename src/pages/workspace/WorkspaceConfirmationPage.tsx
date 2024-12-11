@@ -133,7 +133,7 @@ function WorkspaceConfirmationPage() {
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
-                    style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter]}
+                    style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
                     editorMaskImage={Expensicons.ImageCropSquareMask}
                 />
