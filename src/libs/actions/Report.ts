@@ -2418,11 +2418,13 @@ function deleteReport(reportID: string, shouldDeleteChildReports = false) {
  */
 function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
+    // @TODO: Check if this method works the same as on the main branch
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.popToTop();
+    } else {
+        Navigation.goBack();
     }
-    // @TODO: Check if this method works the same as on the main branch
-    Navigation.goBack(undefined, {shouldPopToTop});
     navigateToConciergeChat();
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
