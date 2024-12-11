@@ -29,7 +29,6 @@ import type {Report} from '@src/types/onyx';
 type TaskViewProps = {
     /** The report currently being looked at */
     report: Report;
-};
 
 function TaskView({report}: TaskViewProps) {
     const styles = useThemeStyles();
@@ -39,7 +38,7 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-
+    const personalDetails = usePersonalDetails();
     const taskTitle = convertToLTR(report.reportName ?? '');
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
