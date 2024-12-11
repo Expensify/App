@@ -1,7 +1,13 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import EducationalTooltipContent from '@components/Tooltip/EducationalTooltip/EducationalTooltipContent';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -127,6 +133,9 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
 const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
     const context = useContext(ProductTrainingContext);
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -143,10 +152,45 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         }
         return () => {};
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
+
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
-        return <EducationalTooltipContent content={tooltip.content} />;
-    }, [tooltipName]);
+        return (
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
+                <Icon
+                    src={Expensicons.Lightbulb}
+                    fill={theme.tooltipHighlightText}
+                    medium
+                />
+                <Text style={[styles.quickActionTooltipSubtitle]}>
+                    {tooltip.content.map(({text, isBold}) => {
+                        const translatedText = translate(text);
+                        return (
+                            <Text
+                                key={text}
+                                style={[styles.quickActionTooltipSubtitle, isBold && styles.textBold]}
+                            >
+                                {translatedText}
+                            </Text>
+                        );
+                    })}
+                </Text>
+            </View>
+        );
+    }, [
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.flexWrap,
+        styles.gap1,
+        styles.justifyContentCenter,
+        styles.p2,
+        styles.quickActionTooltipSubtitle,
+        styles.textAlignCenter,
+        styles.textBold,
+        theme.tooltipHighlightText,
+        tooltipName,
+        translate,
+    ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldRenderTooltip(tooltipName);
