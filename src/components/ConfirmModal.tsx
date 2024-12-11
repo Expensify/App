@@ -143,7 +143,6 @@ function ConfirmModal({
 
     return (
         <Modal
-            onSubmit={onConfirm}
             onClose={onCancel}
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}

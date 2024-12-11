@@ -10,7 +10,6 @@ import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
@@ -48,6 +47,7 @@ function SettlementButton({
     onPress,
     pressOnEnter = false,
     policyID = '-1',
+    shouldUseSuccessStyle = true,
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
@@ -213,9 +213,6 @@ function SettlementButton({
             return;
         }
 
-        if (!ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
-            playSound(SOUNDS.SUCCESS);
-        }
         onPress(iouPaymentType);
     };
 
@@ -238,7 +235,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
-                    success
+                    success={shouldUseSuccessStyle}
                     onOptionsMenuShow={onPaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
