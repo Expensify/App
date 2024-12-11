@@ -262,7 +262,7 @@ const translations = {
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
-        email: 'Email',
+        email: 'Correo electrónico',
         and: 'y',
         or: 'o',
         details: 'Detalles',
@@ -349,7 +349,7 @@ const translations = {
         please: 'Por favor',
         rename: 'Renombrar',
         contactUs: 'contáctenos',
-        pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un email o número de teléfono',
+        pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un correo electrónico o número de teléfono',
         fixTheErrors: 'corrige los errores',
         inTheFormBeforeContinuing: 'en el formulario antes de continuar',
         confirm: 'Confirmar',
@@ -524,6 +524,7 @@ const translations = {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -562,7 +563,7 @@ const translations = {
         whatsItFor: '¿Para qué es?',
     },
     selectionList: {
-        nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
+        nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
     },
     emptyList: {
@@ -647,7 +648,7 @@ const translations = {
         copied: '¡Copiado!',
         copyLink: 'Copiar enlace',
         copyURLToClipboard: 'Copiar URL al portapapeles',
-        copyEmailToClipboard: 'Copiar email al portapapeles',
+        copyEmailToClipboard: 'Copiar correo electrónico al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
         editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
@@ -1075,7 +1076,7 @@ const translations = {
     },
     loginField: {
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
-        emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
+        emailHasNotBeenValidated: 'El correo electrónico no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via correo electrónico.',
     },
     avatarWithImagePicker: {
         uploadPhoto: 'Subir foto',
@@ -1094,7 +1095,7 @@ const translations = {
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
         selfSelectYourPronoun: 'Auto-selecciona tu pronombre',
-        emailAddress: 'Dirección de email',
+        emailAddress: 'Dirección de correo electrónico',
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
@@ -1315,7 +1316,7 @@ const translations = {
         disable: 'Deshabilitar',
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
-        twoFactorAuthIsRequiredDescription: 'La autenticación de dos factores es necesaria para conectarse a Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsDescription:
             'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
     },
@@ -1730,7 +1731,7 @@ const translations = {
             incorrectPassword: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.',
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
-            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu email o número de teléfono.',
+            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu correo electrónico o número de teléfono.',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o restablece la contraseña.',
             unableToResetPassword:
                 'No se pudo cambiar tu clave. Probablemente porque el enlace para restablecer la contrasenña ha expirado. Te hemos enviado un nuevo enlace. Comprueba tu bandeja de entrada y carpeta de Spam.',
@@ -1740,9 +1741,9 @@ const translations = {
         },
     },
     loginForm: {
-        phoneOrEmail: 'Número de teléfono o email',
+        phoneOrEmail: 'Número de teléfono o correo electrónico',
         error: {
-            invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            invalidFormatEmailLogin: 'El correo electrónico introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
@@ -2021,7 +2022,7 @@ const translations = {
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
-        errorMessageInvalidEmail: 'Email inválido',
+        errorMessageInvalidEmail: 'Correo electrónico inválido',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
     },
     onfidoStep: {
@@ -4585,6 +4586,10 @@ const translations = {
                 title: 'Aún no has creado ningún gasto',
                 subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
             },
+            emptyInvoiceResults: {
+                title: 'Aún no has creado \nninguna factura',
+                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+            },
             emptyTripResults: {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
@@ -4626,6 +4631,11 @@ const translations = {
             },
             current: 'Actual',
             past: 'Anterior',
+            submitted: 'Enviado',
+            approved: 'Aprobado',
+            paid: 'Pagado',
+            exported: 'Exportado',
+            posted: 'Contabilizado',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -5362,7 +5372,7 @@ const translations = {
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido.',
             enterEmail: 'Introduce un correo electrónico.',
             enterValidEmail: 'Introduzca un correo electrónico válido.',
-            tryDifferentEmail: 'Por favor intenta con un e-mail diferente.',
+            tryDifferentEmail: 'Por favor intenta con un correo electrónico diferente.',
         },
     },
     cardTransactions: {
@@ -5448,7 +5458,7 @@ const translations = {
             phrase2: ' para obtener ayuda',
         },
         default: {
-            phrase1: 'Envía un email a ',
+            phrase1: 'Envía un correo electrónico a ',
             phrase2: ' para obtener ayuda con la configuración',
         },
     },
@@ -5861,8 +5871,10 @@ const translations = {
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
         notAllowed: 'No tan rápido...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `No tienes permiso para realizar esta acción para ${accountOwnerEmail}`,
+        noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
+        notAllowedMessageStart: `Como`,
         notAllowedMessageHyperLinked: ' copiloto',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
     },
     debug: {
         debug: 'Depuración',
@@ -5947,6 +5959,16 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Haz un tour de 2 minutos',
         exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Viajes y gastos, a la velocidad del chat',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
+        features: {
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+        },
     },
 };
 

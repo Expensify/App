@@ -83,6 +83,14 @@ type QueryFilter = {
     value: string | number;
 };
 
+type SearchDateFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED;
+
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
@@ -129,6 +137,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchDateFilterKeys,
     SearchStatus,
     SearchQueryAST,
     SearchQueryJSON,
