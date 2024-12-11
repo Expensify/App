@@ -390,7 +390,7 @@ describe('SidebarLinksData', () => {
                 lastMessageText: 'fake last message',
             };
 
-            // A default room is initialized in Onyx
+            // And a default room is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
