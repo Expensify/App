@@ -427,6 +427,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
+        endSignOnTransition();
         return;
     }
 
@@ -454,6 +455,8 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
                 Navigation.navigate(exitTo);
             })
             .then(endSignOnTransition);
+    } else {
+        endSignOnTransition();
     }
 }
 
