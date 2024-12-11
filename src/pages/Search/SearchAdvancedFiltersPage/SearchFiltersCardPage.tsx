@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/CardListItem';
@@ -19,73 +20,26 @@ import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed} from '@src/types/onyx';
+import type {Card, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CardFilterItem = Partial<OptionData> & {bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean; isCardFeed?: boolean; correspondingCards?: string[]};
 
-type DomainFeedData = {bank: string; domainName: string; correspospondingCardIDs: string[]};
+type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
 
-function buildIndividualCardItem(card: Card, isSelected: boolean, iconStyles: StyleProp<ViewStyle>): CardFilterItem {
-    const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
-    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
-    const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
-
-    return {
-        lastFourPAN: card.lastFourPAN,
-        isVirtual: card?.nameValuePairs?.isVirtual,
-        text,
-        keyForList: card.cardID.toString(),
-        isSelected,
-        bankIcon: {
-            icon,
-            iconWidth: variables.cardIconWidth,
-            iconHeight: variables.cardIconHeight,
-            iconStyles,
-        },
-        isCardFeed: false,
-    };
-}
-
-function buildCardFeedItem(
-    text: string,
-    keyForList: string,
-    correspondingCardIDs: string[],
-    selectedCards: string[],
-    bank: CompanyCardFeed,
-    iconStyles: StyleProp<ViewStyle>,
-): CardFilterItem {
-    const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
-
-    const icon = CardUtils.getCardFeedIcon(bank);
-    return {
-        text,
-        keyForList,
-        isSelected,
-        bankIcon: {
-            icon,
-            iconWidth: variables.cardIconWidth,
-            iconHeight: variables.cardIconHeight,
-            iconStyles,
-        },
-        isCardFeed: true,
-        correspondingCards: correspondingCardIDs,
-    };
-}
-
-function getReapeatingBanks(filteredWorkspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
+function getReapeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const repeatingBanks: string[] = [];
     const banks: string[] = [];
     const handleRepeatingBankNames = (bankName: string) => {
-        if (banks.includes(bankName)) {
+        if (banks.includes(bankName) && !repeatingBanks.includes(bankName)) {
             repeatingBanks.push(bankName);
         } else {
             banks.push(bankName);
         }
     };
 
-    filteredWorkspaceCardFeedsKeys.forEach((cardFeedKey) => {
+    workspaceCardFeedsKeys.forEach((cardFeedKey) => {
         const bankName = cardFeedKey.split('_').at(2);
         if (!bankName) {
             return;
@@ -99,85 +53,165 @@ function getReapeatingBanks(filteredWorkspaceCardFeedsKeys: string[], domainFeed
     return repeatingBanks;
 }
 
+function buildIndividualCardsData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>, userCardList: CardList, selectedCards: string[], iconStyles: StyleProp<ViewStyle>) {
+    const userAssignedCards = Object.values(userCardList ?? {}).map((card) => {
+        const isSelected = selectedCards.includes(card.cardID.toString());
+        const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
+        const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+        const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+
+        return {
+            lastFourPAN: card.lastFourPAN,
+            isVirtual: card?.nameValuePairs?.isVirtual,
+            text,
+            keyForList: card.cardID.toString(),
+            isSelected,
+            bankIcon: {
+                icon,
+                iconWidth: variables.cardIconWidth,
+                iconHeight: variables.cardIconHeight,
+                iconStyles,
+            },
+            isCardFeed: false,
+        };
+    });
+
+    // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
+    const allWorkspaceCards = Object.values(workspaceCardFeeds)
+        .filter((cardFeed) => !isEmptyObject(cardFeed))
+        .flatMap((cardFeed) => {
+            return Object.values(cardFeed as Record<string, Card>)
+                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
+                .map((card) => {
+                    const isSelected = selectedCards.includes(card.cardID.toString());
+                    const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
+                    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+                    const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+
+                    return {
+                        lastFourPAN: card.lastFourPAN,
+                        isVirtual: card?.nameValuePairs?.isVirtual,
+                        text,
+                        keyForList: card.cardID.toString(),
+                        isSelected,
+                        bankIcon: {
+                            icon,
+                            iconWidth: variables.cardIconWidth,
+                            iconHeight: variables.cardIconHeight,
+                            iconStyles,
+                        },
+                        isCardFeed: false,
+                    };
+                });
+        });
+    return [...userAssignedCards, ...allWorkspaceCards];
+}
+
+function buildCardFeedsData(
+    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
+    domainFeedsData: Record<string, DomainFeedData>,
+    selectedCards: string[],
+    iconStyles: StyleProp<ViewStyle>,
+    translate: LocaleContextProps['translate'],
+) {
+    const repeatingBanks = getReapeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
+    const domainFeeds = Object.values(domainFeedsData).map((domainFeed) => {
+        const {domainName, bank, correspondingCardIDs} = domainFeed;
+        const isBankRepeating = repeatingBanks.includes(bank);
+        const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
+        const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? domainName : undefined});
+
+        const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
+
+        const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
+        return {
+            text,
+            keyForList: `${domainName}-${bank}`,
+            isSelected,
+            bankIcon: {
+                icon,
+                iconWidth: variables.cardIconWidth,
+                iconHeight: variables.cardIconHeight,
+                iconStyles,
+            },
+            isCardFeed: true,
+            correspondingCards: correspondingCardIDs,
+        };
+    });
+
+    const workspaceFeeds = Object.entries(workspaceCardFeeds)
+        .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
+        .map(([cardFeedKey, cardFeed]) => {
+            const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
+            if (!representativeCard) {
+                return;
+            }
+            const {domainName, bank} = representativeCard;
+            const isBankRepeating = repeatingBanks.includes(bank);
+            const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
+            const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
+            const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
+            const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
+            const correspondingCardIDs = Object.keys(cardFeed ?? {}).filter((cardKey) => cardKey !== 'cardList');
+
+            const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
+
+            const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
+            return {
+                text,
+                keyForList: cardFeedKey,
+                isSelected,
+                bankIcon: {
+                    icon,
+                    iconWidth: variables.cardIconWidth,
+                    iconHeight: variables.cardIconHeight,
+                    iconStyles,
+                },
+                isCardFeed: true,
+                correspondingCards: correspondingCardIDs,
+            };
+        })
+        .filter((feed) => feed) as CardFilterItem[];
+
+    return [...domainFeeds, ...workspaceFeeds];
+}
+
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const filteredWorkspaceCardFeeds = useMemo(() => Object.entries(workspaceCardFeeds ?? {}).filter((cardFeed) => !isEmptyObject(cardFeed)), [workspaceCardFeeds]);
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
 
-    const individualCardsSectionData = useMemo(() => {
-        const userAssignedCards = Object.values(userCardList ?? {}).map((card) => {
-            const isSelected = selectedCards.includes(card.cardID.toString());
-            const cardData = buildIndividualCardItem(card, isSelected, styles.cardIcon);
+    const individualCardsSectionData = useMemo(
+        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, selectedCards, styles.cardIcon),
+        [workspaceCardFeeds, selectedCards, styles.cardIcon, userCardList],
+    );
 
-            return cardData;
-        });
-
-        // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
-        const allWorkspaceCards = filteredWorkspaceCardFeeds.flatMap(([, cardFeed]) => {
-            return Object.values(cardFeed ?? {})
-                .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
-                .map((card) => {
-                    const isSelected = selectedCards.includes(card.cardID.toString());
-                    const cardData = buildIndividualCardItem(card as Card, isSelected, styles.cardIcon);
-
-                    return cardData;
-                });
-        });
-        return [...userAssignedCards, ...allWorkspaceCards];
-    }, [filteredWorkspaceCardFeeds, selectedCards, styles.cardIcon, userCardList]);
-
-    const domainFeedsData = Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
-        // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
-            if (accumulator[currentCard.domainName]) {
-                accumulator[currentCard.domainName].correspospondingCardIDs.push(currentCard.cardID.toString());
-            } else {
-                accumulator[currentCard.domainName] = {domainName: currentCard.domainName, bank: currentCard.bank, correspospondingCardIDs: [currentCard.cardID.toString()]};
-            }
-        }
-        return accumulator;
-    }, {} as Record<string, DomainFeedData>);
-
-    const cardFeedsSectionData = useMemo(() => {
-        const repeatingBanks = getReapeatingBanks(Object.keys(filteredWorkspaceCardFeeds), domainFeedsData);
-
-        const domainFeeds = Object.values(domainFeedsData).map((domainFeed) => {
-            const {domainName, bank, correspospondingCardIDs} = domainFeed;
-            const isBankRepeating = repeatingBanks.includes(bank);
-            const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
-            const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? domainName : undefined});
-
-            return buildCardFeedItem(text, domainName, correspospondingCardIDs, selectedCards, bank as CompanyCardFeed, styles.cardIcon);
-        });
-
-        const workspaceFeeds = filteredWorkspaceCardFeeds
-            .map(([, cardFeed]) => {
-                const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
-                if (!representativeCard) {
-                    return;
+    const domainFeedsData = useMemo(
+        () =>
+            Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
+                // Cards in cardList can also be domain cards, we use them to compute domain feed
+                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) {
+                    if (accumulator[currentCard.domainName]) {
+                        accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
+                    } else {
+                        accumulator[currentCard.domainName] = {domainName: currentCard.domainName, bank: currentCard.bank, correspondingCardIDs: [currentCard.cardID.toString()]};
+                    }
                 }
-                const {domainName, bank} = representativeCard;
-                const isBankRepeating = repeatingBanks.includes(bank);
-                const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
-                const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
-                const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
-                const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
-                const correspondingCards = Object.keys(cardFeed ?? {}).filter((cardFeedKey) => cardFeedKey !== 'cardList');
+                return accumulator;
+            }, {} as Record<string, DomainFeedData>),
+        [userCardList],
+    );
 
-                return buildCardFeedItem(text, policyID, correspondingCards, selectedCards, bank as CompanyCardFeed, styles.cardIcon);
-            })
-            .filter((feed) => feed) as CardFilterItem[];
-
-        return [...domainFeeds, ...workspaceFeeds];
-    }, [domainFeedsData, filteredWorkspaceCardFeeds, selectedCards, styles.cardIcon, translate]);
+    const cardFeedsSectionData = useMemo(
+        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, styles.cardIcon, translate),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, styles.cardIcon, translate],
+    );
 
     const shouldShowSearchInput = cardFeedsSectionData.length + individualCardsSectionData.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
 
@@ -274,3 +308,4 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
+export {buildIndividualCardsData, buildCardFeedsData};
