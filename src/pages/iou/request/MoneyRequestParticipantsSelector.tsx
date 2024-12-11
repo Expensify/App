@@ -121,7 +121,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const optionList = OptionsListUtils.getOptions(
+        const optionList = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
@@ -139,32 +139,16 @@ function MoneyRequestParticipantsSelector({
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
-                maxRecentReportsToShow: 0,
             },
         );
 
-        if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, undefined, {
-                preferChatroomsOverThreads: true,
-                preferPolicyExpenseChat: !!action,
-                preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
-            });
-        }
+        const orderedOptions = OptionsListUtils.orderOptions(optionList);
 
-        return optionList;
-    }, [
-        action,
-        contacts,
-        areOptionsInitialized,
-        betas,
-        didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPaidGroupPolicy,
-    ]);
+        return {
+            ...optionList,
+            ...orderedOptions,
+        };
+    }, [action, contacts, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -177,7 +161,7 @@ function MoneyRequestParticipantsSelector({
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
@@ -274,10 +258,11 @@ function MoneyRequestParticipantsSelector({
     }, []);
 
     useEffect(() => {
+        setSoftPermissionModalVisible(true);
         getContactPermission().then((status) => {
             setContactPermissionState(status);
             if (status !== RESULTS.BLOCKED && status !== RESULTS.UNAVAILABLE) {
-                setSoftPermissionModalVisible(true);
+                // setSoftPermissionModalVisible(true);
             }
         });
     }, []);
@@ -444,12 +429,14 @@ function MoneyRequestParticipantsSelector({
     }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
 
     const handleSoftPermissionGrant = useCallback(() => {
+      console.log('ContactPermission.handleSoftPermissionGrant');
         setSoftPermissionModalVisible(false);
         InteractionManager.runAfterInteractions(handleContactImport);
         setTextInputAutoFocus(true);
     }, [handleContactImport]);
 
     const handleSoftPermissionDeny = useCallback(() => {
+      console.log('ContactPermission.handleSoftPermissionDeny');
         setSoftPermissionModalVisible(false);
     }, []);
 
@@ -545,6 +532,7 @@ function MoneyRequestParticipantsSelector({
         return <EmptySelectionListContent contentType={iouType} />;
     }, [iouType]);
 
+    console.log('ContactPermission.useEffect', softPermissionModalVisible);
     return (
         <>
             {softPermissionModalVisible && (

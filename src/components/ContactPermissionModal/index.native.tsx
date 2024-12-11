@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -31,7 +32,7 @@ function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDen
 
     const handleGrantPermission = () => {
         setIsModalVisible(false);
-        onGrant();
+        InteractionManager.runAfterInteractions(onGrant);
     };
 
     const handleDenyPermission = () => {
