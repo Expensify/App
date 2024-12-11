@@ -5447,10 +5447,23 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        conciergeLHNGBR: 'Get started <strong>here!</strong>',
-        saveSearchTooltipText: '<strong>Rename your saved searches</strong> here!',
-        quickActionButton: '<strong>Quick action!</strong> Just a tap away',
-        workspaceChatCreate: 'Submit your <strong>expenses</strong> here!',
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
+        },
     },
 };
 

@@ -5967,10 +5967,23 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        conciergeLHNGBR: '¡Comienza <strong>aquí!</strong>',
-        saveSearchTooltipText: 'Puedes <strong>renombrar tu búsqueda guardada</strong> aquí.',
-        quickActionButton: '<strong>¡Acción rápida!</strong> A solo un toque',
-        workspaceChatCreate: 'Envía tus <strong>gastos</strong> aquí.',
+        conciergeLHNGBR: {
+            part1: 'Empieza',
+            part2: ' aquí!',
+        },
+        saveSearchTooltip: {
+            part1: 'Renombra tus búsquedas guardadas',
+            part2: ' aquí!',
+        },
+        quickActionButton: {
+            part1: '¡Acción rápida!',
+            part2: ' a solo un toque.',
+        },
+        workspaceChatCreate: {
+            part1: 'Envía tus',
+            part2: ' gastos',
+            part3: ' aquí!',
+        },
     },
 };
 

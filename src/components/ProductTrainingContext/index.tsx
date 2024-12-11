@@ -1,17 +1,8 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
+import EducationalTooltipContent from '@components/Tooltip/EducationalTooltip/EducationalTooltipContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import convertToLTR from '@libs/convertToLTR';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProductTrainingTooltipName} from './PRODUCT_TRAINING_TOOLTIP_DATA';
@@ -19,14 +10,12 @@ import PRODUCT_TRAINING_TOOLTIP_DATA from './PRODUCT_TRAINING_TOOLTIP_DATA';
 
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
-    renderProductTrainingTooltip: (tooltipName: ProductTrainingTooltipName) => React.ReactNode | null;
     registerTooltip: (tooltipName: ProductTrainingTooltipName) => void;
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
     shouldRenderTooltip: () => false,
-    renderProductTrainingTooltip: () => null,
     registerTooltip: () => {},
     unregisterTooltip: () => {},
 });
@@ -38,10 +27,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    const theme = useTheme();
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
@@ -127,41 +113,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         [shouldTooltipBeVisible, determineVisibleTooltip],
     );
 
-    const renderProductTrainingTooltip = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
-            const processedContent = () => {
-                const content = convertToLTR(translate(tooltip.content as TranslationPaths));
-
-                return content ? `<comment>${content}</comment>` : '';
-            };
-
-            return (
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
-                    <Icon
-                        src={Expensicons.Lightbulb}
-                        fill={theme.tooltipHighlightText}
-                        medium
-                    />
-                    <View style={styles.renderHTMLTitle}>
-                        <HTMLEngineProvider>
-                            <RenderHTML html={processedContent()} />
-                        </HTMLEngineProvider>
-                    </View>
-                </View>
-            );
-        },
-        [styles, theme.tooltipHighlightText, translate],
-    );
-
     const contextValue = useMemo(
         () => ({
-            renderProductTrainingTooltip,
             shouldRenderTooltip,
             registerTooltip,
             unregisterTooltip,
         }),
-        [shouldRenderTooltip, registerTooltip, unregisterTooltip, renderProductTrainingTooltip],
+        [shouldRenderTooltip, registerTooltip, unregisterTooltip],
     );
 
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
@@ -169,11 +127,12 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
 const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
     const context = useContext(ProductTrainingContext);
+
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
     }
 
-    const {shouldRenderTooltip, registerTooltip, unregisterTooltip, renderProductTrainingTooltip} = context;
+    const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
         if (shouldShow) {
@@ -182,12 +141,16 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 unregisterTooltip(tooltipName);
             };
         }
-        return undefined;
+        return () => {};
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
+    const renderProductTrainingTooltip = useCallback(() => {
+        const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+        return <EducationalTooltipContent content={tooltip.content} />;
+    }, [tooltipName]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName);
-    }, [shouldShow, shouldRenderTooltip, tooltipName]);
+        return shouldRenderTooltip(tooltipName);
+    }, [shouldRenderTooltip, tooltipName]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
@@ -195,18 +158,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         unregisterTooltip(tooltipName);
     }, [tooltipName, unregisterTooltip]);
 
-    if (!shouldShow) {
-        return {
-            renderProductTrainingTooltip: () => null,
-            hideProductTrainingTooltip: () => {},
-            shouldShowProductTrainingTooltip: false,
-        };
-    }
-
     return {
-        renderProductTrainingTooltip: () => renderProductTrainingTooltip(tooltipName),
+        renderProductTrainingTooltip,
         hideProductTrainingTooltip,
-        shouldShowProductTrainingTooltip,
+        shouldShowProductTrainingTooltip: shouldShow && shouldShowProductTrainingTooltip,
     };
 };
 
