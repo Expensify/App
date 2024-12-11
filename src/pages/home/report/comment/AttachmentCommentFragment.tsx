@@ -18,6 +18,7 @@ function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted
     return (
         <View style={addExtraMargin ? styles.mt2 : {}}>
             <RenderCommentHTML
+                containsOnlyEmojis={false}
                 source={source}
                 html={htmlContent}
             />
