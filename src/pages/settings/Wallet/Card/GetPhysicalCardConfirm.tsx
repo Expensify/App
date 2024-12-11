@@ -1,6 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -13,7 +12,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/form';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const goToGetPhysicalCardName = (domain: string) => {
@@ -28,21 +26,17 @@ const goToGetPhysicalCardAddress = (domain: string) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain));
 };
 
-type GetPhysicalCardConfirmOnyxProps = {
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-};
-
-type GetPhysicalCardConfirmProps = GetPhysicalCardConfirmOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;
+type GetPhysicalCardConfirmProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;
 
 function GetPhysicalCardConfirm({
-    draftValues,
     route: {
         params: {domain},
     },
 }: GetPhysicalCardConfirmProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
 
     const {addressLine1, addressLine2, city = '', state = '', zipPostCode = '', country = '', phoneNumber = '', legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
@@ -93,8 +87,4 @@ function GetPhysicalCardConfirm({
 
 GetPhysicalCardConfirm.displayName = 'GetPhysicalCardConfirm';
 
-export default withOnyx<GetPhysicalCardConfirmProps, GetPhysicalCardConfirmOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardConfirm);
+export default GetPhysicalCardConfirm;

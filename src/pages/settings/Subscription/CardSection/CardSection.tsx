@@ -65,7 +65,7 @@ function CardSection() {
         Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
     }, []);
 
-    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() => CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 

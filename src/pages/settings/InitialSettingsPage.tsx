@@ -10,6 +10,7 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 // eslint-disable-next-line no-restricted-imports
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
@@ -87,6 +88,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const network = useNetwork();
     const theme = useTheme();
@@ -248,6 +253,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
+                                  if (isActingAsDelegate) {
+                                      setIsNoDelegateAccessMenuVisible(true);
+                                      return;
+                                  }
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
@@ -282,7 +291,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall]);
+    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall, isActingAsDelegate]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -420,6 +429,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
             bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
             <ScrollView
@@ -443,6 +453,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }

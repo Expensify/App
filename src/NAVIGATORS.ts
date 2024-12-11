@@ -10,6 +10,7 @@ export default {
     FEATURE_TRANING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
+    MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',

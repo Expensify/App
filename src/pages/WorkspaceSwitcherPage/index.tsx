@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,6 +36,7 @@ function WorkspaceSwitcherPage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const isFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -77,6 +79,9 @@ function WorkspaceSwitcherPage() {
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
+            if (!isFocused) {
+                return;
+            }
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             Navigation.goBack();
@@ -84,7 +89,7 @@ function WorkspaceSwitcherPage() {
                 Navigation.switchPolicyID(newPolicyID);
             }
         },
-        [activeWorkspaceID],
+        [activeWorkspaceID, isFocused],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -139,7 +144,7 @@ function WorkspaceSwitcherPage() {
     return (
         <ScreenWrapper
             testID={WorkspaceSwitcherPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (

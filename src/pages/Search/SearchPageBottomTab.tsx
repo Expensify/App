@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -64,6 +64,16 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
         },
     });
 
+    const onContentSizeChange = useCallback(
+        (w: number, h: number) => {
+            if (windowHeight <= h) {
+                return;
+            }
+            topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+        },
+        [windowHeight, topBarOffset],
+    );
+
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
 
     if (!queryJSON) {
@@ -126,6 +136,7 @@ function SearchPageBottomTab({queryJSON, policyID, searchName}: SearchPageBottom
             <Search
                 queryJSON={queryJSON}
                 onSearchListScroll={scrollHandler}
+                onContentSizeChange={onContentSizeChange}
                 contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
             />
         </ScreenWrapper>

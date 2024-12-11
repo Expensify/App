@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -63,6 +63,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
@@ -210,10 +211,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
-    const {toggleSearchRouter} = useSearchRouterContext();
+    const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
-    const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
 
     useEffect(() => {
@@ -242,9 +242,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher().then(() => {
-            setDidPusherInit(true);
-        });
+        initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!NativeModules.HybridAppModule) {
@@ -328,7 +326,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                         return;
                     }
-                    toggleSearchRouter();
+                    toggleSearch();
                 })();
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -504,24 +502,29 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={ExplanationModalNavigator}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
+                        options={rootNavigatorOptions.basicModalNavigator}
+                        component={MigratedUserWelcomeModalNavigator}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={FeatureTrainingModalNavigator}
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                        options={rootNavigatorOptions.onboardingModalNavigator}
+                        options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
                     {isOnboardingCompleted === false && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                            options={{...rootNavigatorOptions.onboardingModalNavigator, gestureEnabled: false}}
+                            options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
                             component={OnboardingModalNavigator}
                             listeners={{
                                 focus: () => {
@@ -535,7 +538,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
                             headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
                         }}
                         listeners={modalScreenListeners}
                         getComponent={loadWorkspaceJoinUser}
@@ -558,7 +560,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <TestToolsModal />
                 <SearchRouterModal />
             </View>
-            {didPusherInit && <ActiveGuidesEventListener />}
+            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

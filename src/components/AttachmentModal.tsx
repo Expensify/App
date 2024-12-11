@@ -1,18 +1,18 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -166,7 +166,6 @@ function AttachmentModal({
     attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -177,7 +176,6 @@ function AttachmentModal({
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
@@ -381,17 +379,28 @@ function AttachmentModal({
     );
 
     /**
-     * close the modal
+     * Closes the modal.
+     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
+     * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
+     * This ensures smooth modal closing behavior without causing delays in closing.
      */
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
+    const closeModal = useCallback(
+        (shouldCallDirectly?: boolean) => {
+            setIsModalOpen(false);
 
-        if (typeof onModalClose === 'function') {
-            onModalClose();
-        }
+            if (typeof onModalClose === 'function') {
+                if (shouldCallDirectly) {
+                    onModalClose();
+                    return;
+                }
+                attachmentModalHandler.handleModalClose(onModalClose);
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [onModalClose]);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [onModalClose],
+    );
 
     /**
      *  open the modal
@@ -421,7 +430,7 @@ function AttachmentModal({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal();
+                    closeModal(true);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
@@ -589,7 +598,10 @@ function AttachmentModal({
                     {!!onConfirm && !isConfirmButtonDisabled && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Animated.View
+                                    style={safeAreaPaddingBottomStyle}
+                                    entering={FadeIn}
+                                >
                                     <Button
                                         ref={viewRef(submitRef)}
                                         success
