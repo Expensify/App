@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -127,11 +128,13 @@ function RequestEarlyCancellationPage() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('subscription.requestEarlyCancellation.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>{screenContent}</ScrollView>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('subscription.requestEarlyCancellation.title')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>{screenContent}</ScrollView>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

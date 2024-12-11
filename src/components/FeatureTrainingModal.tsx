@@ -1,6 +1,7 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -39,6 +40,15 @@ type FeatureTrainingModalProps = {
     /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
+    /** Style for the inner container of the animation */
+    animationInnerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the outer container of the animation */
+    animationOuterContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Additional styles for the animation */
+    animationStyle?: StyleProp<ViewStyle>;
+
     /** URL for the video */
     videoURL: string;
 
@@ -70,10 +80,25 @@ type FeatureTrainingModalProps = {
 
     /** Link to navigate to when user wants to learn more */
     onHelp?: () => void;
+
+    /** Children to render */
+    children?: React.ReactNode;
+
+    /** Styles for the content container */
+    contentInnerContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the content outer container */
+    contentOuterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the modal inner container */
+    modalInnerContainerStyle?: ViewStyle;
 };
 
 function FeatureTrainingModal({
     animation,
+    animationStyle,
+    animationInnerContainerStyle,
+    animationOuterContainerStyle,
     videoURL,
     videoAspectRatio: videoAspectRatioProp,
     title = '',
@@ -85,17 +110,25 @@ function FeatureTrainingModal({
     onClose = () => {},
     helpText = '',
     onHelp = () => {},
+    children,
+    contentInnerContainerStyles,
+    contentOuterContainerStyles,
+    modalInnerContainerStyle,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => setIsModalVisible(true));
+    }, []);
 
     useEffect(() => {
         if (isVideoStatusLocked) {
@@ -133,10 +166,11 @@ function FeatureTrainingModal({
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
-                    {aspectRatio},
+                    animationInnerContainerStyle,
+                    !!videoURL && {aspectRatio},
                 ]}
             >
-                {videoStatus === 'video' ? (
+                {!!videoURL && videoStatus === 'video' ? (
                     <GestureHandlerRootView>
                         <VideoPlayer
                             url={videoURL}
@@ -149,7 +183,7 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 ) : (
-                    <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
                         <Lottie
                             source={animation ?? LottieAnimations.Hands}
                             style={styles.h100}
@@ -161,7 +195,21 @@ function FeatureTrainingModal({
                 )}
             </View>
         );
-    }, [animation, videoURL, videoAspectRatio, videoStatus, shouldUseNarrowLayout, styles]);
+    }, [
+        videoAspectRatio,
+        styles.w100,
+        styles.onboardingVideoPlayer,
+        styles.flex1,
+        styles.alignItemsCenter,
+        styles.justifyContentCenter,
+        styles.h100,
+        videoStatus,
+        videoURL,
+        animationStyle,
+        animation,
+        shouldUseNarrowLayout,
+        animationInnerContainerStyle,
+    ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
@@ -170,8 +218,10 @@ function FeatureTrainingModal({
             User.dismissTrackTrainingModal();
         }
         setIsModalVisible(false);
-        Navigation.goBack();
-        onClose?.();
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.goBack();
+            onClose?.();
+        });
     }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
@@ -199,16 +249,20 @@ function FeatureTrainingModal({
                                   width: 'auto',
                               }
                             : {}),
+                        ...modalInnerContainerStyle,
                     }}
                 >
                     <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                        <View style={[styles.mt5, styles.mh5]}>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, animationOuterContainerStyle]}>
+                            {renderIllustration()}
+                        </View>
+                        <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                             {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
                                     <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                     <Text style={styles.textSupporting}>{description}</Text>
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                                    {children}
                                 </View>
                             )}
                             {shouldShowDismissModalOption && (
