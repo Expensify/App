@@ -7,8 +7,6 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -42,9 +40,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
 
-    /** Callback to navigate to Track Expense confirmation flow  */
-    onTrackExpensePress?: () => void;
-
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
@@ -53,20 +48,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
-
-    /** Whether we should display the Track Expense button at the top of the participants list */
-    shouldDisplayTrackExpenseButton?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({
-    participants = CONST.EMPTY_ARRAY,
-    onTrackExpensePress,
-    onFinish,
-    onParticipantsAdded,
-    iouType,
-    action,
-    shouldDisplayTrackExpenseButton,
-}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, action}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -123,6 +107,9 @@ function MoneyRequestParticipantsSelector({
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
+                shouldSeparateSelfDMChat: true,
+                shouldSeparateWorkspaceChat: true,
+                includeSelfDM: true,
             },
         );
 
@@ -142,6 +129,8 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
+                recentWorkspaceChats: [],
+                selfDMChat: null,
             };
         }
 
@@ -176,6 +165,17 @@ function MoneyRequestParticipantsSelector({
         );
 
         newSections.push(formatResults.section);
+
+        newSections.push({
+            title: translate('workspace.common.workspace'),
+            data: chatOptions.recentWorkspaceChats ?? [],
+            shouldShow: (chatOptions.recentWorkspaceChats ?? []).length > 0,
+        });
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
 
         newSections.push({
             title: translate('common.recents'),
@@ -218,6 +218,8 @@ function MoneyRequestParticipantsSelector({
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
+        chatOptions.selfDMChat,
+        chatOptions.recentWorkspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
@@ -233,7 +235,7 @@ function MoneyRequestParticipantsSelector({
         (option: Participant) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM'),
                     selected: true,
                     iouType,
                 },
@@ -250,7 +252,10 @@ function MoneyRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newParticipants);
-            onFinish();
+
+            if (!option.isSelfDM) {
+                onFinish();
+            }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
@@ -343,22 +348,6 @@ function MoneyRequestParticipantsSelector({
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
-    const headerContent = useMemo(() => {
-        if (!shouldDisplayTrackExpenseButton) {
-            return;
-        }
-
-        // We only display the track expense button if the user is coming from the combined submit/track flow.
-        return (
-            <MenuItem
-                title={translate('iou.justTrackIt')}
-                shouldShowRightIcon
-                icon={Expensicons.Coins}
-                onPress={onTrackExpensePress}
-            />
-        );
-    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
-
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -444,7 +433,6 @@ function MoneyRequestParticipantsSelector({
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={onSelectRow}
             shouldSingleExecuteRowSelect
-            headerContent={headerContent}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
