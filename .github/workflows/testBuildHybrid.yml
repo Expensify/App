@@ -86,6 +86,7 @@ jobs:
   androidHybrid:
     name: Build Android HybridApp
     needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest-xl
     defaults:
       run:
@@ -168,10 +169,6 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Get Android native version
-        id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
-
       - name: Build Android app
         id: build
         env:
@@ -200,11 +197,130 @@ jobs:
         run: |
           # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
+        
+  iosHybrid:
+    name: Build and deploy iOS for testing
+    needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
+    runs-on: macos-13-xlarge
+    defaults:
+      run:
+        working-directory: Mobile-Expensify/react-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'Expensify/Mobile-Expensify'
+          submodules: true
+          path: 'Mobile-Expensify'
+          ref: ${{ env.OLD_DOT_COMMIT }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          # fetch-depth: 0 is required in order to fetch the correct submodule branch
+          fetch-depth: 0
+
+      - name: Update submodule
+        run: |
+          git submodule update --init
+          git fetch
+          git checkout ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }} 
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        id: setup-node
+        with:
+          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
+          cache: npm
+          cache-dependency-path: 'Mobile-Expensify/react-native'
+
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Install node modules
+        run: |
+          npm install
+          cd .. && npm install
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+          working-directory: 'Mobile-Expensify/react-native'
+    
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Cache Pod dependencies
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install cocoapods
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: cd Mobile-Expensify/iOS && bundle exec pod install
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op document get --output ./OldApp_AdHoc.mobileprovision OldApp_AdHoc
+          op document get --output ./OldApp_AdHoc_Share_Extension.mobileprovision OldApp_AdHoc_Share_Extension
+          op document get --output ./OldApp_AdHoc_Notification_Service.mobileprovision OldApp_AdHoc_Notification_Service
+
+      - name: Decrypt certificate
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Build AdHoc app
+        run: bundle exec fastlane ios build_adhoc_hybrid
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload AdHoc build to S3
+        run: bundle exec fastlane ios upload_s3
+        env:
+          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ad-hoc-expensify-cash
+          S3_REGION: us-east-1
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: ./ios_paths.json
+
+
 
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [validateActor, getBranchRef, androidHybrid]
+    needs: [validateActor, getBranchRef, androidHybrid, iosHybrid]
     if: ${{ always() }}
     steps:
       - name: Checkout
@@ -217,6 +333,17 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
 
+      - name: Read JSONs with iOS paths
+        id: get_ios_path
+        if: ${{ needs.iosHybrid.result == 'success' }}
+        run: |
+          content_ios="$(cat ./ios/ios_paths.json)"
+          content_ios="${content_ios//'%'/'%25'}"
+          content_ios="${content_ios//$'\n'/'%0A'}"
+          content_ios="${content_ios//$'\r'/'%0D'}"
+          ios_path=$(echo "$content_ios" | jq -r '.html_path')
+          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
+
       - name: Publish links to apps for download
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         uses: ./.github/actions/javascript/postTestBuildComment
@@ -224,4 +351,6 @@ jobs:
           PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
