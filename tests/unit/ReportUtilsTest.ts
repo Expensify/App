@@ -94,6 +94,24 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getWorkspaceIcon', () => {
+        it('should not use cached icon when avatar is updated', () => {
+            // Given a new workspace and a workspace chat with undefined `policyAvatar`
+            const workspace = LHNTestUtils.getFakePolicy('1', 'ws');
+            const workspaceChat = LHNTestUtils.getFakeReport();
+            workspaceChat.policyID = workspace.id;
+
+            expect(ReportUtils.getWorkspaceIcon(workspaceChat, workspace).source).toBe(ReportUtils.getDefaultWorkspaceAvatar(workspace.name));
+
+            // When the user uploads a new avatar
+            const newAvatarURL = 'https://example.com';
+            workspace.avatarURL = newAvatarURL;
+
+            // Then it should return the new avatar
+            expect(ReportUtils.getWorkspaceIcon(workspaceChat, workspace).source).toBe(newAvatarURL);
+        });
+    });
+
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
             const participants = ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false);

@@ -1150,11 +1150,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
-                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
