@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -43,40 +44,42 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={UpdateDelegateRolePage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('delegate.accessLevel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <SelectionList
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={4}
-                initiallyFocusedOptionKey={currentRole}
-                shouldUpdateFocusedIndex
-                headerContent={
-                    <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <>
-                            {translate('delegate.accessLevelDescription')}{' '}
-                            <TextLink
-                                style={[styles.link]}
-                                href={CONST.COPILOT_HELP_URL}
-                            >
-                                {translate('common.learnMore')}
-                            </TextLink>
-                        </>
-                    </Text>
-                }
-                onSelectRow={(option) => {
-                    if (option.isSelected) {
-                        Navigation.dismissModal();
-                        return;
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('delegate.accessLevel')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <SelectionList
+                    isAlternateTextMultilineSupported
+                    alternateTextNumberOfLines={4}
+                    initiallyFocusedOptionKey={currentRole}
+                    shouldUpdateFocusedIndex
+                    headerContent={
+                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <>
+                                {translate('delegate.accessLevelDescription')}{' '}
+                                <TextLink
+                                    style={[styles.link]}
+                                    href={CONST.COPILOT_HELP_URL}
+                                >
+                                    {translate('common.learnMore')}
+                                </TextLink>
+                            </>
+                        </Text>
                     }
+                    onSelectRow={(option) => {
+                        if (option.isSelected) {
+                            Navigation.dismissModal();
+                            return;
+                        }
 
-                    requestValidationCode();
-                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
-                }}
-                sections={[{data: roleOptions}]}
-                ListItem={RadioListItem}
-            />
+                        requestValidationCode();
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
+                    }}
+                    sections={[{data: roleOptions}]}
+                    ListItem={RadioListItem}
+                />
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
