@@ -1,5 +1,6 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -8,14 +9,13 @@ import type {ReportActionPushNotificationData} from '@libs/Notification/PushNoti
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -27,6 +27,15 @@ Onyx.connect({
             return;
         }
         lastVisitedPath = value;
+    },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -77,7 +86,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = ReportUtils.getReport(reportID.toString());
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
