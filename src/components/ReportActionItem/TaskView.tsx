@@ -35,7 +35,7 @@ function TaskView({report}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
