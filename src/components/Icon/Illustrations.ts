@@ -75,6 +75,7 @@ import BigRocket from '@assets/images/simple-illustrations/simple-illustration__
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
@@ -230,6 +231,7 @@ export {
     ThreeLeggedLaptopWoman,
     House,
     Building,
+    Buildings,
     Alert,
     TeachersUnite,
     Abacus,

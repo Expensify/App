@@ -416,7 +416,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -450,7 +450,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
                 </HeaderWithBackButton>
