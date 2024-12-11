@@ -41,6 +41,7 @@ function setShouldSimulatePoorConnection(shouldSimulatePoorConnection: boolean, 
     if (!shouldSimulatePoorConnection) {
         clearTimeout(poorConnectionTimeoutID);
         Onyx.merge(ONYXKEYS.NETWORK, {shouldSimulatePoorConnection, poorConnectionTimeoutID: undefined});
+        return;
     }
     Onyx.merge(ONYXKEYS.NETWORK, {shouldSimulatePoorConnection});
 }

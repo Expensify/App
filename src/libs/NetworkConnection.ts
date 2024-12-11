@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
@@ -76,24 +77,7 @@ Onyx.connect({
             return;
         }
 
-        // Starts random network status change when shouldSimulatePoorConnection is turned into true
-        // or after app restart if shouldSimulatePoorConnection is true already
-        if (!isPoorConnectionSimulated && !!network.shouldSimulatePoorConnection) {
-            clearTimeout(network.poorConnectionTimeoutID);
-            setRandomNetworkStatus(true);
-        }
-
-        // Fetch the NetInfo state to set the correct offline status when shouldSimulatePoorConnection is turned into false
-        if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
-            NetInfo.fetch().then((state) => {
-                const isInternetUnreachable = !state.isInternetReachable;
-                const stringifiedState = JSON.stringify(state);
-                setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
-                Log.info(
-                    `[NetworkStatus] The poor connection simulation mode was turned off. Getting the device network status from NetInfo. Network state: ${stringifiedState}. Setting the offline status to: ${isInternetUnreachable}.`,
-                );
-            });
-        }
+        simulatePoorConnection(network);
 
         isPoorConnectionSimulated = !!network.shouldSimulatePoorConnection;
         connectionChanges = network.connectionChanges;
@@ -131,6 +115,28 @@ Onyx.connect({
         accountID = session.accountID;
     },
 });
+
+/** Controls poor connection simulation */
+function simulatePoorConnection(network: Network) {
+    // Starts random network status change when shouldSimulatePoorConnection is turned into true
+    // or after app restart if shouldSimulatePoorConnection is true already
+    if (!isPoorConnectionSimulated && !!network.shouldSimulatePoorConnection) {
+        clearTimeout(network.poorConnectionTimeoutID);
+        setRandomNetworkStatus(true);
+    }
+
+    // Fetch the NetInfo state to set the correct offline status when shouldSimulatePoorConnection is turned into false
+    if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
+        NetInfo.fetch().then((state) => {
+            const isInternetUnreachable = !state.isInternetReachable;
+            const stringifiedState = JSON.stringify(state);
+            setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
+            Log.info(
+                `[NetworkStatus] The poor connection simulation mode was turned off. Getting the device network status from NetInfo. Network state: ${stringifiedState}. Setting the offline status to: ${isInternetUnreachable}.`,
+            );
+        });
+    }
+}
 
 /** Sets online/offline connection randomly every 2-5 seconds */
 function setRandomNetworkStatus(initialCall = false) {
