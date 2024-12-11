@@ -121,7 +121,7 @@ describe('PolicyUtils', () => {
         });
         it('should return array contains policy which has id = 1', () => {
             // Given mock data for policies, contains only one control workspace
-            const randomPolicy1 = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
+            const randomPolicy1 = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
             const policies = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: randomPolicy1,
