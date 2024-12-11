@@ -60,7 +60,7 @@ type ReportActionsListProps = {
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
-    /** Sorted actions that is visible to the user */
+    /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** The ID of the most recent IOU report action connected with the shown report */
