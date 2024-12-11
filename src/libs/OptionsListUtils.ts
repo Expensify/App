@@ -1676,7 +1676,7 @@ function filterReports(reports: ReportUtils.OptionData[], searchTerms: string[])
     return filteredReports;
 }
 
-function filterRecentWorkspaceChats(reports: ReportUtils.OptionData[], searchTerms: string[]) {
+function filterRecentWorkspaceChats(reports: ReportUtils.OptionData[], searchTerms: string[]): ReportUtils.OptionData[] {
     const filteredReports = searchTerms.reduceRight(
         (items, term) =>
             filterArrayByMatch(items, term, (item) => {
