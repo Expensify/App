@@ -438,6 +438,102 @@ export default withOnyx({
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via [`react-native-onyx`](https://github.com/Expensify/react-native-onyx).
 
 ----
+# HybridApp
+
+Currently, the production Expensify app contains both "Expensify Classic" and "New Expensify". The file structure is as follows:
+
+- 📂 [**App**](https://github.com/Expensify/App)
+    - 📂 [**android**](https://github.com/Expensify/App/tree/main/android): New Expensify Android specific code (not a part of HybridApp native code)
+    - 📂 [**ios**](https://github.com/Expensify/App/tree/main/ios): New Expensify iOS specific code (not a part of HybridApp native code)
+    - 📂 [**src**](https://github.com/Expensify/App/tree/main/src): New Expensify TypeScript logic
+    - 📂 [**Mobile-Expensify**](https://github.com/Expensify/Mobile-Expensify): `git` submodule that is pointed to [Mobile-Expensify](https://github.com/Expensify/Mobile-Expensify)
+        - 📂 [**Android**](https://github.com/Expensify/Mobile-Expensify/tree/main/Android): Expensify Classic Android specific code
+        - 📂 [**iOS**](https://github.com/Expensify/Mobile-Expensify/tree/main/iOS): Expensify Classic iOS specific code
+        - 📂 [**app**](https://github.com/Expensify/Mobile-Expensify/tree/main/app): Expensify Classic JavaScript logic (aka YAPL)
+
+You can only build HybridApp if you have been granted access to [`Mobile-Expensify`](https://github.com/Expensify/Mobile-Expensify). For most contributors, you will be working on the standalone NewDot application.
+
+## Getting started with HybridApp
+
+1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
+2. Run `git submodule update --init` to download the `Mobile-Expensify` sourcecode.
+- If you have access to `Mobile-Expensify` and the command fails with a https-related error add this to your `~/.gitconfig` file:
+
+    ```
+    [url "ssh://git@github.com/"]
+        insteadOf = https://github.com/
+    ```
+
+At this point, the default behavior of some `npm` scripts will change to target HybridApp:
+- `npm run android` - build HybridApp for Android
+- `npm run ios` - build HybridApp for iOS
+- `npm run ipad` - build HybridApp for iPad
+- `npm run ipad-sm` - build HybridApp for small iPad
+- `npm run pod-install` - install pods for HybridApp
+- `npm run clean` - clean native code of HybridApp
+
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). 
+
+## Working with HybridApp
+Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
+
+The main difference is that the native code which runs React Native is located in `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` directories. It means, that changes in `./android` and `./ios` folders in the root **won't affect the HybridApp build**. 
+
+In that case, if you'd like to eg. remove `Pods`, you need to do it in `./Mobile-Expensify/iOS`. The same rule applies to Android builds - if you'd like to delete `.cxx`, `build` or `.gradle` directories, you need to go to `./Mobile-Expensify/android` first. 
+
+Additionally, If you'd like to open the HybridApp project in Android Studio or XCode, you **must choose a workspace located in the `Mobile-Expensify`** directory:
+
+- Android: `./Mobile-Expensify/Android`
+- iOS: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
+
+### Updating the Mobile-Expensify submodule
+
+`Mobile-Expensify` directory is a git submodule. It means, that it points to a specific commit on the `Mobile-Expensify` repository. If you'd like to download the most recent changes from `main`, please use the following command:
+
+`git submodule update --remote`
+
+### Modifying Mobile-Expensify code
+
+It's important to emphasise that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+
+> [!Note]  
+> #### For external contributors
+>
+> If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
+> 
+> `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
+>
+> This way, you'll attach the submodule to your fork repository.
+
+### Adding HybridApp-related patches
+
+Applying patches from the `patches` directory is performed automatically with the `npm install` command executed in `Expensify/App`.
+
+If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
+
+`npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
+
+### HybridApp troubleshooting
+
+#### Cleaning the repo
+- `npm run clean` - deep clean of all HybridApp artifacts (including NewDot's `node_modules`)
+- `npm run clean -- --ios` - clean only iOS HybridApp artifacts (`Pods`, `build` folder, `DerivedData`)
+- `npm run clean -- --android` - clean only Android HybridApp artifacts (`.cxx`, `build`, and `.gradle` folders, execute `./gradlew clean`)
+
+If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
+
+#### Common errors
+1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
+2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
+
+3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
+    ```
+    - signingConfig signingConfigs.release
+    + signingConfig signingConfigs.debug
+    ```
+4. **Build service could not create build operation: unknown error while handling message: MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")** - reopen XCode
+
+----
 
 # Philosophy
 This application is built with the following principles.
