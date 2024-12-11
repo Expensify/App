@@ -298,6 +298,7 @@ DEPENDENCIES
   cocoapods (= 1.15.2)
   fastlane (~> 2, >= 2.222.0)
   fastlane-plugin-aws_s3
+  xcodeproj (< 1.26.0)
   xcpretty (~> 0)
 
 RUBY VERSION

@@ -9,6 +9,8 @@
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
 #import <HardwareShortcuts.h>
+#import <BackgroundTasks/BackgroundTasks.h>
+#import <expensify-react-native-background-task/RNBackgroundTaskManager.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
@@ -49,6 +51,8 @@
       [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
       [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
   }
+  
+  [RNBackgroundTaskManager setup];
 
   return YES;
 }
