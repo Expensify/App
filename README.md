@@ -524,7 +524,7 @@ If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
 
 #### Common errors
 1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
-2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify && pod repo remove trunk`
+2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
 
 3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
     ```
