@@ -28,6 +28,8 @@ type Attachment = {
     isReceipt?: boolean;
 
     duration?: number;
+
+    attachmentLink?: string;
 };
 
 export type {AttachmentSource, Attachment};

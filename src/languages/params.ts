@@ -531,6 +531,10 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
@@ -553,6 +557,18 @@ type CompanyCardBankName = {
 
 type CurrencyCodeParams = {
     currencyCode: string;
+};
+
+type CompanyNameParams = {
+    companyName: string;
+};
+
+type CustomUnitRateParams = {
+    rate: number;
+};
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -755,5 +771,9 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
+    CompanyNameParams,
+    CustomUnitRateParams,
+    ChatWithAccountManagerParams,
 };
