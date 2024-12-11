@@ -111,10 +111,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }, [queryText]);
 
     useEffect(() => {
-        setTextInputValue(queryText);
-    }, [queryText]);
-
-    useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
         setAutocompleteSubstitutions(substitutionsMap);
     }, [allCards, originalInputQuery, personalDetails, reports, taxRates]);

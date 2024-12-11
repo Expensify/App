@@ -225,7 +225,7 @@ describe('Build card feed data from given domainFeedData and workspaceCardFeeds 
         });
     });
 
-    it('Buids "test2" workspace card feed from expensify card feed(there are tow expensify card feeds) properly', () => {
+    it('Buids "test2" workspace card feed from expensify card feed(there are two expensify card feeds) properly', () => {
         expect(result.at(3)).toMatchObject({
             text: 'All Expensify - test2',
             isCardFeed: true,
