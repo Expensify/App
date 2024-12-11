@@ -22,6 +22,16 @@ jobs:
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
 
+      - name: Clean up deleted files
+        run: |
+            DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
+            for file in $DELETED_FILES; do
+              if [ -n "$file" ]; then
+                rm -f "$file"
+                echo "Deleted file: $file"
+              fi
+            done
+
       - name: Run performance testing script
         shell: bash
         run: |
