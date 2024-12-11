@@ -5,7 +5,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
-import type {SplitStackNavigatorRouterOptions} from './types';
+import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
@@ -14,7 +14,7 @@ const isAtLeastOneInState = (state: StackState, screenName: string): boolean => 
 
 type AdaptStateIfNecessaryArgs = {
     state: StackState;
-    options: SplitStackNavigatorRouterOptions;
+    options: SplitNavigatorRouterOptions;
 };
 
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
@@ -83,14 +83,14 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     }
 }
 
-function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitStackNavigatorRouterOptions) {
+function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
     if (action.type === 'PUSH' && action.payload.name === options.sidebarScreen && state.routes.length > 1) {
         return true;
     }
     return false;
 }
 
-function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
+function SplitRouter(options: SplitNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     return {
         ...stackRouter,
@@ -134,4 +134,4 @@ function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
     };
 }
 
-export default SplitStackRouter;
+export default SplitRouter;

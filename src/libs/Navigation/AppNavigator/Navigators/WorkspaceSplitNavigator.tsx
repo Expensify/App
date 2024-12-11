@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
+import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -29,7 +29,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
-const Stack = createSplitStackNavigator<WorkspaceSplitNavigatorParamList>();
+const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceNavigator() {
     const route = useRoute();
@@ -37,25 +37,25 @@ function WorkspaceNavigator() {
 
     return (
         <FocusTrapForScreens>
-            <Stack.Navigator
+            <Split.Navigator
                 sidebarScreen={SCREENS.WORKSPACE.INITIAL}
                 defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
                 parentRoute={route}
                 screenOptions={rootNavigatorOptions.centralPaneNavigator}
             >
-                <Stack.Screen
+                <Split.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     getComponent={loadWorkspaceInitialPage}
                     options={rootNavigatorOptions.homeScreen}
                 />
                 {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
-                    <Stack.Screen
+                    <Split.Screen
                         key={screenName}
                         name={screenName as keyof Screens}
                         getComponent={componentGetter}
                     />
                 ))}
-            </Stack.Navigator>
+            </Split.Navigator>
         </FocusTrapForScreens>
     );
 }

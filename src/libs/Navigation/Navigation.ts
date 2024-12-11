@@ -19,7 +19,7 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getInitialSplitNavigatorState from './AppNavigator/createSplitStackNavigator/getInitialSplitNavigatorState';
+import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {
     getMinimalAction,
     getPolicyIDFromState,

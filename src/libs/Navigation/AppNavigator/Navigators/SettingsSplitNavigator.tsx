@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
+import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +25,7 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettingsPage').default,
 } satisfies Screens;
 
-const Stack = createSplitStackNavigator<SettingsSplitNavigatorParamList>();
+const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
 function SettingsSplitNavigator() {
     const route = useRoute();
@@ -33,13 +33,13 @@ function SettingsSplitNavigator() {
 
     return (
         <FocusTrapForScreens>
-            <Stack.Navigator
+            <Split.Navigator
                 sidebarScreen={SCREENS.SETTINGS.ROOT}
                 defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
                 parentRoute={route}
                 screenOptions={rootNavigatorOptions.centralPaneNavigator}
             >
-                <Stack.Screen
+                <Split.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     getComponent={loadInitialSettingsPage}
                     options={rootNavigatorOptions.homeScreen}
@@ -52,7 +52,7 @@ function SettingsSplitNavigator() {
                     }
 
                     return (
-                        <Stack.Screen
+                        <Split.Screen
                             key={screenName}
                             name={screenName as keyof Screens}
                             getComponent={componentGetter}
@@ -60,7 +60,7 @@ function SettingsSplitNavigator() {
                         />
                     );
                 })}
-            </Stack.Navigator>
+            </Split.Navigator>
         </FocusTrapForScreens>
     );
 }

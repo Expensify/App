@@ -11,7 +11,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import SplitStackRouter from './SplitStackRouter';
+import SplitRouter from './SplitRouter';
 import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
 
 function useCustomEffects(props: CustomEffectsHookProps) {
@@ -35,7 +35,7 @@ function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
 }
 
 const CustomFullScreenNavigatorComponent = createPlatformStackNavigatorComponent('CustomFullScreenNavigator', {
-    createRouter: SplitStackRouter,
+    createRouter: SplitRouter,
     useCustomEffects,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomState: useCustomSplitNavigatorState,

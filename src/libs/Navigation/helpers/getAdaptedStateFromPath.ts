@@ -2,7 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import {isAnonymousUser} from '@libs/actions/Session';
-import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitStackNavigator/getInitialSplitNavigatorState';
+import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import config from '@libs/Navigation/linkingConfig/config';
 import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';

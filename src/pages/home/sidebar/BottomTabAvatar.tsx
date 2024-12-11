@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitStackNavigator/usePreserveSplitNavigatorState';
+import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
