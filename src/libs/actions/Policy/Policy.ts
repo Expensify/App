@@ -1563,6 +1563,8 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false, currency = '', file?: File) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
@@ -1581,7 +1583,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
-                outputCurrency: currency || outputCurrency,
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
@@ -1618,7 +1620,10 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
- * @param [expenseReportId] the reportID of the expense report that is being used to create the workspace
+ * @param [expenseReportId] Optional, Purpose of using application selected by user in guided setup flow
+ * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file] Optional, avatar file for workspace
  */
 function buildPolicyData(
     policyOwnerEmail = '',
@@ -1899,6 +1904,8 @@ function buildPolicyData(
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
 function createWorkspace(
     policyOwnerEmail = '',

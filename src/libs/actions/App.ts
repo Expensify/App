@@ -368,7 +368,8 @@ function endSignOnTransition() {
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  * @param [policyID] Optional, Policy id.
- * @param [file],file
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyOwnerEmail = '',
@@ -390,7 +391,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 Navigation.goBack();
             }
             savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo));
         })
         .then(endSignOnTransition);
 }
@@ -402,6 +403,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file] Optional, avatar file for workspace
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
     Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
