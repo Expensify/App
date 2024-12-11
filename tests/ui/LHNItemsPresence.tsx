@@ -495,17 +495,31 @@ describe('SidebarLinksData', () => {
         it('should not display the read report in the focus mode', async () => {
             // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const report = createReport();
+            const report: Report = {
+                ...createReport(),
+                lastMessageText: 'fake last message',
+                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+            };
 
-            // And a read report is initialized in Onyx
+            // And a read report that isn't empty is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // And we are in the focus mode
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in default mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+
+            // Then the report should appear in the sidebar
+            expect(getOptionRows()).toHaveLength(1);
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user is in focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
-            // Then this report should not appear in the sidebar.
+            // The report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
         });
     });
