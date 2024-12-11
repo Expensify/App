@@ -104,6 +104,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 description={field.id === 'accountHolderCountry' ? field.label : undefined}
                                 items={getItems(field)}
                                 disabled={field.id === 'accountHolderCountry'}
+                                interactive={field.id === 'accountHolderCountry' ? false : undefined}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
                                     street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',

@@ -8,7 +8,7 @@ import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
 function TextPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, ...rest}: TextPickerProps,
+    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, interactive = true, ...rest}: TextPickerProps,
     forwardedRef: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
@@ -45,6 +45,7 @@ function TextPicker(
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
+                interactive={interactive}
             />
             <TextSelectorModal
                 value={value}
