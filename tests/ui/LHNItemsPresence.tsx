@@ -479,7 +479,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the read report in the focus mode', async () => {
-            // When the SidebarLinks are rendered.
+            // When the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport();
 
