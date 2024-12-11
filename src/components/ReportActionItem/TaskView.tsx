@@ -29,6 +29,7 @@ import type {Report} from '@src/types/onyx';
 type TaskViewProps = {
     /** The report currently being looked at */
     report: Report;
+};
 
 function TaskView({report}: TaskViewProps) {
     const styles = useThemeStyles();
@@ -38,18 +39,14 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-    const personalDetails = usePersonalDetails();
     const taskTitle = convertToLTR(report.reportName ?? '');
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
         false,
     );
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
-    const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
     const canActionTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID, true);
-    const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen;
     const {translate} = useLocalize();
 
     return (
@@ -64,7 +61,7 @@ function TaskView({report}: TaskViewProps) {
                     {(hovered) => (
                         <PressableWithSecondaryInteraction
                             onPress={Session.checkIfActionIsAllowed((e) => {
-                                if (isDisableInteractive) {
+                                if (!canModifyTask) {
                                     return;
                                 }
                                 if (e && e.type === 'click') {
@@ -76,9 +73,8 @@ function TaskView({report}: TaskViewProps) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
-                                isDisableInteractive && !disableState && styles.cursorDefault,
-                                disableState && styles.cursorDisabled,
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !canModifyTask, canModifyTask), true),
+                                !canModifyTask && styles.cursorDefault,
                             ]}
                             accessibilityLabel={taskTitle || translate('task.task')}
                         >
@@ -105,6 +101,7 @@ function TaskView({report}: TaskViewProps) {
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
                                             disabled={!canActionTask}
+                                            shouldUseDefaultCursorWhenDisabled
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -114,12 +111,12 @@ function TaskView({report}: TaskViewProps) {
                                                 {taskTitle}
                                             </Text>
                                         </View>
-                                        {isOpen && (
+                                        {canModifyTask && (
                                             <View style={styles.taskRightIconContainer}>
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
                                                     src={Expensicons.ArrowRight}
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !canModifyTask))}
                                                 />
                                             </View>
                                         )}
@@ -135,12 +132,13 @@ function TaskView({report}: TaskViewProps) {
                         description={translate('task.description')}
                         title={report.description ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                        shouldShowRightIcon={isOpen}
-                        disabled={disableState}
+                        shouldShowRightIcon={canModifyTask}
+                        disabled={!canModifyTask}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
-                        interactive={!isDisableInteractive}
+                        interactive={canModifyTask}
+                        shouldUseDefaultCursorWhenDisabled
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
@@ -153,23 +151,25 @@ function TaskView({report}: TaskViewProps) {
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
-                            disabled={disableState}
+                            shouldShowRightIcon={canModifyTask}
+                            disabled={!canModifyTask}
                             wrapperStyle={[styles.pv2]}
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
-                            interactive={!isDisableInteractive}
+                            interactive={canModifyTask}
                             titleWithTooltips={assigneeTooltipDetails}
+                            shouldUseDefaultCursorWhenDisabled
                         />
                     ) : (
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
-                            disabled={disableState}
+                            shouldShowRightIcon={canModifyTask}
+                            disabled={!canModifyTask}
                             wrapperStyle={[styles.pv2]}
                             shouldGreyOutWhenDisabled={false}
-                            interactive={!isDisableInteractive}
+                            interactive={canModifyTask}
+                            shouldUseDefaultCursorWhenDisabled
                         />
                     )}
                 </OfflineWithFeedback>
