@@ -83,6 +83,10 @@ function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQ
     return isSearchQueryItem(listItem.item);
 }
 
+function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
+    return `${filterKey}:${value}`;
+}
+
 function getItemHeight(item: OptionData | SearchQueryItem) {
     if (isSearchQueryItem(item)) {
         return 44;
@@ -419,7 +423,7 @@ function SearchRouterList(
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
             return {
-                text: getSubstitutionMapKey(filterKey, text),
+                text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
                 singleIcon: Expensicons.MagnifyingGlass,
                 searchQuery: text,
