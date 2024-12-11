@@ -6,12 +6,29 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.Callback
 import android.app.job.JobScheduler
 import android.app.job.JobInfo
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.PersistableBundle
+import android.util.Log
 
 class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplicationContext) :
   ReactNativeBackgroundTaskSpec(context) {
+
+  private val taskReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+      val taskName = intent?.getStringExtra("taskName")
+      Log.d("ReactNativeBackgroundTaskModule", "Received task: $taskName")
+      emitOnBackgroundTaskExecution(taskName)
+    }
+  }
+
+  init {
+    val filter = IntentFilter("com.expensify.reactnativebackgroundtask.TASK_ACTION")
+    reactApplicationContext.registerReceiver(taskReceiver, filter)
+  }
 
   override fun getName(): String {
     return NAME
