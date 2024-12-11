@@ -1,7 +1,9 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -11,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AccordionItem from "@components/Acordition";
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
@@ -47,7 +50,7 @@ type ToggleSettingOptionRowProps = {
     subtitleStyle?: StyleProp<TextStyle>;
 
     /** Whether the option is enabled or not */
-    isActive: boolean;
+    isActive: boolean | SharedValue<boolean>;
 
     /** Callback to be called when the switch is toggled */
     onToggle: (isEnabled: boolean) => void;
@@ -98,6 +101,10 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const isExpanded = useSharedValue(false);
+    const setIsExpanded = (value: boolean) => {
+        isExpanded.set(value);
+    };
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -175,10 +182,11 @@ function ToggleSettingOptionRow({
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
+                        callback={setIsExpanded}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
+                <AccordionItem isExpanded={isExpanded}>{subMenuItems}</AccordionItem>
             </View>
         </OfflineWithFeedback>
     );
