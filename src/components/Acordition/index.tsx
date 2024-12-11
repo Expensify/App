@@ -1,14 +1,7 @@
-// import type {ReactNode} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
-
-// const style = StyleSheet.create({
-//
-//     animatedView: {
-//         overflow: 'hidden',
-//     },
-// });
 
 function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: any; duration?: number}) {
     const height = useSharedValue(0);
@@ -23,7 +16,7 @@ function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: Shar
     }));
 
     return (
-        <Animated.View style={[bodyStyle]}>
+        <Animated.View style={[bodyStyle, {overflow: 'hidden'}]}>
             <View
                 onLayout={(e) => {
                     height.set(e.nativeEvent.layout.height);

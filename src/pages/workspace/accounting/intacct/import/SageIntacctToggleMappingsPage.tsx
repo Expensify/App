@@ -55,6 +55,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const config = policy?.connections?.intacct?.config;
     const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
@@ -67,42 +68,44 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
-            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
-                <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', {mappingName})}</Text>
-                <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
-            </Text>
-            <ToggleSettingOptionRow
-                title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={isImportMappingEnable}
-                onToggle={(enabled) => {
-                    const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
-                    updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
-                }}
-                pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
-                onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
-            />
-            {isImportMappingEnable && (
-                <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
-                        description={translate('workspace.common.displayedAs')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                        brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
-                    />
-                    <Text
-                        style={[styles.textLabelSupporting, styles.ph5]}
-                        numberOfLines={2}
-                    >
-                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                    </Text>
-                </OfflineWithFeedback>
-            )}
+            <>
+                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
+                    <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', {mappingName})}</Text>
+                    <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
+                </Text>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.accounting.import')}
+                    switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.mv3, styles.mh5]}
+                    isActive={isImportMappingEnable}
+                    onToggle={(enabled) => {
+                        const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+                        updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
+                    }}
+                    pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+                    onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
+                    subMenuItems={
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
+                            <MenuItemWithTopDescription
+                                title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                                description={translate('workspace.common.displayedAs')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
+                                brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
+                            />
+                            <Text
+                                style={[styles.textLabelSupporting, styles.ph5]}
+                                numberOfLines={2}
+                            >
+                                {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                            </Text>
+                        </OfflineWithFeedback>
+                    }
+                />
+            </>
         </ConnectionLayout>
     );
 }

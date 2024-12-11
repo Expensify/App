@@ -1,9 +1,10 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import AccordionItem from '@components/Acordition';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -13,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AccordionItem from "@components/Acordition";
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
@@ -101,11 +101,15 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
-    const isExpanded = useSharedValue(false);
+    const innerActive = typeof isActive === 'boolean' ? isActive : isActive.get();
+    const isExpanded = useSharedValue(innerActive);
     const setIsExpanded = (value: boolean) => {
         isExpanded.set(value);
     };
 
+    const newToggle = (value: boolean) => {
+        onToggle(value);
+    };
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
             return '';
@@ -178,15 +182,15 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
-                        isOn={isActive}
+                        onToggle={newToggle}
+                        isOn={innerActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
                         callback={setIsExpanded}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                <AccordionItem isExpanded={isExpanded}>{subMenuItems}</AccordionItem>
+                <AccordionItem isExpanded={isExpanded} onTogleAfterAnimation={onToggle}>{subMenuItems}</AccordionItem>
             </View>
         </OfflineWithFeedback>
     );
