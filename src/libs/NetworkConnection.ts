@@ -83,7 +83,7 @@ Onyx.connect({
             setRandomNetworkStatus(true);
         }
 
-        // Stops random network status change when shouldSimulatePoorConnection is turned into false
+        // Fetch the NetInfo state to set the correct offline status when shouldSimulatePoorConnection is turned into false
         if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
             NetInfo.fetch().then((state) => {
                 const isInternetUnreachable = !state.isInternetReachable;
