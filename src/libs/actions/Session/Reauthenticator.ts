@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {reauthenticate} from '@libs/Authentication';
+import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 
@@ -26,6 +27,7 @@ Onyx.connect({
         }
         setTimeout(() => {
             isOffline = !!network.shouldForceOffline || !!network.isOffline;
+            if (isOffline) Log.info(`@51888 reauthenticator is Offline`);
         }, 500);
     },
 });
@@ -34,9 +36,19 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
+        if (value?.creationDate)
+            Log.info(
+                `@51888 reauthenticator new session received ${value?.authToken?.substring(0, 10)} creationDate ${new Date(
+                    value?.creationDate,
+                ).toISOString()} , active ${active}  isOffline? ${isOffline} currentActiveSession  ${currentActiveSession?.authToken?.substring(0, 10)} creationDate ${
+                    currentActiveSession?.creationDate ? new Date(currentActiveSession?.creationDate).toISOString() : ''
+                }`,
+            );
         if (!value || isSameSession(value) || !active) {
+            Log.info(`@51888 reauthenticator new session received but not doing anything`);
             return;
         }
+        Log.info(`@51888 reauthenticator new session received, deactivating`);
         deactivate();
     },
 });
@@ -46,6 +58,7 @@ function isSameSession(session: Session): boolean {
 }
 
 function deactivate() {
+    Log.info(`@51888 reauthenticator deactivating`);
     active = false;
     currentActiveSession = {};
     clearInterval(timer);
@@ -59,8 +72,10 @@ function deactivate() {
  */
 function activate(session: Session) {
     if (!session || isSameSession(session) || isOffline) {
+        Log.info(`@51888 reauthenticator activation requested but already active or offline`);
         return;
     }
+    Log.info(`@51888 reauthenticator activating`);
     currentActiveSession = session;
     active = true;
     // no need to Timers.register()
@@ -71,6 +86,7 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
+    Log.info(`@51888 reauthenticator reauthenticating at ${new Date().toISOString()}`);
     reauthenticate();
 }
 

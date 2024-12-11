@@ -1,8 +1,10 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/Reauthenticator';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
@@ -12,6 +14,8 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
+    if (isAuthTokenRequired && session?.creationDate)
+        Log.info(`@51888 image initialized with session  ${session.authToken?.substring(0, 10)} creationDate ${new Date(session.creationDate).toISOString()} `);
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
@@ -60,13 +64,21 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 // most likely a reauthentication happens
                 // but unless the calculated source is different from the previous, the image wont reload
                 if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
+                    Log.info(
+                        `@51888 setting validSessionAge to accepted session ${session.authToken?.substring(0, 10)} creationDate ${new Date(
+                            session.creationDate,
+                        ).toISOString()}} received less than 60s ago or newer from 2H`,
+                    );
                     return session.creationDate;
                 }
+                Log.info(`@51888 setting validSessionAge to unchanged`);
                 return previousSessionAge.current;
             }
             if (isExpiredSession(session.creationDate)) {
+                Log.info(`@51888 setting validSessionAge to now as session is expired`);
                 return new Date().getTime();
             }
+            Log.info(`@51888 setting validSessionAge to current session ${session.authToken?.substring(0, 10)} ${new Date(session.creationDate).toISOString()}`);
             return session.creationDate;
         }
         return undefined;
@@ -76,6 +88,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             return;
         }
         previousSessionAge.current = validSessionAge;
+        Log.info(`@51888 useEffect setting previousSessionAge to ${validSessionAge ? new Date(validSessionAge).toISOString() : validSessionAge}`);
     });
 
     /**
@@ -92,6 +105,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
+                    Log.info(`@51888 setting source with token and session ${session.authToken?.substring(0, 10)} creationDate ${new Date(session.creationDate).toISOString()} `);
                     // session valid
                     return {
                         ...propsSource,
@@ -100,6 +114,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                         },
                     };
                 }
+                Log.info(`@51888 source as spinner `);
                 if (session) {
                     activateReauthenticator(session);
                 }
@@ -118,6 +133,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         }
         if (forwardedProps?.onLoadStart) {
             forwardedProps.onLoadStart();
+            Log.info(`@51888 forwardedProps.onLoadStart() `);
         }
     }, [source, isAuthTokenRequired, forwardedProps]);
 
@@ -126,13 +142,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      */
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
-    if (source === undefined) {
-        if (forwardedProps?.onLoadStart) {
-            return undefined;
-        }
-        return <FullScreenLoadingIndicator />;
-    }
-    return (
+    return source === undefined ? (
+        <FullScreenLoadingIndicator />
+    ) : (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
