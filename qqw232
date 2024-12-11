@@ -1,0 +1,27 @@
+import { useMemo } from 'react';
+import * as ReportUtils from './path/to/ReportUtils';
+
+const getMoneyRequestReportName = (report, policy, invoicePolicy) => {
+  let formattedName = report.reportName;
+  
+  // Eğer fatura raporu varsa, adını almak için gerekli fonksiyonu çağır
+  if (ReportUtils.isInvoiceReport(report)) {
+    formattedName = ReportUtils.getMoneyRequestReportName(report, policy, invoicePolicy);
+  }
+
+  return formattedName;
+};
+
+const handleRenameReport = (report, newName) => {
+  // Fatura başlığını güncelle
+  if (report && newName) {
+    report.reportName = newName;
+  }
+
+  // Yeniden adlandırılan başlığı kontrol et
+  const updatedReportName = getMoneyRequestReportName(report, report.policy, report.invoicePolicy);
+  return updatedReportName;
+};
+
+// Örnek kullanım
+const updatedReportName = handleRenameReport(report, 'Yeni Fatura Başlığı');
