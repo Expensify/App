@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import RNFS from 'react-native-fs';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import Onyx from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import {KEYS_TO_PRESERVE, setIsUsingImportedState} from '@libs/actions/App';
@@ -13,33 +13,15 @@ import {cleanAndTransformState} from './utils';
 
 const CHUNK_SIZE = 100;
 
-function readFileInChunks(fileUri: string, chunkSize = 1024 * 1024) {
+function readOnyxFile(fileUri: string) {
     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
 
-    return RNFS.exists(filePath)
-        .then((exists) => {
-            if (!exists) {
-                throw new Error('File does not exist');
-            }
-            return RNFS.stat(filePath);
-        })
-        .then((fileStats) => {
-            const fileSize = fileStats.size;
-            let fileContent = '';
-            const promises = [];
-
-            // Chunk the file into smaller parts to avoid memory issues
-            for (let i = 0; i < fileSize; i += chunkSize) {
-                promises.push(RNFS.read(filePath, chunkSize, i, 'utf8').then((chunk) => chunk));
-            }
-
-            // After all chunks have been read, join them together
-            return Promise.all(promises).then((chunks) => {
-                fileContent = chunks.join('');
-
-                return fileContent;
-            });
-        });
+    return ReactNativeBlobUtil.fs.exists(filePath).then((exists) => {
+        if (!exists) {
+            throw new Error('File does not exist');
+        }
+        return ReactNativeBlobUtil.fs.readFile(filePath, 'utf8');
+    });
 }
 
 function chunkArray<T>(array: T[], size: number): T[][] {
@@ -72,8 +54,8 @@ export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxSta
         }
 
         setIsLoading(true);
-        readFileInChunks(file.uri)
-            .then((fileContent) => {
+        readOnyxFile(file.uri)
+            .then((fileContent: string) => {
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
                 setShouldForceOffline(true);
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {

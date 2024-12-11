@@ -52,7 +52,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
-    const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session.accountID);
+    const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session?.accountID);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -85,11 +85,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
         );
         if (isPaidGroupPolicy) {
-            optionList.recentReports = OptionsListUtils.orderOptions(optionList.recentReports, searchTerm, {
+            const orderedOptions = OptionsListUtils.orderOptions(optionList, searchTerm, {
                 preferChatroomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             });
+            optionList.recentReports = orderedOptions.recentReports;
+            optionList.personalDetails = orderedOptions.personalDetails;
         }
         if (optionList.currentUserOption && !isCurrentUserAttendee) {
             optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];
@@ -121,7 +123,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,

@@ -150,7 +150,7 @@ function ReportActionsList({
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();

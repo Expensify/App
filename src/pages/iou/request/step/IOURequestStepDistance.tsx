@@ -445,7 +445,7 @@ function IOURequestStepDistance({
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
-        if (!isCreatingNewRequest) {
+        if (!isCreatingNewRequest && !isEditing) {
             transactionWasSaved.current = true;
         }
         if (isEditing) {
@@ -466,6 +466,7 @@ function IOURequestStepDistance({
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,
             });
+            transactionWasSaved.current = true;
             navigateBack();
             return;
         }

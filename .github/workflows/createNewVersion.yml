@@ -156,6 +156,7 @@ jobs:
           ANDROID_MANIFEST_FILE="Android/AndroidManifest.xml"
           IOS_INFO_PLIST_FILE="iOS/Expensify/Expensify-Info.plist"
           IOS_SHARE_EXTENSION_PLIST_FILE="iOS/SmartScanExtension/Info.plist"
+          IOS_NOTIFICATION_EXTENSION_PLIST_FILE="iOS/NotificationServiceExtension/Info.plist"
           JS_CONFIG_FILE="app/config/config.json" 
           
           # Update Android HybridApp Version
@@ -167,6 +168,8 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_INFO_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_NOTIFICATION_EXTENSION_PLIST_FILE
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_NOTIFICATION_EXTENSION_PLIST_FILE
           
           # Update JS HybridApp Version
           sed -i .bak -E  "s/\"version\": \"([0-9\.]*)\"/\"version\": \"$FULL_APP_VERSION\"/" $JS_CONFIG_FILE
@@ -179,7 +182,8 @@ jobs:
             ./Android/AndroidManifest.xml \
             ./app/config/config.json \
             ./iOS/Expensify/Expensify-Info.plist\
-            ./iOS/SmartScanExtension/Info.plist
+            ./iOS/SmartScanExtension/Info.plist \
+            ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
       - name: Update main branch

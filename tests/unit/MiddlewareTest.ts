@@ -54,7 +54,6 @@ describe('Middleware', () => {
             TestHelper.assertFormDataMatchesObject(
                 {
                     reportID: '1234',
-                    reportActionID: '5678',
                 },
                 ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
             );
@@ -109,7 +108,6 @@ describe('Middleware', () => {
             TestHelper.assertFormDataMatchesObject(
                 {
                     reportID: '5555',
-                    reportActionID: '5678',
                 },
                 ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
             );

@@ -379,17 +379,28 @@ function AttachmentModal({
     );
 
     /**
-     * close the modal
+     * Closes the modal.
+     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
+     * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
+     * This ensures smooth modal closing behavior without causing delays in closing.
      */
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
+    const closeModal = useCallback(
+        (shouldCallDirectly?: boolean) => {
+            setIsModalOpen(false);
 
-        if (typeof onModalClose === 'function') {
-            attachmentModalHandler.handleModalClose(onModalClose);
-        }
+            if (typeof onModalClose === 'function') {
+                if (shouldCallDirectly) {
+                    onModalClose();
+                    return;
+                }
+                attachmentModalHandler.handleModalClose(onModalClose);
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [onModalClose]);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [onModalClose],
+    );
 
     /**
      *  open the modal
@@ -419,7 +430,7 @@ function AttachmentModal({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal();
+                    closeModal(true);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,

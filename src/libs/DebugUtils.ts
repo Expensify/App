@@ -458,7 +458,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'policyID':
         case 'reportName':
         case 'reportID':
-        case 'reportActionID':
         case 'chatReportID':
         case 'type':
         case 'lastMessageTranslationKey':
@@ -595,7 +594,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 hasParentAccess: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isDeletedParentAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,

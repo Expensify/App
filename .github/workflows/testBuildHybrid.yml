@@ -6,12 +6,17 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
+      OLD_DOT_COMMIT:
+        description: The branch, tag or SHA to checkout on Old Dot side
+        required: false
+        default: 'main'
   pull_request_target:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
 env:
   PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+  OLD_DOT_COMMIT: ${{ github.event.inputs.OLD_DOT_COMMIT }}
 
 jobs:
   validateActor:
@@ -94,6 +99,7 @@ jobs:
           repository: 'Expensify/Mobile-Expensify'
           submodules: true
           path: 'Mobile-Expensify'
+          ref: ${{ env.OLD_DOT_COMMIT }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0

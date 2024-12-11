@@ -182,7 +182,11 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
 }
 
 describe('Unread Indicators', () => {
-    afterEach(() => {
+    beforeAll(() => {
+        PusherHelper.setup();
+    });
+
+    beforeEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
 

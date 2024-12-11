@@ -71,6 +71,13 @@ Flight preferences include multiple sections with different settings:
 - **Maximum price:** Set a daily price cap per car (not including taxes and fees).
 - **Out of policy reason codes:** If enabled, travelers will be asked to enter a reason code for an out-of-policy car booking. This gives them a way to provide context for why the booking is still being placed. You can also modify the reason codes by clicking Manage reason codes below the toggle.
 
+# Rail
+
+- **Maximum price:** Set a maximum price per booking or customise by rail trip duration.
+- **Highest travel class:** Set a maximum travel class per booking or customise by rail trip duration.
+- **Booking window:** Add a time limit to prevent employees from booking less than a certain number of days in advance to prohibit bookings too close to the journey time.
+- **Out-of-policy reason code for rail:** If enabled, travelers will be asked to enter a reason code for an out-of-policy rail booking. This gives them a way to provide context for why the booking is still being placed. You can also modify the reason codes by clicking Manage reason codes below the toggle.
+
 # FAQ
 
 How do travel policy rules interact with Expensify’s [approval flows](https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expenses)?

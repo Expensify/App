@@ -367,21 +367,10 @@ function endSignOnTransition() {
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- * @param [policyID] Optional, Policy id.
- * @param [file],file
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(
-    policyOwnerEmail = '',
-    policyName = '',
-    transitionFromOldDot = false,
-    makeMeAdmin = false,
-    backTo = '',
-    policyID = '',
-    currency?: string,
-    file?: File,
-) {
-    const genereatedPolicyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID || genereatedPolicyID, makeMeAdmin, currency, file);
+function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
+    const policyID = Policy.generatePolicyID();
+    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -389,7 +378,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
             Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
         })
         .then(endSignOnTransition);
@@ -403,8 +392,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
+    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
 }
 
 /**

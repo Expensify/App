@@ -5,7 +5,7 @@ import Section, {CARD_LAYOUT} from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import * as App from '@userActions/App';
 
 function WorkspaceCardCreateAWorkspace() {
     const styles = useThemeStyles();
@@ -22,7 +22,8 @@ function WorkspaceCardCreateAWorkspace() {
         >
             <Button
                 onPress={() => {
-                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION);
+                    const activeRoute = Navigation.getActiveRouteWithoutParams();
+                    App.createWorkspaceWithPolicyDraftAndNavigateToIt('', '', false, false, activeRoute);
                 }}
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}

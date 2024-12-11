@@ -153,6 +153,7 @@ function MultipleAvatars({
                 fallbackUserDetails={{
                     displayName: icons.at(0)?.name,
                 }}
+                shouldRender={shouldShowTooltip}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -194,6 +195,7 @@ function MultipleAvatars({
                         fallbackUserDetails={{
                             displayName: icon.name,
                         }}
+                        shouldRender={shouldShowTooltip}
                     >
                         <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
                             <Avatar
@@ -221,6 +223,7 @@ function MultipleAvatars({
                     <Tooltip
                         // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
                         text={tooltipTexts.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).join(', ')}
+                        shouldRender={shouldShowTooltip}
                     >
                         <View
                             style={[
@@ -260,6 +263,7 @@ function MultipleAvatars({
                     fallbackUserDetails={{
                         displayName: icons.at(0)?.name,
                     }}
+                    shouldRender={shouldShowTooltip}
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
@@ -282,6 +286,7 @@ function MultipleAvatars({
                             fallbackUserDetails={{
                                 displayName: icons.at(1)?.name,
                             }}
+                            shouldRender={shouldShowTooltip}
                         >
                             <View>
                                 <Avatar
@@ -296,7 +301,10 @@ function MultipleAvatars({
                             </View>
                         </UserDetailsTooltip>
                     ) : (
-                        <Tooltip text={tooltipTexts.slice(1).join(', ')}>
+                        <Tooltip
+                            text={tooltipTexts.slice(1).join(', ')}
+                            shouldRender={shouldShowTooltip}
+                        >
                             <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 <Text
                                     style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}
