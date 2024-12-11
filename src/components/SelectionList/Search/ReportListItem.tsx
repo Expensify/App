@@ -173,6 +173,7 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                         containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
                         isLoading={reportItem.isActionLoading}
+                        shouldUseSuccessStyle={!hasHeldExpenses}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
