@@ -262,7 +262,7 @@ function MoneyRequestParticipantsSelector({
         getContactPermission().then((status) => {
             setContactPermissionState(status);
             if (status !== RESULTS.BLOCKED && status !== RESULTS.UNAVAILABLE) {
-                // setSoftPermissionModalVisible(true);
+                setSoftPermissionModalVisible(true);
             }
         });
     }, []);
