@@ -491,7 +491,7 @@ describe('SidebarLinksData', () => {
             // And we are in the focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
-            // This report should not appear in the sidebar.
+            // Then this report should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
     });
