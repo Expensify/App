@@ -639,8 +639,7 @@ const CONST = {
                 IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
                 BENEFICIAL_OWNER_DETAILS_FORM: 3,
                 ARE_THERE_MORE_BENEFICIAL_OWNERS: 4,
-                OWNERSHIP_CHART: 5,
-                BENEFICIAL_OWNERS_LIST: 6,
+                BENEFICIAL_OWNERS_LIST: 5,
             },
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -655,6 +654,10 @@ const CONST = {
                 STATE: 'state',
                 ZIP_CODE: 'zipCode',
                 COUNTRY: 'country',
+                PROOF_OF_OWNERSHIP: 'proofOfOwnership',
+                COPY_OF_ID: 'copyOfID',
+                ADDRESS_PROOF: 'addressProof',
+                CODICE_FISCALE: 'codiceFisacle',
             },
             CURRENT_USER_KEY: 'currentUser',
         },
@@ -708,6 +711,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        IT: 'IT',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',

@@ -8,6 +8,7 @@ import type {
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
+    SaveCorpayOnboardingBeneficialOwnerParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -446,6 +447,10 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
     });
 }
 
+function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBeneficialOwnerParams) {
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters);
+}
+
 function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformation, bankAccountID: number) {
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, {
         inputs: JSON.stringify(parameters),
@@ -686,6 +691,7 @@ export {
     getCorpayBankAccountFields,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,
 };
 

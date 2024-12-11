@@ -23,14 +23,14 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const ownershipPercentageInputID = `${PREFIX}_${ownerBeingModifiedID}_${OWNERSHIP_PERCENTAGE}` as const;
-    const defaultOwnershipPercentage = reimbursementAccountDraft?.[ownershipPercentageInputID] ?? '';
+    const defaultOwnershipPercentage = String(reimbursementAccountDraft?.[ownershipPercentageInputID] ?? '');
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYoursPercentage' : 'ownershipInfoStep.whatPercentage');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [ownershipPercentageInputID]);
 
-            if (values[ownershipPercentageInputID] && !ValidationUtils.isValidOwnershipPercentage(values[ownershipPercentageInputID], totalOwnedPercentage, ownerBeingModifiedID)) {
+            if (values[ownershipPercentageInputID] && !ValidationUtils.isValidOwnershipPercentage(String(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
             }
 
