@@ -101,9 +101,6 @@ function SubmitDetailsPage({
                 linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
             },
         });
-        console.log('navigating reportID', reportID);
-        const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-        Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
@@ -180,15 +177,13 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         selectedParticipants={participants}
                         iouAmount={0}
-                        shouldDisplayReceipt
                         iouComment={trimmedComment}
-                        isConfirmed={false}
-                        reportID={reportID}
-                        shouldShowSmartScanFields={false}
+                        iouCategory={transaction?.category}
+                        onConfirm={() => onConfirm(true)}
                         receiptPath={currentAttachment?.content}
                         receiptFilename={FileUtils.getFileName(currentAttachment?.content ?? '')}
-                        transaction={transaction}
-                        onConfirm={() => onConfirm(true)}
+                        reportID={reportID}
+                        shouldShowSmartScanFields={false}
                     />
                 </View>
             </FullPageNotFoundView>
