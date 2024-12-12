@@ -3,7 +3,16 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {CONCEIRGE_LHN_GBR, RENAME_SAVED_SEARCH, WORKSAPCE_CHAT_CREATE, QUICK_ACTION_BUTTON} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCEIRGE_LHN_GBR,
+    RENAME_SAVED_SEARCH,
+    WORKSAPCE_CHAT_CREATE,
+    QUICK_ACTION_BUTTON,
+    SEARCH_FILTER_BUTTON_TOOLTIP,
+    BOTTOM_NAV_INBOX_TOOLTIP,
+    LHN_WORKSPACE_CHAT_TOOLTIP,
+    GLOBAL_CREATE_TOOLTIP,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
@@ -40,6 +49,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
+    [GLOBAL_CREATE_TOOLTIP]: {
+        content: [
+            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
+        name: GLOBAL_CREATE_TOOLTIP,
+        priority: 1200,
+        shouldShow: () => true,
+    },
     [QUICK_ACTION_BUTTON]: {
         content: [
             {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
@@ -47,7 +67,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
         name: QUICK_ACTION_BUTTON,
-        priority: 1200,
+        priority: 1150,
         shouldShow: () => true,
     },
     [WORKSAPCE_CHAT_CREATE]: {
@@ -59,6 +79,36 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,
         priority: 1100,
+        shouldShow: () => true,
+    },
+    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
+        content: [
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
+        name: SEARCH_FILTER_BUTTON_TOOLTIP,
+        priority: 1000,
+        shouldShow: () => true,
+    },
+    [BOTTOM_NAV_INBOX_TOOLTIP]: {
+        content: [
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
+        name: BOTTOM_NAV_INBOX_TOOLTIP,
+        priority: 900,
+        shouldShow: () => true,
+    },
+    [LHN_WORKSPACE_CHAT_TOOLTIP]: {
+        content: [
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
+        name: LHN_WORKSPACE_CHAT_TOOLTIP,
+        priority: 800,
         shouldShow: () => true,
     },
 };

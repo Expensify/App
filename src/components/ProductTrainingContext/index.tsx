@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import Permissions from '@libs/Permissions';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
@@ -81,6 +82,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             const tooltipConfig = TOOLTIPS[tooltipName];
 
             if (!isOnboardingCompleted && !hasBeenAddedToNudgeMigration) {
+                return false;
+            }
+
+            // if hasbeenaddedtonudgemigration is true, and welcome modal is not dismissed, don't show tooltip
+            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
                 return false;
             }
 
@@ -164,7 +170,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     fill={theme.tooltipHighlightText}
                     medium
                 />
-                <Text style={[styles.quickActionTooltipSubtitle]}>
+                <Text style={[styles.quickActionTooltipSubtitle, styles.textWrap]}>
                     {tooltip.content.map(({text, isBold}) => {
                         const translatedText = translate(text);
                         return (
@@ -189,6 +195,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.quickActionTooltipSubtitle,
         styles.textAlignCenter,
         styles.textBold,
+        styles.textWrap,
         theme.tooltipHighlightText,
         tooltipName,
         translate,

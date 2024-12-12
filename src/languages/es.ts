@@ -5987,6 +5987,23 @@ const translations = {
             part2: ' gastos',
             part3: ' aquí',
         },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: ' comes with 🟢 for actions to take and 🔴 for errors',
+        },
+        workspaceChatTooltip: {
+            part1: 'Review submitted expenses and chat with approvers in your',
+            part2: ' workspace chat.',
+        },
+        globalCreateTooltip: {
+            part1: 'Where to ',
+            part2: ' create expenses,',
+            part3: '\nstart chatting, and more.',
+        },
     },
 };
 
