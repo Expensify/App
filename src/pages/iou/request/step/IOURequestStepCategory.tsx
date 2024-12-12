@@ -154,7 +154,7 @@ function IOURequestStepCategory({
         }
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
             return;
         }
 
