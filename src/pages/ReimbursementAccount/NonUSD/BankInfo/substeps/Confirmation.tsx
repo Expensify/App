@@ -77,7 +77,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isCreateCorpayBankAccount || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
             return;
         }
 
