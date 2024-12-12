@@ -267,7 +267,10 @@ function TransactionListItemRow({
     const theme = useTheme();
 
     const isOnHold = useMemo(() => TransactionUtils.isOnHold(item), [item]);
-    const shouldDisableItemAction = useMemo(() => item.action === CONST.SEARCH.ACTION_TYPES.SUBMIT && !ReportUtils.isAllowedToSubmitDraftExpenseReport(ReportUtils.getReport(item.reportID)), [item]);
+    const shouldDisableItemAction = useMemo(
+        () => item.action === CONST.SEARCH.ACTION_TYPES.SUBMIT && !ReportUtils.isAllowedToSubmitDraftExpenseReport(ReportUtils.getReport(item.reportID)),
+        [item],
+    );
 
     if (!isLargeScreenWidth) {
         return (
