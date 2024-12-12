@@ -115,6 +115,10 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
+      
+      - name: Run grunt build
+        run: |
+            npm run grunt:build:shared
 
       - name: Setup dotenv
         run: |
