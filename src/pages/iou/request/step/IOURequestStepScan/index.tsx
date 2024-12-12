@@ -221,7 +221,7 @@ function IOURequestStepScan({
                 }
 
                 if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
                     return false;
                 }
 
@@ -618,6 +618,16 @@ function IOURequestStepScan({
         />
     ) : null;
 
+    const getConfirmModalPrompt = () => {
+        if (!attachmentInvalidReason) {
+            return '';
+        }
+        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        }
+        return translate(attachmentInvalidReason);
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -794,7 +804,7 @@ function IOURequestStepScan({
                             onConfirm={hideRecieptModal}
                             onCancel={hideRecieptModal}
                             isVisible={isAttachmentInvalid}
-                            prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                            prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
