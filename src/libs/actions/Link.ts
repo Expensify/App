@@ -183,11 +183,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }
-    const OLD_DOT_PUBLIC_URLS: string[] = [CONST.TERMS_URL, CONST.PRIVACY_URL];
-
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
     // As attachments also use expensify.com we don't want it working the same as links.
-    const isPublicOldDotURL = OLD_DOT_PUBLIC_URLS.includes(href);
+    const isPublicOldDotURL = (Object.values(CONST.OLD_DOT_PUBLIC_URLS) as string[]).includes(href);
     if (internalExpensifyPath && !isAttachment && !isPublicOldDotURL) {
         openOldDotLink(internalExpensifyPath);
         return;
