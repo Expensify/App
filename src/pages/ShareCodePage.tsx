@@ -21,12 +21,12 @@ import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
