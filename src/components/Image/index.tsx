@@ -64,7 +64,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 // most likely a reauthentication happens
                 // but unless the calculated source is different from the previous, the image wont reload
                 if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
-                    console.log(
+                    Log.info(
                         `@51888 setting validSessionAge to accepted session ${session.authToken?.substring(0, 10)} creationDate ${new Date(
                             session.creationDate,
                         ).toISOString()}} received less than 60s ago or newer from 2H`,
@@ -146,7 +146,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         return undefined;
     }
     if (source === undefined) {
-        return <FullScreenLoadingIndicator _51888test={true} />;
+        return <FullScreenLoadingIndicator flag51888test />;
     }
     return (
         <BaseImage

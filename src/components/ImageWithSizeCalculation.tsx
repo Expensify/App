@@ -56,16 +56,7 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
     const [isLoading, setIsLoading] = useState(false);
     const {isOffline} = useNetwork();
 
-    const source = useMemo(() => {
-        //(typeof url === 'string' ? {uri: url} : url)
-        if (isAuthTokenRequired) {
-            Log.info(`@51888 ImageWitrhSize source ${url}`);
-        }
-        if (typeof url === 'string') {
-            return {uri: url};
-        }
-        return url;
-    }, [url]);
+    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
