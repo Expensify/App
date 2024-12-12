@@ -4,8 +4,8 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
-import * as ReportConnection from '@libs/ReportConnection';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getAllReports} from '@libs/ReportConnection';
+import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,13 +16,13 @@ import type {Screen} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
-import originalDismissModalWithReport from './dismissModalWithReport';
+import {dismissModalWithReport as originalDismissModalWithReport} from './dismissModalWithReport';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
@@ -66,7 +66,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
         originalDismissModal(ref);
         return;
     }
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
 // Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
@@ -105,12 +105,12 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN:
-            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, generateReportID());
         default:
             return url;
     }

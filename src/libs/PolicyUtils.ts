@@ -384,7 +384,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 

@@ -15,7 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
@@ -77,4 +77,5 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
     }
 }
 
-export default dismissModalWithReport;
+// eslint-disable-next-line import/prefer-default-export
+export {dismissModalWithReport};

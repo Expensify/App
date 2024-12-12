@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import config, {normalizedConfigs} from './config';
+import {config, normalizedConfigs} from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';

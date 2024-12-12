@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State, SwitchPolicyIDParams} from './types';
 
 type ActionPayloadParams = {
