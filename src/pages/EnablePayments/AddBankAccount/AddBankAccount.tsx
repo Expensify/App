@@ -32,9 +32,9 @@ function AddBankAccount() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccountDraft?.plaidAccountID);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, personalBankAccount?.isInvoiceBankAccount);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
+    }, [personalBankAccount?.isInvoiceBankAccount, personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
