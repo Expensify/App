@@ -19,6 +19,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -266,6 +267,7 @@ function TransactionListItemRow({
     const theme = useTheme();
 
     const isOnHold = useMemo(() => TransactionUtils.isOnHold(item), [item]);
+    const shouldDisableItemAction = useMemo(() => item.action === 'submit' && !ReportUtils.isAllowedToSubmitDraftExpenseReport(ReportUtils.getReport(item.reportID)), [item]);
 
     if (!isLargeScreenWidth) {
         return (
@@ -453,6 +455,7 @@ function TransactionListItemRow({
                         parentAction={parentAction}
                         goToItem={onButtonPress}
                         isLoading={isLoading}
+                        isDisabled={shouldDisableItemAction}
                     />
                 </View>
             </View>
