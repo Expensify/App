@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {ReportActionHighlightContext} from '@components/ReportActionHighlightProvider';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -264,6 +265,8 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive(false);
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const {removeHighlight} = useContext(ReportActionHighlightContext);
+
     /**
      * Add a new comment to this chat
      */
@@ -280,15 +283,17 @@ function ReportActionCompose({
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
                 Timing.start(CONST.TIMING.SEND_MESSAGE);
                 onSubmit(newCommentTrimmed);
+                removeHighlight();
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, removeHighlight],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
+        removeHighlight();
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
-    }, []);
+    }, [removeHighlight]);
 
     const onBlur = useCallback(
         (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
@@ -354,6 +359,7 @@ function ReportActionCompose({
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
     }>({clear: undefined});
+
     const handleSendMessage = useCallback(() => {
         'worklet';
 
