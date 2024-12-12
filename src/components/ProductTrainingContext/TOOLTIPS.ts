@@ -19,7 +19,7 @@ type TooltipData = {
     shouldShow: (props: ShouldShowConditionProps) => boolean;
 };
 
-const PRODUCT_TRAINING_TOOLTIP_DATA: Record<ProductTrainingTooltipName, TooltipData> = {
+const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCEIRGE_LHN_GBR]: {
         content: [
             {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
@@ -63,5 +63,5 @@ const PRODUCT_TRAINING_TOOLTIP_DATA: Record<ProductTrainingTooltipName, TooltipD
     },
 };
 
-export default PRODUCT_TRAINING_TOOLTIP_DATA;
+export default TOOLTIPS;
 export type {ProductTrainingTooltipName};

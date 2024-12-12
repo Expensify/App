@@ -12,8 +12,8 @@ import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import Permissions from '@libs/Permissions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {ProductTrainingTooltipName} from './PRODUCT_TRAINING_TOOLTIP_DATA';
-import PRODUCT_TRAINING_TOOLTIP_DATA from './PRODUCT_TRAINING_TOOLTIP_DATA';
+import type {ProductTrainingTooltipName} from './TOOLTIPS';
+import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
@@ -58,7 +58,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         const sortedTooltips = Array.from(activeTooltips)
             .map((name) => ({
                 name,
-                priority: PRODUCT_TRAINING_TOOLTIP_DATA[name]?.priority ?? 0,
+                priority: TOOLTIPS[name]?.priority ?? 0,
             }))
             .sort((a, b) => b.priority - a.priority);
 
@@ -78,7 +78,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             if (isDismissed || !Permissions.shouldShowProductTrainingElements(allBetas)) {
                 return false;
             }
-            const tooltipConfig = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+            const tooltipConfig = TOOLTIPS[tooltipName];
 
             if (!isOnboardingCompleted && !hasBeenAddedToNudgeMigration) {
                 return false;
@@ -156,7 +156,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const renderProductTrainingTooltip = useCallback(() => {
-        const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+        const tooltip = TOOLTIPS[tooltipName];
         return (
             <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
                 <Icon
@@ -199,7 +199,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName]);
 
     const hideProductTrainingTooltip = useCallback(() => {
-        const tooltip = PRODUCT_TRAINING_TOOLTIP_DATA[tooltipName];
+        const tooltip = TOOLTIPS[tooltipName];
         tooltip.onHideTooltip();
         unregisterTooltip(tooltipName);
     }, [tooltipName, unregisterTooltip]);
