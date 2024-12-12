@@ -1,8 +1,9 @@
-import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange, MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React from 'react';
+import React, {forwardRef, useCallback} from 'react';
 import Animated from 'react-native-reanimated';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
@@ -11,7 +12,29 @@ const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextI
 
 type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & HTMLInputElement;
 
-type RNMarkdownTextInputProps = Omit<MarkdownTextInputProps, 'parser'>;
+// Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
+type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
+    parser?: MarkdownTextInputProps['parser'];
+};
+
+function decorateRangesWithCurrentUser(ranges: MarkdownRange[], text: string, currentUser: string): MarkdownRange[] {
+    'worklet';
+
+    return ranges.map((range) => {
+        if (range.type === 'mention-user') {
+            const mentionText = text.slice(range.start, range.start + range.length);
+            const isCurrentUser = mentionText === `@${currentUser}`;
+            if (isCurrentUser) {
+                return {
+                    ...range,
+                    type: 'mention-here',
+                };
+            }
+        }
+
+        return range;
+    });
+}
 
 function handleFormatSelection(selectedText: string, formatCommand: string) {
     switch (formatCommand) {
@@ -24,15 +47,37 @@ function handleFormatSelection(selectedText: string, formatCommand: string) {
     }
 }
 
-function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const currentUserLogin = currentUserPersonalDetails.login;
+
+    // We accept parser passed down as a prop or use ExpensiMark if parser is not defined
+    const parserWorklet = useCallback(
+        (text: string) => {
+            'worklet';
+
+            if (parser) {
+                return parser(text);
+            }
+
+            const parsedMentions = parseExpensiMark(text);
+            if (!currentUserLogin) {
+                return parsedMentions;
+            }
+
+            return decorateRangesWithCurrentUser(parsedMentions, text, currentUserLogin);
+        },
+        [currentUserLogin, parser],
+    );
 
     return (
         <AnimatedMarkdownTextInput
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
-            parser={parseExpensiMark}
+            parser={parserWorklet}
             ref={(refHandle) => {
                 if (typeof ref !== 'function') {
                     return;
@@ -43,7 +88,7 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
             // eslint-disable-next-line
             {...props}
             /**
-             * If maxLength is not set, we should set the it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
+             * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
              */
             maxLength={maxLength ?? CONST.MAX_COMMENT_LENGTH + 1}
         />
@@ -52,5 +97,6 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
 
 RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNMarkdownTextInputWithRef);
+export default forwardRef(RNMarkdownTextInputWithRef);
+export {decorateRangesWithCurrentUser};
 export type {AnimatedMarkdownTextInputRef};
