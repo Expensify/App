@@ -83,7 +83,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
         isFocused,
     );
-    console.log('shouldShowProductTrainingTooltip', shouldShowProductTrainingTooltip, isFocused);
+
     const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
