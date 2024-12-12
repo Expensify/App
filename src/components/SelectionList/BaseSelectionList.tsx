@@ -105,6 +105,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDelayFocus = true,
         onArrowFocus = () => {},
         shouldUpdateFocusedIndex = false,
+        shouldResetFocusedIndex = false,
         onLongPressRow,
         shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
         shouldShowListEmptyContent = true,
@@ -666,7 +667,7 @@ function BaseSelectionList<TItem extends ListItem>(
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
 
-        updateAndScrollToFocusedIndex(newSelectedIndex);
+        updateAndScrollToFocusedIndex(shouldResetFocusedIndex ? 0 : newSelectedIndex);
     }, [
         canSelectMultiple,
         flattenedSections.allOptions.length,
@@ -677,6 +678,7 @@ function BaseSelectionList<TItem extends ListItem>(
         prevSelectedOptionsLength,
         prevAllOptionsLength,
         shouldUpdateFocusedIndex,
+        shouldResetFocusedIndex,
     ]);
 
     useEffect(

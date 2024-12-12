@@ -395,6 +395,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
+    /** Whether to reset the focused index to zero */
+    shouldResetFocusedIndex?: boolean;
+
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
 
