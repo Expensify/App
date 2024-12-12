@@ -8,6 +8,7 @@ import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -37,6 +38,9 @@ function useOnboardingFlowRouter() {
         }
 
         if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+            const query = defaultCannedQuery;
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
             Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
