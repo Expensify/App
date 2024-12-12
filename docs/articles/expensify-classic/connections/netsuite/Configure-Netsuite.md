@@ -36,22 +36,28 @@ The three options for the date your report will export with are:
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
+## Accounting Method
+
+This dictates when reimbursable expenses will export, according to your preferred accounting method:
+- Accrual: Out of pocket expenses will export immediately when the report is final approved
+- Cash: Out of pocket expenses will export when paid via Expensify or marked as Reimbursed
+
 ## Export Settings for Reimbursable Expenses 
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
 
-**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding policy. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
+**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding workspace. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
 
-**Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this policy. All the transactions will be posted to the payable account specified in the policy. You can also set an approval level in NetSuite for the journal entries.
+**Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this workspace. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
 
 - Journal entry forms by default do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
 ## Export Settings for Non-Reimbursable Expenses
 
-**Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
+**Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
 
-**Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
+**Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
 
 - Expensify Card expenses will always export as Journal Entries, even if you have Expense Reports or Vendor Bills configured for non-reimbursable expenses on the Export tab
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
