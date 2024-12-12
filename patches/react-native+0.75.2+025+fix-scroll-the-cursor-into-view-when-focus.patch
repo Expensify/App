@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index db7cba4..6937720 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -88,6 +88,7 @@ - (void)didMoveToWindow
+     const auto &props = static_cast<const TextInputProps &>(*_props);
+     if (props.autoFocus) {
+       [_backedTextInputView becomeFirstResponder];
++      [self scrollCursorIntoView];
+     }
+     _didMoveToWindow = YES;
+     [self initializeReturnKeyType];
+@@ -301,6 +302,7 @@ - (void)textInputDidBeginEditing
+     [self textInputDidChangeSelection];
+   }
+ 
++  [self scrollCursorIntoView];
+   if (_eventEmitter) {
+     static_cast<const TextInputEventEmitter &>(*_eventEmitter).onFocus([self _textInputMetrics]);
+   }
+@@ -674,6 +676,15 @@ - (void)_setAttributedString:(NSAttributedString *)attributedString
+   _lastStringStateWasUpdatedWith = attributedString;
+ }
+ 
++- (void)scrollCursorIntoView {
++    UITextRange *selectedRange = _backedTextInputView.selectedTextRange;
++    if (selectedRange.empty) {
++      NSInteger offsetStart = [_backedTextInputView offsetFromPosition:_backedTextInputView.beginningOfDocument
++                                                            toPosition:selectedRange.start];
++      [_backedTextInputView scrollRangeToVisible:NSMakeRange(offsetStart, 0)];
++    }
++}
++
+ - (void)_setMultiline:(BOOL)multiline
+ {
+   [_backedTextInputView removeFromSuperview];

@@ -25,6 +25,8 @@ type PlaybackContext = {
 type VolumeContext = {
     updateVolume: (newVolume: number) => void;
     volume: SharedValue<number>;
+    lastNonZeroVolume: SharedValue<number>;
+    toggleMute: () => void;
 };
 
 type VideoPopoverMenuContext = {

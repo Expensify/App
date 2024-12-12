@@ -1,0 +1,53 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
+index 2921f84..93da34c 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.java
+@@ -579,6 +579,10 @@ public class TextLayoutManager {
+       for (int lineIndex = 0; lineIndex < calculatedLineCount; lineIndex++) {
+         boolean endsWithNewLine =
+             text.length() > 0 && text.charAt(layout.getLineEnd(lineIndex) - 1) == '\n';
++        if (!endsWithNewLine && lineIndex + 1 < layout.getLineCount()) {
++          calculatedWidth = width;
++          break;
++        }
+         float lineWidth =
+             endsWithNewLine ? layout.getLineMax(lineIndex) : layout.getLineWidth(lineIndex);
+         if (lineWidth > calculatedWidth) {
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index b4a7033..499e12e 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -285,8 +285,33 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+   NSTextContainer *textContainer = layoutManager.textContainers.firstObject;
+   [layoutManager ensureLayoutForTextContainer:textContainer];
+ 
++  NSRange glyphRange = [layoutManager glyphRangeForTextContainer:textContainer];
++  __block BOOL textDidWrap = NO;
++  [layoutManager
++      enumerateLineFragmentsForGlyphRange:glyphRange
++                               usingBlock:^(
++                                   CGRect overallRect,
++                                   CGRect usedRect,
++                                   NSTextContainer *_Nonnull usedTextContainer,
++                                   NSRange lineGlyphRange,
++                                   BOOL *_Nonnull stop) {
++                                 NSRange range = [layoutManager characterRangeForGlyphRange:lineGlyphRange
++                                                                           actualGlyphRange:nil];
++                                 NSUInteger lastCharacterIndex = range.location + range.length - 1;
++                                 BOOL endsWithNewLine =
++                                     [textStorage.string characterAtIndex:lastCharacterIndex] == '\n';
++                                 if (!endsWithNewLine && textStorage.string.length > lastCharacterIndex + 1) {
++                                   textDidWrap = YES;
++                                   *stop = YES;
++                                 }
++                               }];
++
+   CGSize size = [layoutManager usedRectForTextContainer:textContainer].size;
+ 
++  if (textDidWrap) {
++    size.width = textContainer.size.width;
++  }
++
+   size = (CGSize){RCTCeilPixelValue(size.width), RCTCeilPixelValue(size.height)};
+ 
+   __block auto attachments = TextMeasurement::Attachments{};

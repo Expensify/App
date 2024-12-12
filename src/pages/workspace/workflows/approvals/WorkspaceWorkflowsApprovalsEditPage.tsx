@@ -121,7 +121,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
             >
                 <FullPageNotFoundView

@@ -56,6 +56,18 @@ Your account is now reopened. You can recreate any necessary workspaces, adjust 
 Any data or reports that weren’t shared were permanently deleted when the account was closed. 
 {% include end-info.html %}
 
+# Close a Domain Member’s account as a Domain Admin
+
+1. Hover over Settings, then click **Domains**.
+2. Click the name of the domain. 
+3. Click the **Domain Members** tab on the left. 
+4. Find the user account you’d like to close, and select it
+5. Click **Close** to close the account
+
+{% include info.html %}
+Any closed account can be reopened at any time, by reinviting the user via the Domain Member page
+{% include end-info.html %}
+
 # FAQs
 
 **I’m unable to close my account.**

@@ -18,10 +18,10 @@ function useActiveWorkspaceFromNavigationState() {
             Log.warn('useActiveWorkspaceFromNavigationState should be called only from BottomTab screens');
         }
 
-        const params = state.routes.at(-1)?.params ?? {};
+        const lastHomeParams = state.routes.findLast((route) => route.name === SCREENS.HOME)?.params ?? {};
 
-        if ('policyID' in params) {
-            return params?.policyID;
+        if ('policyID' in lastHomeParams) {
+            return lastHomeParams.policyID;
         }
     });
 

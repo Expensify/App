@@ -1907,6 +1907,96 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('a workspace chat with a cancelled payment', () => {
+        const amount = 10000;
+        const comment = '💸💸💸💸';
+        const merchant = 'NASDAQ';
+
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it("has an iouReportID of the cancelled payment's expense report", () => {
+            let expenseReport: OnyxEntry<OnyxTypes.Report>;
+            let chatReport: OnyxEntry<OnyxTypes.Report>;
+
+            // Given a signed in account, which owns a workspace, and has a policy expense chat
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            return waitForBatchedUpdates()
+                .then(() => {
+                    // Which owns a workspace
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                        },
+                    }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        // When an IOU expense is submitted to that policy expense chat
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantParams: {
+                                payeeEmail: RORY_EMAIL,
+                                payeeAccountID: RORY_ACCOUNT_ID,
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            },
+                            transactionParams: {
+                                amount,
+                                attendees: [],
+                                currency: CONST.CURRENCY.USD,
+                                created: '',
+                                merchant,
+                                comment,
+                            },
+                        });
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    // And given an expense report has now been created which holds the IOU
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                        },
+                    }),
+                )
+                .then(() => {
+                    // When the expense report is paid elsewhere (but really, any payment option would work)
+                    if (chatReport && expenseReport) {
+                        IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    if (chatReport && expenseReport) {
+                        // And when the payment is cancelled
+                        IOU.cancelPayment(expenseReport, chatReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
+                            // Then the policy expense chat report has the iouReportID of the IOU expense report
+                            expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
+                        },
+                    }),
+                );
+        });
+    });
+
     describe('deleteMoneyRequest', () => {
         const amount = 10000;
         const comment = 'Send me money please';
@@ -2313,7 +2403,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
             mockFetch?.resume?.();
 
             // Then After resuming fetch, the report for the given thread ID still does not exist
@@ -2328,7 +2418,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
         });
 
         it('delete the transaction thread if there are only changelogs (i.e. MODIFIED_EXPENSE actions) in the thread', async () => {
@@ -2435,7 +2525,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(report).toBeFalsy();
+            expect(report?.reportID).toBeFalsy();
         });
 
         it('does not delete the transaction thread if there are visible comments in the thread', async () => {

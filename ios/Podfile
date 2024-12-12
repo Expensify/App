@@ -3,6 +3,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 $VCDisableFrameProcessors = true
+ENV['PROJECT_ROOT_PATH'] = "./";
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -81,6 +82,7 @@ target 'NewExpensify' do
 
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+
 
   use_react_native!(
     :path => config[:reactNativePath],

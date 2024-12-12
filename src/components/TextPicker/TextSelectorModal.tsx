@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +21,6 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
     const styles = useThemeStyles();
 
     const [currentValue, setValue] = useState(value);
-    const {top} = useSafeAreaInsets();
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const inputValueRef = useRef(value);
@@ -81,11 +79,10 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
-                includePaddingTop={false}
+                includePaddingTop
                 includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
-                style={{paddingTop: top}}
             >
                 <HeaderWithBackButton
                     title={description}

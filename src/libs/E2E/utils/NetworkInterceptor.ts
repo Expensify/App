@@ -155,6 +155,15 @@ export default function installNetworkInterceptor(
         const options = fetchArgsGetRequestInit(args);
         const headers = getFetchRequestHeadersAsObject(options);
         const url = fetchArgsGetUrl(args);
+
+        // Don't process these specific API commands because running them over and over again in the tests increases the size of the notificationPreferences NVP on the server to an infinite size.
+        // This is due to the NVP storing this setting once for each user's device, and since the E2E tests use AWS device farm, the user ends up with thousands of different devices,
+        // unlike normal users that might only ever have about a dozen. We found the NVP was over 2.5mb in size and that slows down database replication.
+        if (url.includes('OptInToPushNotifications') || url.includes('OptOutOfPushNotifications')) {
+            console.debug('Skipping request to opt in or out of push notifications');
+            return Promise.resolve(new Response());
+        }
+
         // Check if headers contain any of the ignored headers, or if react native metro server:
         if (IGNORE_REQUEST_HEADERS.some((header) => headers[header] != null) || url.includes('8081')) {
             return originalFetch(...args);

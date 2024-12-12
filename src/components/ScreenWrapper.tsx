@@ -1,6 +1,6 @@
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -25,6 +25,7 @@ import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTr
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
+import ModalContext from './Modal/ModalContext';
 import OfflineIndicator from './OfflineIndicator';
 import withNavigationFallback from './withNavigationFallback';
 
@@ -149,6 +150,8 @@ function ScreenWrapper(
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+    // since Modals are drawn in separate native view hierarchy we should always add paddings
+    const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -237,18 +240,24 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
     const paddingStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
         paddingStyle.paddingTop = paddingTop;
     }
+    if (includePaddingTop && ignoreInsetsConsumption) {
+        paddingStyle.paddingTop = unmodifiedPaddings.top;
+    }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
     const isSafeAreaBottomPaddingApplied = includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator);
     if (isSafeAreaBottomPaddingApplied) {
         paddingStyle.paddingBottom = paddingBottom;
+    }
+    if (isSafeAreaBottomPaddingApplied && ignoreInsetsConsumption) {
+        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
