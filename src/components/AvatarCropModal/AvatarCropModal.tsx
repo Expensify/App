@@ -50,7 +50,6 @@ type AvatarCropModalProps = {
     maskImage?: IconAsset;
 };
 
-// This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

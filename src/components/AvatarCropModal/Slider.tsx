@@ -22,7 +22,6 @@ type SliderProps = {
     sliderValue: SharedValue<number>;
 };
 
-// This component can't be written using class since reanimated API uses hooks.
 function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     const styles = useThemeStyles();
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);

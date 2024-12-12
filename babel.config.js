@@ -64,8 +64,6 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -114,6 +112,8 @@ const metro = {
                 },
             },
         ],
+        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+        'react-native-reanimated/plugin',
     ],
     env: {
         production: {
