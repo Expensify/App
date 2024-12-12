@@ -87,11 +87,10 @@ function WorkspaceSwitcherPage() {
 
             setActiveWorkspaceID(newPolicyID);
             if (newPolicyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+                });
             }
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.goBack();
-            });
         },
         [activeWorkspaceID, setActiveWorkspaceID, isFocused],
     );
