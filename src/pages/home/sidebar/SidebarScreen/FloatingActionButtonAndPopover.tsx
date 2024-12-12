@@ -111,6 +111,27 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     }
 };
 
+const getIouType = (action: QuickActionName) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return CONST.IOU.TYPE.SUBMIT;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return CONST.IOU.TYPE.SPLIT;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return CONST.IOU.TYPE.TRACK;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return CONST.IOU.TYPE.PAY;
+        default:
+            return undefined;
+    }
+};
+
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -449,6 +470,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         };
 
         if (quickAction?.action) {
+            const iouType = getIouType(quickAction?.action);
+            if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
             return [
                 {
                     ...baseQuickAction,
@@ -498,6 +523,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         navigateToQuickAction,
         selectOption,
         isValidReport,
+        quickActionPolicy,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
