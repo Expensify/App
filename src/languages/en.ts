@@ -870,6 +870,7 @@ const translations = {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        deletedTransaction: ({amount, merchant} = {}) => `deleted an expense on this report, ${amount} - ${merchant}`,
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
