@@ -76,6 +76,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
+    const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID;
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? Expensicons.FallbackAvatar;
@@ -106,7 +107,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         <Checkbox
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
-                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, true)}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, true, taskOwnerAccountID, taskAssigneeAccountID)}
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
                                     Task.reopenTask(taskReport, taskReportID);

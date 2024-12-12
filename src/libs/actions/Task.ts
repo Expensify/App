@@ -1212,8 +1212,17 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, allowEditingConciergeTask?: boolean): boolean {
-    if (getTaskOwnerAccountID(taskReport) === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
+function canModifyTask(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    sessionAccountID: number,
+    allowEditingConciergeTask?: boolean,
+    taskOwnerAccountID?: number,
+    taskAssigneeAccountID?: number,
+): boolean {
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
+
+    if (ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
         return false;
     }
 
@@ -1224,7 +1233,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+    return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
 function clearTaskErrors(reportID: string) {
