@@ -348,12 +348,14 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    <ReportActionItemImages
-                        images={receiptImages}
-                        isHovered={isHovered || isScanning}
-                        size={1}
-                        onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
-                    />
+                    {!isDeleted && (
+                        <ReportActionItemImages
+                            images={receiptImages}
+                            isHovered={isHovered || isScanning}
+                            size={1}
+                            onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
+                        />
+                    )}
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (

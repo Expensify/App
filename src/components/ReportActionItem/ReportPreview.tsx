@@ -175,6 +175,7 @@ function ReportPreview({
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = allTransactions.slice(-3);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
+    console.log(allTransactions);
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
         TransactionUtils.hasPendingUI(allTransactions.at(0), TransactionUtils.getTransactionViolations(allTransactions.at(0)?.transactionID ?? '-1', transactionViolations));
@@ -472,12 +473,14 @@ function ReportPreview({
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        <ReportActionItemImages
-                            images={lastThreeReceipts}
-                            total={allTransactions.length}
-                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                            onPress={openReportFromPreview}
-                        />
+                        {lastThreeReceipts.length > 0 && (
+                            <ReportActionItemImages
+                                images={lastThreeReceipts}
+                                total={allTransactions.length}
+                                size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                                onPress={openReportFromPreview}
+                            />
+                        )}
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
