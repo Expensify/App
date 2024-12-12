@@ -248,7 +248,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string, isInGroupedTransaction=false): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], key: string, isInGroupedTransaction = false): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
