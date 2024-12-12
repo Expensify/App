@@ -181,7 +181,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         const items: MenuData[] = [
             {
                 translationKey: 'common.workspaces',
-                icon: Expensicons.Building,
+                icon: Expensicons.Buildings,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
