@@ -185,6 +185,7 @@ jobs:
 
       - name: Run grunt build
         run: |
+            cd Mobile-Expensify
             npm run grunt:build:shared
 
       - name: Setup Java
