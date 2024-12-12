@@ -83,7 +83,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            // if hasbeenaddedtonudgemigration is true, and welcome modal is not dismissed, don't show tooltip
+            // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
                 return false;
             }
