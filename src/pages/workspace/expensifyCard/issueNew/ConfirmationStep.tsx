@@ -51,6 +51,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     useEffect(() => {
         submitButton.current?.focus();
+        User.resetValidateActionCodeSent();
     }, []);
 
     useEffect(() => {
