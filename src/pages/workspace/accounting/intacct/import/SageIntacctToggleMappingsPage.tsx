@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -53,8 +53,17 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const policyID: string = policy?.id ?? '-1';
 
     const config = policy?.connections?.intacct?.config;
-    const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
+
+    const [translationKeys, setTranslationKey] = useState<DisplayTypeTranslationKeys | undefined>(undefined);
+
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+
+    useEffect(() => {
+        if (!isImportMappingEnable) {
+            return;
+        }
+        setTranslationKey(getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]));
+    }, [isImportMappingEnable, config?.mappings, mappingName]);
 
     return (
         <ConnectionLayout
