@@ -253,6 +253,7 @@ function SecuritySettingsPage() {
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.LockClosed}
+                        shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
