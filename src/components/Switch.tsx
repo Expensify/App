@@ -27,8 +27,11 @@ type SwitchProps = {
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
 
-    /** Callback function that allows us to react to changes in the isOn state */
-    callback?: (isOn: boolean) => void;
+    /**
+     * onStateChange: Callback function triggered only after the external state of the switch has successfully changed.
+     * This allows additional actions to be executed in response to the confirmed state transition.
+     */
+    onStateChange?: (isOn: boolean) => void;
 };
 
 const OFFSET_X = {
@@ -36,17 +39,17 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, callback}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, onStateChange}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
 
     useEffect(() => {
         offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
-        if (callback) {
-            callback(isOn);
+        if (onStateChange) {
+            onStateChange(isOn);
         }
-    }, [callback, isOn, offsetX]);
+    }, [onStateChange, isOn, offsetX]);
 
     const handleSwitchPress = () => {
         InteractionManager.runAfterInteractions(() => {

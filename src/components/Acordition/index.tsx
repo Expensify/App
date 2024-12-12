@@ -13,7 +13,7 @@ function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: Shar
         }),
     );
     const bodyStyle = useAnimatedStyle(() => ({
-        height: derivedHeight.value,
+        height: derivedHeight.get(),
     }));
 
     return (
