@@ -301,11 +301,13 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    if (IOU.canApproveIOU(report, policy) && ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy)) {
+    const isAllowedToApproveExpenseReport = ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy);
+    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canSubmitReport(report, policy)) {
+    // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
+    if (IOU.canSubmitReport(report, policy) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
