@@ -211,7 +211,7 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The report should appear in the sidebar because it’s pinned.
+            // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
             await waitForBatchedUpdatesWithAct();
 
@@ -276,7 +276,7 @@ describe('SidebarLinksData', () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
-            // The report should appear in the sidebar because it's archived
+            // Then the report should appear in the sidebar because it's archived
             expect(getOptionRows()).toHaveLength(1);
         });
 
@@ -290,7 +290,7 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
-            // The selfDM report should appear in the sidebar by default
+            // Then the selfDM report should appear in the sidebar by default
             expect(getOptionRows()).toHaveLength(1);
         });
 
@@ -312,7 +312,7 @@ describe('SidebarLinksData', () => {
             // And the user is in focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
-            // The report should appear in the sidebar because it's unread
+            // Then the report should appear in the sidebar because it's unread
             expect(getOptionRows()).toHaveLength(1);
 
             // And the text is bold
@@ -412,7 +412,7 @@ describe('SidebarLinksData', () => {
             // And the defaultRooms beta is removed
             await Onyx.merge(ONYXKEYS.BETAS, []);
 
-            // The default room should not appear in the sidebar.
+            // Then the default room should not appear in the sidebar.
             expect(getOptionRows()).toHaveLength(0);
         });
 
@@ -439,7 +439,7 @@ describe('SidebarLinksData', () => {
             const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
-            // A single transaction thread is initialized in Onyx
+            // And a single transaction thread is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
             });
