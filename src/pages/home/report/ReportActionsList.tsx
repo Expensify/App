@@ -1,8 +1,8 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,6 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {ReportActionHighlightContext} from '@components/ReportActionHighlightProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -158,6 +159,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
+    const navigation = useNavigation();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -346,6 +348,22 @@ function ReportActionsList({
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction?.created]);
+
+    const {removeHighlight, linkedReportActionID: ctxlinkedReportActionID} = useContext(ReportActionHighlightContext);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            if (linkedReportActionID !== ctxlinkedReportActionID) {
+                return;
+            }
+            if (shouldUseNarrowLayout) {
+                navigation.setParams({reportActionID: ''});
+            }
+            removeHighlight();
+        });
+
+        return unsubscribe;
+    }, [linkedReportActionID, removeHighlight, report.reportID, navigation, ctxlinkedReportActionID, shouldUseNarrowLayout]);
 
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
