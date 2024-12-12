@@ -8,12 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroBankAccountsWithDefaultSelect} from '@libs/PolicyUtils';
+import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {updateXeroSyncReimbursementAccountID} from '@userActions/connections/Xero';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,8 +25,9 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
 
     const policyID = policy?.id ?? '-1';
 
+    const {config} = policy?.connections?.xero ?? {};
     const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
-    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
+    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -39,12 +42,10 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                reimbursementAccountID: value,
-            });
+            updateXeroSyncReimbursementAccountID(policyID, value, reimbursementAccountID);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
-        [policyID],
+        [policyID, reimbursementAccountID],
     );
 
     const listEmptyContent = useMemo(
@@ -77,6 +78,10 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroBillPaymentAccount"
             listEmptyContent={listEmptyContent}
+            pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }

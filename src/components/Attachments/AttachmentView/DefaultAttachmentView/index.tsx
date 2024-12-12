@@ -8,6 +8,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type DefaultAttachmentViewProps = {
     /** The name of the file */
@@ -21,9 +22,17 @@ type DefaultAttachmentViewProps = {
 
     /** Additional styles for the container */
     containerStyles?: StyleProp<ViewStyle>;
+
+    icon?: IconAsset;
+
+    /** Whether the attachment is deleted */
+    isDeleted?: boolean;
+
+    /** Flag indicating if the attachment is being uploaded. */
+    isUploading?: boolean;
 };
 
-function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles}: DefaultAttachmentViewProps) {
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading, isDeleted}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,12 +42,12 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
-                    src={Expensicons.Paperclip}
+                    src={icon ?? Expensicons.Paperclip}
                 />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{fileName}</Text>
-            {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100, isDeleted && styles.lineThrough]}>{fileName}</Text>
+            {!shouldShowLoadingSpinnerIcon && !!shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
                         <Icon
@@ -50,7 +59,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             )}
             {shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
-                    <Tooltip text={translate('common.downloading')}>
+                    <Tooltip text={isUploading ? translate('common.uploading') : translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
                             color={theme.textSupporting}

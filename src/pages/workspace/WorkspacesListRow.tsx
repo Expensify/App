@@ -12,10 +12,11 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -71,8 +72,6 @@ type BrickRoadIndicatorIconProps = {
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
-        case CONST.POLICY.TYPE.FREE:
-            return Illustrations.HandCard;
         case CONST.POLICY.TYPE.CORPORATE:
             return Illustrations.ShieldYellow;
         case CONST.POLICY.TYPE.TEAM:
@@ -113,14 +112,12 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
-            case CONST.POLICY.TYPE.FREE:
-                return translate('workspace.type.free');
             case CONST.POLICY.TYPE.CORPORATE:
                 return translate('workspace.type.control');
             case CONST.POLICY.TYPE.TEAM:
@@ -142,9 +139,9 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[styles.flexRow]}>
-            {isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, isNarrow && styles.workspaceListBadge]}>
+        <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
+            {!!isJoinRequestPending && (
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
@@ -154,14 +151,14 @@ function WorkspacesListRow({
                 </View>
             )}
             {!isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.ml2, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+                <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
                             onIconPress={() => {
-                                if (isSmallScreenWidth) {
+                                if (shouldUseNarrowLayout) {
                                     return;
                                 }
                                 threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
@@ -204,7 +201,7 @@ function WorkspacesListRow({
                             {title}
                         </Text>
                     </View>
-                    {isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+                    {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
                 <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
@@ -217,12 +214,10 @@ function WorkspacesListRow({
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
                             <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                                >
-                                    {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
-                                </Text>
+                                <WorkspacesListRowDisplayName
+                                    isDeleted={isDeleted}
+                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                />
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
@@ -257,7 +252,7 @@ function WorkspacesListRow({
                 </View>
             </View>
 
-            {!isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+            {!shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
         </View>
     );
 }

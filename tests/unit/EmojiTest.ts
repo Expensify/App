@@ -1,15 +1,7 @@
-import {getUnixTime} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
-import * as User from '@libs/actions/User';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {FrequentlyUsedEmoji} from '@src/types/onyx';
-import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
     beforeAll(async () => {
@@ -161,7 +153,12 @@ describe('EmojiTest', () => {
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const thumbEmojis: Emoji[] = [
+        const thumbEmojisEn: Emoji[] = [
+            {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
             {
                 code: '👍',
                 name: '+1',
@@ -174,9 +171,27 @@ describe('EmojiTest', () => {
             },
         ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+        const thumbEmojisEs: Emoji[] = [
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
+        ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojisEn);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojisEs);
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
@@ -194,329 +209,64 @@ describe('EmojiTest', () => {
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
         ]);
     });
 
-    describe('update frequently used emojis', () => {
-        let spy: jest.SpyInstance;
-
-        beforeAll(() => {
-            Onyx.init({keys: ONYXKEYS});
-            global.fetch = TestHelper.getGlobalFetchMock();
-            spy = jest.spyOn(User, 'updateFrequentlyUsedEmojis');
+    describe('splitTextWithEmojis', () => {
+        it('should return empty array if no text provided', () => {
+            const processedTextArray = EmojiUtils.splitTextWithEmojis(undefined);
+            expect(processedTextArray).toEqual([]);
         });
 
-        beforeEach(() => {
-            spy.mockClear();
-            return Onyx.clear();
+        it('should return empty array if there are no emojis in the text', () => {
+            const text = 'Simple text example with several words without emojis.';
+            const processedTextArray = EmojiUtils.splitTextWithEmojis(text);
+            expect(processedTextArray).toEqual([]);
         });
 
-        it('should put a less frequent and recent used emoji behind', () => {
-            // Given an existing frequently used emojis list with count > 1
-            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
-                {
-                    code: '👋',
-                    name: 'wave',
-                    count: 2,
-                    lastUpdatedAt: 4,
-                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
-                },
-                {
-                    code: '💤',
-                    name: 'zzz',
-                    count: 2,
-                    lastUpdatedAt: 3,
-                },
-                {
-                    code: '💯',
-                    name: '100',
-                    count: 2,
-                    lastUpdatedAt: 2,
-                },
-                {
-                    code: '👿',
-                    name: 'imp',
-                    count: 2,
-                    lastUpdatedAt: 1,
-                },
-            ];
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+        it('should split the text with emojis into array', () => {
+            const textWithOnlyEmojis = '🙂🙂🙂';
+            const textWithEmojis = 'Hello world 🙂🙂🙂 ! 🚀🚀 test2 👍👍🏿 test';
+            const textStartsAndEndsWithEmojis = '🙂 Hello world 🙂🙂🙂 ! 🚀🚀️ test2 👍👍🏿 test 🙂';
 
-            return waitForBatchedUpdates().then(() => {
-                // When add a new emoji
-                const currentTime = getUnixTime(new Date());
-                const smileEmoji: Emoji = {code: '😄', name: 'smile'};
-                const newEmoji = [smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
-
-                // Then the new emoji should be at the last item of the list
-                const expectedSmileEmoji: FrequentlyUsedEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
-
-                const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
-                expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
-            });
-        });
-
-        it('should put more frequent and recent used emoji to the front', () => {
-            // Given an existing frequently used emojis list
-            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
-            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
-                {
-                    code: '😠',
-                    name: 'angry',
-                    count: 3,
-                    lastUpdatedAt: 5,
-                },
-                {
-                    code: '👋',
-                    name: 'wave',
-                    count: 2,
-                    lastUpdatedAt: 4,
-                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
-                },
-                {
-                    code: '💤',
-                    name: 'zzz',
-                    count: 2,
-                    lastUpdatedAt: 3,
-                },
-                {
-                    code: '💯',
-                    name: '100',
-                    count: 1,
-                    lastUpdatedAt: 2,
-                },
-                {...smileEmoji, count: 1, lastUpdatedAt: 1},
-            ];
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
-
-            return waitForBatchedUpdates().then(() => {
-                // When add an emoji that exists in the list
-                const currentTime = getUnixTime(new Date());
-                const newEmoji = [smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
-
-                // Then the count should be increased and put into the very front of the other emoji within the same count
-                const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
-                expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
-            });
-        });
-
-        it('should sorted descending by count and lastUpdatedAt for multiple emoji added', () => {
-            // Given an existing frequently used emojis list
-            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
-            const zzzEmoji: Emoji = {code: '💤', name: 'zzz'};
-            const impEmoji: Emoji = {code: '👿', name: 'imp'};
-            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
-                {
-                    code: '😠',
-                    name: 'angry',
-                    count: 3,
-                    lastUpdatedAt: 5,
-                },
-                {
-                    code: '👋',
-                    name: 'wave',
-                    count: 2,
-                    lastUpdatedAt: 4,
-                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
-                },
-                {...zzzEmoji, count: 2, lastUpdatedAt: 3},
-                {
-                    code: '💯',
-                    name: '100',
-                    count: 1,
-                    lastUpdatedAt: 2,
-                },
-                {...smileEmoji, count: 1, lastUpdatedAt: 1},
-            ];
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
-
-            return waitForBatchedUpdates().then(() => {
-                // When add multiple emojis that either exist or not exist in the list
-                const currentTime = getUnixTime(new Date());
-                const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
-
-                // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
-                const expectedFrequentlyEmojisList = [
-                    {...zzzEmoji, count: 3, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[0],
-                    {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[1],
-                    {...impEmoji, count: 1, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[3],
-                ];
-                expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
-            });
-        });
-
-        it('make sure the most recent new emoji is added to the list even it is full with count > 1', () => {
-            // Given an existing full (24 items) frequently used emojis list
-            const smileEmoji: Emoji = {code: '😄', name: 'smile'};
-            const zzzEmoji: Emoji = {code: '💤', name: 'zzz'};
-            const impEmoji: Emoji = {code: '👿', name: 'imp'};
-            const bookEmoji: Emoji = {code: '📚', name: 'books'};
-            const frequentlyEmojisList: FrequentlyUsedEmoji[] = [
-                {
-                    code: '😠',
-                    name: 'angry',
-                    count: 3,
-                    lastUpdatedAt: 24,
-                },
-                {
-                    code: '👋',
-                    name: 'wave',
-                    count: 3,
-                    lastUpdatedAt: 23,
-                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
-                },
-                {
-                    code: '😡',
-                    name: 'rage',
-                    count: 3,
-                    lastUpdatedAt: 22,
-                },
-                {
-                    code: '😤',
-                    name: 'triumph',
-                    count: 3,
-                    lastUpdatedAt: 21,
-                },
-                {
-                    code: '🥱',
-                    name: 'yawning_face',
-                    count: 3,
-                    lastUpdatedAt: 20,
-                },
-                {
-                    code: '😫',
-                    name: 'tired_face',
-                    count: 3,
-                    lastUpdatedAt: 19,
-                },
-                {
-                    code: '😩',
-                    name: 'weary',
-                    count: 3,
-                    lastUpdatedAt: 18,
-                },
-                {
-                    code: '😓',
-                    name: 'sweat',
-                    count: 3,
-                    lastUpdatedAt: 17,
-                },
-                {
-                    code: '😞',
-                    name: 'disappointed',
-                    count: 3,
-                    lastUpdatedAt: 16,
-                },
-                {
-                    code: '😣',
-                    name: 'persevere',
-                    count: 3,
-                    lastUpdatedAt: 15,
-                },
-                {
-                    code: '😖',
-                    name: 'confounded',
-                    count: 3,
-                    lastUpdatedAt: 14,
-                },
-                {
-                    code: '👶',
-                    name: 'baby',
-                    count: 3,
-                    lastUpdatedAt: 13,
-                    types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
-                },
-                {
-                    code: '👄',
-                    name: 'lips',
-                    count: 3,
-                    lastUpdatedAt: 12,
-                },
-                {
-                    code: '🐶',
-                    name: 'dog',
-                    count: 3,
-                    lastUpdatedAt: 11,
-                },
-                {
-                    code: '🦮',
-                    name: 'guide_dog',
-                    count: 3,
-                    lastUpdatedAt: 10,
-                },
-                {
-                    code: '🐱',
-                    name: 'cat',
-                    count: 3,
-                    lastUpdatedAt: 9,
-                },
-                {
-                    code: '🐈‍⬛',
-                    name: 'black_cat',
-                    count: 3,
-                    lastUpdatedAt: 8,
-                },
-                {
-                    code: '🕞',
-                    name: 'clock330',
-                    count: 3,
-                    lastUpdatedAt: 7,
-                },
-                {
-                    code: '🥎',
-                    name: 'softball',
-                    count: 3,
-                    lastUpdatedAt: 6,
-                },
-                {
-                    code: '🏀',
-                    name: 'basketball',
-                    count: 3,
-                    lastUpdatedAt: 5,
-                },
-                {
-                    code: '📟',
-                    name: 'pager',
-                    count: 3,
-                    lastUpdatedAt: 4,
-                },
-                {
-                    code: '🎬',
-                    name: 'clapper',
-                    count: 3,
-                    lastUpdatedAt: 3,
-                },
-                {
-                    code: '📺',
-                    name: 'tv',
-                    count: 3,
-                    lastUpdatedAt: 2,
-                },
-                {...bookEmoji, count: 3, lastUpdatedAt: 1},
-            ];
-            expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
-
-            return waitForBatchedUpdates().then(() => {
-                // When add new emojis
-                const currentTime = getUnixTime(new Date());
-                const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
-
-                // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
-                const expectedFrequentlyEmojisList = [
-                    {...bookEmoji, count: 4, lastUpdatedAt: currentTime},
-                    ...frequentlyEmojisList.slice(0, -2),
-                    {...smileEmoji, count: 1, lastUpdatedAt: currentTime},
-                ];
-                expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
-            });
+            expect(EmojiUtils.splitTextWithEmojis(textWithOnlyEmojis)).toEqual([
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+            ]);
+            expect(EmojiUtils.splitTextWithEmojis(textWithEmojis)).toEqual([
+                {text: 'Hello world ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: ' ! ', isEmoji: false},
+                {text: '🚀', isEmoji: true},
+                {text: '🚀', isEmoji: true},
+                {text: ' test2 ', isEmoji: false},
+                {text: '👍', isEmoji: true},
+                {text: '👍🏿', isEmoji: true},
+                {text: ' test', isEmoji: false},
+            ]);
+            expect(EmojiUtils.splitTextWithEmojis(textStartsAndEndsWithEmojis)).toEqual([
+                {text: '🙂', isEmoji: true},
+                {text: ' Hello world ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: ' ! ', isEmoji: false},
+                {text: '🚀', isEmoji: true},
+                {text: '🚀️', isEmoji: true},
+                {text: ' test2 ', isEmoji: false},
+                {text: '👍', isEmoji: true},
+                {text: '👍🏿', isEmoji: true},
+                {text: ' test ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+            ]);
         });
     });
 });

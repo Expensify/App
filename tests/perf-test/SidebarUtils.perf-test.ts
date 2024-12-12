@@ -2,13 +2,12 @@ import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import type {ChatReportSelector} from '@hooks/useReportIDs';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -21,7 +20,7 @@ const REPORTS_COUNT = 15000;
 const REPORT_TRESHOLD = 5;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 
-const allReports = createCollection<ChatReportSelector>(
+const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
         ...createRandomReport(index),
@@ -52,25 +51,6 @@ const policies = createCollection<Policy>(
 );
 
 const mockedBetas = Object.values(CONST.BETAS);
-
-const allReportActions = Object.fromEntries(
-    Object.keys(reportActions).map((key) => [
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`,
-        [
-            {
-                errors: reportActions[key].errors ?? [],
-                message: [
-                    {
-                        moderationDecision: {
-                            decision: getReportActionMessage(reportActions[key])?.moderationDecision?.decision,
-                        },
-                    },
-                ],
-                reportActionID: reportActions[key].reportActionID,
-            },
-        ],
-    ]),
-) as unknown as OnyxCollection<ReportAction[]>;
 
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
@@ -114,13 +94,11 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations),
-        );
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, allReportActions, transactionViolations));
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
     });
 });

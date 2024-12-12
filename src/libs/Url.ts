@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 /**
@@ -70,4 +71,9 @@ function hasURL(text: string) {
     return urlPattern.test(text);
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash};
+function extractUrlDomain(url: string): string | undefined {
+    const match = String(url).match(CONST.REGEX.DOMAIN_BASE);
+    return match?.[1];
+}
+
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};

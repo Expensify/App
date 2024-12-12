@@ -1,5 +1,8 @@
 import type {Mock} from 'jest-mock';
+import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
+import * as App from '@libs/actions/App';
+import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -10,8 +13,10 @@ import Log from '@src/libs/Log';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import NetworkConnection from '@src/libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -32,102 +37,157 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
+
+    // Reset any pending requests
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();
+    NetworkStore.setIsAuthenticating(false);
+    resetReauthentication();
+    Network.clearProcessQueueInterval();
+    SequentialQueue.resetQueue();
 
-    // Wait for any Log command to finish and Onyx to fully clear
-    return waitForBatchedUpdates()
-        .then(() => PersistedRequests.clear())
-        .then(() => Onyx.clear())
-        .then(waitForBatchedUpdates);
+    return Promise.all([SequentialQueue.waitForIdle(), waitForBatchedUpdates(), PersistedRequests.clear(), Onyx.clear()]).then(() => {
+        return waitForBatchedUpdates();
+    });
 });
 
 afterEach(() => {
     NetworkStore.resetHasReadRequiredDataFromStorage();
     Onyx.addDelayToConnectCallback(0);
     jest.clearAllMocks();
+    jest.clearAllTimers();
+    jest.useRealTimers();
 });
 
 describe('NetworkTests', () => {
-    test('failing to reauthenticate while offline should not log out user', () => {
-        // Given a test user login and account ID
+    test('failing to reauthenticate should not log out user', () => {
+        // Use fake timers to control timing in the test
+        jest.useFakeTimers();
+
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        const NEW_AUTH_TOKEN = 'qwerty12345';
+
+        let sessionState: OnyxEntry<OnyxSession>;
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: (val) => (sessionState = val),
+        });
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => {
+                // Mock XHR with a sequence of responses:
+                // 1. First call fails with NOT_AUTHENTICATED
+                // 2. Second call fails with network error
+                // 3. Third call succeeds with new auth token
+                const mockedXhr = jest
+                    .fn()
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
+                    .mockImplementationOnce(() => Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH)))
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            authToken: NEW_AUTH_TOKEN,
+                        }),
+                    );
+
+                HttpUtils.xhr = mockedXhr;
+
+                // Trigger an API call that will cause reauthentication flow
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Process pending retry request
+                jest.runAllTimers();
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Verify:
+                // 1. We attempted to authenticate twice (first failed, retry succeeded)
+                // 2. The session has the new auth token (user wasn't logged out)
+                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                expect(callsToAuthenticate.length).toBe(2);
+                expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
+            });
+    });
+
+    test('failing to reauthenticate while offline should not log out user', async () => {
+        // 1. Setup Phase - Initialize test user and state variables
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean;
+        let sessionState: OnyxEntry<OnyxSession>;
 
+        // Set up listeners for session and network state changes
         Onyx.connect({
-            key: ONYXKEYS.NETWORK,
-            callback: (val) => {
-                isOffline = !!val?.isOffline;
-            },
+            key: ONYXKEYS.SESSION,
+            callback: (val) => (sessionState = val),
         });
 
-        // Given a test user login and account ID
-        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
-            expect(isOffline).toBe(false);
+        // Sign in test user and wait for updates
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await waitForBatchedUpdates();
 
-            // Mock fetch() so that it throws a TypeError to simulate a bad network connection
-            global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
+        const initialAuthToken = sessionState?.authToken;
+        expect(initialAuthToken).toBeDefined();
 
-            const actualXhr = HttpUtils.xhr;
-
-            const mockedXhr = jest.fn();
-            mockedXhr
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }),
-                )
-
-                // Fail the call to re-authenticate
-                .mockImplementationOnce(actualXhr)
-
-                // The next call should still be using the old authToken
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                    }),
-                )
-
-                // Succeed the call to set a new authToken
-                .mockImplementationOnce(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                        authToken: 'qwerty12345',
-                    }),
-                )
-
-                // All remaining requests should succeed
-                .mockImplementation(() =>
-                    Promise.resolve({
-                        jsonCode: CONST.JSON_CODE.SUCCESS,
-                    }),
-                );
-
-            HttpUtils.xhr = mockedXhr;
-
-            // This should first trigger re-authentication and then a Failed to fetch
-            PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
-            return waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
-                .then(() => {
-                    expect(isOffline).toBe(false);
-
-                    // Advance the network request queue by 1 second so that it can realize it's back online
-                    jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    // Then we will eventually have 1 call to OpenPublicProfilePage and 1 calls to Authenticate
-                    const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
-                    const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-
-                    expect(callsToOpenPublicProfilePage.length).toBe(1);
-                    expect(callsToAuthenticate.length).toBe(1);
-                });
+        // Create a promise that we can resolve later to control the timing
+        let resolveAuthRequest: (value: unknown) => void = () => {};
+        const pendingAuthRequest = new Promise((resolve) => {
+            resolveAuthRequest = resolve;
         });
+
+        // 2. Mock Setup Phase - Configure XHR mocks for the test sequence
+        const mockedXhr = jest
+            .fn()
+            // First call: Return NOT_AUTHENTICATED to trigger reauthentication
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+            )
+            // Second call: Return a pending promise that we'll resolve later
+            .mockImplementationOnce(() => pendingAuthRequest);
+
+        HttpUtils.xhr = mockedXhr;
+
+        // 3. Test Execution Phase - Start with online network
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        // Trigger reconnect which will fail due to expired token
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
+        await waitForBatchedUpdates();
+
+        // 4. First API Call Verification - Check ReconnectApp
+        const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
+        expect(firstCall[0]).toBe('ReconnectApp');
+
+        // 5. Authentication Start - Verify authenticate was triggered
+        await waitForBatchedUpdates();
+        const secondCall = mockedXhr.mock.calls.at(1) as [string, Record<string, unknown>];
+        expect(secondCall[0]).toBe('Authenticate');
+
+        // 6. Network State Change - Set offline and back online while authenticate is pending
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        // 7.Trigger another reconnect due to network change
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
+
+        // 8. Now fail the pending authentication request
+        resolveAuthRequest(Promise.reject(new Error('Network request failed')));
+        await waitForBatchedUpdates(); // Now we wait for all updates after the auth request fails
+
+        // 9. Verify the session remained intact and wasn't cleared
+        expect(sessionState?.authToken).toBe(initialAuthToken);
     });
 
     test('consecutive API calls eventually succeed when authToken is expired', () => {
@@ -303,9 +363,9 @@ describe('NetworkTests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const response = onResolved.mock.calls[0][0];
+                const response = onResolved.mock.calls.at(0)?.at(0);
                 expect(onResolved).toHaveBeenCalled();
-                expect(response.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
+                expect(response?.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
             });
     });
 

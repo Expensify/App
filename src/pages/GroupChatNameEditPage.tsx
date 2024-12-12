@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -30,7 +30,7 @@ type GroupChatNameEditPageOnyxProps = {
 };
 
 type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
-    Partial<StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
+    Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
         report?: ReportOnyxType;
     };
 
@@ -44,11 +44,9 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    // We will try to get the chatName from the report or draft depending on what flow we are in
-    const draftParticipantAccountIDs = useMemo(() => (groupChatDraft?.participants ?? []).map((participant) => participant.accountID), [groupChatDraft?.participants]);
     const existingReportName = useMemo(
-        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(draftParticipantAccountIDs)),
-        [draftParticipantAccountIDs, report],
+        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(groupChatDraft?.participants)),
+        [groupChatDraft?.participants, report],
     );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
@@ -84,14 +82,14 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
             testID={GroupChatNameEditPage.displayName}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('groupConfirmPage.groupName')}
-                onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_SETTINGS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
+                onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}

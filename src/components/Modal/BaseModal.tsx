@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -5,6 +6,7 @@ import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -41,6 +43,7 @@ function BaseModal(
         animationInTiming,
         animationOutTiming,
         statusBarTranslucent = true,
+        navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
@@ -50,13 +53,17 @@ function BaseModal(
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
+        initialFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -118,7 +125,7 @@ function BaseModal(
             }
             hideModal(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
@@ -187,7 +194,7 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -203,6 +210,7 @@ function BaseModal(
     const modalContextValue = useMemo(
         () => ({
             activeModalType: isVisible ? type : undefined,
+            default: false,
         }),
         [isVisible, type],
     );
@@ -242,18 +250,28 @@ function BaseModal(
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationOut={animationOut ?? modalStyleAnimationOut}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriver={useNativeDriverProp && useNativeDriver}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
+                    navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <ModalContent onDismiss={handleDismissModal}>
-                        <FocusTrapForModal active={isVisible}>
+                    <ModalContent
+                        onModalWillShow={saveFocusState}
+                        onDismiss={handleDismissModal}
+                    >
+                        <PortalHost name="modal" />
+                        <FocusTrapForModal
+                            active={isVisible}
+                            initialFocus={initialFocus}
+                        >
                             <View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}

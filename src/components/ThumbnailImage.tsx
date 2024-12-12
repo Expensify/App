@@ -9,6 +9,7 @@ import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
@@ -22,6 +23,9 @@ const thumbnailDimensionsCache = new Map<string, {width: number; height: number}
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
     previewSourceURL: string | ImageSourcePropType;
+
+    /** alt text for the image */
+    altText?: string;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
@@ -41,14 +45,26 @@ type ThumbnailImageProps = {
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
-    /** The colod of the fallback icon */
+    /** The color of the fallback icon */
     fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** Whether the image is deleted */
+    isDeleted?: boolean;
+
+    /** Callback fired when the image fails to load */
+    onLoadFailure?: () => void;
+
+    /** Callback fired when the image has been measured */
+    onMeasure?: () => void;
 };
 
 type UpdateImageSizeParams = {
@@ -58,6 +74,7 @@ type UpdateImageSizeParams = {
 
 function ThumbnailImage({
     previewSourceURL,
+    altText,
     style,
     isAuthTokenRequired,
     imageWidth = 200,
@@ -66,7 +83,11 @@ function ThumbnailImage({
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
+    fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    isDeleted,
+    onLoadFailure,
+    onMeasure,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -107,8 +128,10 @@ function ThumbnailImage({
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
     if (failedToLoad || previewSourceURL === '') {
+        const fallbackColor = StyleUtils.getBackgroundColorStyle(fallbackIconBackground ?? theme.border);
+
         return (
-            <View style={[style, styles.overflowHidden, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+            <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
@@ -123,11 +146,19 @@ function ThumbnailImage({
 
     return (
         <View style={[style, styles.overflowHidden]}>
+            {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
-                    onMeasure={updateImageSize}
-                    onLoadFailure={() => setFailedToLoad(true)}
+                    altText={altText}
+                    onMeasure={(args) => {
+                        updateImageSize(args);
+                        onMeasure?.();
+                    }}
+                    onLoadFailure={() => {
+                        setFailedToLoad(true);
+                        onLoadFailure?.();
+                    }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
                 />

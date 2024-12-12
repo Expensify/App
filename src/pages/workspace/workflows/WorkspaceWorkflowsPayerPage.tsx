@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -35,7 +35,7 @@ type WorkspaceWorkflowsPayerPageOnyxProps = {
 
 type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
@@ -137,9 +137,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
 
     const headerMessage = useMemo(
-        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
+        () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate, sections],
     );
 
@@ -192,7 +192,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         showScrollIndicator
                     />
                 </ScreenWrapper>

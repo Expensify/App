@@ -2,6 +2,7 @@ import Config from 'react-native-config';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import getEnvironment from './getEnvironment';
+import type Environment from './getEnvironment/types';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
@@ -15,20 +16,6 @@ const OLDDOT_ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_EXPENSIFY_URL,
     [CONST.ENVIRONMENT.PRODUCTION]: CONST.EXPENSIFY_URL,
     [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_EXPENSIFY_URL,
-};
-
-const TRAVELDOT_ENVIRONMENT_URLS: Record<string, string> = {
-    [CONST.ENVIRONMENT.DEV]: CONST.STAGING_TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.PRODUCTION]: CONST.TRAVEL_DOT_URL,
-    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_TRAVEL_DOT_URL,
-};
-
-const SPOTNANA_ENVIRONMENT_TMC_ID: Record<string, string> = {
-    [CONST.ENVIRONMENT.DEV]: CONST.STAGING_SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.STAGING]: CONST.STAGING_SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.PRODUCTION]: CONST.SPOTNANA_TMC_ID,
-    [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_SPOTNANA_TMC_ID,
 };
 
 /**
@@ -62,18 +49,17 @@ function getEnvironmentURL(): Promise<string> {
 }
 
 /**
+ * Given the environment get the corresponding oldDot URL
+ */
+function getOldDotURLFromEnvironment(environment: Environment): string {
+    return OLDDOT_ENVIRONMENT_URLS[environment];
+}
+
+/**
  * Get the corresponding oldDot URL based on the environment we are in
  */
 function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-function getTravelDotEnvironmentURL(): Promise<string> {
-    return getEnvironment().then((environment) => TRAVELDOT_ENVIRONMENT_URLS[environment]);
-}
-
-function getSpotnanaEnvironmentTMCID(): Promise<string> {
-    return getEnvironment().then((environment) => SPOTNANA_ENVIRONMENT_TMC_ID[environment]);
-}
-
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getTravelDotEnvironmentURL, getSpotnanaEnvironmentTMCID};
+export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getOldDotURLFromEnvironment};

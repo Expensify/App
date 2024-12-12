@@ -23,31 +23,27 @@ export default {
      * Web-only style.
      */
     dInline: {
-        // NOTE: asserting "display" to a valid type, because it isn't possible to augment "display".
-        display: 'inline' as ViewStyle['display'],
+        display: 'inline',
     },
 
     /**
      * Web-only style.
      */
     dInlineFlex: {
-        // NOTE: asserting "display" to a valid type, because it isn't possible to augment "display".
-        display: 'inline-flex' as ViewStyle['display'],
+        display: 'inline-flex',
     },
 
     /**
      * Web-only style.
      */
     dBlock: {
-        // NOTE: asserting "display" to a valid type, because it isn't possible to augment "display".
-        display: 'block' as ViewStyle['display'],
+        display: 'block',
     },
 
     /**
      * Web-only style.
      */
     dGrid: {
-        // NOTE: asserting "display" to a valid type, because it isn't possible to augment "display".
-        display: 'grid' as ViewStyle['display'],
+        display: 'grid',
     },
 } satisfies Record<string, ViewStyle>;

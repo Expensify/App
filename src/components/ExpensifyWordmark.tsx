@@ -6,15 +6,14 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ImageSVG from './ImageSVG';
-import withWindowDimensions from './withWindowDimensions';
-import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-type ExpensifyWordmarkProps = WindowDimensionsProps & {
+type ExpensifyWordmarkProps = {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 };
@@ -26,19 +25,21 @@ const logoComponents = {
     [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };
 
-function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
+function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     return (
         <View
             style={[
-                StyleUtils.getSignInWordmarkWidthStyle(isSmallScreenWidth, environment),
-                StyleUtils.getHeight(isSmallScreenWidth ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                isSmallScreenWidth && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
+                StyleUtils.getSignInWordmarkWidthStyle(shouldUseNarrowLayout, environment),
+                StyleUtils.getHeight(shouldUseNarrowLayout ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
+                shouldUseNarrowLayout && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
                 style,
             ]}
         >
@@ -52,4 +53,4 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
 
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 
-export default withWindowDimensions(ExpensifyWordmark);
+export default ExpensifyWordmark;

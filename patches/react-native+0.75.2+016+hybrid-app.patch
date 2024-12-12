@@ -1,0 +1,19 @@
+diff --git a/node_modules/react-native/third-party-podspecs/boost.podspec b/node_modules/react-native/third-party-podspecs/boost.podspec
+index d130fb0..9f8397e 100644
+--- a/node_modules/react-native/third-party-podspecs/boost.podspec
++++ b/node_modules/react-native/third-party-podspecs/boost.podspec
+@@ -16,12 +16,12 @@ Pod::Spec.new do |spec|
+   # Pinning to the same version as React.podspec.
+   spec.platforms = min_supported_versions
+   spec.requires_arc = false
+-  spec.source_files = 'boost/**/*.{hpp,cpp}'
++  # spec.source_files = 'boost/**/*.{hpp,cpp}'
+ 
+   spec.module_name = 'boost'
+   spec.header_dir = 'boost'
+   spec.preserve_path = 'boost'
+-  spec.header_mappings_dir = 'boost/boost'
++  # spec.header_mappings_dir = 'boost/boost'
+ 
+   spec.resource_bundles = {'boost_privacy' => 'boost/PrivacyInfo.xcprivacy'}
+ end

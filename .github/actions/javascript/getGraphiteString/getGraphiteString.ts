@@ -33,7 +33,7 @@ const run = () => {
         }
 
         try {
-            const current: RegressionEntry = JSON.parse(entry);
+            const current = JSON.parse(entry) as RegressionEntry;
 
             // Extract timestamp, Graphite accepts timestamp in seconds
             if (current.metadata?.creationDate) {

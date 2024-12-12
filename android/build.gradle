@@ -3,15 +3,15 @@
 buildscript {
     ext {
         buildToolsVersion = "34.0.0"
-        minSdkVersion = 21
+        minSdkVersion = 23
         compileSdkVersion = 34
         targetSdkVersion = 34
-        ndkVersion = "25.1.8937393"
+        ndkVersion = "26.1.10909125"
 
         androidXCore = "1.0.2"
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
-        kotlinVersion = '1.8.10'
+        kotlinVersion = "1.9.24"
 
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
@@ -29,7 +29,7 @@ buildscript {
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
         classpath("com.google.firebase:perf-plugin:1.4.1")
         // Fullstory integration
-        classpath ("com.fullstory:gradle-plugin-local:1.49.0")
+        classpath ("com.fullstory:gradle-plugin-local:1.52.0")
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -42,12 +42,6 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
-
-            // Manually set the react-native version to resolve this upstream issue: https://github.com/facebook/react-native/issues/35210
-            def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
-            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
-            force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
-
             //Fix Investigate App Crash MainActivity.onCreate #35655
             force "com.facebook.soloader:soloader:0.10.4+"
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import type {Ref} from 'react';
 import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
@@ -48,7 +49,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
             return;
         }
 
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
             isScrollingRef.current = scrolling;
             if (!isScrollingRef.current) {
                 setIsHovered(isHoveredRef.current);
@@ -80,7 +81,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
             setIsHovered(false);
         };
 
-        document.addEventListener('mouseover', unsetHoveredIfOutside);
+        document.addEventListener('mouseover', unsetHoveredIfOutside, true);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
     }, [isHovered, elementRef, shouldFreezeCapture]);
@@ -102,7 +103,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
     const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
-    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur}: OnMouseEvents = child.props;
+    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur} = child.props as OnMouseEvents;
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
@@ -125,13 +126,13 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         (event: MouseEvent) => {
             // Check if the blur event occurred due to clicking outside the element
             // and the wrapperView contains the element that caused the blur and reset isHovered
-            if (!elementRef.current?.contains(event.target as Node) && !elementRef.current?.contains(event.relatedTarget as Node)) {
+            if (!elementRef.current?.contains(event.target as Node) && !elementRef.current?.contains(event.relatedTarget as Node) && !shouldFreezeCapture) {
                 setIsHovered(false);
             }
 
             onBlur?.(event);
         },
-        [onBlur],
+        [onBlur, shouldFreezeCapture],
     );
 
     const handleAndForwardOnMouseMove = useCallback(

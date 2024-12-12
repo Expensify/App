@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+let connection: Connection;
 
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
@@ -11,6 +13,10 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
         return;
     }
 
+    // In Strict Mode, the backup logic useEffect is triggered twice on mount. The restore logic is delayed because we need to connect to the onyx first,
+    // so it's possible that the restore logic is executed after creating the backup for the 2nd time which will completely clear the backup.
+    // To avoid that, we need to cancel the pending connection.
+    Onyx.disconnect(connection);
     const newTransaction = {
         ...transaction,
     };
@@ -27,10 +33,10 @@ function removeBackupTransaction(transactionID: string) {
 }
 
 function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
-    const connectionID = Onyx.connect({
+    connection = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
-            Onyx.disconnect(connectionID);
+            Onyx.disconnect(connection);
 
             // Use set to completely overwrite the original transaction
             Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);

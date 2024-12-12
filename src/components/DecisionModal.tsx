@@ -21,7 +21,7 @@ type DecisionModalProps = {
     secondOptionText: string;
 
     /** onSubmit callback fired after clicking on first button */
-    onFirstOptionSubmit: () => void;
+    onFirstOptionSubmit?: () => void;
 
     /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;
@@ -55,7 +55,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     </View>
                     <Text>{prompt}</Text>
                 </View>
-                {firstOptionText && (
+                {!!firstOptionText && (
                     <Button
                         success
                         style={[styles.mt4]}

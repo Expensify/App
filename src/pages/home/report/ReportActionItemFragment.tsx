@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +14,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
+import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
@@ -69,6 +69,8 @@ const MUTED_ACTIONS = [
     ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG),
     CONST.REPORT.ACTIONS.TYPE.IOU,
     CONST.REPORT.ACTIONS.TYPE.APPROVED,
+    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
     CONST.REPORT.ACTIONS.TYPE.MOVED,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
 ] as ReportActionName[];
@@ -158,18 +160,13 @@ function ReportActionItemFragment({
             }
 
             return (
-                <UserDetailsTooltip
+                <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    icon={actorIcon}
-                >
-                    <Text
-                        numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                    >
-                        {fragment?.text}
-                    </Text>
-                </UserDetailsTooltip>
+                    fragmentText={fragment.text}
+                    actorIcon={actorIcon}
+                    isSingleLine={isSingleLine}
+                />
             );
         }
         case 'LINK':

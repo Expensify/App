@@ -37,6 +37,7 @@ type ShowContextMenu = (
     shouldCloseOnTarget?: boolean,
     setIsEmojiPickerActive?: (state: boolean) => void,
     isOverflowMenu?: boolean,
+    isThreadReportParentAction?: boolean,
 ) => void;
 
 type ReportActionContextMenu = {
@@ -65,7 +66,6 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
     }
     if (!shouldDelay) {
         contextMenuRef.current.hideContextMenu(onHideCallback);
-
         return;
     }
 
@@ -119,37 +119,43 @@ function showContextMenu(
     shouldCloseOnTarget = false,
     setIsEmojiPickerActive = () => {},
     isOverflowMenu = false,
+    isThreadReportParentAction = false,
 ) {
     if (!contextMenuRef.current) {
         return;
     }
+    const show = () => {
+        contextMenuRef.current?.showContextMenu(
+            type,
+            event,
+            selection,
+            contextMenuAnchor,
+            reportID,
+            reportActionID,
+            originalReportID,
+            draftMessage,
+            onShow,
+            onHide,
+            isArchivedRoom,
+            isChronosReport,
+            isPinnedChat,
+            isUnreadChat,
+            disabledActions,
+            shouldCloseOnTarget,
+            setIsEmojiPickerActive,
+            isOverflowMenu,
+            isThreadReportParentAction,
+        );
+    };
+
     // If there is an already open context menu, close it first before opening
     // a new one.
     if (contextMenuRef.current.instanceID) {
-        hideContextMenu();
-        contextMenuRef.current.runAndResetOnPopoverHide();
+        hideContextMenu(false, show);
+        return;
     }
 
-    contextMenuRef.current.showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage,
-        onShow,
-        onHide,
-        isArchivedRoom,
-        isChronosReport,
-        isPinnedChat,
-        isUnreadChat,
-        disabledActions,
-        shouldCloseOnTarget,
-        setIsEmojiPickerActive,
-        isOverflowMenu,
-    );
+    show();
 }
 
 /**

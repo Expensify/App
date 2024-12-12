@@ -15,7 +15,7 @@ If you wish to no longer be part of a chat room, you can leave the room. This me
 
 {% include option.html value="mobile" %}
 1. Open the chat room.
-2. Tap the 3 dot menu icon in the top right and select **Leave**. 
+2. Tap the header and select **Leave**. 
 {% include end-option.html %}
 
 {% include end-selector.html %}

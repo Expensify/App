@@ -1,4 +1,5 @@
 import type {Country} from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 /** User address data */
 type Address = {
@@ -40,6 +41,9 @@ type Address = {
 
     /** Google place description */
     address?: string;
+
+    /** Is the current address */
+    current?: boolean;
 };
 
 /** Model of user private personal details */
@@ -56,8 +60,14 @@ type PrivatePersonalDetails = {
     /** User's phone number */
     phoneNumber?: string;
 
-    /** User's home address */
+    /** @deprecated User's home address */
     address?: Address;
+
+    /** User's home address history. The most recent address is the last item in the array */
+    addresses?: Address[];
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 export default PrivatePersonalDetails;

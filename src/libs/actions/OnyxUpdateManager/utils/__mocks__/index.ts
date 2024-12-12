@@ -3,7 +3,7 @@ import createProxyForObject from '@src/utils/createProxyForObject';
 import type * as OnyxUpdateManagerUtilsImport from '..';
 import {applyUpdates} from './applyUpdates';
 
-const UtilsImplementation: typeof OnyxUpdateManagerUtilsImport = jest.requireActual('@libs/actions/OnyxUpdateManager/utils');
+const UtilsImplementation = jest.requireActual<typeof OnyxUpdateManagerUtilsImport>('@libs/actions/OnyxUpdateManager/utils');
 
 type OnyxUpdateManagerUtilsMockValues = {
     onValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;

@@ -49,7 +49,7 @@ if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionL
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 
-const {version: previousVersion}: PackageJson = JSON.parse(fs.readFileSync('./package.json').toString());
+const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString()) as PackageJson;
 if (!previousVersion) {
     core.setFailed('Error: Could not read package.json');
 }

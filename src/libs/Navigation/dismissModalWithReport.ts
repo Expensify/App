@@ -1,10 +1,10 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
-import {findLastIndex} from 'lodash';
+import findLastIndex from 'lodash/findLastIndex';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';

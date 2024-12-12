@@ -1,46 +1,41 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSideModalStackScreenOptions';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import Overlay from './Overlay';
 
-type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
+type LeftModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const loadChatFinder = () => require<ReactComponentModule>('../../../../pages/ChatFinderPage').default;
 const loadWorkspaceSwitcherPage = () => require<ReactComponentModule>('../../../../pages/WorkspaceSwitcherPage').default;
 
-const Stack = createStackNavigator<LeftModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<LeftModalNavigatorParamList>();
 
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles, 'horizontal-inverted'), [styles]);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = useSideModalStackScreenOptions('horizontal-inverted');
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && (
+            {!shouldUseNarrowLayout && (
                 <Overlay
                     isModalOnTheLeft
                     onPress={navigation.goBack}
                 />
             )}
-            <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
+            <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
                 <Stack.Navigator
                     screenOptions={screenOptions}
                     id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                 >
-                    <Stack.Screen
-                        name={SCREENS.LEFT_MODAL.CHAT_FINDER}
-                        getComponent={loadChatFinder}
-                    />
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
                         getComponent={loadWorkspaceSwitcherPage}

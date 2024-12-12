@@ -20,10 +20,10 @@ runs:
     - name: Set up git for OSBotify
       shell: bash
       run: |
-        git config user.signingkey 367811D53E34168C
-        git config commit.gpgsign true
-        git config user.name OSBotify
-        git config user.email infra+osbotify@expensify.com
+        git config --global user.signingkey AEE1036472A782AB
+        git config --global commit.gpgsign true
+        git config --global user.name OSBotify
+        git config --global user.email infra+osbotify@expensify.com
 
     - name: Enable debug logs for git
       shell: bash

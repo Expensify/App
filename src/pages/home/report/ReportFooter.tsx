@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -13,6 +14,8 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -35,9 +38,6 @@ type ReportFooterProps = {
 
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Additional report details */
-    reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -69,7 +69,6 @@ function ReportFooter({
     pendingAction,
     report = {reportID: '-1'},
     reportMetadata,
-    reportNameValuePairs,
     policy,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
@@ -80,7 +79,9 @@ function ReportFooter({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
@@ -98,56 +99,58 @@ function ReportFooter({
             }
         },
     });
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
 
-    const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const shouldHideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !shouldShowComposerOptimistically) || isBlockedFromChat;
+    const canPerformWriteAction = ReportUtils.canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            /**
-             * Matching task rule by group
-             * Group 1: Start task rule with []
-             * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
-             * Group 3: Title is remaining characters
-             */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
-
-            const match = text.match(taskRegex);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
-            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            let title = match[3] ? match[3].trim().replace(/\n/g, ' ') : undefined;
             if (!title) {
                 return false;
             }
 
-            const mention = match[1] ? match[1].trim() : undefined;
-            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+            const mention = match[1] ? match[1].trim() : '';
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention) ?? mention;
+            const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
             if (mentionWithDomain) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
-                if (!Object.keys(assignee ?? {}).length) {
-                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
-                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
-                    assignee = optimisticDataForNewAssignee.assignee;
-                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                if (isValidMention) {
+                    assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    if (!Object.keys(assignee ?? {}).length) {
+                        const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                        const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        assignee = optimisticDataForNewAssignee.assignee;
+                        assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                    }
+                } else {
+                    // If the mention is not valid, include it on the title.
+                    // The mention could be invalid if it's a short mention and failed to be converted to a full mention.
+                    title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
@@ -161,18 +164,18 @@ function ReportFooter({
             }
             Report.addComment(report.reportID, text);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
     );
 
     return (
         <>
-            {shouldHideComposer && (
+            {!!shouldHideComposer && (
                 <View
                     style={[
                         styles.chatFooter,
                         isArchivedRoom || isAnonymousUser || !canWriteInReport || (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) ? styles.mt4 : {},
-                        isSmallScreenWidth ? styles.mb5 : null,
+                        shouldUseNarrowLayout ? styles.mb5 : null,
                     ]}
                 >
                     {isAnonymousUser && !isArchivedRoom && (
@@ -182,7 +185,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!isArchivedRoom && isBlockedFromChat && <BlockedReportFooter />}
+                    {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
                         <Banner
@@ -192,12 +195,12 @@ function ReportFooter({
                             shouldShowIcon
                         />
                     )}
-                    {!isSmallScreenWidth && (
+                    {!shouldUseNarrowLayout && (
                         <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -211,6 +214,7 @@ function ReportFooter({
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
+                            shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
                         />
                     </SwipeableView>
                 </View>
@@ -230,5 +234,7 @@ export default memo(
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
+        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
 );

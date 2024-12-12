@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -15,12 +15,14 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const DAYS_OF_MONTH = 28;
 
-type WorkspaceAutoReportingMonthlyOffsetProps = WithPolicyOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET>;
+type WorkspaceAutoReportingMonthlyOffsetProps = WithPolicyOnyxProps &
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET>;
 
 type AutoReportingOffsetKeys = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
@@ -67,7 +69,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
 
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
         Policy.setWorkspaceAutoReportingMonthlyOffset(policy?.id ?? '-1', item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? ''));
     };
 
     return (
@@ -87,7 +89,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.submissionFrequency')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? ''))}
                     />
 
                     <SelectionList
@@ -98,7 +100,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         headerMessage={headerMessage}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectDayOfMonth}
-                        shouldDebounceRowSelect
+                        shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={offset.toString()}
                         showScrollIndicator
                     />

@@ -11,13 +11,13 @@ const tableHeader = ['Name', 'Duration'];
 
 const collapsibleSection = (title: string, content: string) => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
 
-const buildDurationDetails = (title: string, entry: Stats) => {
+const buildDurationDetails = (title: string, entry: Stats, unit: string) => {
     const relativeStdev = entry.stdev / entry.mean;
 
     return [
         `**${title}**`,
-        `Mean: ${format.formatDuration(entry.mean)}`,
-        `Stdev: ${format.formatDuration(entry.stdev)} (${format.formatPercent(relativeStdev)})`,
+        `Mean: ${format.formatMetric(entry.mean, unit)}`,
+        `Stdev: ${format.formatMetric(entry.stdev, unit)} (${format.formatPercent(relativeStdev)})`,
         entry.entries ? `Runs: ${entry.entries.join(' ')}` : '',
     ]
         .filter(Boolean)
@@ -25,26 +25,24 @@ const buildDurationDetails = (title: string, entry: Stats) => {
 };
 
 const buildDurationDetailsEntry = (entry: Entry) =>
-    ['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline) : '', 'current' in entry ? buildDurationDetails('Current', entry.current) : '']
+    ['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline, entry.unit) : '', 'current' in entry ? buildDurationDetails('Current', entry.current, entry.unit) : '']
         .filter(Boolean)
         .join('<br/><br/>');
 
 const formatEntryDuration = (entry: Entry): string => {
-    let formattedDuration = '';
-
     if ('baseline' in entry && 'current' in entry) {
-        formattedDuration = format.formatDurationDiffChange(entry);
+        return format.formatMetricDiffChange(entry);
     }
 
     if ('baseline' in entry) {
-        formattedDuration = format.formatDuration(entry.baseline.mean);
+        return format.formatMetric((entry as Entry).baseline.mean, (entry as Entry).unit);
     }
 
     if ('current' in entry) {
-        formattedDuration = format.formatDuration(entry.current.mean);
+        return format.formatMetric((entry as Entry).current.mean, (entry as Entry).unit);
     }
 
-    return formattedDuration;
+    return '';
 };
 
 const buildDetailsTable = (entries: Entry[]) => {
@@ -69,7 +67,7 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: Data) => {
+const buildMarkdown = (data: Data, skippedTests: string[]) => {
     let result = '## Performance Comparison Report 📊';
 
     if (data.errors?.length) {
@@ -94,6 +92,10 @@ const buildMarkdown = (data: Data) => {
     result += `\n${buildDetailsTable(data.meaningless)}`;
     result += '\n';
 
+    if (skippedTests.length > 0) {
+        result += `⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
+    }
+
     return result;
 };
 
@@ -111,8 +113,9 @@ const writeToFile = (filePath: string, content: string) =>
             throw error;
         });
 
-const writeToMarkdown = (filePath: string, data: Data) => {
-    const markdown = buildMarkdown(data);
+const writeToMarkdown = (filePath: string, data: Data, skippedTests: string[]) => {
+    const markdown = buildMarkdown(data, skippedTests);
+    Logger.info('Markdown was built successfully, writing to file...', markdown);
     return writeToFile(filePath, markdown).catch((error) => {
         console.error(error);
         throw error;
@@ -120,3 +123,4 @@ const writeToMarkdown = (filePath: string, data: Data) => {
 };
 
 export default writeToMarkdown;
+export {buildMarkdown};

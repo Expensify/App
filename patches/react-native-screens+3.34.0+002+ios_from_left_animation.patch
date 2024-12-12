@@ -1,0 +1,413 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
+index fb4260f..9d08d39 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt
+@@ -364,6 +364,8 @@ class Screen(
+         SLIDE_FROM_LEFT,
+         FADE_FROM_BOTTOM,
+         IOS,
++        IOS_FROM_RIGHT,
++        IOS_FROM_LEFT,
+     }
+ 
+     enum class ReplaceAnimation {
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+index 4b520d1..b8c66e5 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+@@ -160,7 +160,9 @@ class ScreenStack(
+                                 R.anim.rns_no_animation_medium,
+                             )
+                         StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_fade_from_bottom, R.anim.rns_no_animation_350)
+-                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_right_ios, R.anim.rns_slide_out_to_left_ios)
++                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_open, R.anim.rns_ios_from_right_background_open)
++                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_open, R.anim.rns_ios_from_right_background_open)
++                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_ios_from_left_foreground_open, R.anim.rns_ios_from_left_background_open)
+                     }
+                 } else {
+                     when (stackAnimation) {
+@@ -183,7 +185,9 @@ class ScreenStack(
+                                 R.anim.rns_slide_out_to_bottom,
+                             )
+                         StackAnimation.FADE_FROM_BOTTOM -> it.setCustomAnimations(R.anim.rns_no_animation_250, R.anim.rns_fade_to_bottom)
+-                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_slide_in_from_left_ios, R.anim.rns_slide_out_to_right_ios)
++                        StackAnimation.IOS -> it.setCustomAnimations(R.anim.rns_ios_from_right_foreground_close, R.anim.rns_ios_from_right_background_close)
++                        StackAnimation.IOS_FROM_RIGHT -> it.setCustomAnimations(R.anim.rns_ios_from_right_background_close, R.anim.rns_ios_from_right_foreground_close)
++                        StackAnimation.IOS_FROM_LEFT -> it.setCustomAnimations(R.anim.rns_ios_from_left_background_close, R.anim.rns_ios_from_left_foreground_close)
+                     }
+                 }
+             }
+@@ -373,6 +377,8 @@ class ScreenStack(
+             Build.VERSION.SDK_INT >= 33 ||
+                 fragmentWrapper.screen.stackAnimation === StackAnimation.SLIDE_FROM_BOTTOM ||
+                 fragmentWrapper.screen.stackAnimation === StackAnimation.FADE_FROM_BOTTOM ||
+-                fragmentWrapper.screen.stackAnimation === StackAnimation.IOS
++                fragmentWrapper.screen.stackAnimation === StackAnimation.IOS ||
++                fragmentWrapper.screen.stackAnimation === StackAnimation.IOS_FROM_RIGHT ||
++                fragmentWrapper.screen.stackAnimation === StackAnimation.IOS_FROM_LEFT
+     }
+ }
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt
+index 99e88f6..0699904 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt
+@@ -104,6 +104,8 @@ open class ScreenViewManager :
+                 "slide_from_bottom" -> Screen.StackAnimation.SLIDE_FROM_BOTTOM
+                 "fade_from_bottom" -> Screen.StackAnimation.FADE_FROM_BOTTOM
+                 "ios" -> Screen.StackAnimation.IOS
++                "ios_from_right" -> Screen.StackAnimation.IOS_FROM_RIGHT
++                "ios_from_left" -> Screen.StackAnimation.IOS_FROM_LEFT
+                 else -> throw JSApplicationIllegalArgumentException("Unknown animation type $animation")
+             }
+     }
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_close.xml
+new file mode 100644
+index 0000000..5d75e0b
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_close.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="30%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml
+new file mode 100644
+index 0000000..11a8d45
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_background_open.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="0%"
++    android:toXDelta="30%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml
+new file mode 100644
+index 0000000..2cb6237
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_close.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="0%"
++    android:toXDelta="-100%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml
+new file mode 100644
+index 0000000..394ac66
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_left_foreground_open.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="-100%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml
+new file mode 100644
+index 0000000..66a611f
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_close.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="-30%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_open.xml
+new file mode 100644
+index 0000000..1d92c95
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_background_open.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:fromXDelta="0%"
++    android:toXDelta="-30%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_close.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_close.xml
+new file mode 100644
+index 0000000..1073ae6
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_close.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="0%"
++    android:toXDelta="100%"/>
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_open.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_open.xml
+new file mode 100644
+index 0000000..e687584
+--- /dev/null
++++ b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_ios_from_right_foreground_open.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<translate xmlns:android="http://schemas.android.com/apk/res/android"
++    android:duration="@android:integer/config_shortAnimTime"
++    android:interpolator="@android:interpolator/accelerate_decelerate"
++    android:fromXDelta="100%"
++    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml
+deleted file mode 100644
+index 66a611f..0000000
+--- a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_left_ios.xml
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<translate xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:duration="@android:integer/config_shortAnimTime"
+-    android:fromXDelta="-30%"
+-    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml
+deleted file mode 100644
+index e687584..0000000
+--- a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_in_from_right_ios.xml
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<translate xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:duration="@android:integer/config_shortAnimTime"
+-    android:interpolator="@android:interpolator/accelerate_decelerate"
+-    android:fromXDelta="100%"
+-    android:toXDelta="0%" />
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml
+deleted file mode 100644
+index 0789fbe..0000000
+--- a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_left_ios.xml
++++ /dev/null
+@@ -1,5 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<translate xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:duration="@android:integer/config_shortAnimTime"
+-    android:fromXDelta="0%"
+-    android:toXDelta="-30%"/>
+diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml
+deleted file mode 100644
+index 1073ae6..0000000
+--- a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_slide_out_to_right_ios.xml
++++ /dev/null
+@@ -1,6 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<translate xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:duration="@android:integer/config_shortAnimTime"
+-    android:interpolator="@android:interpolator/accelerate_decelerate"
+-    android:fromXDelta="0%"
+-    android:toXDelta="100%"/>
+diff --git a/node_modules/react-native-screens/ios/RNSConvert.mm b/node_modules/react-native-screens/ios/RNSConvert.mm
+index 2acf655..0ad8ff3 100644
+--- a/node_modules/react-native-screens/ios/RNSConvert.mm
++++ b/node_modules/react-native-screens/ios/RNSConvert.mm
+@@ -51,12 +51,15 @@ + (RNSScreenStackPresentation)RNSScreenStackPresentationFromCppEquivalent:
+ + (RNSScreenStackAnimation)RNSScreenStackAnimationFromCppEquivalent:(react::RNSScreenStackAnimation)stackAnimation
+ {
+   switch (stackAnimation) {
+-    // these three are intentionally grouped
++    // these four are intentionally grouped
+     case react::RNSScreenStackAnimation::Slide_from_right:
+     case react::RNSScreenStackAnimation::Ios:
++    case react::RNSScreenStackAnimation::Ios_from_right:
+     case react::RNSScreenStackAnimation::Default:
+       return RNSScreenStackAnimationDefault;
++    // these two are intentionally grouped
+     case react::RNSScreenStackAnimation::Slide_from_left:
++    case react::RNSScreenStackAnimation::Ios_from_left:
+       return RNSScreenStackAnimationSlideFromLeft;
+     case react::RNSScreenStackAnimation::Flip:
+       return RNSScreenStackAnimationFlip;
+diff --git a/node_modules/react-native-screens/ios/RNSScreen.mm b/node_modules/react-native-screens/ios/RNSScreen.mm
+index b673407..0c7ec2b 100644
+--- a/node_modules/react-native-screens/ios/RNSScreen.mm
++++ b/node_modules/react-native-screens/ios/RNSScreen.mm
+@@ -1546,6 +1546,8 @@ @implementation RCTConvert (RNSScreen)
+       @"slide_from_right" : @(RNSScreenStackAnimationDefault),
+       @"slide_from_left" : @(RNSScreenStackAnimationSlideFromLeft),
+       @"ios" : @(RNSScreenStackAnimationDefault),
++      @"ios_from_right" : @(RNSScreenStackAnimationDefault),
++      @"ios_from_left" : @(RNSScreenStackAnimationSlideFromLeft),
+     }),
+     RNSScreenStackAnimationDefault,
+     integerValue)
+diff --git a/node_modules/react-native-screens/lib/commonjs/fabric/ScreenNativeComponent.js.map b/node_modules/react-native-screens/lib/commonjs/fabric/ScreenNativeComponent.js.map
+index 4920853..00ab471 100644
+--- a/node_modules/react-native-screens/lib/commonjs/fabric/ScreenNativeComponent.js.map
++++ b/node_modules/react-native-screens/lib/commonjs/fabric/ScreenNativeComponent.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_codegenNativeComponent","_interopRequireDefault","require","obj","__esModule","default","_default","exports","codegenNativeComponent","interfaceOnly"],"sourceRoot":"../../../src","sources":["fabric/ScreenNativeComponent.ts"],"mappings":";;;;;;AAAA,IAAAA,uBAAA,GAAAC,sBAAA,CAAAC,OAAA;AAA6F,SAAAD,uBAAAE,GAAA,WAAAA,GAAA,IAAAA,GAAA,CAAAC,UAAA,GAAAD,GAAA,KAAAE,OAAA,EAAAF,GAAA;AAU7F;AAAA,IAAAG,QAAA,GAAAC,OAAA,CAAAF,OAAA,GA6Fe,IAAAG,+BAAsB,EAAc,WAAW,EAAE;EAC9DC,aAAa,EAAE;AACjB,CAAC,CAAC"}
++{"version":3,"names":["_codegenNativeComponent","_interopRequireDefault","require","obj","__esModule","default","_default","exports","codegenNativeComponent","interfaceOnly"],"sourceRoot":"../../../src","sources":["fabric/ScreenNativeComponent.ts"],"mappings":";;;;;;AAAA,IAAAA,uBAAA,GAAAC,sBAAA,CAAAC,OAAA;AAA6F,SAAAD,uBAAAE,GAAA,WAAAA,GAAA,IAAAA,GAAA,CAAAC,UAAA,GAAAD,GAAA,KAAAE,OAAA,EAAAF,GAAA;AAU7F;AAAA,IAAAG,QAAA,GAAAC,OAAA,CAAAF,OAAA,GA+Fe,IAAAG,+BAAsB,EAAc,WAAW,EAAE;EAC9DC,aAAa,EAAE;AACjB,CAAC,CAAC"}
+diff --git a/node_modules/react-native-screens/lib/module/fabric/ScreenNativeComponent.js.map b/node_modules/react-native-screens/lib/module/fabric/ScreenNativeComponent.js.map
+index e21812a..7a67ad7 100644
+--- a/node_modules/react-native-screens/lib/module/fabric/ScreenNativeComponent.js.map
++++ b/node_modules/react-native-screens/lib/module/fabric/ScreenNativeComponent.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["codegenNativeComponent","interfaceOnly"],"sourceRoot":"../../../src","sources":["fabric/ScreenNativeComponent.ts"],"mappings":"AAAA,OAAOA,sBAAsB,MAAM,yDAAyD;;AAU5F;;AA6FA,eAAeA,sBAAsB,CAAc,WAAW,EAAE;EAC9DC,aAAa,EAAE;AACjB,CAAC,CAAC"}
++{"version":3,"names":["codegenNativeComponent","interfaceOnly"],"sourceRoot":"../../../src","sources":["fabric/ScreenNativeComponent.ts"],"mappings":"AAAA,OAAOA,sBAAsB,MAAM,yDAAyD;;AAU5F;;AA+FA,eAAeA,sBAAsB,CAAc,WAAW,EAAE;EAC9DC,aAAa,EAAE;AACjB,CAAC,CAAC"}
+diff --git a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
+index 92874bd..11ed190 100644
+--- a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts
+@@ -20,7 +20,7 @@ type GestureResponseDistanceType = Readonly<{
+     bottom: Float;
+ }>;
+ type StackPresentation = 'push' | 'modal' | 'transparentModal' | 'fullScreenModal' | 'formSheet' | 'containedModal' | 'containedTransparentModal';
+-type StackAnimation = 'default' | 'flip' | 'simple_push' | 'none' | 'fade' | 'slide_from_right' | 'slide_from_left' | 'slide_from_bottom' | 'fade_from_bottom' | 'ios';
++type StackAnimation = 'default' | 'flip' | 'simple_push' | 'none' | 'fade' | 'slide_from_right' | 'slide_from_left' | 'slide_from_bottom' | 'fade_from_bottom' | 'ios' | 'ios_from_right' | 'ios_from_left';
+ type SwipeDirection = 'vertical' | 'horizontal';
+ type ReplaceAnimation = 'pop' | 'push';
+ type SheetDetentTypes = 'large' | 'medium' | 'all';
+diff --git a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts.map b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts.map
+index 84f2fad..d919c9f 100644
+--- a/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts.map
++++ b/node_modules/react-native-screens/lib/typescript/fabric/ScreenNativeComponent.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"ScreenNativeComponent.d.ts","sourceRoot":"","sources":["../../../src/fabric/ScreenNativeComponent.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"ScreenNativeComponent.d.ts","sourceRoot":"","sources":["../../../src/fabric/ScreenNativeComponent.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+index ce3a88f..f349bf6 100644
+--- a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts
+@@ -397,7 +397,9 @@ export type NativeStackNavigationOptions = {
+      * - "slide_from_bottom" – performs a slide from bottom animation
+      * - "slide_from_right" - slide in the new screen from right to left (Android only, resolves to default transition on iOS)
+      * - "slide_from_left" - slide in the new screen from left to right
+-     * - "ios" - iOS like slide in animation (Android only, resolves to default transition on iOS)
++     * - "ios" - @deprecated iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS) (will be removed in v4.0.0 in favor of `ios_from_right`)
++     * - "ios_from_right" - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
++     * - "ios_from_left" - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
+      * - "none" – the screen appears/dissapears without an animation
+      */
+     stackAnimation?: ScreenProps['stackAnimation'];
+diff --git a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts.map b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts.map
+index 00b53ff..f91cd9d 100644
+--- a/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts.map
++++ b/node_modules/react-native-screens/lib/typescript/native-stack/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/native-stack/types.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/native-stack/types.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/lib/typescript/types.d.ts b/node_modules/react-native-screens/lib/typescript/types.d.ts
+index e6a12da..dcaee10 100644
+--- a/node_modules/react-native-screens/lib/typescript/types.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/types.d.ts
+@@ -11,7 +11,7 @@ export type SearchBarCommands = {
+ };
+ export type BackButtonDisplayMode = 'default' | 'generic' | 'minimal';
+ export type StackPresentationTypes = 'push' | 'modal' | 'transparentModal' | 'containedModal' | 'containedTransparentModal' | 'fullScreenModal' | 'formSheet';
+-export type StackAnimationTypes = 'default' | 'fade' | 'fade_from_bottom' | 'flip' | 'none' | 'simple_push' | 'slide_from_bottom' | 'slide_from_right' | 'slide_from_left' | 'ios';
++export type StackAnimationTypes = 'default' | 'fade' | 'fade_from_bottom' | 'flip' | 'none' | 'simple_push' | 'slide_from_bottom' | 'slide_from_right' | 'slide_from_left' | 'ios' | 'ios_from_right' | 'ios_from_left';
+ export type BlurEffectTypes = 'extraLight' | 'light' | 'dark' | 'regular' | 'prominent' | 'systemUltraThinMaterial' | 'systemThinMaterial' | 'systemMaterial' | 'systemThickMaterial' | 'systemChromeMaterial' | 'systemUltraThinMaterialLight' | 'systemThinMaterialLight' | 'systemMaterialLight' | 'systemThickMaterialLight' | 'systemChromeMaterialLight' | 'systemUltraThinMaterialDark' | 'systemThinMaterialDark' | 'systemMaterialDark' | 'systemThickMaterialDark' | 'systemChromeMaterialDark';
+ export type ScreenReplaceTypes = 'push' | 'pop';
+ export type SwipeDirectionTypes = 'vertical' | 'horizontal';
+@@ -273,7 +273,9 @@ export interface ScreenProps extends ViewProps {
+      * - `slide_from_bottom` – performs a slide from bottom animation
+      * - "slide_from_right" - slide in the new screen from right to left (Android only, resolves to default transition on iOS)
+      * - "slide_from_left" - slide in the new screen from left to right
+-     * - "ios" - iOS like slide in animation (Android only, resolves to default transition on iOS)
++     * - "ios" - @deprecated iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS) (will be removed in v4.0.0 in favor of `ios_from_right`)
++     * - "ios_from_right" - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
++     * - "ios_from_left" - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
+      * - "none" – the screen appears/dissapears without an animation
+      */
+     stackAnimation?: StackAnimationTypes;
+diff --git a/node_modules/react-native-screens/lib/typescript/types.d.ts.map b/node_modules/react-native-screens/lib/typescript/types.d.ts.map
+index 2fde7e3..c0d4747 100644
+--- a/node_modules/react-native-screens/lib/typescript/types.d.ts.map
++++ b/node_modules/react-native-screens/lib/typescript/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../src/types.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../src/types.tsx"],"names":[],"mappings":"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"}
+\ No newline at end of file
+diff --git a/node_modules/react-native-screens/native-stack/README.md b/node_modules/react-native-screens/native-stack/README.md
+index ce96e8e..a7d07c7 100644
+--- a/node_modules/react-native-screens/native-stack/README.md
++++ b/node_modules/react-native-screens/native-stack/README.md
+@@ -302,7 +302,9 @@ How the given screen should appear/disappear when pushed or popped at the top of
+ - `slide_from_bottom` – performs a slide from bottom animation
+ - `slide_from_right` - slide in the new screen from right to left (Android only, resolves to default transition on iOS)
+ - `slide_from_left` - slide in the new screen from left to right
+-- `ios` - iOS like slide in animation (Android only, resolves to default transition on iOS)
++- `"ios"` - @deprecated iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)  (will be removed in v4.0.0 in favor of `ios_from_right`)
++- `"ios_from_right"` - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
++- `"ios_from_left"` - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
+ - `none` - the screen appears/disappears without an animation.
+ 
+ Defaults to `default`.
+diff --git a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
+index 71c2251..4e39336 100644
+--- a/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/ScreenNativeComponent.ts
+@@ -51,7 +51,9 @@ type StackAnimation =
+   | 'slide_from_left'
+   | 'slide_from_bottom'
+   | 'fade_from_bottom'
+-  | 'ios';
++  | 'ios'
++  | 'ios_from_right'
++  | 'ios_from_left';
+ 
+ type SwipeDirection = 'vertical' | 'horizontal';
+ 
+diff --git a/node_modules/react-native-screens/src/native-stack/types.tsx b/node_modules/react-native-screens/src/native-stack/types.tsx
+index 5ad3184..78989e7 100644
+--- a/node_modules/react-native-screens/src/native-stack/types.tsx
++++ b/node_modules/react-native-screens/src/native-stack/types.tsx
+@@ -418,7 +418,9 @@ export type NativeStackNavigationOptions = {
+    * - "slide_from_bottom" – performs a slide from bottom animation
+    * - "slide_from_right" - slide in the new screen from right to left (Android only, resolves to default transition on iOS)
+    * - "slide_from_left" - slide in the new screen from left to right
+-   * - "ios" - iOS like slide in animation (Android only, resolves to default transition on iOS)
++   * - "ios" - @deprecated iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS) (will be removed in v4.0.0 in favor of `ios_from_right`)
++   * - "ios_from_right" - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
++   * - "ios_from_left" - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
+    * - "none" – the screen appears/dissapears without an animation
+    */
+   stackAnimation?: ScreenProps['stackAnimation'];
+diff --git a/node_modules/react-native-screens/src/types.tsx b/node_modules/react-native-screens/src/types.tsx
+index f83ad56..6052fdc 100644
+--- a/node_modules/react-native-screens/src/types.tsx
++++ b/node_modules/react-native-screens/src/types.tsx
+@@ -38,7 +38,9 @@ export type StackAnimationTypes =
+   | 'slide_from_bottom'
+   | 'slide_from_right'
+   | 'slide_from_left'
+-  | 'ios';
++  | 'ios'
++  | 'ios_from_right'
++  | 'ios_from_left';
+ export type BlurEffectTypes =
+   | 'extraLight'
+   | 'light'
+@@ -340,7 +342,9 @@ export interface ScreenProps extends ViewProps {
+    * - `slide_from_bottom` – performs a slide from bottom animation
+    * - "slide_from_right" - slide in the new screen from right to left (Android only, resolves to default transition on iOS)
+    * - "slide_from_left" - slide in the new screen from left to right
+-   * - "ios" - iOS like slide in animation (Android only, resolves to default transition on iOS)
++   * - "ios" - @deprecated iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS) (will be removed in v4.0.0 in favor of `ios_from_right`)
++   * - "ios_from_right" - iOS like slide in animation. pushes in the new screen from right to left (Android only, resolves to default transition on iOS)
++   * - "ios_from_left" - iOS like slide in animation. pushes in the new screen from left to right (Android only, resolves to default transition on iOS)
+    * - "none" – the screen appears/dissapears without an animation
+    */
+   stackAnimation?: StackAnimationTypes;
+diff --git a/node_modules/react-native-screens/windows/RNScreens/Screen.h b/node_modules/react-native-screens/windows/RNScreens/Screen.h
+index fd02641..564b173 100644
+--- a/node_modules/react-native-screens/windows/RNScreens/Screen.h
++++ b/node_modules/react-native-screens/windows/RNScreens/Screen.h
+@@ -11,7 +11,9 @@ enum class StackAnimation {
+   SIMPLE_FROM_BOTTOM,
+   SLIDE_FROM_RIGHT,
+   SLIDE_FROM_LEFT,
+-  IOS
++  IOS,
++  IOS_FROM_RIGHT,
++  IOS_FROM_LEFT
+ };
+ 
+ enum class ReplaceAnimation { PUSH, POP };

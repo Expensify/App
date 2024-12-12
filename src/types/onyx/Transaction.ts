@@ -3,8 +3,9 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Participant, Split} from './IOU';
+import type {Attendee, Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
+import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
 import type {ViolationName} from './TransactionViolation';
@@ -93,13 +94,16 @@ type TransactionCustomUnit = {
     customUnitRateID?: string;
 
     /** Custom unit amount */
-    quantity?: number;
+    quantity?: number | null;
 
     /** Name of the custom unit */
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
-    defaultP2PRate?: number;
+    defaultP2PRate?: number | null;
+
+    /** The unit for the distance/quantity */
+    distanceUnit?: Unit;
 };
 
 /** Types of geometry */
@@ -121,6 +125,9 @@ type ReceiptSource = string;
 type Receipt = {
     /** Name of receipt file */
     name?: string;
+
+    /** ID of receipt file */
+    receiptID?: number;
 
     /** Path of the receipt file */
     source?: ReceiptSource;
@@ -226,6 +233,9 @@ type Reservation = {
 
     /** In car reservations, this represents the details of the car */
     carInfo?: CarInfo;
+
+    /** Payment type of the reservation */
+    paymentType?: string;
 };
 
 /** Model of trip reservation time details */
@@ -300,6 +310,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** Selected attendees */
+        attendees?: Attendee[];
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -313,7 +326,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the expense was created */
         created: string;
@@ -338,6 +351,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The edited transaction amount */
         modifiedAmount?: number;
+
+        /** The edited attendees list */
+        modifiedAttendees?: Attendee[];
 
         /** The edited transaction date */
         modifiedCreated?: string;
@@ -430,8 +446,23 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
+
+        /** The bank of the purchaser card, if any */
+        bank?: string;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
+
+        /** The masked PAN of the purchaser card, if any */
+        cardNumber?: string;
+
+        /** Whether the transaction is linked to a managed card */
+        managedCard?: boolean;
+
+        /** The card transaction's posted date */
+        posted?: string;
     },
-    keyof Comment
+    keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
 
 /** Keys of pending transaction fields */
@@ -444,6 +475,9 @@ type AdditionalTransactionChanges = {
 
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** The ID of the distance rate */
+    customUnitRateID?: string;
 
     /** Previous amount before changes */
     oldAmount?: number;

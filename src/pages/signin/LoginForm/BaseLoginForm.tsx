@@ -3,8 +3,7 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -32,39 +31,29 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CloseAccountForm} from '@src/types/form';
-import type {Account, Credentials} from '@src/types/onyx';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
-type BaseLoginFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
+type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-    /** Message to display when user successfully closed their account */
-    closeAccount: OnyxEntry<CloseAccountForm>;
-
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
-
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-    const [formError, setFormError] = useState<string | undefined>();
+    const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const accountMessage = account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account.message) : account?.message ?? '';
 
     /**
      * Validate the input value and set the error for formError
@@ -73,7 +62,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         (value: string) => {
             const loginTrim = value.trim();
             if (!loginTrim) {
-                setFormError(translate('common.pleaseEnterEmailOrPhoneNumber'));
+                setFormError('common.pleaseEnterEmailOrPhoneNumber');
                 return false;
             }
 
@@ -82,9 +71,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                    setFormError(translate('common.error.phoneNumber'));
+                    setFormError('common.error.phoneNumber');
                 } else {
-                    setFormError(translate('loginForm.error.invalidFormatEmailLogin'));
+                    setFormError('loginForm.error.invalidFormatEmailLogin');
                 }
                 return false;
             }
@@ -92,7 +81,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             setFormError(undefined);
             return true;
         },
-        [setFormError, translate],
+        [setFormError],
     );
 
     /**
@@ -100,7 +89,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
      */
     const onTextInput = useCallback(
         (text: string) => {
-            setLogin(text);
+            onLoginChanged(text);
             if (firstBlurred.current) {
                 validate(text);
             }
@@ -114,7 +103,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 CloseAccount.setDefaultData();
             }
         },
-        [account, closeAccount, input, setLogin, validate],
+        [account, closeAccount, input, onLoginChanged, validate],
     );
 
     function getSignInWithStyles() {
@@ -173,7 +162,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -231,6 +220,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         });
     }, []);
 
+    const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
+
     return (
         <>
             <View
@@ -267,9 +258,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoFocus
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formError}
+                    errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
@@ -280,7 +270,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? closeAccount.success : account?.message || ''}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}
             {
@@ -317,10 +307,16 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
+                                            <AppleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                         <View>
-                                            <GoogleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
+                                            <GoogleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                     </View>
                                 </View>
@@ -335,10 +331,4 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(
-    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
-    })(forwardRef(BaseLoginForm)),
-);
+export default withToggleVisibilityView(forwardRef(BaseLoginForm));

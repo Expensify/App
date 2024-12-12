@@ -1,19 +1,23 @@
-import React, {useEffect, useRef, useState} from 'react';
+import type {MutableRefObject} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
-    success = false,
+    success = true,
     isSplitButton = true,
     isLoading = false,
     isDisabled = false,
@@ -22,6 +26,7 @@ function ButtonWithDropdownMenu<IValueType>({
     menuHeaderText = '',
     customText,
     style,
+    disabledStyle,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -31,30 +36,39 @@ function ButtonWithDropdownMenu<IValueType>({
     onPress,
     options,
     onOptionSelected,
+    onOptionsMenuShow,
+    onOptionsMenuHide,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
+    useKeyboardShortcuts = false,
+    shouldUseStyleUtilityForAnchorPosition = false,
+    defaultSelectedIndex = 0,
+    shouldShowSelectedItemCheck = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+    const [selectedItemIndex, setSelectedItemIndex] = useState(defaultSelectedIndex);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef<View | null>(null);
-    const selectedItem = options[selectedItemIndex] || options[0];
+    const dropdownAnchor = useRef<View | null>(null);
+    // eslint-disable-next-line react-compiler/react-compiler
+    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
+    const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
-        if (!caretButton.current) {
+        if (!dropdownAnchor.current) {
             return;
         }
         if (!isMenuVisible) {
             return;
         }
-        if ('measureInWindow' in caretButton.current) {
-            caretButton.current.measureInWindow((x, y, w, h) => {
+        if ('measureInWindow' in dropdownAnchor.current) {
+            dropdownAnchor.current.measureInWindow((x, y, w, h) => {
                 setPopoverAnchorPosition({
                     horizontal: x + w,
                     vertical:
@@ -65,24 +79,61 @@ function ButtonWithDropdownMenu<IValueType>({
             });
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            if (shouldAlwaysShowDropdownMenu || options.length) {
+                if (!isSplitButton) {
+                    setIsMenuVisible(!isMenuVisible);
+                    return;
+                }
+                if (selectedItem?.value) {
+                    onPress(e, selectedItem.value);
+                }
+            } else {
+                const option = options.at(0);
+                if (option?.value) {
+                    onPress(e, option.value);
+                }
+            }
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+            isActive: useKeyboardShortcuts,
+        },
+    );
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
+
+    const handlePress = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!isSplitButton) {
+                setIsMenuVisible(!isMenuVisible);
+            } else if (selectedItem?.value) {
+                onPress(event, selectedItem.value);
+            }
+        },
+        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
+    );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
+                <View style={[splitButtonWrapperStyle, style]}>
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={(ref) => {
-                            caretButton.current = ref;
-                        }}
-                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
-                        text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled || !!selectedItem.disabled}
+                        ref={dropdownButtonRef}
+                        onPress={handlePress}
+                        text={customText ?? selectedItem?.text ?? ''}
+                        isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={[styles.flex1, styles.pr0]}
-                        large={isButtonSizeLarge}
-                        medium={!isButtonSizeLarge}
+                        style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
+                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
@@ -92,14 +143,15 @@ function ButtonWithDropdownMenu<IValueType>({
 
                     {isSplitButton && (
                         <Button
-                            ref={caretButton}
+                            ref={dropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
-                            large={isButtonSizeLarge}
-                            medium={!isButtonSizeLarge}
+                            large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                            small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         >
@@ -122,35 +174,47 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled || !!options[0].disabled}
+                    isDisabled={isDisabled || !!options.at(0)?.disabled}
                     style={[styles.w100, style]}
+                    disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem.text}
-                    onPress={(event) => onPress(event, options[0].value)}
-                    large={isButtonSizeLarge}
-                    medium={!isButtonSizeLarge}
+                    text={selectedItem?.text}
+                    onPress={(event) => {
+                        const option = options.at(0);
+                        return option ? onPress(event, option.value) : undefined;
+                    }}
+                    large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                 />
             )}
-            {(shouldAlwaysShowDropdownMenu || options.length > 1) && popoverAnchorPosition && (
+            {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
-                    onClose={() => setIsMenuVisible(false)}
+                    onClose={() => {
+                        setIsMenuVisible(false);
+                        onOptionsMenuHide?.();
+                    }}
+                    onModalShow={onOptionsMenuShow}
                     onItemSelected={() => setIsMenuVisible(false)}
-                    anchorPosition={popoverAnchorPosition}
-                    anchorRef={caretButton}
+                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverButtonDropdownMenuOffset(windowWidth) : popoverAnchorPosition}
+                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
-                        onSelected:
-                            item.onSelected ??
-                            (() => {
-                                onOptionSelected?.(item);
-                                setSelectedItemIndex(index);
-                            }),
+                        onSelected: item.onSelected
+                            ? () => item.onSelected?.()
+                            : () => {
+                                  onOptionSelected?.(item);
+                                  setSelectedItemIndex(index);
+                              },
+                        shouldCallAfterModalHide: true,
                     }))}
                 />
             )}

@@ -1,7 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -22,23 +20,17 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
-type TaskViewOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+type TaskViewProps = WithCurrentUserPersonalDetailsProps & {
+    /** The report currently being looked at */
+    report: Report;
 };
-
-type TaskViewProps = TaskViewOnyxProps &
-    WithCurrentUserPersonalDetailsProps & {
-        /** The report currently being looked at */
-        report: Report;
-    };
 
 function TaskView({report, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
@@ -46,18 +38,18 @@ function TaskView({report, ...props}: TaskViewProps) {
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-
+    const personalDetails = usePersonalDetails();
     const taskTitle = convertToLTR(report.reportName ?? '');
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
         false,
     );
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
 
     return (
@@ -79,7 +71,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -96,6 +88,10 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
+                                                // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                                                    return;
+                                                }
                                                 if (isCompleted) {
                                                     Task.reopenTask(report);
                                                 } else {
@@ -108,7 +104,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
-                                            disabled={!canModifyTask}
+                                            disabled={!canModifyTask || !canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -138,7 +134,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                         shouldRenderAsHTML
                         description={translate('task.description')}
                         title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -156,7 +152,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -168,7 +164,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                     ) : (
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -184,10 +180,4 @@ function TaskView({report, ...props}: TaskViewProps) {
 
 TaskView.displayName = 'TaskView';
 
-const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(TaskView);
-
-export default withCurrentUserPersonalDetails(TaskViewWithOnyx);
+export default withCurrentUserPersonalDetails(TaskView);

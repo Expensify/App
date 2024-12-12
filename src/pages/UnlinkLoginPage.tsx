@@ -1,10 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +16,7 @@ type UnlinkLoginPageOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
+type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 
 function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
     const accountID = route.params.accountID ?? -1;
@@ -26,7 +26,7 @@ function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
     useEffect(() => {
         Session.unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

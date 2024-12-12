@@ -4,7 +4,7 @@ name: Process new code merged to main
 on:
   push:
     branches: [main]
-    paths-ignore: [docs/**, contributingGuides/**, jest/**, tests/**, workflow_tests/**]
+    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**, tests/**]
 
 jobs:
   typecheck:
@@ -12,6 +12,9 @@ jobs:
 
   lint:
     uses: ./.github/workflows/lint.yml
+
+  prettier:
+    uses: ./.github/workflows/prettier.yml
 
   test:
     uses: ./.github/workflows/test.yml
@@ -32,7 +35,9 @@ jobs:
 
       - name: Exit failed workflow
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
-        run: exit 1
+        run: |
+          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}"
+          exit 1
 
   chooseDeployActions:
     runs-on: ubuntu-latest
@@ -84,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run turnstyle
-        uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
+        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
         with:
           poll-interval-seconds: 10
         env:

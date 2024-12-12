@@ -1,11 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as App from '@userActions/App';
+import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Session} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import * as OnyxUpdateManagerUtils from './utils';
 import * as DeferredOnyxUpdates from './utils/DeferredOnyxUpdates';
@@ -75,7 +77,7 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
         // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
         // it so the app is not stuck forever without processing requests.
         SequentialQueue.unpause();
-        console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
+        console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hasn't finished yet.`);
         return;
     }
     // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
@@ -89,6 +91,10 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
         return;
     }
+
+    // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
+    // current authToken is probably invalid.
+    updateAuthTokenIfNecessary(onyxUpdatesFromServer);
 
     const updateParams = onyxUpdatesFromServer;
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
@@ -142,6 +148,29 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     }
 
     DeferredOnyxUpdates.getMissingOnyxUpdatesQueryPromise()?.finally(finalizeUpdatesAndResumeQueue);
+}
+
+function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
+    // Consolidate all of the given Onyx updates
+    const onyxUpdates: OnyxUpdate[] = [];
+    onyxUpdatesFromServer?.updates?.forEach((updateEvent) => onyxUpdates.push(...updateEvent.data));
+    onyxUpdates.push(...(onyxUpdatesFromServer?.response?.onyxData ?? []));
+
+    // Find any session updates
+    const sessionUpdates = onyxUpdates?.filter((onyxUpdate) => onyxUpdate.key === ONYXKEYS.SESSION);
+
+    // If any of the updates changes the authToken, let's update it now
+    sessionUpdates?.forEach((sessionUpdate) => {
+        const session = (sessionUpdate.value ?? {}) as Session;
+        const newAuthToken = session.authToken ?? '';
+        if (!newAuthToken) {
+            return;
+        }
+
+        Log.info('[OnyxUpdateManager] Found an authToken update while handling an Onyx update gap. Updating the authToken.');
+        updateSessionAuthTokens(newAuthToken);
+        NetworkStore.setAuthToken(newAuthToken);
+    });
 }
 
 export default () => {

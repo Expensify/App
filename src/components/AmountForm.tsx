@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
@@ -12,10 +12,11 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
+import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
-import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
+import type BaseTextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -41,7 +42,16 @@ type AmountFormProps = {
 
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
-} & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
+
+    /** Custom label for the TextInput */
+    label?: string;
+
+    /** Whether the form should use a standard TextInput as a base */
+    displayAsTextInput?: boolean;
+
+    /** Number of decimals to display */
+    fixedDecimals?: number;
+} & Pick<BaseTextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
     Pick<BaseTextInputProps, 'autoFocus'>;
 
 /**
@@ -57,7 +67,20 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, amountMaxLength, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true, ...rest}: AmountFormProps,
+    {
+        value: amount,
+        currency = CONST.CURRENCY.USD,
+        extraDecimals = 0,
+        amountMaxLength,
+        errorText,
+        onInputChange,
+        onCurrencyButtonPress,
+        displayAsTextInput = false,
+        isCurrencyPressable = true,
+        label,
+        fixedDecimals,
+        ...rest
+    }: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -65,7 +88,7 @@ function AmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
+    const decimals = fixedDecimals ?? CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -124,6 +147,29 @@ function AmountForm(
         [amountMaxLength, currentAmount, decimals, onInputChange, selection],
     );
 
+    /**
+     * Set a new amount value properly formatted
+     *
+     * @param text - Changed text from user input
+     */
+    const setFormattedAmount = (text: string) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(text);
+        const replacedCommasAmount = MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+        const withLeadingZero = MoneyRequestUtils.addLeadingZero(replacedCommasAmount);
+
+        if (!MoneyRequestUtils.validateAmount(withLeadingZero, decimals, amountMaxLength)) {
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
+        }
+
+        const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(withLeadingZero);
+        const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+        setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+        onInputChange?.(strippedAmount);
+    };
+
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
@@ -135,7 +181,7 @@ function AmountForm(
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**
@@ -195,6 +241,35 @@ function AmountForm(
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
+    if (displayAsTextInput) {
+        return (
+            <TextInput
+                label={label}
+                value={formattedAmount}
+                onChangeText={setFormattedAmount}
+                ref={(ref: BaseTextInputRef) => {
+                    if (typeof forwardedRef === 'function') {
+                        forwardedRef(ref);
+                    } else if (forwardedRef && 'current' in forwardedRef) {
+                        // eslint-disable-next-line no-param-reassign
+                        forwardedRef.current = ref;
+                    }
+                    textInput.current = ref;
+                }}
+                prefixCharacter={currency}
+                prefixStyle={styles.colorMuted}
+                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+                // See https://github.com/Expensify/App/issues/51868 for more information
+                autoCapitalize="words"
+                inputMode={CONST.INPUT_MODE.DECIMAL}
+                errorText={errorText}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            />
+        );
+    }
+
     return (
         <>
             <View
@@ -218,11 +293,11 @@ function AmountForm(
                     }}
                     selectedCurrencyCode={currency}
                     selection={selection}
-                    onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                    onSelectionChange={(start, end) => {
                         if (!shouldUpdateSelection) {
                             return;
                         }
-                        setSelection(e.nativeEvent.selection);
+                        setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}

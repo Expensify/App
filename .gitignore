@@ -24,7 +24,7 @@ DerivedData
 *.p12
 *.mobileprovision
 ios-fastlane-json-key.json
-ios/.xcode.env.local
+**/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -78,7 +78,7 @@ android/app/android-fastlane-json-key.json
 *.jsbundle
 
 # Ruby / CocoaPods
-/ios/Pods/
+**/Pods/
 /vendor/bundle/
 
 # Local DEV config
@@ -110,10 +110,6 @@ tsconfig.tsbuildinfo
 # Mock-github
 /repo/
 
-# Workflow test logs
-/workflow_tests/logs/
-/workflow_tests/repo/
-
 # Yalc
 .yalc
 yalc.lock
@@ -131,5 +127,19 @@ config/webpack/*.pem
 dist/
 web-build/
 
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
 .sourcemaps/
+
+# Jeykll
+docs/.bundle
+
+# Output of react compiler healthcheck dev script
+react-compiler-output.txt

@@ -38,10 +38,15 @@ function EmojiSkinToneList() {
             return;
         }
         toggleIsSkinToneListVisible();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
+
+    useEffect(() => {
+        setHighlightedIndex(currentSkinTone.skinTone);
+    }, [currentSkinTone.skinTone]);
+
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (

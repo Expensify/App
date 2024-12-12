@@ -1,5 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,8 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import variables from '@styles/variables';
@@ -33,11 +32,9 @@ type NewTaskDetailsPageOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
+type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
-const parser = new ExpensiMark();
-
-function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
+function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -45,12 +42,13 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const backTo = route.params?.backTo;
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
-        setTaskDescription(parseHtmlToMarkdown(parser.replace(task?.description ?? '')));
+        setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
     }, [task]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -87,21 +85,20 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                 task.assigneeChatReport,
             );
         } else {
-            Navigation.navigate(ROUTES.NEW_TASK);
+            Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }
     };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={NewTaskDetailsPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('newTaskPage.assignTask')}
-                onCloseButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo(backTo)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
@@ -136,7 +133,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        defaultValue={parseHtmlToMarkdown(parser.replace(taskDescription))}
+                        defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         isMarkdownEnabled

@@ -1,7 +1,10 @@
+import type FocusTrap from 'focus-trap-react';
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
 
 type PopoverAnchorPosition = {
     top?: number;
@@ -33,9 +36,6 @@ type BaseModalProps = Partial<ModalProps> & {
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
-    /** Callback method fired when the user requests to submit the modal content. */
-    onSubmit?: () => void;
-
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
 
@@ -52,6 +52,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent?: boolean;
+
+    /** Whether the modal should go under the system navigation bar */
+    navigationBarTranslucent?: boolean;
 
     /** Whether the modal should avoid the keyboard */
     avoidKeyboard?: boolean;
@@ -87,6 +90,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
+
+    /** Used to set the element that should receive the initial focus */
+    initialFocus?: FocusTrapOptions['initialFocus'];
 };
 
 export default BaseModalProps;

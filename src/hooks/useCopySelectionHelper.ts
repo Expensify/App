@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import Clipboard from '@libs/Clipboard';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import SelectionScraper from '@libs/SelectionScraper';
 import CONST from '@src/CONST';
 
@@ -11,10 +11,10 @@ function copySelectionToClipboard() {
         return;
     }
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(parseHtmlToMarkdown(selection));
+        Clipboard.setString(Parser.htmlToMarkdown(selection));
         return;
     }
-    Clipboard.setHtml(selection, parseHtmlToText(selection));
+    Clipboard.setHtml(selection, Parser.htmlToText(selection));
 }
 
 export default function useCopySelectionHelper() {

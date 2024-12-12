@@ -1,8 +1,9 @@
+/* eslint-disable react-compiler/react-compiler */
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
-import {Dimensions} from 'react-native';
-import type {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
@@ -13,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
 import * as Browser from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
@@ -40,7 +42,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         width: 0,
         height: 0,
     });
-    const onModalHide = useRef(() => {});
+    const onModalHide = useRef<OnModalHideValue>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>();
@@ -55,7 +57,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
-    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emojiPopoverAnchorRef?.current, []);
+    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? (emojiPopoverAnchorRef as EmojiPopoverAnchor), []);
 
     /**
      * Show the emoji picker menu.
@@ -87,19 +89,23 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
         const anchorOriginValue = anchorOrigin ?? DEFAULT_ANCHOR_ORIGIN;
 
+        // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
+        // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
         calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
-            onWillShow?.();
-            setIsEmojiPickerVisible(true);
-            setEmojiPopoverAnchorPosition({
-                horizontal: value.horizontal,
-                vertical: value.vertical,
+            Modal.close(() => {
+                onWillShow?.();
+                setIsEmojiPickerVisible(true);
+                setEmojiPopoverAnchorPosition({
+                    horizontal: value.horizontal,
+                    vertical: value.vertical,
+                });
+                emojiAnchorDimension.current = {
+                    width: value.width,
+                    height: value.height,
+                };
+                setEmojiPopoverAnchorOrigin(anchorOriginValue);
+                setActiveID(id);
             });
-            emojiAnchorDimension.current = {
-                width: value.width,
-                height: value.height,
-            };
-            setEmojiPopoverAnchorOrigin(anchorOriginValue);
-            setActiveID(id);
         });
     };
 
@@ -107,14 +113,12 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * Hide the emoji picker menu.
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
-        if (isNavigating) {
-            onModalHide.current = () => {};
-        }
         const currOnModalHide = onModalHide.current;
         onModalHide.current = () => {
             if (currOnModalHide) {
-                currOnModalHide();
+                currOnModalHide(!!isNavigating);
             }
+
             emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);
@@ -218,11 +222,15 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
-            <EmojiPickerMenu
-                onEmojiSelected={selectEmoji}
-                activeEmoji={activeEmoji.current}
-                ref={(el) => (emojiSearchInput.current = el)}
-            />
+            <FocusTrapForModal active={isEmojiPickerVisible}>
+                <View>
+                    <EmojiPickerMenu
+                        onEmojiSelected={selectEmoji}
+                        activeEmoji={activeEmoji.current}
+                        ref={(el) => (emojiSearchInput.current = el)}
+                    />
+                </View>
+            </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }

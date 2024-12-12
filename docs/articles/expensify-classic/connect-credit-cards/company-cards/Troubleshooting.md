@@ -8,6 +8,15 @@ Whether you're encountering issues related to company cards, require assistance 
 ## How to add company cards to Expensify
 You can add company credit cards under the Domain settings in your Expensify account by navigating to *Settings* > *Domain* > _Domain Name_ > *Company Cards* and clicking *Import Card/Bank* and following the prompts.
 
+## To Locate Missing Card Transactions in Expensify
+1. **Wait for Posting**: Bank transactions may take up to 24 hours to import into Expensify after they have "posted" at your bank. Ensure sufficient time has passed for transactions to appear.
+2. **Update Company Cards**: Go to Settings > Domains > Company Cards. Click on the card in question and click "Update" to refresh the card feed.
+3. **Reconcile Cards**: Navigate to the Reconciliation section under Settings > Domains > Company Cards. Refer to the detailed guide on how to use the [Reconciliation Dashboard](https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Reconciliation#identifying-outstanding-unapproved-expenses-using-the-reconciliation-dashboard).
+4. **Review Transactions**: Use the Reconciliation Dashboard to view all transactions within a specific timeframe. Transactions will display on the Expenses page based on their "Posted Date". If needed, uncheck the "use posted date" checkbox near the filters to view transactions based on their "Transaction Date" instead.
+5. **Address Gaps**: If there is a significant gap in transactions or if transactions are still missing, contact Expensify's Concierge or your Account Manager. They can initiate a historical data update on your card feed to ensure all transactions are properly imported.
+
+Following these steps should help you identify and resolve any issues with missing card transactions in Expensify.
+
 ## Known issues importing transactions
 The first step should always be to "Update" your card, either from Settings > Your Account > Credit Card Import or Settings > Domain > [Domain Name] > Company Cards for centrally managed cards. If a "Fix" or "Fix card" option appears, follow the steps to fix the connection. If this fails to import your missing transactions, there is a known issue whereby some transactions will not import for certain API-based company card connections. So far this has been reported on American Express, Chase and Wells Fargo. This can be temporarily resolved by creating the expenses manually instead:
 
@@ -62,6 +71,24 @@ If you've answered "yes" to any of these questions, a Domain Admins need to upda
 ## How do I resolve errors while I’m trying to import my card?*
 Make sure you're importing your card in the correct spot in Expensify and selecting the right bank connection. For company cards, use the master administrative credentials to import your set of cards at *Settings* > *Domains* > _Domain Name_ > *Company Cards* > *Import Card*.
 Please note there are some things that cannot be bypassed within Expensify, including two-factor authentication being enabled within your bank account. This will prevent the connection from remaining stable and will need to be turned off on the bank side. 
+
+## Why Can’t I See the Transactions Before a Certain Date?
+When importing a card into Expensify, the platform typically retrieves 30-90 days of historical transactions, depending on the card or account type. For commercial feeds, transactions cannot be imported before the bank starts sending data. If needed, banks can send backdated files, and Expensify can run a historical update upon request.
+
+Additionally, Expensify does not import transactions dated before the "start date" you specify when assigning the card. Unless transitioning from an old card to a new one to avoid duplicates, it's advisable to set the start date to "earliest possible" or leave it blank.
+
+For historical expenses that cannot be imported automatically, consider using Expensify's [company card](https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/CSV-Import) or [personal card](https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Personal-Credit-Cards#importing-expenses-via-a-spreadsheet) spreadsheet import method. This allows you to manually input missing transactions into the system.
+
+## Why Am I / Why Is My Employee Seeing Duplicates?
+If an employee is seeing duplicate expenses, they may have accidentally imported the card as a personal credit card as well as having the Domain Admin assign them a company card.
+
+To troubleshoot:
+- Have the employee navigate to their Settings > Your Account > Credit Card Import and confirm that their card is only listed once. 
+- If the card is listed twice, delete the entry without the "padlock" icon.
+
+**Important:** Deleting a duplicate card will delete all unapproved expenses from that transaction feed. Transactions associated with the remaining card will not be affected. If receipts were attached to those transactions, they will still be on the Expenses page, and the employee can click to SmartScan them again.
+
+Duplicate expenses might also occur if you recently unassigned and reassigned a company card with an overlapping start date. If this is the case and expenses on the “new” copy have not been submitted, you can unassign the card again and reassign it with a more appropriate start date. This action will delete all unsubmitted expenses from the new card feed.
 
 ## What are the most reliable bank connections in Expensify?*
 All bank connections listed below are extremely reliable, but we recommend transacting with the Expensify Visa® Commercial Card. It also offers daily and monthly settlement, unapproved expense limits, realtime compliance for secure and efficient spending, and cash back on all US purchases. [Click here to learn more about the Expensify Card](https://use.expensify.com/company-credit-card).

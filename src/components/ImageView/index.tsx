@@ -7,6 +7,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import Lightbox from '@components/Lightbox';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -195,34 +196,25 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
-
-    const isLocalFile = FileUtils.isLocalFile(url);
+    // isLocalToUserDeviceFile means the file is located on the user device,
+    // not loaded on the server yet (the user is offline when loading this file in fact)
+    let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
+    if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
+        isLocalToUserDeviceFile = false;
+    }
 
     if (canUseTouchScreen) {
         return (
-            <View
-                style={[styles.imageViewContainer, styles.overflowHidden]}
-                onLayout={onContainerLayoutChanged}
-            >
-                <Image
-                    source={{uri: url}}
-                    isAuthTokenRequired={isAuthTokenRequired}
-                    // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                    style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
-                    // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
-                    // Both `center` and `contain` keeps the image centered on both x and y axis.
-                    resizeMode={zoomScale > 1 ? RESIZE_MODES.center : RESIZE_MODES.contain}
-                    onLoadStart={imageLoadingStart}
-                    onLoad={imageLoad}
-                    onError={onError}
-                />
-                {((isLoading && (!isOffline || isLocalFile)) || (!isLoading && zoomScale === 0)) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
-            </View>
+            <Lightbox
+                uri={url}
+                isAuthTokenRequired={isAuthTokenRequired}
+                onError={onError}
+            />
         );
     }
     return (
         <View
+            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(scrollableRef)}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
@@ -250,8 +242,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && (!isOffline || isLocalFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
+            {isLoading && (!isOffline || isLocalToUserDeviceFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isLocalToUserDeviceFile && <AttachmentOfflineIndicator />}
         </View>
     );
 }

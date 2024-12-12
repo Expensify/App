@@ -1,4 +1,4 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -9,10 +9,13 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -24,8 +27,8 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '';
     const styles = useThemeStyles();
-    const {billStatus} = policy?.connections?.xero?.config?.export ?? {};
-    const invoiceStatus = billStatus?.purchase;
+    const {config} = policy?.connections?.xero ?? {};
+    const invoiceStatus = config?.export?.billStatus?.purchase;
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,
@@ -45,15 +48,22 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
 
     const selectPurchaseBillStatus = useCallback(
         (row: MenuListItem) => {
-            if (isEmpty(billStatus)) {
+            if (isEmpty(config?.export?.billStatus)) {
                 return;
             }
             if (row.value !== invoiceStatus) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billStatus: {...billStatus, purchase: row.value}});
+                updateXeroExportBillStatus(
+                    policyID,
+                    {
+                        ...config?.export?.billStatus,
+                        purchase: row.value,
+                    },
+                    config?.export?.billStatus,
+                );
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID));
         },
-        [billStatus, invoiceStatus, policyID],
+        [config?.export?.billStatus, invoiceStatus, policyID],
     );
 
     return (
@@ -70,6 +80,10 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.BILL_STATUS], config?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.BILL_STATUS)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.BILL_STATUS)}
         />
     );
 }

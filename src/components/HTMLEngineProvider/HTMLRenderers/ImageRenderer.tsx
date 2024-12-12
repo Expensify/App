@@ -1,13 +1,15 @@
 import React, {memo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +34,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const {translate} = useLocalize();
 
     const htmlAttribs = tnode.attributes;
+    const isDeleted = isDeletedNode(tnode);
 
     // There are two kinds of images that need to be displayed:
     //
@@ -57,12 +60,21 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
+    const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const fileType = FileUtils.getFileType(attachmentSourceAttribute);
-    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.Gallery;
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
+    const theme = useTheme();
+
+    let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
+    const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+    if (!fileInfo.fileExtension) {
+        fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
+    }
+
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={previewSource}
@@ -71,6 +83,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
             fallbackIcon={fallbackIcon}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            isDeleted={isDeleted}
+            altText={alt}
+            fallbackIconBackground={theme.highlightBG}
+            fallbackIconColor={theme.border}
         />
     );
 
@@ -78,7 +94,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -88,14 +104,18 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
 
-                                if (reportID) {
-                                    const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
-                                    Navigation.navigate(route);
-                                }
+                                const attachmentLink = tnode.parent?.attributes?.href;
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                Navigation.navigate(route);
                             }}
-                            onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                            onLongPress={(event) => {
+                                if (isDisabled) {
+                                    return;
+                                }
+                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                            }}
                             shouldUseHapticsOnLongPress
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         >
                             {thumbnailImageComponent}
@@ -109,13 +129,20 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(
-    memo(
-        ImageRenderer,
-        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
-    ),
+const ImageRendererMemorize = memo(
+    ImageRenderer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
 );
+
+function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
+    const [user] = useOnyx(ONYXKEYS.USER);
+    return (
+        <ImageRendererMemorize
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            user={user}
+        />
+    );
+}
+
+export default ImageRendererWrapper;

@@ -13,18 +13,16 @@ function getTopmostFullScreenRoute(state: State<RootStackParamList>): Navigation
         return;
     }
 
+    if (topmostFullScreenRoute.state) {
+        // There will be at least one route in the fullscreen navigator.
+        const {name, params} = topmostFullScreenRoute.state.routes.at(-1) as NavigationPartialRoute<FullScreenName>;
+
+        return {name, params};
+    }
+
     if (!!topmostFullScreenRoute.params && 'screen' in topmostFullScreenRoute.params) {
         return {name: topmostFullScreenRoute.params.screen as FullScreenName, params: topmostFullScreenRoute.params.params};
     }
-
-    if (!topmostFullScreenRoute.state) {
-        return;
-    }
-
-    // There will be at least one route in the fullscreen navigator.
-    const {name, params} = topmostFullScreenRoute.state.routes.at(-1) as NavigationPartialRoute<FullScreenName>;
-
-    return {name, params};
 }
 
 export default getTopmostFullScreenRoute;

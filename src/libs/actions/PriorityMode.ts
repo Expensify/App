@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -35,18 +35,6 @@ Onyx.connect({
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
-let allReports: OnyxCollection<Report> | undefined = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (reports) => {
-        allReports = reports;
-
-        // Each time a new report is added we will check to see if the user should be switched
-        autoSwitchToFocusMode();
-    },
-});
-
 let isLoadingReportData = true;
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -70,14 +58,23 @@ Onyx.connect({
     },
 });
 
-let hasTriedFocusMode: boolean | null | undefined;
+let hasTriedFocusMode: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
-        hasTriedFocusMode = val ?? null;
+        hasTriedFocusMode = val;
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
+    },
+});
+
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -87,7 +84,6 @@ function resetHasReadRequiredDataFromStorage() {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
-    allReports = {};
 }
 
 function checkRequiredData() {

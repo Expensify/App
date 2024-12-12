@@ -17,7 +17,7 @@ function getNewDotURL(url: string): string {
 
     let params: Record<string, string>;
     try {
-        params = JSON.parse(paramString);
+        params = JSON.parse(paramString) as Record<string, string>;
     } catch {
         params = {};
     }

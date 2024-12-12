@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,7 +15,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -24,19 +26,22 @@ import variables from '@styles/variables';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescriptionPageProps) {
+    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const taskDescriptionLength = ReportUtils.getCommentLength(values.description);
+            const parsedDescription = ReportUtils.getParsedComment(values?.description);
+            const taskDescriptionLength = ReportUtils.getCommentLength(parsedDescription);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
@@ -48,7 +53,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.description !== parseHtmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
+            if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 Task.editTask(report, {description: values.description});
@@ -89,12 +94,15 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={TaskDescriptionPage.displayName}
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton title={translate('task.task')} />
+                <HeaderWithBackButton
+                    title={translate('task.task')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -111,13 +119,15 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parseHtmlToMarkdown(report?.description ?? '')}
+                            defaultValue={Parser.htmlToMarkdown(report?.description ?? '')}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
                                 inputRef.current = element;
-                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

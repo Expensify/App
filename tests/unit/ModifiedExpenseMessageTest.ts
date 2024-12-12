@@ -19,7 +19,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `changed the amount to $18.00 (previously $12.55).`;
+                const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -40,7 +40,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the amount to $18.00.`;
+                const expectedResult = `set the amount to $18.00`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -63,7 +63,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -88,7 +88,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -111,7 +111,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -139,7 +139,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
+                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -165,7 +165,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly").';
+                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -184,7 +184,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the merchant (previously "Big Belly").`;
+                const expectedResult = `removed the merchant (previously "Big Belly")`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -203,7 +203,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "KFC".`;
+                const expectedResult = `set the merchant to "KFC"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -224,7 +224,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore") and the merchant (previously "Big Belly").`;
+                const expectedResult = `removed the description (previously "minishore") and the merchant (previously "Big Belly")`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -247,7 +247,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore"), the merchant (previously "Big Belly"), and the category (previously "Benefits").`;
+                const expectedResult = `removed the description (previously "minishore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -266,7 +266,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "Big Belly".`;
+                const expectedResult = `set the merchant to "Big Belly"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -287,7 +287,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore" and the merchant to "Big Belly".`;
+                const expectedResult = `set the description to "minishore" and the merchant to "Big Belly"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -310,7 +310,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits".`;
+                const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -329,7 +329,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26).';
+                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
@@ -351,6 +351,48 @@ describe('ModifiedExpenseMessage', () => {
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the distance is changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '1.00 mi @ $0.67 / mi',
+                    merchant: '10.00 mi @ $0.67 / mi',
+                    oldAmount: 67,
+                    amount: 670,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
+                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $6.70 (previously $0.67)`;
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the distance rate is changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.67 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3776,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $37.76)`;
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
                 expect(result).toEqual(expectedResult);
             });
         });

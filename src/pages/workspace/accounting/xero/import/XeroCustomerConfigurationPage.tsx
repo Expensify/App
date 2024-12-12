@@ -3,11 +3,12 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateXeroImportCustomers} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
@@ -41,9 +42,10 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                     />
                 }
                 isActive={isSwitchOn}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !xeroConfig?.importCustomers)}
+                onToggle={() => updateXeroImportCustomers(policyID, !xeroConfig?.importCustomers, xeroConfig?.importCustomers)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
+                pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.IMPORT_CUSTOMERS], xeroConfig?.pendingFields)}
             />
         </ConnectionLayout>
     );

@@ -1,7 +1,9 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,6 +23,7 @@ function EnablePaymentsPage() {
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
         if (isOffline) {
@@ -32,24 +35,39 @@ function EnablePaymentsPage() {
         }
     }, [isOffline, userWallet]);
 
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={EnablePaymentsPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
+
     if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
     }
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
         return (
-            <>
+            <ScreenWrapper
+                testID={EnablePaymentsPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithBackButton
-                    title={translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                    title={translate('personalInfoStep.personalInfo')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
                 />
                 <FailedKYC />
-            </>
+            </ScreenWrapper>
         );
     }
 
     const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-
     switch (currentStep) {
         case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
             return <AddBankAccount />;

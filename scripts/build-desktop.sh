@@ -32,6 +32,10 @@ info " • ENV file: $ENV_FILE"
 info ""
 npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
 
+title "Combining web sourcemaps"
+info ""
+ts-node scripts/combine-web-sourcemaps.ts --path="desktop/dist/www"
+
 title "Building Desktop App Archive Using Electron"
 info ""
 shift 1

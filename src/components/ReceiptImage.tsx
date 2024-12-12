@@ -7,6 +7,7 @@ import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -74,8 +75,16 @@ type ReceiptImageProps = (
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
-    /** The colod of the fallback icon */
+    /** The color of the fallback icon */
     fallbackIconColor?: string;
+
+    /** The background color of fallback icon */
+    fallbackIconBackground?: string;
+
+    isEmptyReceipt?: boolean;
+
+    /** Callback to be called on pressing the image */
+    onPress?: () => void;
 };
 
 function ReceiptImage({
@@ -93,8 +102,21 @@ function ReceiptImage({
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
     fallbackIconColor,
+    fallbackIconBackground,
+    isEmptyReceipt = false,
+    onPress,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
+
+    if (isEmptyReceipt) {
+        return (
+            <ReceiptEmptyState
+                isThumbnail
+                onPress={onPress}
+                disabled={!onPress}
+            />
+        );
+    }
 
     if (isPDFThumbnail) {
         return (
@@ -129,6 +151,7 @@ function ReceiptImage({
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
+                fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );

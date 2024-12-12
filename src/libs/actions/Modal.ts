@@ -1,10 +1,12 @@
 import Onyx from 'react-native-onyx';
+import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
 let onModalClose: null | (() => void);
 let isNavigate: undefined | boolean;
+let shouldCloseAll: boolean | undefined;
 
 /**
  * Allows other parts of the app to call modal close function
@@ -31,20 +33,23 @@ function closeTop() {
     }
     if (onModalClose) {
         closeModals[closeModals.length - 1](isNavigate);
+        closeModals.pop();
         return;
     }
     closeModals[closeModals.length - 1]();
+    closeModals.pop();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true) {
+function close(onModalCloseCallback: () => void, isNavigating = true, shouldCloseAllModals = false) {
     if (closeModals.length === 0) {
         onModalCloseCallback();
         return;
     }
     onModalClose = onModalCloseCallback;
+    shouldCloseAll = shouldCloseAllModals;
     isNavigate = isNavigating;
     closeTop();
 }
@@ -53,7 +58,7 @@ function onModalDidClose() {
     if (!onModalClose) {
         return;
     }
-    if (closeModals.length) {
+    if (closeModals.length && shouldCloseAll) {
         closeTop();
         return;
     }
@@ -82,6 +87,12 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
  * isPopover indicates that the next open modal is popover or bottom docked
  */
 function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
+    // We cancel the pending and active tooltips here instead of in setModalVisibility because
+    // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
+    // the tooltip in that modal won't show.
+    if (isVisible) {
+        TooltipManager.cancelPendingAndActiveTooltips();
+    }
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 

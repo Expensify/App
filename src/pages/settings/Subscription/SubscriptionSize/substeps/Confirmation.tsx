@@ -10,7 +10,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate, getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
-import * as FormActions from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -23,13 +22,14 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
+    const subscriptionSizeDraft = subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0;
+    const subscriptionSize = subscriptionSizeDraft || (privateSubscription?.userCount ?? 0);
 
-    const isTryingToIncreaseSubscriptionSize = (subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0) > (privateSubscription?.userCount ?? 0);
+    const isTryingToIncreaseSubscriptionSize = subscriptionSizeDraft > (privateSubscription?.userCount ?? 0);
     const canChangeSubscriptionSize = (account?.canDowngrade ?? false) || (isTryingToIncreaseSubscriptionSize && isEditing);
     const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const onClosePress = () => {
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
         Navigation.goBack();
     };
 
@@ -41,7 +41,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                     <MenuItemWithTopDescription
                         interactive={false}
                         description={translate('subscription.subscriptionSize.subscriptionSize')}
-                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0})}
+                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSize})}
                     />
                     <MenuItemWithTopDescription
                         interactive={false}

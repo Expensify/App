@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    pressableWrapperStyle,
     containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
@@ -30,11 +32,14 @@ function BaseListItem<TItem extends ListItem>({
     children,
     isFocused,
     shouldSyncFocus = true,
+    shouldDisplayRBR = true,
     onFocus = () => {},
     hoverStyle,
+    onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
@@ -42,7 +47,7 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
     };
@@ -53,7 +58,7 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item);
+            return rightHandSideComponent(item, isFocused);
         }
 
         return rightHandSideComponent;
@@ -71,6 +76,9 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                onLongPress={() => {
+                    onLongPressRow?.(item);
+                }}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
@@ -82,23 +90,32 @@ function BaseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                 }}
                 disabled={isDisabled && !item.isSelected}
+                interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
-                style={pressableStyle}
+                style={[
+                    pressableStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                ]}
                 onFocus={onFocus}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
+                wrapperStyle={pressableWrapperStyle}
             >
-                <View style={wrapperStyle}>
+                <View
+                    style={[
+                        wrapperStyle,
+                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    ]}
+                >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -111,7 +128,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && (
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

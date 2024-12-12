@@ -3,6 +3,7 @@
 /**
  * @jest-environment node
  */
+import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
@@ -15,6 +16,7 @@ type PullRequest = {
     issue_number: number;
     title: string;
     merged_by: {login: string};
+    labels: Array<{name: string}>;
 };
 
 type PullRequestParams = {
@@ -52,6 +54,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'odin',
         },
+        labels: [],
     },
     2: {
         issue_number: 2,
@@ -59,6 +62,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'loki',
         },
+        labels: [],
     },
 };
 const version = '42.42.42-42';
@@ -76,12 +80,17 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DEPLOY_VERSION':
             return version;
         case 'IOS':
+        case 'IOS_HYBRID':
         case 'ANDROID':
+        case 'ANDROID_HYBRID':
         case 'DESKTOP':
         case 'WEB':
             return 'success';
+        case 'DATE':
+        case 'NOTE':
+            return '';
         default:
-            throw new Error('Trying to access invalid input');
+            throw new Error(`Trying to access invalid input: ${key}`);
     }
 }
 
@@ -138,7 +147,7 @@ beforeAll(() => {
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
             try {
-                const input: string = mockGetInput(name);
+                const input = mockGetInput(name) as string;
                 return JSON.parse(input) as unknown;
             } catch (err) {
                 return defaultValue;
@@ -171,10 +180,12 @@ afterAll(() => {
     jest.clearAllMocks();
 });
 
+type MockedActionRun = () => Promise<void>;
+
 describe('markPullRequestsAsDeployed', () => {
     it('comments on pull requests correctly for a standard staging deploy', async () => {
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -187,7 +198,9 @@ platform | result
 🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖🔄 android HybridApp 🤖🔄|success ✅
+🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PR.issue_number,
                 owner: 'Expensify',
                 repo: 'App',
@@ -204,7 +217,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
@@ -217,7 +230,9 @@ platform | result
 🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖🔄 android HybridApp 🤖🔄|success ✅
+🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
                 owner: 'Expensify',
                 repo: 'App',
@@ -244,6 +259,7 @@ platform | result
                         merged_by: {
                             login: 'thor',
                         },
+                        labels: [{name: CONST.LABELS.CP_STAGING}],
                     },
                 };
             }
@@ -254,13 +270,20 @@ platform | result
         });
         mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
-                return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
+                return {
+                    data: {
+                        message: `Merge pull request #3 blahblahblah
+(cherry picked from commit dagdag)
+(CP triggered by freyja)`,
+                        committer: {name: 'freyja'},
+                    },
+                };
             }
             return mockGetCommitDefaultImplementation({commit_sha});
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
@@ -272,6 +295,8 @@ platform | result
 🖥 desktop 🖥|success ✅
 🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
+🤖🔄 android HybridApp 🤖🔄|success ✅
+🍎🔄 iOS HybridApp 🍎🔄|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
@@ -295,7 +320,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -308,7 +333,9 @@ platform | result
 🤖 android 🤖|skipped 🚫
 🖥 desktop 🖥|cancelled 🔪
 🍎 iOS 🍎|failed ❌
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖🔄 android HybridApp 🤖🔄|success ✅
+🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PR.issue_number,
                 owner: 'Expensify',
                 repo: 'App',

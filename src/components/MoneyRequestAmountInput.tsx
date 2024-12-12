@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import * as Browser from '@libs/Browser';
@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
+import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
 
 type CurrentMoney = {amount: string; currency: string};
 
@@ -88,7 +89,10 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
-};
+
+    /** The width of inner content */
+    contentWidth?: number;
+} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
     start: number;
@@ -103,7 +107,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
+const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
 function MoneyRequestAmountInput(
     {
@@ -123,6 +127,8 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        autoGrowExtraSpace,
+        contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -130,6 +136,8 @@ function MoneyRequestAmountInput(
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
+
+    const amountRef = useRef<string | undefined>(undefined);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
@@ -168,8 +176,9 @@ function MoneyRequestAmountInput(
 
             willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
+            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
+            amountRef.current = strippedAmount;
             setCurrentAmount((prevAmount) => {
-                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
@@ -218,7 +227,7 @@ function MoneyRequestAmountInput(
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
@@ -232,7 +241,7 @@ function MoneyRequestAmountInput(
         setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [setNewAmount]);
 
     /**
@@ -282,6 +291,7 @@ function MoneyRequestAmountInput(
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
+            autoGrowExtraSpace={autoGrowExtraSpace}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
@@ -295,11 +305,12 @@ function MoneyRequestAmountInput(
                     // eslint-disable-next-line no-param-reassign
                     forwardedRef.current = ref;
                 }
+                // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = ref;
             }}
             selectedCurrencyCode={currency}
             selection={selection}
-            onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            onSelectionChange={(selectionStart, selectionEnd) => {
                 if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
                     willSelectionBeUpdatedManually.current = false;
                     return;
@@ -307,9 +318,12 @@ function MoneyRequestAmountInput(
                 if (!shouldUpdateSelection) {
                     return;
                 }
-                const maxSelection = formattedAmount.length;
-                const start = Math.min(e.nativeEvent.selection.start, maxSelection);
-                const end = Math.min(e.nativeEvent.selection.end, maxSelection);
+
+                // When the amount is updated in setNewAmount on iOS, in onSelectionChange formattedAmount stores the value before the update. Using amountRef allows us to read the updated value
+                const maxSelection = amountRef.current?.length ?? formattedAmount.length;
+                amountRef.current = undefined;
+                const start = Math.min(selectionStart, maxSelection);
+                const end = Math.min(selectionEnd, maxSelection);
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
@@ -325,6 +339,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            contentWidth={contentWidth}
         />
     );
 }

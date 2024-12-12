@@ -28,8 +28,8 @@ const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '-1';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? -1;
+    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const validate = useCallback(
@@ -58,7 +58,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
             <InputWrapper

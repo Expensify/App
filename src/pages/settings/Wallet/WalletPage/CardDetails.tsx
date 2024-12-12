@@ -16,13 +16,15 @@ import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
-    address: {
-        street: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: '',
-    },
+    addresses: [
+        {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    ],
 };
 
 type CardDetailsOnyxProps = {

@@ -65,7 +65,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     sections={[{data: incorporationTypes}]}
                     initiallyFocusedOptionKey={currentBusinessType}
                     onSelectRow={onBusinessTypeSelected}
-                    shouldDebounceRowSelect
+                    shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
                     ListItem={RadioListItem}

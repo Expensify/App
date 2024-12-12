@@ -12,36 +12,41 @@ An admin can manually create categories for a workspace, or they will be automat
 
 # Manually add or delete categories
 
+To manually add a category,
+
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
-To manually add a category,
-
 1. Click your profile image or icon in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu. 
 3. Select the workspace you want to add categories to. 
 4. Click **Categories** in the left menu.
 5. Click **Add Category** in the top right. 
 6. Enter a name for the category and click **Save**.
-
-To delete a category, 
-
-1. Click the category on the Categories page. 
-2. Click the 3-dot menu in the top right. 
-3. Click **Delete category** to permanently delete the category. 
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
-To manually add a category,
-
 1. Tap your profile image or icon in the bottom menu.
 2. Tap **Workspaces**. 
 3. Select the workspace you want to add categories to.
 4. Tap **Categories**.
 5. Tap **Add Category**. 
 6. Enter a name for the category and tap **Save**. 
+{% include end-option.html %}
+
+{% include end-selector.html %}
 
 To delete a category, 
+
+{% include selector.html values="desktop, mobile" %}
+
+{% include option.html value="desktop" %}
+1. Click the category on the Categories page. 
+2. Click the 3-dot menu in the top right. 
+3. Click **Delete category** to permanently delete the category.
+{% include end-option.html %}
+
+{% include option.html value="mobile" %}
 1. Tap the category on the Categories page. 
 2. Tap the 3-dot menu in the top right. 
 3. Tap **Delete category** to permanently delete the category.
@@ -54,7 +59,7 @@ To delete a category,
 Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses. 
 
 {% include info.html %}
-After connecting an accounting system, Expensify automatically imports charts of accounts, GL accounts, expense accounts, and additional details into your workspace as **disabled** categories. Workspace admins can enable these categories to make them available for workspace members to add to their expenses.
+Importing GL & payroll codes from your accounting system is only available on the Control plan. After connecting an accounting system, Expensify automatically imports charts of accounts, GL accounts, expense accounts, and additional details into your workspace as **disabled** categories. Workspace admins can enable these categories to make them available for workspace members to add to their expenses.
 {% include end-info.html %}
 
 To enable or disable a category, 
@@ -89,7 +94,25 @@ You can enable, disable, or delete categories in bulk by selecting the checkbox 
 
 {% include end-selector.html %} 
 
-# Automatic Expensify categories
+# Add or edit a GL code or payroll code
+
+If your workspace is on the Control plan, you can optionally add a GL code and payroll code to each category. Collect plan users will need to upgrade to Control for access to GL codes and payroll codes.
+
+GL codes and payroll codes can be exported to a CSV export. They are not displayed to users.
+
+**To edit GL codes or payroll codes for a category:**
+
+1. Click your profile image or icon in the bottom left menu
+2. Click **Workspaces** in the left menu
+3. Select a workspace
+4. Click **Categories**
+5. Click a category to open the category-settings
+6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
+7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
+
+![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/workspace_gl_payroll_codes.png){:width="100%"}
+
+# Apply categories to expenses automatically
 
 Over time, Expensify learns how you categorize specific merchants and automatically applies that category to the merchant in the future. 
 - If you change a category, Expensify learns that correction over time as well. However, changing a category on one expense does not change it for other expenses that have already been assigned the category.
@@ -110,6 +133,10 @@ Yes. When a category is manually edited, Expensify will log the change in the re
 **If I change categories in my accounting system, what happens to categories in the workspace?**
 
 If a category is disabled in the accounting system, it will be removed from the workspace’s categories list in the workspace. However, the disabled category will remain on approved and drafted expense reports that it has been previously added to. An admin can change the category on an approved or reimbursed expense, and anyone can change the category on an unapproved expense.
+
+**How can my employees see the GL codes on categories?**
+
+GL codes added in the GL section of individual category settings are not visible to employees. If your employees need to see the GL code associated with a category, the category name would need to be edited to include it.
 
 {% include faq-end.md %}
 

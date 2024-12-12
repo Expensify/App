@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
 import type {OnboardingPersonalDetailsProps} from './types';
 
-function OnboardingPersonalDetails({...rest}: Omit<OnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
+function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
 
     return (

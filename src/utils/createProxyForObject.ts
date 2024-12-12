@@ -12,7 +12,7 @@ const createProxyForObject = <Value extends Record<string, unknown>>(value: Valu
 
             return target[property];
         },
-        set: (target, property, newValue) => {
+        set: (target, property, newValue: Value[string]) => {
             if (typeof property === 'symbol') {
                 return false;
             }

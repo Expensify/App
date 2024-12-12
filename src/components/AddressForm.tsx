@@ -4,8 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -14,6 +14,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
+import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
@@ -120,7 +121,7 @@ function AddressForm({
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
                     if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
-                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
@@ -182,6 +183,7 @@ function AddressForm({
                     InputComponent={CountrySelector}
                     inputID={INPUT_IDS.COUNTRY}
                     value={country}
+                    onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}
                 />
             </View>
@@ -191,7 +193,7 @@ function AddressForm({
                     <InputWrapper
                         InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
-                        defaultValue={state}
+                        value={state as State}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
                     />
@@ -204,7 +206,7 @@ function AddressForm({
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
                     value={state}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    maxLength={CONST.STATE_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}

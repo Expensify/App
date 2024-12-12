@@ -11,8 +11,9 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
@@ -22,12 +23,16 @@ import ROUTES from '@src/ROUTES';
 
 function PreferencesPage() {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+
+    const platform = getPlatform(true);
+    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <ScreenWrapper
@@ -39,26 +44,19 @@ function PreferencesPage() {
             <HeaderWithBackButton
                 title={translate('common.preferences')}
                 icon={Illustrations.Gears}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
-                        subtitle={translate('preferencesPage.appSection.subtitle')}
                         isCentralPane
-                        subtitleMuted
                         illustration={LottieAnimations.PreferencesDJ}
                         titleStyles={styles.accountSettingsSectionTitle}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mb2]}
-                                numberOfLines={1}
-                            >
-                                {translate('common.notifications')}
-                            </Text>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
                                     <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
@@ -78,8 +76,8 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
-                                        isOn={user?.isMutedAllSounds ?? false}
-                                        onToggle={User.setMuteAllSounds}
+                                        isOn={isPlatformMuted ?? false}
+                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>

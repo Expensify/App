@@ -1,14 +1,17 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -21,14 +24,19 @@ function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-
-    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
+    const preferredCurrency = usePreferredCurrency();
+    const possibleCostSavings = useSubscriptionPossibleCostSavings();
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const handleAutoRenewToggle = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         if (!privateSubscription?.autoRenew) {
             Subscription.updateSubscriptionAutoRenew(true);
             return;
@@ -37,6 +45,10 @@ function SubscriptionSettings() {
     };
 
     const handleAutoIncreaseToggle = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
@@ -50,7 +62,7 @@ function SubscriptionSettings() {
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
                 {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountSaved: isCollect ? CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.COLLECT_PLAN : CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.CONTROL_PLAN,
+                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
                 })}
             </Text>
         </View>
@@ -84,6 +96,10 @@ function SubscriptionSettings() {
                     <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
                 </View>
             </OfflineWithFeedback>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </Section>
     );
 }

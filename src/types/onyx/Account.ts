@@ -6,6 +6,69 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** The role of the delegate */
+type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
+
+/** Model of delegate */
+type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** The email of the delegate */
+    email: string;
+
+    /** The role of the delegate */
+    role?: DelegateRole;
+
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
+    /** Whether the user is loading */
+    isLoading?: boolean;
+
+    /** The accountID of a delegate when they aren't in the personalDetails. */
+    optimisticAccountID?: number;
+}>;
+
+/** Delegate errors */
+type DelegateErrors = {
+    /** Errors while adding a delegate keyed by email */
+    addDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while updating a delegate's role keyed by email */
+    updateDelegateRole?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegate keyed by email */
+    removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while connecting as a delegate keyed by email */
+    connect?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while disconnecting as a delegate. No email needed here. */
+    disconnect?: OnyxCommon.Errors;
+};
+
+/** Model of delegated access data */
+type DelegatedAccess = {
+    /** The users that can access your account as a delegate */
+    delegates?: Delegate[];
+
+    /** The the users you can access as a delegate */
+    delegators?: Delegate[];
+
+    /** The email of original user when they are acting as a delegate for another account */
+    delegate?: string;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: DelegateErrors;
+};
+
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -29,11 +92,23 @@ type Account = {
     /** Whether this account has 2FA enabled or not */
     requiresTwoFactorAuth?: boolean;
 
+    /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
+    needsTwoFactorAuthSetup?: boolean;
+
     /** Whether the account is validated */
     validated?: boolean;
 
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
+
+    /** The Report ID of the admins room */
+    adminsRoomReportID?: string;
+
+    /** The Account ID of the account manager */
+    accountManagerAccountID?: string;
+
+    /** The Report ID of the account manager */
+    accountManagerReportID?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
@@ -80,9 +155,26 @@ type Account = {
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
 
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
+
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
+
+    /** The users you can access as delegate and the users who can access your account as a delegate */
+    delegatedAccess?: DelegatedAccess;
+
+    /** Indicates SMS delivery failure status and associated information */
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};

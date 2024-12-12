@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+import pkg from '../../package.json';
 import CONFIG from '../../src/CONFIG';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -18,10 +19,12 @@ test('Enhance parameters adds correct parameters for Log command with no authTok
         expect(finalParameters).toEqual({
             testParameter: 'test',
             api_setCookie: false,
+            appversion: pkg.version,
             email,
             isFromDevEnv: true,
             platform: 'ios',
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
+            clientUpdateID: -1,
         });
     });
 });
@@ -37,10 +40,12 @@ test('Enhance parameters adds correct parameters for a command that requires aut
         expect(finalParameters).toEqual({
             testParameter: 'test',
             api_setCookie: false,
+            appversion: pkg.version,
             email,
             isFromDevEnv: true,
             platform: 'ios',
             authToken,
+            clientUpdateID: -1,
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
     });

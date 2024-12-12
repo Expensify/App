@@ -168,7 +168,13 @@ class GithubUtils {
                     throw new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                 }
 
-                return this.getStagingDeployCashData(data[0]);
+                const issue = data.at(0);
+
+                if (!issue) {
+                    throw new Error(`Found an undefined ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+                }
+
+                return this.getStagingDeployCashData(issue);
             });
     }
 
@@ -254,7 +260,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-')[0].trim(),
+            url: match[2].split('-').at(0)?.trim() ?? '',
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -367,7 +373,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(
             this.octokit.pulls.list,
             {
@@ -459,14 +465,7 @@ class GithubUtils {
                 repo: CONST.APP_REPO,
                 workflow_id: workflow,
             })
-            .then((response) => response.data.workflow_runs[0]?.id);
-    }
-
-    /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests: number[]): string {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
     }
 
     /**
@@ -540,7 +539,7 @@ class GithubUtils {
                 per_page: 1,
                 name: artifactName,
             })
-            .then((response) => response.data.artifacts[0]);
+            .then((response) => response.data.artifacts.at(0));
     }
 
     /**
@@ -559,7 +558,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

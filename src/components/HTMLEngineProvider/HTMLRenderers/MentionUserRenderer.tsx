@@ -4,9 +4,9 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import asMutable from '@src/types/utils/asMutable';
@@ -31,7 +32,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
@@ -53,23 +54,23 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         }
 
         // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@')[0];
+        return displayText.split('@').at(0);
     };
 
-    if (!isEmpty(htmlAttribAccountID)) {
+    if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
-        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '');
-        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
+        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
+        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
-        navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
@@ -83,13 +84,22 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <Text
                     suppressHighlighting
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => {
+                        if (isDisabled) {
+                            return;
+                        }
+                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                    }}
                     onPress={(event) => {
                         event.preventDefault();
-                        Navigation.navigate(navigationRoute);
+                        if (!isEmpty(htmlAttribAccountID)) {
+                            Navigation.navigate(ROUTES.PROFILE.getRoute(htmlAttribAccountID, Navigation.getReportRHPActiveRoute()));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
                     }}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}

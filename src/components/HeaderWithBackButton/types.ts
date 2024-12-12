@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
-import type {StepCounterParams} from '@src/languages/types';
+import type {StepCounterParams} from '@src/languages/params';
 import type {AnchorPosition} from '@src/styles';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -56,6 +56,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
+    /** Whether we should show a loading indicator replacing the download button */
+    isDownloading?: boolean;
+
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton?: boolean;
 
@@ -79,6 +82,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
+
+    /** Icon displayed on the right of the title */
+    threeDotsMenuIcon?: IconAsset;
+
+    /** The fill color to pass into the icon. */
+    threeDotsMenuIconFill?: string;
 
     /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
@@ -122,6 +131,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
+
     /** 0 - 100 number indicating current progress of the progress bar */
     progressBarPercentage?: number;
 
@@ -130,6 +142,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
 export type {ThreeDotsMenuItem};

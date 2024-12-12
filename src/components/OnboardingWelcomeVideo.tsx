@@ -17,5 +17,4 @@ function OnboardingWelcomeVideo() {
 }
 
 OnboardingWelcomeVideo.displayName = 'OnboardingWelcomeVideo';
-
 export default OnboardingWelcomeVideo;

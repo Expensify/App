@@ -3,8 +3,8 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -14,6 +14,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
+import localeCompare from '@libs/LocaleCompare';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -56,13 +57,40 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
+function getDisplayName(details: PersonalDetails) {
+    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(details.accountID);
+    if (!displayNameFromAccountID) {
+        return details.login?.length ? details.login : '';
+    }
+    return displayNameFromAccountID;
+}
+
+/**
+ * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
+ */
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+    if (first.weight !== second.weight) {
+        return first.weight - second.weight;
+    }
+
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    if (displayNameLoginOrder !== 0) {
+        return displayNameLoginOrder;
+    }
+
+    return first.accountID - second.accountID;
+}
+
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
-    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    // eslint-disable-next-line react-compiler/react-compiler
+    suggestionValuesRef.current = suggestionValues;
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
@@ -84,7 +112,7 @@ function SuggestionMention(
         },
         [currentReport],
     );
-    const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList = useMemo(() => {
+    const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
         const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
         if (!ReportUtils.isGroupChat(currentReport) && !ReportUtils.doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
             return personalDetails;
@@ -110,8 +138,10 @@ function SuggestionMention(
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
+    // eslint-disable-next-line react-compiler/react-compiler
     const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
     if (hasSelectionChanged) {
+        // eslint-disable-next-line react-compiler/react-compiler
         suggestionInsertionIndexRef.current = null;
     }
 
@@ -127,9 +157,9 @@ function SuggestionMention(
         useCallback(() => {
             const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
             if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
-                ReportUserActions.searchInServer(value, policyID);
+                ReportUserActions.searchInServer(suggestionValues.mentionPrefix, policyID);
             }
-        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, isGroupPolicyReport]),
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, suggestionValues.mentionPrefix, policyID, isGroupPolicyReport]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
     );
 
@@ -144,7 +174,7 @@ function SuggestionMention(
             }
 
             // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-            return displayText.split('@')[0];
+            return displayText.split('@').at(0);
         },
         [currentUserPersonalDetails.login],
     );
@@ -166,7 +196,10 @@ function SuggestionMention(
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
-            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
+            const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
+            if (!mentionObject || highlightedMentionIndexInner === -1) {
+                return;
+            }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
@@ -231,7 +264,7 @@ function SuggestionMention(
     );
 
     const getUserMentionOptions = useCallback(
-        (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList, searchValue = ''): Mention[] => {
+        (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined, searchValue = ''): Mention[] => {
             const suggestions = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -270,9 +303,11 @@ function SuggestionMention(
                 }
 
                 return true;
-            });
+            }) as Array<PersonalDetails & {weight: number}>;
 
-            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, ['weight', 'displayName', 'login']);
+            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
+            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
@@ -317,18 +352,18 @@ function SuggestionMention(
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionStart?: number, selectionEnd?: number) => {
+        (newValue: string, selectionStart?: number, selectionEnd?: number) => {
             if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
-            const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, selectionEnd);
+            const afterLastBreakLineIndex = newValue.lastIndexOf('\n', selectionEnd - 1) + 1;
+            const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
-            const secondToLastWord = words[words.length - 3];
+            const secondToLastWord = words.at(-3);
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';
@@ -374,18 +409,24 @@ function SuggestionMention(
                 nextState.shouldShowSuggestionMenu = true;
             }
 
+            // Early return if there is no update
+            const currentState = suggestionValuesRef.current;
+            if (currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0) {
+                return;
+            }
+
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 ...nextState,
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
+        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.start, selection.end);
-    }, [selection, calculateMentionSuggestion]);
+        calculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection, calculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
@@ -408,6 +449,7 @@ function SuggestionMention(
     );
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -417,8 +459,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -433,6 +476,7 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }
@@ -440,3 +484,5 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
+
+export {compareUserInList};

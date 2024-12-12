@@ -6,8 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type PaymentCardCurrencyModalProps = {
@@ -15,20 +16,20 @@ type PaymentCardCurrencyModalProps = {
     isVisible: boolean;
 
     /** The list of currencies to render */
-    currencies: Array<ValueOf<typeof CONST.CURRENCY>>;
+    currencies: Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
 
     /** Currently selected currency */
-    currentCurrency: ValueOf<typeof CONST.CURRENCY>;
+    currentCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
     /** Function to call when the user selects a currency */
-    onCurrencyChange?: (currency: ValueOf<typeof CONST.CURRENCY>) => void;
+    onCurrencyChange?: (currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
 
     /** Function to call when the user closes the currency picker */
     onClose?: () => void;
 };
 
-function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.PAYMENT_CARD_CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {sections} = useMemo(
@@ -54,7 +55,8 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             onClose={() => onClose?.()}
             onModalHide={onClose}
             hideModalContentWhileAnimating
-            innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
+            innerContainerStyle={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}
+            onBackdropPress={Navigation.dismissModal}
             useNativeDriver
         >
             <ScreenWrapper

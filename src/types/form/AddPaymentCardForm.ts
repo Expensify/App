@@ -30,7 +30,7 @@ type AddPaymentCardForm = Form<
         [INPUT_IDS.ADDRESS_ZIP_CODE]: string;
         [INPUT_IDS.ADDRESS_STATE]: string;
         [INPUT_IDS.ACCEPT_TERMS]: string;
-        [INPUT_IDS.CURRENCY]: ValueOf<typeof CONST.CURRENCY>;
+        [INPUT_IDS.CURRENCY]: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     }
 >;
 

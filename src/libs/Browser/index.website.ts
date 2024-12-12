@@ -1,7 +1,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsSafari, OpenRouteInDesktopApp} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -66,17 +66,25 @@ const isMobileWebKit: IsMobileWebKit = () => {
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent);
 };
 
+/**
+ * Checks if the requesting user agent is a Chrome browser on an iOS mobile device.
+ */
+const isChromeIOS: IsChromeIOS = () => {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent) && /CriOS/i.test(userAgent);
+};
+
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
-const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '') => {
+const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '', initialRoute = '') => {
     const params = new URLSearchParams();
     // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
     // so that the desktop app redirects to the correct home route after signin is complete.
     const openingFromDesktopRedirect = window.location.pathname === `/${ROUTES.DESKTOP_SIGN_IN_REDIRECT}`;
-    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : window.location.pathname}${window.location.search}${window.location.hash}`);
+    params.set('exitTo', `${openingFromDesktopRedirect ? '/r' : initialRoute || window.location.pathname}${window.location.search}${window.location.hash}`);
     if (email && shortLivedAuthToken) {
         params.set('email', email);
         params.set('shortLivedAuthToken', shortLivedAuthToken);
@@ -109,4 +117,4 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
     }
 };
 
-export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, openRouteInDesktopApp};
+export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp};

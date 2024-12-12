@@ -1,19 +1,21 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import Navigation from '@libs/Navigation/Navigation';
+import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -28,12 +30,16 @@ const tripsFeatures: FeatureListItem[] = [
 
 function ManageTrips() {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const policy = usePolicy(activePolicyID);
 
-    const hasAcceptedTravelTerms = travelSettings?.hasAcceptedTerms;
+    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
+
+    if (isEmptyObject(policy)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
@@ -41,7 +47,7 @@ function ManageTrips() {
 
     return (
         <ScrollView contentContainerStyle={styles.pt3}>
-            <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
                     menuItems={tripsFeatures}
                     title={translate('travel.title')}
@@ -49,14 +55,11 @@ function ManageTrips() {
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {
-                        if (!hasAcceptedTravelTerms) {
-                            Navigation.navigate(ROUTES.TRAVEL_TCS);
-                            return;
-                        }
-                        Link.openTravelDotLink(activePolicyID);
+                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage);
                     }}
-                    illustration={Illustrations.EmptyStateTravel}
-                    illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}
+                    ctaErrorMessage={ctaErrorMessage}
+                    illustration={LottieAnimations.TripsEmptyState}
+                    illustrationStyle={[styles.mv4]}
                     secondaryButtonText={translate('travel.bookDemo')}
                     secondaryButtonAccessibilityLabel={translate('travel.bookDemo')}
                     onSecondaryButtonPress={navigateToBookTravelDemo}

@@ -5,16 +5,16 @@
     <meta http-equiv="Content-Security-Policy" content="script-src https://kit.fontawesome.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com/ https://cse.google.com http://cse.google.com https://partner.googleadservices.com/ https://cdnjs.cloudflare.com/ajax/libs/tocbot/ https://www.googletagmanager.com 'self' 'unsafe-eval' 'unsafe-inline'; style-src cdnjs.cloudflare.com cse.google.com www.google.com ka-f.fontawesome.com fonts.googleapis.com 'self' 'unsafe-inline'" >
     <title>Expensify Help</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
-    <link rel="icon" type="image/png" href="/assets/images/expensify-logo-round.png">
-    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="icon" type="image/png" href="{{ '/assets/images/expensify-logo-round.png' | cache_bust }}">
+    <link rel="stylesheet" href="{{ site.main_style | cache_bust}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.css">
 
     <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.js"></script>
-    <script defer src="/assets/js/main.js"></script>
-    <script defer src="/assets/js/platform-tabs.js"></script>
-    <script defer src="/assets/js/selector.js"></script>
-    <script async src="https://cse.google.com/cse.js?cx=41f40d6e5c14246ff"></script>
+    <script defer src="{{ '/assets/js/main.js' | cache_bust }}"></script>
+    <script defer src="{{ '/assets/js/platform-tabs.js' | cache_bust }}"></script>
+    <script defer src="{{ '/assets/js/selector.js' | cache_bust }}"></script>
+    <script async src="https://cse.google.com/cse.js?cx=4149bc31c5c314a1a"></script>
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-TQBQW7CR');</script>
     <!-- End Google Tag Manager -->

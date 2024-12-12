@@ -1,6 +1,6 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,8 +9,8 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import searchCountryOptions from '@libs/searchCountryOptions';
-import type {CountryData} from '@libs/searchCountryOptions';
+import searchOptions from '@libs/searchOptions';
+import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import type {Route} from '@src/ROUTES';
@@ -50,24 +50,24 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countryStates);
+    const searchResults = searchOptions(searchValue, countryStates);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(
-        (option: CountryData) => {
+        (option: Option) => {
             const backTo = params?.backTo ?? '';
 
             // Determine navigation action based on "backTo" presence and route stack length.
             if (navigation.getState()?.routes.length === 1) {
                 // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
-                if (_.isEmpty(backTo)) {
+                if (isEmpty(backTo)) {
                     // No "backTo": default back navigation.
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
                     Navigation.goBack(appendParam(backTo, 'state', option.value));
                 }
-            } else if (!_.isEmpty(backTo)) {
+            } else if (!isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
                 Navigation.navigate(appendParam(backTo, 'state', option.value));
             } else {
@@ -105,7 +105,7 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
-                shouldDebounceRowSelect
+                shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

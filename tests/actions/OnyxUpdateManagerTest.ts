@@ -20,12 +20,18 @@ import createOnyxMockUpdate from '../utils/createOnyxMockUpdate';
 jest.mock('@libs/actions/App');
 jest.mock('@libs/actions/OnyxUpdateManager/utils');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
-    const ApplyUpdatesImplementation: typeof ApplyUpdatesImport = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
     return {
         applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
     };
 });
+
+jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    default: () => ({
+        didScreenTransitionEnd: true,
+    }),
+}));
 
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;

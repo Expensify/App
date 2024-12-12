@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,6 +5,8 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as MemberAction from '@userActions/Policy/Member';
@@ -20,7 +21,7 @@ type WorkspaceJoinUserPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceJoinUserPageRoute = {route: StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
+type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
 
 let isJoinLinkUsed = false;
@@ -42,7 +43,7 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
         if (isUnmounted.current || isJoinLinkUsed) {
             return;
         }
-        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending) {
+        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !PolicyUtils.isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, false, true);
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));

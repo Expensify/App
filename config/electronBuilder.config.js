@@ -47,7 +47,7 @@ module.exports = {
         },
         target: [
             {
-                target: 'dmg',
+                target: 'default',
                 arch: ['universal'],
             },
         ],

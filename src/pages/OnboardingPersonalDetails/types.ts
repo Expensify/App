@@ -1,21 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 
-type OnboardingPersonalDetailsProps = Record<string, unknown>;
-
-type BaseOnboardingPersonalDetailsOnyxProps = {
-    /** Saved onboarding purpose selected by the user */
-    onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
-
-    /** Saved onboarding admin chat report ID */
-    onboardingAdminsChatReportID: OnyxEntry<string>;
-};
+type OnboardingPersonalDetailsProps = Record<string, unknown> & PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>;
 
 type BaseOnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps &
-    BaseOnboardingPersonalDetailsOnyxProps & {
+    PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS> & {
         /* Whether to use native styles tailored for native devices */
         shouldUseNativeStyles: boolean;
     };
 
-export type {OnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps};
+export type {OnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsProps};

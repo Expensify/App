@@ -1,0 +1,71 @@
+diff --git a/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js b/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
+index 5b77ad6..a3ecdb0 100644
+--- a/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
++++ b/node_modules/expo-image-manipulator/build/ExpoImageManipulator.web.js
+@@ -1,5 +1,13 @@
+ import { crop, extent, flip, resize, rotate } from './actions/index.web';
+ import { getContext } from './utils/getContext.web';
++
++const SAFARI_MOBILE_CANVAS_LIMIT = 4096; 
++
++const isMobileIOS = () => {
++    const userAgent = navigator.userAgent;
++    return /iP(ad|od|hone)/i.test(userAgent) && /(WebKit|CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
++};
++
+ function getResults(canvas, options) {
+     let uri;
+     if (options) {
+@@ -21,16 +29,49 @@ function getResults(canvas, options) {
+         base64: uri.replace(/^data:image\/\w+;base64,/, ''),
+     };
+ }
++
++function getAdjustedCanvasSize(originalWidth, originalHeight) {
++    if(!isMobileIOS()) return { width: originalWidth, height: originalHeight };
++
++    const aspectRatio = originalWidth / originalHeight;
++    let newWidth;
++    let newHeight;
++
++    if (originalWidth <= SAFARI_MOBILE_CANVAS_LIMIT && originalHeight <= SAFARI_MOBILE_CANVAS_LIMIT) {
++        return { width: originalWidth, height: originalHeight };
++    }
++
++    if (aspectRatio > 1) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    } else {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++
++    if (newWidth > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newWidth = SAFARI_MOBILE_CANVAS_LIMIT;
++        newHeight = Math.round(newWidth / aspectRatio);
++    } else if (newHeight > SAFARI_MOBILE_CANVAS_LIMIT) {
++        newHeight = SAFARI_MOBILE_CANVAS_LIMIT;
++        newWidth = Math.round(newHeight * aspectRatio);
++    }
++
++    return { width: newWidth, height: newHeight };
++}
++
+ function loadImageAsync(uri) {
+     return new Promise((resolve, reject) => {
+         const imageSource = new Image();
+         imageSource.crossOrigin = 'anonymous';
+         const canvas = document.createElement('canvas');
+         imageSource.onload = () => {
+-            canvas.width = imageSource.naturalWidth;
+-            canvas.height = imageSource.naturalHeight;
++            const adjudstedCanvasSize = getAdjustedCanvasSize(imageSource.naturalWidth, imageSource.naturalHeight);
++
++            canvas.width = adjudstedCanvasSize.width;
++            canvas.height = adjudstedCanvasSize.height;
+             const context = getContext(canvas);
+-            context.drawImage(imageSource, 0, 0, imageSource.naturalWidth, imageSource.naturalHeight);
++            context.drawImage(imageSource, 0, 0, adjudstedCanvasSize.width, adjudstedCanvasSize.height);
+             resolve(canvas);
+         };
+         imageSource.onerror = () => reject(canvas);
