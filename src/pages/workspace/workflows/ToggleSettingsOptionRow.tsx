@@ -2,6 +2,9 @@ import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import AccordionItem from '@components/Acordition';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -98,6 +101,10 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const isExpanded = useSharedValue(isActive);
+    const setIsExpanded = (value: boolean) => {
+        isExpanded.set(value);
+    };
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -175,10 +182,11 @@ function ToggleSettingOptionRow({
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
+                        callback={setIsExpanded}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
+                <AccordionItem isExpanded={isExpanded}>{subMenuItems}</AccordionItem>
             </View>
         </OfflineWithFeedback>
     );

@@ -55,6 +55,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const config = policy?.connections?.intacct?.config;
     const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
@@ -85,24 +86,24 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
+                subMenuItems={
+                    <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
+                        <MenuItemWithTopDescription
+                            title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                            description={translate('workspace.common.displayedAs')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
+                            brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
+                        />
+                        <Text
+                            style={[styles.textLabelSupporting, styles.ph5]}
+                            numberOfLines={2}
+                        >
+                            {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                        </Text>
+                    </OfflineWithFeedback>
+                }
             />
-            {isImportMappingEnable && (
-                <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
-                        description={translate('workspace.common.displayedAs')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                        brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
-                    />
-                    <Text
-                        style={[styles.textLabelSupporting, styles.ph5]}
-                        numberOfLines={2}
-                    >
-                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                    </Text>
-                </OfflineWithFeedback>
-            )}
         </ConnectionLayout>
     );
 }
