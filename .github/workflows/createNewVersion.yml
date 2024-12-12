@@ -123,9 +123,12 @@ jobs:
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - name: Update submodule
+      - name: Update submodule and checkout the main branch
         run: |
           git submodule update --init
+          cd Mobile-Expensify
+          git checkout main
+          git pull origin main
 
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotify
@@ -177,10 +180,14 @@ jobs:
             ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
-      - name: Update main branch
+      - name: Update main branch on Mobile-Expensify and App
         run: |
           cd Mobile-Expensify
           git push origin main
+          cd ..
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+          git push origin main  
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
