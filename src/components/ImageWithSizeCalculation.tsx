@@ -95,6 +95,7 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
+    Log.info(`@51888 ImageWitrhSize spinner status ${isLoading && !isImageCached && !isOffline} isLoading ${isLoading} !isImageCached ${!isImageCached} !isOffline ${!isOffline}`);
     return (
         <View style={[styles.w100, styles.h100, style]}>
             <Image
@@ -105,8 +106,17 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
                 resizeMode={RESIZE_MODES.cover}
                 onLoadStart={() => {
                     if (isLoadedRef.current ?? isLoading) {
+                        Log.info(`@51888 ImageWitrhSize is not showing spinner`);
                         return;
                     }
+                    Log.info(`@51888 ImageWitrhSize should show spinner`);
+                    setIsLoading(true);
+                }}
+                waitForSession={() => {
+                    // at the moment this function is called the image is not in cache anymore
+                    Log.info(`@51888 ImageWitrhSize waitForSession`);
+                    isLoadedRef.current = false;
+                    setIsImageCached(false);
                     setIsLoading(true);
                 }}
                 onError={onError}

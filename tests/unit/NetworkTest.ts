@@ -279,7 +279,7 @@ describe('NetworkTests', () => {
 
         // Once credentials are set and we wait for promises to resolve
         Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'test-login'});
-        Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token'});
+        Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token', creationDate: new Date().getTime()});
         return waitForBatchedUpdates().then(() => {
             // Then we should expect the request to have been made since the network is now ready
             expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
