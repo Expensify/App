@@ -200,10 +200,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     />
                                 ) : (
                                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                        <MultipleAvatars
-                                            icons={icons}
-                                            shouldShowTooltip={!isChatRoom || isChatThread}
-                                        />
+                                        <MultipleAvatars icons={icons} />
                                     </OfflineWithFeedback>
                                 )}
                                 <View

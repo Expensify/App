@@ -14,8 +14,8 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +63,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const {bottom} = useSafeAreaInsets();
+    const {unmodifiedPaddings} = useStyledSafeAreaInsets();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -187,7 +187,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1, styles.label]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.textLineHeightNormal, styles.fontSizeLabel]}
                             >
                                 {menuTitle}
                             </Text>
@@ -211,9 +211,9 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 onClose={closeMenu}
                 onItemSelected={closeMenu}
                 anchorRef={buttonRef}
-                innerContainerStyle={{paddingBottom: bottom}}
-                scrollContainerStyle={styles.pv4}
                 shouldUseScrollView
+                shouldUseModalPaddingStyle={false}
+                innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
             />
             <DeleteConfirmModal />
         </View>
