@@ -58,6 +58,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID ?? '-1'));
+        Card.clearIssueNewCardFlow();
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {

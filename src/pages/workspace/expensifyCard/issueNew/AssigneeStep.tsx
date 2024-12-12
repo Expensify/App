@@ -62,6 +62,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             return;
         }
         Navigation.goBack();
+        Card.clearIssueNewCardFlow();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
