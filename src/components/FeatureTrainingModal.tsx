@@ -193,7 +193,7 @@ function FeatureTrainingModal({
                     // videoStatus === 'animation' it will
                     // set the same aspect ratio as the video would.
                     illustrationInnerContainerStyle,
-                    !!videoURL && {aspectRatio},
+                    (!!videoURL || !!image) && {aspectRatio},
                 ]}
             >
                 {!!image && (
@@ -202,7 +202,7 @@ function FeatureTrainingModal({
                         contentFit={contentFitImage}
                     />
                 )}
-                {!!videoURL && !!videoURL && videoStatus === 'video' && (
+                {!!videoURL && videoStatus === 'video' && (
                     <GestureHandlerRootView>
                         <VideoPlayer
                             url={videoURL}
@@ -215,7 +215,7 @@ function FeatureTrainingModal({
                         />
                     </GestureHandlerRootView>
                 )}
-                {!!videoURL && videoStatus === 'animation' && (
+                {((!videoURL && !image) || (!!videoURL && videoStatus === 'animation')) && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
                         <Lottie
                             source={animation ?? LottieAnimations.Hands}
@@ -254,12 +254,10 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            if (onboardingIsMediumOrLargerScreenWidth) {
-                Navigation.goBack();
-            }
+            Navigation.goBack();
             onClose?.();
         });
-    }, [onClose, willShowAgain, onboardingIsMediumOrLargerScreenWidth]);
+    }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
         closeModal();
