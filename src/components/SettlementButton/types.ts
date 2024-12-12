@@ -35,6 +35,9 @@ type SettlementButtonProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
 
+    /** Whether to use the success style or not */
+    shouldUseSuccessStyle?: boolean;
+
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
 

@@ -6,7 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {ACHAccount} from './Policy';
+import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {InvoiceReceiver} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -230,6 +230,21 @@ type SearchPolicy = {
 
     /** Whether the self approval or submitting is enabled */
     preventSelfApproval?: boolean;
+
+    /** The email of the policy owner */
+    owner: string;
+
+    /** The approver of the policy */
+    approver?: string;
+
+    /** A set of rules related to the workpsace */
+    rules?: {
+        /** A set of rules related to the workpsace approvals */
+        approvalRules?: ApprovalRule[];
+
+        /** A set of rules related to the workpsace expenses */
+        expenseRules?: ExpenseRule[];
+    };
 };
 
 /** Model of transaction search result */
@@ -307,7 +322,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -315,8 +330,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;

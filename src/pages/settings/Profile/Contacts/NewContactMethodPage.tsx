@@ -162,7 +162,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         User.clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
                     }}
                     onClose={() => {
-                        if (loginData?.errorFields && pendingContactAction?.contactMethod) {
+                        if (pendingContactAction?.contactMethod) {
                             User.clearContactMethod(pendingContactAction?.contactMethod);
                             User.clearUnvalidatedNewContactMethodAction();
                         }

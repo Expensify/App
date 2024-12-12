@@ -98,6 +98,7 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
+    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -216,7 +217,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
-        learnMore: 'Learn more',
+        learnMore: 'Learn more.',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -533,6 +534,7 @@ const translations = {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -698,6 +700,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        conciergeSupport: '24/7 support',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -977,6 +980,7 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -1006,6 +1010,7 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
             atLeastOneAttendee: 'At least one attendee must be selected',
+            invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -1309,13 +1314,13 @@ const translations = {
         addKey: 'Or add this secret key to your authenticator app:',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
-        enabled: 'Two-factor authentication is now enabled!',
-        congrats: 'Congrats, now you’ve got that extra security.',
+        enabled: 'Two-factor authentication enabled',
+        congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
-        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
+        twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
@@ -3813,6 +3818,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourAccountManager: 'Chat with your account manager.',
+            talkToConcierge: 'Chat with Concierge.',
+            needAnotherAccounting: 'Need another accounting software? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
