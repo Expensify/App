@@ -17,14 +17,17 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Onboarding from '@userActions/Onboarding';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
@@ -34,12 +37,15 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
@@ -47,13 +53,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const completeEngagement = useCallback(
-        (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-            const firstName = values.firstName.trim();
-            const lastName = values.lastName.trim();
-
-            PersonalDetails.setDisplayName(firstName, lastName);
-
+    const completeOnboarding = useCallback(
+        (firstName: string, lastName: string) => {
             if (!onboardingPurposeSelected) {
                 return;
             }
@@ -73,6 +74,35 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, route.params?.backTo, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, shouldUseNarrowLayout],
+    );
+
+    useEffect(() => {
+        const skippedPrivateDomainFlow = isPrivateDomain && onboardingPurposeSelected;
+
+        if (!skippedPrivateDomainFlow || !onboardingPersonalDetails?.firstName || !onboardingPersonalDetails?.lastName) {
+            return;
+        }
+
+        completeOnboarding(onboardingPersonalDetails.firstName, onboardingPersonalDetails.lastName);
+    }, [onboardingPersonalDetails, isPrivateDomain, onboardingPurposeSelected, completeOnboarding]);
+
+    const handleSubmit = useCallback(
+        (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+            const firstName = values.firstName.trim();
+            const lastName = values.lastName.trim();
+
+            PersonalDetails.setDisplayName(firstName, lastName);
+            Onboarding.clearPersonalDetailsDraft();
+            Onboarding.setPersonalDetails(firstName, lastName);
+
+            if (isPrivateDomain && !onboardingPurposeSelected) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
+                return;
+            }
+
+            completeOnboarding(firstName, lastName);
+        },
+        [isPrivateDomain, onboardingPurposeSelected, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -117,15 +147,15 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={75}
+                shouldShowBackButton={!isPrivateDomain}
+                progressBarPercentage={isPrivateDomain ? 40 : 75}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                 validate={validate}
-                onSubmit={completeEngagement}
+                onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
                 enabledWhenOffline
                 submitFlexEnabled
@@ -145,7 +175,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.firstName')}
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={currentUserPersonalDetails?.firstName}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
@@ -159,7 +190,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.lastName')}
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={currentUserPersonalDetails?.lastName}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
