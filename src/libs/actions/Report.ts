@@ -830,7 +830,6 @@ function openReport(
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
                 hasLoadingNewerReportActionsError: false,
-                lastVisitTime: DateUtils.getDBTime(),
             },
         },
     ];
