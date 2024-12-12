@@ -49,12 +49,22 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'pre'};
+                    }
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisTextLineHeight};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
-                mixedUAStyles: {whiteSpace: 'normal'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'normal'};
+                    }
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisTextLineHeight};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
