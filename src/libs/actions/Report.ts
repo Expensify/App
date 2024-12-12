@@ -1,4 +1,4 @@
-import {findFocusedRoute, StackActions} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -2450,20 +2450,12 @@ function deleteReport(reportID: string, shouldDeleteChildReports = false) {
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false, shouldPopTwice = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
     }
     Navigation.goBack(undefined, undefined, shouldPopToTop);
-    // When in Debug Mode and Delete report in DebugReportPage we need to pop
-    // two screens from the navigation stack before we navigate to Concierge report:
-    // ReportDetailsPage and ReportScreen, otherwise when going back from Concierge
-    // we'll see blank page for the first one and report skeleton loading for the second one.
-    if (shouldPopTwice) {
-        navigationRef.dispatch({...StackActions.pop()});
-        navigationRef.dispatch({...StackActions.pop()});
-    }
     navigateToConciergeChat();
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);

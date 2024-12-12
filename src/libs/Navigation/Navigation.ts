@@ -210,8 +210,9 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 
     if (shouldPopToTop) {
         if (shouldPopAllStateOnUP) {
+            const rootState = navigationRef.getRootState();
             shouldPopAllStateOnUP = false;
-            navigationRef.current?.dispatch(StackActions.popToTop());
+            navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
             return;
         }
     }
