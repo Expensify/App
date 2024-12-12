@@ -4832,7 +4832,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
