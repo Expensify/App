@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import {canApproveIOU, canIOUBePaid} from './actions/IOU';
+import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -296,7 +296,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canSubmitReport(report, policy)) {
+    if (canSubmitReport(report, policy)) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 

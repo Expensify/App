@@ -166,7 +166,7 @@ import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
-import {completeOnboarding, notifyNewAction} from './Report';
+import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
@@ -7238,9 +7238,9 @@ function canIOUBePaid(
 }
 
 function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy) {
-    const currentUserAccountID = Report.getCurrentUserAccountID();
-    const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(report);
-    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     // This logic differs from the one in MoneyRequestHeader
