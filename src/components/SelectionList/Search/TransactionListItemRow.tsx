@@ -288,6 +288,7 @@ function TransactionListItemRow({
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
                         isLoading={isLoading}
+                        isActionDisabled={shouldDisableItemAction}
                     />
                 )}
 
