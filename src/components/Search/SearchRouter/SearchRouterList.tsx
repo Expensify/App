@@ -140,8 +140,11 @@ function SearchRouterList(
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const cardAutocompleteList = Object.values(cardList);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const cardAutocompleteList = Object.values(allCards);
+
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
             return [];
@@ -332,7 +335,7 @@ function SearchRouterList(
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    text: CardUtils.getCardDescription(card.cardID),
+                    text: CardUtils.getCardDescription(card.cardID, allCards),
                     autocompleteID: card.cardID.toString(),
                 }));
             }
@@ -355,6 +358,7 @@ function SearchRouterList(
         statusAutocompleteList,
         expenseTypes,
         cardAutocompleteList,
+        allCards,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -364,7 +368,7 @@ function SearchRouterList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,

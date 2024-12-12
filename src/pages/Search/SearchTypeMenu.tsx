@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates, hasWorkspaceWithInvoices} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
@@ -68,6 +69,9 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {isOffline} = useNetwork();
 
@@ -122,7 +126,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         let title = item.name;
         if (title === item.query) {
             const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates);
+            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
         }
 
         const baseMenuItem: SavedSearchMenuItem = {
@@ -228,7 +232,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates));
+        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));
 
         return (
             <SearchTypeMenuNarrow

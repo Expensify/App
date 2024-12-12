@@ -15,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
+import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -47,7 +48,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -326,7 +329,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     }
 
     const onFiltersButtonPress = () => {
-        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
+        const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
