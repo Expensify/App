@@ -30,6 +30,7 @@ type ExpenseItemHeaderNarrowProps = {
     isDisabledCheckbox?: boolean;
     handleCheckboxPress?: () => void;
     isLoading?: boolean;
+    isActionDisabled?: boolean;
 };
 
 function ExpenseItemHeaderNarrow({
@@ -48,6 +49,7 @@ function ExpenseItemHeaderNarrow({
     handleCheckboxPress,
     text,
     isLoading = false,
+    isActionDisabled = false,
 }: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -108,6 +110,7 @@ function ExpenseItemHeaderNarrow({
                     isLargeScreenWidth={false}
                     isSelected={isSelected}
                     isLoading={isLoading}
+                    isDisabled={isActionDisabled}
                 />
             </View>
         </View>
