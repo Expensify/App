@@ -46,6 +46,12 @@ type ImageOwnProps = BaseImageProps & {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** the image should wait for a valid session to reload
+     *  At the moment this function is called the image is not in cache anymore
+     *  cf issue#51888
+     */
+    waitForSession?: () => void;
 };
 
 type ImageProps = ImageOwnProps;

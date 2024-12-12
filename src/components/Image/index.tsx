@@ -64,7 +64,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 // most likely a reauthentication happens
                 // but unless the calculated source is different from the previous, the image wont reload
                 if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
-                    Log.info(
+                    console.log(
                         `@51888 setting validSessionAge to accepted session ${session.authToken?.substring(0, 10)} creationDate ${new Date(
                             session.creationDate,
                         ).toISOString()}} received less than 60s ago or newer from 2H`,
@@ -131,9 +131,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         if (!isAuthTokenRequired || source !== undefined) {
             return;
         }
-        if (forwardedProps?.onLoadStart) {
-            forwardedProps.onLoadStart();
-            Log.info(`@51888 forwardedProps.onLoadStart() `);
+        if (forwardedProps?.waitForSession) {
+            forwardedProps.waitForSession();
+            Log.info(`@51888 forwardedProps.waitForSession() `);
         }
     }, [source, isAuthTokenRequired, forwardedProps]);
 
@@ -142,9 +142,13 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
      */
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
-    return source === undefined ? (
-        <FullScreenLoadingIndicator />
-    ) : (
+    if (source === undefined && !!forwardedProps?.waitForSession) {
+        return undefined;
+    }
+    if (source === undefined) {
+        return <FullScreenLoadingIndicator _51888test={true} />;
+    }
+    return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
