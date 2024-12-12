@@ -314,6 +314,21 @@ function MoneyRequestConfirmationList({
         return false;
     };
 
+    useEffect(() => {
+        if (shouldDisplayFieldError && didConfirmSplit) {
+            setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
+            return;
+        }
+        // reset the form error whenever the screen gains or loses focus
+        setFormError('');
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
 
     useEffect(() => {
@@ -341,21 +356,6 @@ function MoneyRequestConfirmationList({
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
     }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
-
-    useEffect(() => {
-        if (shouldDisplayFieldError && didConfirmSplit) {
-            setFormError('iou.error.genericSmartscanFailureMessage');
-            return;
-        }
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
-        // reset the form error whenever the screen gains or loses focus
-        clearFormErrors(['iou.error.genericSmartscanFailureMessage', 'iou.receiptScanningFailed']);
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     const isFirstUpdatedDistanceAmount = useRef(false);
 
