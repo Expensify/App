@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -43,16 +43,16 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = () => {
+    const hidePopoverMenu = useCallback(() => {
         setPopupMenuVisible(false);
-    };
+    }, []);
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {
             return;
         }
         hidePopoverMenu();
-    }, [isBehindModal, isPopupMenuVisible]);
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
     return (
         <>
