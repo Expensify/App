@@ -304,7 +304,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+        setTimeout(() => setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation), CONST.ANIMATED_TRANSITION);
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
@@ -515,7 +515,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
-                    isVisible={shouldShowHoldMenu}
                 />
             )}
         </View>
