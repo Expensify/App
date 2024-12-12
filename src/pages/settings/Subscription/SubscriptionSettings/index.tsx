@@ -28,7 +28,7 @@ function SubscriptionSettings() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const preferredCurrency = usePreferredCurrency();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.delegatedAccess?.delegate});
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
@@ -42,7 +42,7 @@ function SubscriptionSettings() {
             Subscription.updateSubscriptionAutoRenew(true);
             return;
         }
-        if (!!account?.hasPurchases) {
+        if (account?.hasPurchases) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
         } else {
             Subscription.updateSubscriptionAutoRenew(false);
