@@ -1228,12 +1228,6 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    console.log(
-        !isEmptyObject(taskReport) &&
-            ReportUtils.isAllowedToComment(taskReport) &&
-            (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)),
-    );
-
     return (
         !isEmptyObject(taskReport) &&
         ReportUtils.isAllowedToComment(taskReport) &&
