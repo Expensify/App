@@ -1,8 +1,15 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {isConciergeChatReport, shouldUnmaskChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as Environment from '@src/libs/Environment/Environment';
-import type {UserMetadata} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
+
+const MASK = 'fs-mask';
+const UNMASK = 'fs-unmask';
+const CUSTOMER = 'customer';
+const CONCIERGE = 'concierge';
+const OTHER = 'other';
 
 /**
  * Fullstory React-Native lib adapter
@@ -63,5 +70,44 @@ const FS = {
     },
 };
 
+/**
+ * Placeholder function for Mobile-Web compatibility.
+ */
+function parseFSAttributes(): void {
+    // pass
+}
+
+/*
+    prefix? if component name should be used as a prefix,
+    in case data-test-id attribute usage,
+    clean component name should be preserved in data-test-id.
+*/
+function getFSAttributes(name: string, mask: boolean, prefix: boolean): string {
+    if (!name && !prefix) {
+        return `${mask ? MASK : UNMASK}`;
+    }
+    // prefixed for Native apps should contain only component name
+    if (prefix) {
+        return name;
+    }
+
+    return `${name},${mask ? MASK : UNMASK}`;
+}
+
+function getChatFSAttributes(context: OnyxEntry<PersonalDetailsList>, name: string, report: OnyxInputOrEntry<Report>): string[] {
+    if (!name) {
+        return ['', ''];
+    }
+    if (isConciergeChatReport(report)) {
+        const formattedName = `${CONCIERGE}-${name}`;
+        return [`${formattedName}`, `${UNMASK},${formattedName}`];
+    }
+    if (shouldUnmaskChat(context, report)) {
+        const formattedName = `${CUSTOMER}-${name}`;
+        return [`${formattedName}`, `${UNMASK},${formattedName}`];
+    }
+    const formattedName = `${OTHER}-${name}`;
+    return [`${formattedName}`, `${MASK},${formattedName}`];
+}
 export default FS;
-export {FSPage};
+export {FSPage, parseFSAttributes, getFSAttributes, getChatFSAttributes};
