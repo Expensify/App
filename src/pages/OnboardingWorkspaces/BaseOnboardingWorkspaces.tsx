@@ -119,7 +119,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={80}
+                progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.flex1, styles.mb5, styles.mt8]}>

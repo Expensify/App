@@ -29,6 +29,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
@@ -1194,6 +1195,10 @@ function validateUserAndGetAccessiblePolicies(validateCode: string) {
     API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
 }
 
+function isUserOnPrivateDomain() {
+    return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1232,4 +1237,5 @@ export {
     signUpUser,
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
+    isUserOnPrivateDomain,
 };

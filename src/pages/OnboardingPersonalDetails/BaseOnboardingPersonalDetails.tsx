@@ -17,13 +17,13 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Onboarding from '@userActions/Onboarding';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +44,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    const isPrivateDomain = Session.isUserOnPrivateDomain();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
@@ -155,7 +154,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!isPrivateDomain}
-                progressBarPercentage={isPrivateDomain ? 40 : 75}
+                progressBarPercentage={isPrivateDomain ? 20 : 80}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider

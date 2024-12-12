@@ -14,8 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
-import * as User from '@userActions/User';
 import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -63,7 +63,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={60}
+                progressBarPercentage={40}
                 onBackButtonPress={Navigation.goBack}
             />
             <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
