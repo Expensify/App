@@ -451,13 +451,6 @@ function waitForProtectedRoutes() {
     });
 }
 
-/**
- * Changes the currently selected policy in the app.
- */
-function switchPolicyID(policyID?: string) {
-    navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID}});
-}
-
 type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
 
 /**
@@ -545,7 +538,6 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     parseHybridAppUrl,
-    switchPolicyID,
     resetToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,

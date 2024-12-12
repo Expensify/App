@@ -147,11 +147,6 @@ function WorkspacesListPage() {
 
         Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
-
-        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
-        if (activeWorkspaceID === policyIDToDelete) {
-            Navigation.switchPolicyID(undefined);
-        }
     };
 
     /**
