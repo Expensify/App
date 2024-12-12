@@ -5987,7 +5987,7 @@ const translations = {
             part2: ' gastos',
             part3: ' aquí',
         },
-        ssearchFilterButtonTooltip: {
+        searchFilterButtonTooltip: {
             part1: 'Customize your search',
             part2: ' here!',
         },
