@@ -248,7 +248,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+function getAction(data: OnyxTypes.SearchResults['data'], key: string, isInGroupedTransaction = false): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -295,11 +295,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    if (IOU.canApproveIOU(report, policy) && ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy)) {
+    if (IOU.canApproveIOU(report, policy) && ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy) && !isInGroupedTransaction) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (IOU.canSubmitReport(report, policy)) {
+    if (IOU.canSubmitReport(report, policy) && !isInGroupedTransaction) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -373,9 +373,20 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
+            const isInGroupedTransaction = reportIDToTransactions[reportKey]?.transactions.length >= 1;
+
+            if (isInGroupedTransaction) {
+                reportIDToTransactions[reportKey].transactions = reportIDToTransactions[reportKey].transactions.map((transaction) => {
+                    return {
+                        ...transaction,
+                        action: getAction(data, key, isInGroupedTransaction),
+                    };
+                });
+            }
+
             const transaction = {
                 ...transactionItem,
-                action: getAction(data, key),
+                action: getAction(data, key, isInGroupedTransaction),
                 from,
                 to,
                 formattedFrom,
