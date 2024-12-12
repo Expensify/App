@@ -6,8 +6,8 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {InvoiceReceiver, Participants} from './Report';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
+import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 
