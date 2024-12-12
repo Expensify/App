@@ -5479,7 +5479,7 @@ const translations = {
         workspaceChatTooltip: {
             part1: 'Review submitted expenses and chat',
             part2: '\nwith approvers in your',
-            part3: ' workspace chat.',
+            part3: ' workspace chat',
         },
         globalCreateTooltip: {
             part1: 'Where to ',
