@@ -40,7 +40,6 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 
@@ -90,7 +89,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
-    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
@@ -301,29 +299,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     );
 
     useEffect(() => {
-        if (isLoadingHoldUseExplained) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
             return;
         }
-        setTimeout(() => setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation), CONST.ANIMATED_TRANSITION);
+        Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
-
-    useEffect(() => {
-        if (!shouldShowHoldMenu) {
-            return;
-        }
-
-        if (isSmallScreenWidth) {
-            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD.route) {
-                Navigation.goBack();
-            }
-        } else {
-            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-        }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
-
-    const handleHoldRequestClose = () => {
-        IOU.dismissHoldUseExplanation();
-    };
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -511,12 +492,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 danger
                 shouldEnableNewFocusManagement
             />
-            {isSmallScreenWidth && shouldShowHoldMenu && (
-                <ProcessMoneyRequestHoldMenu
-                    onClose={handleHoldRequestClose}
-                    onConfirm={handleHoldRequestClose}
-                />
-            )}
         </View>
     );
 }
