@@ -183,6 +183,11 @@ jobs:
         id: setup-node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Run grunt build
+        run: |
+            cd Mobile-Expensify
+            npm run grunt:build:shared
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -508,12 +513,12 @@ jobs:
         uses: actions/cache@v4
         id: pods-cache
         with:
-          path: Mobile-Expensify/ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/ios/Podfile.lock', 'firebase.json') }}
+          path: Mobile-Expensify/iOS/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/ios/Podfile.lock') == hashFiles('Mobile-Expensify/ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847

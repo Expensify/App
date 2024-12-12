@@ -639,10 +639,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
-        tooltip: {
-            title: '¡Empecemos!',
-            subtitle: ' Presenta tu primer gasto',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -832,10 +828,6 @@ const translations = {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
-        tooltip: {
-            title: '¡Acción rápida! ',
-            subtitle: 'A un click.',
-        },
     },
     iou: {
         amount: 'Importe',
@@ -4605,7 +4597,6 @@ const translations = {
             },
         },
         saveSearch: 'Guardar búsqueda',
-        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -5976,6 +5967,25 @@ const translations = {
             chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
             scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: '¡Comienza',
+            part2: ' aquí!',
+        },
+        saveSearchTooltip: {
+            part1: 'Renombra tus búsquedas guardadas',
+            part2: ' aquí',
+        },
+        quickActionButton: {
+            part1: '¡Acción rápida!',
+            part2: ' A solo un toque',
+        },
+        workspaceChatCreate: {
+            part1: 'Envía tus',
+            part2: ' gastos',
+            part3: ' aquí',
         },
     },
 };
