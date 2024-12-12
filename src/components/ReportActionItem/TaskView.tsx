@@ -75,7 +75,7 @@ function TaskView({report}: TaskViewProps) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(isInteractive && hovered, isInteractive && pressed, false, !canModifyTask, canModifyTask), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !canModifyTask, isInteractive), true),
                                 !isInteractive && styles.cursorDefault,
                             ]}
                             accessibilityLabel={taskTitle || translate('task.task')}
