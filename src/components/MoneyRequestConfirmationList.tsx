@@ -211,8 +211,9 @@ function MoneyRequestConfirmationList({
         }
 
         const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
-        const lastSelectedRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
-        IOU.setCustomUnitRateID(transactionID, lastSelectedRateID);
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const rateID = lastSelectedRate;
+        IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
@@ -277,18 +278,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
-    // Clear the form error if it's set to one among the list passed as an argument
-    const clearFormErrors = useCallback(
-        (errors: string[]) => {
-            if (!errors.includes(formError)) {
-                return;
-            }
-
-            setFormError('');
-        },
-        [formError, setFormError],
-    );
-
     const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
@@ -330,33 +319,6 @@ function MoneyRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
-
-    useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a workspace chat
-        if (!isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-            return;
-        }
-
-        const errorKey = 'iou.error.invalidRate';
-        const policyRates = DistanceRequestUtils.getMileageRates(policy);
-
-        // If the selected rate belongs to the policy, clear the error
-        if (Object.keys(policyRates).includes(customUnitRateID)) {
-            clearFormErrors([errorKey]);
-            return;
-        }
-
-        // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
-        const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
-        if (matchingRate?.customUnitRateID) {
-            IOU.setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
-            return;
-        }
-
-        // If none of the above conditions are met, display the rate error
-        setFormError(errorKey);
-    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
-
     const isFirstUpdatedDistanceAmount = useRef(false);
 
     useEffect(() => {
@@ -507,8 +469,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        clearFormErrors(['iou.error.invalidSplit', 'iou.error.invalidSplitParticipants', 'iou.error.invalidSplitYourself']);
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate, clearFormErrors]);
+        setFormError('');
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -675,9 +637,7 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat)) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
+        if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
             return;
         }
 
@@ -700,7 +660,6 @@ function MoneyRequestConfirmationList({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         action,
