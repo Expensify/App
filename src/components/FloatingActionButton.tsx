@@ -6,7 +6,6 @@ import {Platform} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -60,7 +59,6 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
