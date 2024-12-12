@@ -94,6 +94,9 @@ type SelectionScreenProps<T = string> = {
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
+    /** Whether to reset the focused index to zero */
+    shouldResetFocusedIndex?: boolean;
+
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
@@ -134,6 +137,7 @@ function SelectionScreen<T = string>({
     onChangeText,
     shouldShowTextInput,
     shouldUpdateFocusedIndex = false,
+    shouldResetFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -179,6 +183,7 @@ function SelectionScreen<T = string>({
                         sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        shouldResetFocusedIndex={shouldResetFocusedIndex}
                         isAlternateTextMultilineSupported
                     >
                         <ErrorMessageRow
