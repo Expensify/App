@@ -455,6 +455,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         // Define common properties in baseQuickAction
         const baseQuickAction = {
             label: translate('quickAction.header'),
+            labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
             floatRightAvatars: quickActionAvatars,
             floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
@@ -513,6 +514,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
         styles.quickActionTooltipWrapper,
+        styles.pt3,
+        styles.pb2,
         renderQuickActionTooltip,
         quickAction?.action,
         quickAction?.isFirstQuickAction,
@@ -538,12 +541,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
+                    ...expenseMenuItems,
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...expenseMenuItems,
                     ...(canSendInvoice
                         ? [
                               {
