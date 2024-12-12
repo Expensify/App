@@ -258,6 +258,8 @@ export default {
     composerTooltipShiftHorizontal: 10,
     composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -20,
+    fabTooltipShiftHorizontal: -15,
+    workspaceLHNtooltipShiftHorizontal: 26,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

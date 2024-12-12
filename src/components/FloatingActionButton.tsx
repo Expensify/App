@@ -55,6 +55,7 @@ type FloatingActionButtonProps = {
     /* An accessibility role for the button */
     role: Role;
 };
+
 function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
@@ -113,8 +114,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftVertical={variables.composerTooltipShiftVertical}
-            shiftHorizontal={shouldUseNarrowLayout ? 0 : -15}
+            shiftHorizontal={shouldUseNarrowLayout ? 0 : variables.fabTooltipShiftHorizontal}
             shouldUseOverlay
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.quickActionTooltipWrapper}

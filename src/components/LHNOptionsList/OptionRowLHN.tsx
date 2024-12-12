@@ -170,7 +170,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shouldUseOverlay
-                shiftHorizontal={isActiveWorkspaceChat ? 26 : variables.gbrTooltipShiftHorizontal}
+                shiftHorizontal={isActiveWorkspaceChat ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
                 shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
                 onHideTooltip={hideProductTrainingTooltip}
                 wrapperStyle={styles.quickActionTooltipWrapper}
