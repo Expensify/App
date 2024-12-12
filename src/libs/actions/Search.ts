@@ -5,11 +5,13 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
-import type {ExportSearchItemsToCSVParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {rand64} from '@libs/NumberUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -17,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
 
 let currentUserEmail: string;
@@ -64,6 +66,11 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
             return;
+        case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
+            const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
+            submitMoneyRequestOnSearch(hash, [item], [policy], transactionID);
+            return;
+        }
         default:
             goToItem();
     }
@@ -236,6 +243,35 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
+function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[]) {
+    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: transactionIDList
+                    ? (Object.fromEntries(
+                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
+                      ) as Partial<SearchTransaction>)
+                    : (Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+            },
+        },
+    ];
+    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
+    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+
+    const report = (reportList.at(0) ?? {}) as SearchReport;
+    const parameters: SubmitReportParams = {
+        reportID: report.reportID,
+        managerAccountID: PolicyUtils.getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        reportActionID: rand64(),
+    };
+
+    // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
+    // In the meantime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
+    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, finallyData});
+}
+
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
@@ -369,4 +405,5 @@ export {
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
+    submitMoneyRequestOnSearch,
 };
