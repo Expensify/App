@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -69,7 +70,12 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         Welcome.setOnboardingPolicyID(policyID);
                     }
 
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                        return;
+                    }
+
+                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                 }}
                 pressOnEnter
             />
