@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -73,7 +73,7 @@ function IOURequestStepDescription({
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescriptionInMarkdown = parseHtmlToMarkdown(
+    const currentDescriptionInMarkdown = Parser.htmlToMarkdown(
         isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '',
     );
 
