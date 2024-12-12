@@ -43,6 +43,7 @@ function sanitizeSearchValue(str: string) {
     if (regexp.test(str)) {
         return `"${str}"`;
     }
+    console.log('str', str);
     return str;
 }
 
