@@ -9,9 +9,15 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 
 # Wrapper to run patch-package.
 function patchPackage {
+  # See if we're in the HybridApp repo
+  IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
+
   OS="$(uname)"
   if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
     npx patch-package --error-on-fail --color=always
+    if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
+      npx patch-package --patch-dir 'Mobile-Expensify/patches' --error-on-fail --color=always
+    fi
   else
     error "Unsupported OS: $OS"
     exit 1

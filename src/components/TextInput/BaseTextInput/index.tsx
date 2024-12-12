@@ -50,6 +50,7 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
+        autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -250,7 +251,8 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -486,7 +488,6 @@ function BaseTextInput(
             )}
             {/*
                  Text input component doesn't support auto grow by default.
-                 We're using a hidden text input to achieve that.
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
