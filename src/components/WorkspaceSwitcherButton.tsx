@@ -18,14 +18,9 @@ type WorkspaceSwitcherButtonOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps & {
-    /**
-     * Callback used to keep track of the workspace switching process in the BaseSidebarScreen.
-     */
-    onSwitchWorkspace?: () => void;
-};
+type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 
-function WorkspaceSwitcherButton({policy, onSwitchWorkspace}: WorkspaceSwitcherButtonProps) {
+function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
@@ -54,7 +49,6 @@ function WorkspaceSwitcherButton({policy, onSwitchWorkspace}: WorkspaceSwitcherB
                 accessible
                 testID="WorkspaceSwitcherButton"
                 onPress={() => {
-                    onSwitchWorkspace?.();
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
                         Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
