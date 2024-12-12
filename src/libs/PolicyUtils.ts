@@ -520,7 +520,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     return !!policy?.[featureName];
 }
 
-function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
     if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
@@ -528,14 +528,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function getDefaultApprover(policy: OnyxEntry<Policy>): string {
+function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
@@ -555,8 +555,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
             return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
         }
 
-        if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
-            tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
+        if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
+            tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
         }
     }
 
@@ -1079,8 +1079,13 @@ function getWorkspaceAccountID(policyID: string) {
     return policy.workspaceAccountID ?? 0;
 }
 
-function getTagApproverRule(policyID: string, tagName: string) {
+function hasVBBA(policyID: string) {
     const policy = getPolicy(policyID);
+    return !!policy?.achAccount?.bankAccountID;
+}
+
+function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy>, tagName: string) {
+    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const approverRule = approvalRules.find((rule) =>
@@ -1112,17 +1117,6 @@ function getAllPoliciesLength() {
 
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
-}
-
-function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Localize.translateLocal('workspace.type.control');
-        case CONST.POLICY.TYPE.TEAM:
-            return Localize.translateLocal('workspace.type.collect');
-        default:
-            return Localize.translateLocal('workspace.type.free');
-    }
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
@@ -1197,6 +1191,7 @@ export {
     canSendInvoice,
     hasWorkspaceWithInvoices,
     hasDependentTags,
+    hasVBBA,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
@@ -1257,7 +1252,6 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
-    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };
