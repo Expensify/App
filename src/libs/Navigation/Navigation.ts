@@ -513,6 +513,7 @@ const dismissModalWithReport = (report: OnyxEntry<Report>) => {
  */
 function popToTop() {
     if (!shouldPopAllStateOnUP) {
+        goBack();
         return;
     }
 
