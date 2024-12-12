@@ -1722,7 +1722,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         config,
     );
 
-    const sortedRecentReports = orderOptions(filteredRecentReports, searchValue, {preferChatroomsOverThreads, preferPolicyExpenseChat, preferRecentExpenseReports});
     return {
         personalDetails,
         recentReports,
@@ -1819,12 +1818,12 @@ export {
     formatSectionsFromSearchTerm,
     getShareLogOptions,
     orderOptions,
+    filterUserToInvite,
     filterOptions,
     filteredPersonalDetailsOfRecentReports,
     orderReportOptions,
     orderReportOptionsWithSearch,
     orderPersonalDetailsOptions,
-    orderOptions,
     filterAndOrderOptions,
     createOptionList,
     createOptionFromReport,
@@ -1838,9 +1837,7 @@ export {
     shouldUseBoldText,
     getAttendeeOptions,
     getAlternateText,
-    pickUserToInvite,
     hasReportErrors,
-    filteredPersonalDetailsOfRecentReports,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree};
