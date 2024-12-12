@@ -111,10 +111,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={shouldUseNarrowLayout ? 0 : variables.fabTooltipShiftHorizontal}
+            shiftHorizontal={variables.fabTooltipShiftHorizontal}
             shouldUseOverlay
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.quickActionTooltipWrapper}

@@ -260,6 +260,9 @@ export default {
     gbrTooltipShiftHorizontal: -20,
     fabTooltipShiftHorizontal: -15,
     workspaceLHNtooltipShiftHorizontal: 26,
+    searchFiltersTooltipShiftHorizontal: -20,
+    searchFiltersTooltipShiftHorizontalNarrow: -10,
+    searchFiltersTooltipShiftVerticalNarrow: 5,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

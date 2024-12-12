@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -78,10 +77,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
-    const isFocused = useIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isFocused,
     );
 
     const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
@@ -211,9 +208,11 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
                 anchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 }}
+                shiftHorizontal={variables.searchFiltersTooltipShiftHorizontalNarrow}
+                shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
                 wrapperStyle={styles.quickActionTooltipWrapper}
                 shouldUseOverlay
                 renderTooltipContent={renderProductTrainingTooltip}
