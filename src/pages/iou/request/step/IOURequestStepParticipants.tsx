@@ -44,6 +44,7 @@ function IOURequestStepParticipants({
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
+    const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const headerTitle = useMemo(() => {
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
@@ -75,23 +76,27 @@ function IOURequestStepParticipants({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+        if (isMovingTransactionFromTrackExpense) {
             return;
         }
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
+    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, isMovingTransactionFromTrackExpense]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
             const firstParticipantReportID = val.at(0)?.reportID ?? '';
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
-
             IOU.setMoneyRequestParticipants(transactionID, val);
-            IOU.setCustomUnitRateID(transactionID, rateID);
+
+            if (!isMovingTransactionFromTrackExpense) {
+                // When moving the transaction, keep the original rate and let the user manually change it to the one they want from the workspace.
+                // Otherwise, select the default one automatically.
+                const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
+                IOU.setCustomUnitRateID(transactionID, rateID);
+            }
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
@@ -103,7 +108,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [iouType, reportID, transactionID],
+        [iouType, reportID, transactionID, isMovingTransactionFromTrackExpense],
     );
 
     const goToNextStep = useCallback(() => {
