@@ -83,7 +83,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        selectedTab === SCREENS.HOME && isFocused,
+        selectedTab !== SCREENS.HOME && isFocused,
     );
 
     useEffect(() => {

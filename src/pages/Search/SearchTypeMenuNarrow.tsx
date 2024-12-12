@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
@@ -9,9 +10,11 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -75,7 +78,12 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         SearchActions.updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
-
+    const isFocused = useIsFocused();
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isFocused,
+    );
+    console.log('shouldShowProductTrainingTooltip', shouldShowProductTrainingTooltip, isFocused);
     const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
@@ -200,10 +208,22 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                     </Animated.View>
                 )}
             </PressableWithFeedback>
-            <Button
-                icon={Expensicons.Filters}
-                onPress={onPress}
-            />
+            <EducationalTooltip
+                shouldRender={shouldShowProductTrainingTooltip}
+                anchorAlignment={{
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                }}
+                wrapperStyle={styles.quickActionTooltipWrapper}
+                shouldUseOverlay
+                renderTooltipContent={renderProductTrainingTooltip}
+                onHideTooltip={hideProductTrainingTooltip}
+            >
+                <Button
+                    icon={Expensicons.Filters}
+                    onPress={onPress}
+                />
+            </EducationalTooltip>
             <PopoverMenu
                 menuItems={allMenuItems as PopoverMenuItem[]}
                 isVisible={isPopoverVisible}
