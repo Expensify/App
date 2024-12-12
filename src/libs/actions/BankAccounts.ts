@@ -439,7 +439,7 @@ function clearReimbursementAccount() {
 }
 
 function clearReimbursementAccountBankCreation() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
 
 /**
