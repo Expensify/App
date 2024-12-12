@@ -1,0 +1,54 @@
+diff --git a/node_modules/react-native-reanimated/apple/reanimated/apple/Fabric/REAInitializerRCTFabricSurface.h b/node_modules/react-native-reanimated/apple/reanimated/apple/Fabric/REAInitializerRCTFabricSurface.h
+index bd8143b..c27c210 100644
+--- a/node_modules/react-native-reanimated/apple/reanimated/apple/Fabric/REAInitializerRCTFabricSurface.h
++++ b/node_modules/react-native-reanimated/apple/reanimated/apple/Fabric/REAInitializerRCTFabricSurface.h
+@@ -5,7 +5,7 @@
+ 
+ @interface REAInitializerRCTFabricSurface : RCTFabricSurface
+ 
+-@property REAModule *reaModule;
++@property __weak REAModule *reaModule;
+ 
+ @end
+ 
+diff --git a/node_modules/react-native-reanimated/apple/reanimated/apple/REAModule.mm b/node_modules/react-native-reanimated/apple/reanimated/apple/REAModule.mm
+index aa09b5c..134fe8d 100644
+--- a/node_modules/react-native-reanimated/apple/reanimated/apple/REAModule.mm
++++ b/node_modules/react-native-reanimated/apple/reanimated/apple/REAModule.mm
+@@ -195,12 +195,13 @@ - (void)setBridge:(RCTBridge *)bridge
+ 
+ - (void)setReaSurfacePresenter
+ {
+-  if (reaSurface == nil) {
+-    // we need only one instance because SurfacePresenter is the same during the application lifetime
+-    reaSurface = [[REAInitializerRCTFabricSurface alloc] init];
+-    [_surfacePresenter registerSurface:reaSurface];
+-  }
+-  reaSurface.reaModule = self;
++    if(_surfacePresenter && ![_surfacePresenter surfaceForRootTag:reaSurface.rootTag]) {
++        if (!reaSurface) {
++            reaSurface = [[REAInitializerRCTFabricSurface alloc] init];
++        }
++        [_surfacePresenter registerSurface:reaSurface];
++    }
++    reaSurface.reaModule = self;
+ }
+ 
+ #else // RCT_NEW_ARCH_ENABLED
+diff --git a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+index 9fc7b15..e453d84 100644
+--- a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
++++ b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
+@@ -17,7 +17,11 @@ def find_config()
+     :react_native_reanimated_dir_from_pods_root => nil,
+   }
+
+-  react_native_node_modules_dir = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('react-native/package.json')"`), '..')
++  root_project = Pod::Config.instance.installation_root.to_s
++  if(ENV['PROJECT_ROOT_DIR'])
++    root_project = ENV['PROJECT_ROOT_DIR']
++  end
++  react_native_node_modules_dir = File.join(File.dirname(`cd "#{root_project}" && node --print "require.resolve('react-native/package.json')"`), '..')
+   react_native_json = try_to_parse_react_native_package_json(react_native_node_modules_dir)
+
+   if react_native_json == nil
