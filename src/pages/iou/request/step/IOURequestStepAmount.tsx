@@ -45,24 +45,25 @@ type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, pageIndex, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = ''},
     },
     transaction,
     currentUserPersonalDetails,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? -1}`);
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? -1}`);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : -1}`);
-
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
+    const policyID = report?.policyID ?? '-1';
+
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -75,12 +76,12 @@ function IOURequestStepAmount({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (isSplitBill || !skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report, reportNameValuePairs) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -177,27 +178,6 @@ function IOURequestStepAmount({
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
-                if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                    playSound(SOUNDS.DONE);
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: backendAmount,
-                        comment: '',
-                        currency,
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        tag: '',
-                        category: '',
-                        created: transaction?.created ?? '',
-                        billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
-
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
@@ -209,19 +189,21 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     playSound(SOUNDS.DONE);
-                    IOU.requestMoney(
+                    IOU.requestMoney({
                         report,
-                        backendAmount,
-                        transaction?.attendees,
-                        currency,
-                        transaction?.created ?? '',
-                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants.at(0) ?? {},
-                        '',
-                        {},
-                    );
+                        participantParams: {
+                            participant: participants.at(0) ?? {},
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency,
+                            created: transaction?.created ?? '',
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            attendees: transaction?.attendees,
+                        },
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
@@ -236,6 +218,7 @@ function IOURequestStepAmount({
                         currentUserPersonalDetails.accountID,
                         participants.at(0) ?? {},
                         '',
+                        false,
                     );
                     return;
                 }

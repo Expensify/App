@@ -33,7 +33,7 @@ type ImportSpreedsheetProps = {
     goTo: Routes;
 };
 
-function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
@@ -93,8 +93,10 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             .then((arrayBuffer) => {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][])
+                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+
+                setSpreadsheetData(formattedSpreadsheetData)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -160,7 +162,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreedsheet.displayName}
+            testID={ImportSpreadsheet.displayName}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
@@ -214,6 +216,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     );
 }
 
-ImportSpreedsheet.displayName = 'ImportSpreedsheet';
+ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
-export default ImportSpreedsheet;
+export default ImportSpreadsheet;

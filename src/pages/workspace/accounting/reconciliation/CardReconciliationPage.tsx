@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as AccountingUtils from '@libs/AccountingUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type CardReconciliationPageProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
+type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
 
 function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const styles = useThemeStyles();
@@ -43,6 +43,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {connection} = route.params;
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
+    const shouldShow = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
 
     const toggleContinuousReconciliation = (value: boolean) => {
         Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
@@ -75,6 +76,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -112,6 +114,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             title={bankAccountTitle}
                             description={translate('workspace.accounting.reconciliationAccount')}
                             shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
                         />
                     )}
                 </ScrollView>

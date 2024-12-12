@@ -165,6 +165,8 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
+type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
+
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -531,6 +533,10 @@ type ImportMembersSuccessfullDescriptionParams = {
     members: number;
 };
 
+type ImportPerDiemRatesSuccessfullDescriptionParams = {
+    rates: number;
+};
+
 type AuthenticationErrorParams = {
     connectionName: string;
 };
@@ -543,8 +549,28 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type LastFourDigitsParams = {
+    lastFourDigits: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
+};
+
+type CurrencyCodeParams = {
+    currencyCode: string;
+};
+
+type CompanyNameParams = {
+    companyName: string;
+};
+
+type CustomUnitRateParams = {
+    rate: number;
+};
+
+type ChatWithAccountManagerParams = {
+    accountManagerDisplayName: string;
 };
 
 export type {
@@ -637,12 +663,13 @@ export type {
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
+    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    SignUpNewFaceCodeParams,
+    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -676,6 +703,7 @@ export type {
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
+    SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
@@ -746,4 +774,9 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
+    CurrencyCodeParams,
+    CompanyNameParams,
+    CustomUnitRateParams,
+    ChatWithAccountManagerParams,
 };

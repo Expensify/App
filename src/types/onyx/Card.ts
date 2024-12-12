@@ -2,10 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Type of export card */
-type ExportCompanyCard = {
-    [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
-};
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -76,9 +72,6 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** Type of export card */
-        exportAccountDetails?: ExportCompanyCard;
-
         /** User-defined nickname for the card */
         cardTitle?: string;
 
@@ -114,7 +107,11 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
-    }>;
+    }> &
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Type of export card */
+            [key in ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>]: string;
+        }>;
 }>;
 
 /** Model of Expensify card details */
@@ -183,5 +180,8 @@ type WorkspaceCardsList = Record<string, Card> & {
     cardList?: Record<string, string>;
 };
 
+/** Card list with only available card */
+type FilteredCardList = Record<string, string>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList};
