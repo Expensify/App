@@ -19,7 +19,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isDeletedAction} from './ReportActionsUtils';
 import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
-import {getAmount, getCreated, getMerchant} from './TransactionUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -63,9 +63,9 @@ function getTransactionItemCommonFormattedProperties(
 
     const formattedFrom = from?.displayName ?? from?.login ?? '';
     const formattedTo = to?.displayName ?? to?.login ?? '';
-    const formattedTotal = getAmount(transactionItem, isExpenseReport);
+    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getMerchant(transactionItem);
+    const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
 
     return {
@@ -146,7 +146,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
             if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(getCreated(transaction)).getFullYear();
+                    const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
                     return transactionYear !== currentYear;
                 });
             }
@@ -159,7 +159,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const date = getCreated(item);
+            const date = getTransactionCreatedDate(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;
