@@ -16,7 +16,7 @@ import {validateAmount} from './MoneyRequestUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
-import {parse} from './SearchParser/searchParser';
+import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -232,7 +232,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
  */
 function buildSearchQueryJSON(query: SearchQueryString) {
     try {
-        const result = parse(query) as SearchQueryJSON;
+        const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results

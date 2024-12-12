@@ -37,7 +37,7 @@ import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
-    calculateAmount,
+    calculateAmount as calculateIOUAmount,
     formatCurrentUserToAttendee,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -160,7 +160,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {clearByKey} from './CachedPDFPaths';
+import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
@@ -4395,8 +4395,8 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? calculateAmount(participants.length, amount, currency, true);
-    const currentUserTaxAmount = calculateAmount(participants.length, taxAmount, currency, true);
+    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, true);
+    const currentUserTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, true);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount, taxAmount: currentUserTaxAmount}];
 
@@ -4404,8 +4404,8 @@ function createSplitsAndOnyxData(
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(participant);
-        const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? calculateAmount(participants.length, amount, currency, false);
-        const splitTaxAmount = calculateAmount(participants.length, taxAmount, currency, false);
+        const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
+        const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
@@ -5181,8 +5181,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
-    const splitAmount = calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
-    const splitTaxAmount = calculateAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
+    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
+    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
     splitParticipants.forEach((participant) => {
@@ -6164,7 +6164,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    clearByKey(transactionID);
+    clearPdfByOnyxKey(transactionID);
 
     return urlToNavigateBack;
 }
@@ -6193,7 +6193,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    clearByKey(transactionID);
+    clearPdfByOnyxKey(transactionID);
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     return urlToNavigateBack;
@@ -8094,7 +8094,7 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
 
         const isPayer = accountID === userAccountID;
         const participantsLength = newAccountIDs.includes(userAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
-        const splitAmount = calculateAmount(participantsLength, amount, currency, isPayer);
+        const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
         acc[accountID] = {
             amount: splitAmount,
             isModified: false,
@@ -8152,7 +8152,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
     }
 
     const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
-        const splitAmount = calculateAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
+        const splitAmount = calculateIOUAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
         acc[accountID] = {
             amount: splitAmount,
         };

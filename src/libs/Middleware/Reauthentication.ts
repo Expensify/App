@@ -1,7 +1,7 @@
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import {reauthenticate as reauthenticateLibs} from '@libs/Authentication';
 import Log from '@libs/Log';
-import {replay} from '@libs/Network/MainQueue';
+import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, isOffline, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -94,7 +94,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
 
                 // We are already authenticating and using the DeprecatedAPI so we will replay the request
                 if (!apiRequestType && isAuthenticatingNetworkStore()) {
-                    replay(request);
+                    replayMainQueue(request);
                     return data;
                 }
 
@@ -109,7 +109,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                             return Promise.resolve();
                         }
 
-                        replay(request);
+                        replayMainQueue(request);
                         return authenticateResponse;
                     })
                     .catch(() => {
@@ -118,7 +118,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
-                        replay(request);
+                        replayMainQueue(request);
                     });
             }
 

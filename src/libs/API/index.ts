@@ -3,10 +3,10 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import Log from '@libs/Log';
 import {HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
-import {push, waitForIdle} from '@libs/Network/SequentialQueue';
+import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import {getPusherSocketID} from '@libs/Pusher/pusher';
 import {processWithMiddleware, use} from '@libs/Request';
-import {getLength} from '@userActions/PersistedRequests';
+import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
@@ -95,7 +95,7 @@ function prepareRequest<TCommand extends ApiCommand>(
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
-        push(request);
+        pushToSequentialQueue(request);
         return Promise.resolve();
     }
 
@@ -172,10 +172,10 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
  * write requests that use the same Onyx keys and haven't responded yet.
  */
 function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
-    if (getLength() > 0) {
-        Log.info(`[API] '${command}' is waiting on ${getLength()} write commands`);
+    if (getPersistedRequestsLength() > 0) {
+        Log.info(`[API] '${command}' is waiting on ${getPersistedRequestsLength()} write commands`);
     }
-    return waitForIdle();
+    return waitForSequentialQueueIdle();
 }
 
 /**

@@ -3,14 +3,20 @@ import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import {setAuthToken} from '@libs/Network/NetworkStore';
-import {unpause} from '@libs/Network/SequentialQueue';
+import {unpause as unpauseSequentialQueue} from '@libs/Network/SequentialQueue';
 import {finalReconnectAppAfterActivatingReliableUpdates, getMissingOnyxUpdates} from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Session} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import {validateAndApplyDeferredUpdates} from './utils';
-import {clear, enqueue, getMissingOnyxUpdatesQueryPromise, isEmpty, setMissingOnyxUpdatesQueryPromise} from './utils/DeferredOnyxUpdates';
+import {
+    clear as clearDeferredOnyxUpdates,
+    enqueue as enqueueDeferredOnyxUpdates,
+    getMissingOnyxUpdatesQueryPromise,
+    isEmpty as isEmptyDeferredOnyxUpdates,
+    setMissingOnyxUpdatesQueryPromise,
+} from './utils/DeferredOnyxUpdates';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to
@@ -50,7 +56,7 @@ const createQueryPromiseWrapper = () =>
 let queryPromiseWrapper = createQueryPromiseWrapper();
 
 const resetDeferralLogicVariables = () => {
-    clear({shouldUnpauseSequentialQueue: false});
+    clearDeferredOnyxUpdates({shouldUnpauseSequentialQueue: false});
 };
 
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
@@ -60,7 +66,7 @@ function finalizeUpdatesAndResumeQueue() {
     resolveQueryPromiseWrapper();
     queryPromiseWrapper = createQueryPromiseWrapper();
 
-    clear();
+    clearDeferredOnyxUpdates();
 }
 
 /**
@@ -76,7 +82,7 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     if (isLoadingApp) {
         // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
         // it so the app is not stuck forever without processing requests.
-        unpause();
+        unpauseSequentialQueue();
         console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hasn't finished yet.`);
         return;
     }
@@ -123,10 +129,10 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     } else {
         // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
 
-        const areDeferredUpdatesQueued = !isEmpty();
+        const areDeferredUpdatesQueued = !isEmptyDeferredOnyxUpdates();
 
         // Add the new update to the deferred updates
-        enqueue(updateParams, {shouldPauseSequentialQueue: false});
+        enqueueDeferredOnyxUpdates(updateParams, {shouldPauseSequentialQueue: false});
 
         // If there are deferred updates already, we don't need to fetch the missing updates again.
         if (areDeferredUpdatesQueued) {

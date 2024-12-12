@@ -61,7 +61,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
-import {isAnonymousUser as isAnonymousUserSessionUtils} from './actions/Session';
+import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -143,7 +143,7 @@ import {
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
-    isSplitBillAction,
+    isSplitBillAction as isSplitBillReportAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isThreadParentMessage,
@@ -156,7 +156,6 @@ import {
 import {getAllReports} from './ReportConnection';
 import {
     getAllReportTransactions,
-    getAmount,
     getAttendees,
     getBillable,
     getCardID,
@@ -177,6 +176,7 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
+    getAmount as getTransactionAmount,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
@@ -3208,7 +3208,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
     const report = getReportOrDraftReport(transaction?.reportID);
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         attendees: getAttendees(transaction),
         taxAmount: getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         taxCode: getTaxCode(transaction),
@@ -3584,7 +3584,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     const report = getReportOrDraftReport(transaction?.reportID);
-    const amount = getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     if (isTrackExpenseAction(reportAction)) {
@@ -3619,7 +3619,7 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillAction(iouReportAction)) {
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
@@ -3635,7 +3635,7 @@ function getReportPreviewMessage(
                 return Localize.translateLocal('iou.receiptMissingDetails');
             }
 
-            const amount = getAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
             const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
@@ -3657,7 +3657,7 @@ function getReportPreviewMessage(
                 return Localize.translateLocal('iou.receiptMissingDetails');
             }
 
-            const amount = getAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
+            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
             const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
         }
@@ -3688,7 +3688,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.receiptScanning');
     }
 
-    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getAmount(linkedTransaction)) {
+    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
         return Localize.translateLocal('iou.fieldPending');
     }
 
@@ -3728,7 +3728,7 @@ function getReportPreviewMessage(
     let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
 
     if (!isEmptyObject(linkedTransaction)) {
-        amount = getAmount(linkedTransaction, isExpenseReport(report));
+        amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
         currency = getCurrency(linkedTransaction);
     }
 
@@ -3793,7 +3793,7 @@ function getModifiedExpenseOriginalMessage(
     // to match how we handle the modified expense action in oldDot
     const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
     if (didAmountOrCurrencyChange) {
-        originalMessage.oldAmount = getAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.currency = transactionChanges?.currency ?? transactionChanges.oldCurrency;
@@ -3832,7 +3832,7 @@ function getModifiedExpenseOriginalMessage(
     }
 
     if ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) {
-        originalMessage.oldAmount = getAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
@@ -7647,7 +7647,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const amount = getAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport)) ?? 0;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved(iouReport);
@@ -7661,7 +7661,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
             amount: formattedAmount,
         });
     }
-    if (isSplitBillAction(reportAction)) {
+    if (isSplitBillReportAction(reportAction)) {
         translationKey = 'iou.didSplitAmount';
     } else if (isTrackExpenseAction(reportAction)) {
         translationKey = 'iou.trackedAmount';
@@ -7773,7 +7773,7 @@ function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
 function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
-        const isSplitReportAction = isSplitBillAction(action);
+        const isSplitReportAction = isSplitBillReportAction(action);
         if (!isSplitReportAction && !isReportPreview) {
             return false;
         }
@@ -7912,7 +7912,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
  * - The action is the thread's first chat
  */
 function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, isThreadReportParentAction: boolean): boolean {
-    const isSplitBillActionLocal = isSplitBillAction(reportAction);
+    const isSplitBillAction = isSplitBillReportAction(reportAction);
     const isDeletedActionLocal = isDeletedAction(reportAction);
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
@@ -7922,7 +7922,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
 
     return (
         isActionDisabled ||
-        isSplitBillActionLocal ||
+        isSplitBillAction ||
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isArchivedReport && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
@@ -8206,7 +8206,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return true;
     }
 
-    if (isPublicRoom(report) && isAnonymousUserSessionUtils()) {
+    if (isPublicRoom(report) && isAnonymousUserSession()) {
         return false;
     }
 
