@@ -30,7 +30,6 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: MarkdownTextInputProp
             {...props}
             /**
              * If maxLength is not set, we should set the it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
-             * Since we want the ExceededCommentLength to be displayed, we need to set the maxLength to CONST.MAX_COMMENT_LENGTH + 1
              */
             maxLength={maxLength ?? CONST.MAX_COMMENT_LENGTH + 1}
         />
