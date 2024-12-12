@@ -1,27 +1,34 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
+import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
-import Navigation from '@libs/Navigation/Navigation';
+import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import navigationRef from '@libs/Navigation/navigationRef';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
-    const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const currentRoute = useRoute();
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -46,8 +53,26 @@ function BaseSidebarScreen() {
             return;
         }
 
+        const topmostReport = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+        if (!topmostReport) {
+            return;
+        }
+
+        // Switching workspace to global should only be performed from the currently opened sidebar screen
+        const topmostReportState = topmostReport?.state ?? getPreservedSplitNavigatorState(topmostReport?.key);
+        const isCurrentSidebar = topmostReportState?.routes.some((route) => currentRoute.key === route.key);
+
+        if (!isCurrentSidebar) {
+            return;
+        }
+
         isSwitchingWorkspace.current = true;
-        Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        navigationRef.current?.dispatch({
+            target: navigationRef.current.getRootState().key,
+            payload: getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT}),
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+        });
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID]);
 
@@ -55,11 +80,10 @@ function BaseSidebarScreen() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            includePaddingTop={false}
+            bottomContent={<BottomTabBar selectedTab={SCREENS.HOME} />}
         >
             {({insets}) => (
                 <>

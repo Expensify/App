@@ -39,7 +39,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
-type ReportScreenNavigationProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
 type ReportScreenProps = CurrentReportIDContextValue & ReportScreenNavigationProps;
 
@@ -112,7 +112,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
-
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
@@ -296,7 +295,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(undefined, false, true);
+        // @TODO: Check if this method works the same as on the main branch
+        Navigation.popToTop();
     }, [isInNarrowPaneModal]);
 
     let headerView = (
@@ -608,7 +608,8 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
-                Navigation.goBack(undefined, false, true);
+                // @TODO: Check if this method works the same as on the main branch
+                Navigation.popToTop();
             }
             if (prevReport?.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.

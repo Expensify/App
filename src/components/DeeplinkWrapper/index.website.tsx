@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import * as Browser from '@libs/Browser';
+import {shouldPreventDeeplinkPrompt} from '@libs/Navigation/helpers';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import shouldPreventDeeplinkPrompt from '@libs/Navigation/shouldPreventDeeplinkPrompt';
 import * as App from '@userActions/App';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';

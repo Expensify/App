@@ -1,10 +1,11 @@
+import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
+import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
@@ -12,9 +13,8 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
-import usePermissions from '@hooks/usePermissions';
+import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,17 +24,16 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers';
+import SIDEBAR_TO_SPLIT from '@libs/Navigation/linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
-import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
-import {isOnboardingFlowName} from '@libs/NavigationUtils';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -59,15 +58,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFromSearchRHP';
-import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
-import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
-import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
-import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
@@ -98,29 +92,10 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
-    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        // Generate default query string with buildSearchQueryString without argument.
-        return {q: SearchQueryUtils.buildSearchQueryString()};
-    }
-
-    if (screenName === SCREENS.REPORT) {
-        return {
-            openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
-            reportID: initialReportID,
-        };
-    }
-
-    return undefined;
-}
-
-function getCentralPaneScreenListeners(screenName: CentralPaneName) {
-    if (screenName === SCREENS.REPORT) {
-        return {beforeRemove: beforeRemoveReportOpenedFromSearchRHP};
-    }
-
-    return {};
-}
+const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
+const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
+const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 
 function initializePusher() {
     return Pusher.init({
@@ -236,22 +211,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
-    const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const [initialReportID] = useState(() => {
-        const currentURL = getCurrentUrl();
-        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
-        if (reportIdFromPath) {
-            return reportIdFromPath;
-        }
-
-        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
-    });
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -403,24 +366,51 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const CentralPaneScreenOptions: PlatformStackNavigationOptions = {
-        ...hideKeyboardOnSwipe,
-        headerShown: false,
-        title: 'New Expensify',
-        web: {
-            // Prevent unnecessary scrolling
-            cardStyle: styles.cardStyleNavigator,
-        },
+    // Animation is disabled when navigating to the sidebar screen
+    const getSplitNavigatorOptions = (route: RouteProp<AuthScreensParamList>) => {
+        if (!shouldUseNarrowLayout || !route?.params) {
+            return rootNavigatorOptions.fullScreen;
+        }
+
+        const screenName = 'screen' in route.params ? route.params.screen : undefined;
+
+        if (!screenName) {
+            return rootNavigatorOptions.fullScreen;
+        }
+
+        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+
+        return {
+            ...rootNavigatorOptions.fullScreen,
+            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+        };
     };
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
                 <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
+                    {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
-                        name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                        options={rootNavigatorOptions.bottomTab}
-                        component={BottomTabNavigator}
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        options={({route}) => getSplitNavigatorOptions(route)}
+                        getComponent={loadReportSplitNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        options={({route}) => getSplitNavigatorOptions(route)}
+                        getComponent={loadSettingsSplitNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SEARCH.CENTRAL_PANE}
+                        options={rootNavigatorOptions.searchPage}
+                        getComponent={loadSearchPage}
+                        initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                        options={({route}) => getSplitNavigatorOptions(route)}
+                        getComponent={loadWorkspaceSplitNavigator}
                     />
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
@@ -500,11 +490,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
-                        options={rootNavigatorOptions.fullScreen}
-                        component={FullScreenNavigator}
-                    />
-                    <RootStack.Screen
                         name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                         options={rootNavigatorOptions.leftModalNavigator}
                         component={LeftModalNavigator}
@@ -571,19 +556,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
-                        const centralPaneName = screenName as CentralPaneName;
-                        return (
-                            <RootStack.Screen
-                                key={centralPaneName}
-                                name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, initialReportID)}
-                                getComponent={componentGetter}
-                                options={CentralPaneScreenOptions}
-                                listeners={getCentralPaneScreenListeners(centralPaneName)}
-                            />
-                        );
-                    })}
                 </RootStack.Navigator>
                 <TestToolsModal />
                 <SearchRouterModal />

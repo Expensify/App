@@ -11,12 +11,12 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,7 +35,7 @@ function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const isFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -84,13 +84,12 @@ function WorkspaceSwitcherPage() {
             }
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
-            setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
-            if (newPolicyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+            if (policyID !== activeWorkspaceID) {
+                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID: newPolicyID}});
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID, isFocused],
+        [activeWorkspaceID, isFocused],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

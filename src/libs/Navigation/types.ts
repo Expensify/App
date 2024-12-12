@@ -22,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type SIDEBAR_TO_SPLIT from './linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -52,28 +53,15 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type CentralPaneScreensParamList = {
-    [SCREENS.REPORT]: {
-        reportActionID: string;
-        reportID: string;
-        openOnAdminRoom?: boolean;
-        referrer?: string;
-    };
-    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
-    [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
-    [SCREENS.SETTINGS.ABOUT]: undefined;
-    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
-    [SCREENS.SEARCH.CENTRAL_PANE]: {
-        q: SearchQueryString;
-        name?: string;
-    };
-    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+type SplitNavigatorParamListType = {
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
 };
+
+type SplitNavigatorBySidebar<T extends SplitNavigatorSidebarScreen> = (typeof SIDEBAR_TO_SPLIT)[T];
 
 type BackToParams = {
     backTo?: Routes;
@@ -111,17 +99,16 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: Routes;
     };
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    // [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
-    [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.ABOUT]: undefined;
-    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    // [SCREENS.SETTINGS.SECURITY]: undefined;
+    // [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
-    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    // [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };
@@ -1409,7 +1396,30 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
 };
 
-type FullScreenNavigatorParamList = {
+type ReportsSplitNavigatorParamList = {
+    [SCREENS.HOME]: {policyID?: string};
+    [SCREENS.REPORT]: {
+        reportActionID: string;
+        reportID: string;
+        openOnAdminRoom?: boolean;
+        referrer?: string;
+    };
+};
+
+type SettingsSplitNavigatorParamList = {
+    [SCREENS.SETTINGS.ROOT]: {policyID?: string};
+    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+};
+
+type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
         backTo?: string;
@@ -1540,14 +1550,8 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
-type BottomTabNavigatorParamList = {
-    [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
-    [SCREENS.SETTINGS.ROOT]: {policyID?: string};
-};
-
 type SharedScreensParamList = {
-    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
         accountID?: number;
@@ -1577,52 +1581,57 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
-type AuthScreensParamList = CentralPaneScreensParamList &
-    SharedScreensParamList & {
-        [SCREENS.CONCIERGE]: undefined;
-        [SCREENS.TRACK_EXPENSE]: undefined;
-        [SCREENS.SUBMIT_EXPENSE]: undefined;
-        [SCREENS.ATTACHMENTS]: {
-            reportID: string;
-            source: string;
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-            accountID: string;
-            isAuthTokenRequired?: string;
-            fileName?: string;
-            attachmentLink?: string;
-        };
-        [SCREENS.PROFILE_AVATAR]: {
-            accountID: string;
-        };
-        [SCREENS.WORKSPACE_AVATAR]: {
-            policyID: string;
-        };
-        [SCREENS.WORKSPACE_JOIN_USER]: {
-            policyID: string;
-            email: string;
-        };
-        [SCREENS.REPORT_AVATAR]: {
-            reportID: string;
-            policyID?: string;
-        };
-        [SCREENS.NOT_FOUND]: undefined;
-        [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
-        [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
-        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
-        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
-        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
-        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
-        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
-        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
-        [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-        [SCREENS.TRANSACTION_RECEIPT]: {
-            reportID: string;
-            transactionID: string;
-            readonly?: string;
-            isFromReviewDuplicates?: string;
-        };
-        [SCREENS.CONNECTION_COMPLETE]: undefined;
+type AuthScreensParamList = SharedScreensParamList & {
+    [SCREENS.CONCIERGE]: undefined;
+    [SCREENS.TRACK_EXPENSE]: undefined;
+    [SCREENS.SUBMIT_EXPENSE]: undefined;
+    [SCREENS.ATTACHMENTS]: {
+        reportID: string;
+        source: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        accountID: string;
+        isAuthTokenRequired?: string;
+        fileName?: string;
+        attachmentLink?: string;
     };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE_JOIN_USER]: {
+        policyID: string;
+        email: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
+        policyID?: string;
+    };
+    [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
+    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+    [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
+    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
+    [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+    [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+    [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+        readonly?: string;
+        isFromReviewDuplicates?: string;
+    };
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        q: SearchQueryString;
+        name?: string;
+    };
+};
 
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
@@ -1699,37 +1708,39 @@ type DebugParamList = {
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
-type BottomTabName = keyof BottomTabNavigatorParamList;
-
-type FullScreenName = keyof FullScreenNavigatorParamList;
-
-type CentralPaneName = keyof CentralPaneScreensParamList;
+type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
-type SwitchPolicyIDParams = {
-    policyID?: string;
-    route?: Routes;
-    isPolicyAdmin?: boolean;
-};
+type SplitNavigatorName = keyof SplitNavigatorParamListType;
+
+type SplitNavigatorScreenName = keyof (WorkspaceSplitNavigatorParamList & SettingsSplitNavigatorParamList & ReportsSplitNavigatorParamList);
+
+type FullScreenName = SplitNavigatorName | typeof SCREENS.SEARCH.CENTRAL_PANE;
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace ReactNavigation {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/no-empty-interface
+        interface RootParamList extends RootStackParamList {}
+    }
+}
 
 export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
-    CentralPaneScreensParamList,
-    CentralPaneName,
-    BackToParams,
     BackToAndForwardToParms,
-    BottomTabName,
-    BottomTabNavigatorParamList,
+    BackToParams,
+    DebugParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
+    FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
     FullScreenName,
-    FullScreenNavigatorParamList,
     LeftModalNavigatorParamList,
+    MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,
     NavigationRef,
@@ -1737,8 +1748,8 @@ export type {
     NavigationStateRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardingModalNavigatorParamList,
     OnboardingFlowName,
+    OnboardingModalNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -1748,28 +1759,33 @@ export type {
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
+    ReportsSplitNavigatorParamList,
+    RestrictedActionParamList,
     RightModalNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootStackParamList,
+    SearchAdvancedFiltersParamList,
+    SearchReportParamList,
+    SearchSavedSearchParamList,
     SettingsNavigatorParamList,
+    SettingsSplitNavigatorParamList,
     SignInNavigatorParamList,
-    FeatureTrainingNavigatorParamList,
     SplitDetailsNavigatorParamList,
+    SplitNavigatorBySidebar,
+    SplitNavigatorName,
+    SplitNavigatorParamListType,
+    SplitNavigatorScreenName,
+    SplitNavigatorSidebarScreen,
     StackNavigationAction,
     State,
     StateOrRoute,
-    SwitchPolicyIDParams,
-    TravelNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
+    TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
-    TransactionDuplicateNavigatorParamList,
-    SearchReportParamList,
-    SearchAdvancedFiltersParamList,
-    SearchSavedSearchParamList,
-    RestrictedActionParamList,
-    MissingPersonalDetailsParamList,
-    DebugParamList,
+    WorkspaceScreenName,
+    WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
 };

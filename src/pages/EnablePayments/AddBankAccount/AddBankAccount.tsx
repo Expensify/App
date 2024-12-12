@@ -52,7 +52,7 @@ function AddBankAccount() {
             PaymentMethods.continueSetup(onSuccessFallbackRoute);
             return;
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
     const handleBackButtonPress = () => {
@@ -63,7 +63,7 @@ function AddBankAccount() {
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
             Wallet.updateCurrentStep(null);
-            Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();

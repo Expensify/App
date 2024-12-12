@@ -18,6 +18,7 @@ type RootNavigatorOptions = {
     fullScreen: PlatformStackNavigationOptions;
     centralPaneNavigator: PlatformStackNavigationOptions;
     bottomTab: PlatformStackNavigationOptions;
+    searchPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -109,7 +110,19 @@ const useRootNavigatorOptions = () => {
         fullScreen: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animation: shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            animation: Animations.NONE,
+            web: {
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                },
+            },
+        },
+
+        searchPage: {
+            ...commonScreenOptions,
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {

@@ -40,7 +40,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
             return;
         }
 

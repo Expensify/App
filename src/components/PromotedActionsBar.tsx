@@ -5,15 +5,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -93,9 +91,8 @@ const PromotedActions = {
                 Navigation.goBack();
             }
             const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
-            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
+            if (isSearchTopmostFullScreenRoute() && isTextHold) {
                 ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }
