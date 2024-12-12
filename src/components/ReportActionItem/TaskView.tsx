@@ -79,7 +79,7 @@ function TaskView({report}: TaskViewProps) {
                                 !isInteractive && styles.cursorDefault,
                             ]}
                             accessibilityLabel={taskTitle || translate('task.task')}
-                            disabled={!canActionTask}
+                            disabled={!isInteractive}
                         >
                             {({pressed}) => (
                                 <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
