@@ -19,7 +19,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy/Policy';
+import {generatePolicyID} from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +61,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
     const theme = useTheme();
     const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter(PolicyUtils.isPaidGroupPolicy);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const hasSignupQualifier = !!(onboardingValues && 'signupQualifier' in onboardingValues);
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
@@ -83,6 +91,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 Welcome.setOnboardingErrorMessage('');
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                    if (!onboardingPolicyID && !hasSignupQualifier && filteredPolicies.length === 0) {
+                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
+                        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+                        Welcome.setOnboardingPolicyID(policyID);
+                    }
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
