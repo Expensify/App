@@ -229,6 +229,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        reports: 'Reports',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',

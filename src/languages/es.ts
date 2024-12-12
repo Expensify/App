@@ -220,6 +220,7 @@ const translations = {
         new: 'Nuevo',
         center: 'Centrar',
         search: 'Buscar',
+        reports: 'Informes',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
