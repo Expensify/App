@@ -122,7 +122,6 @@ export type {default as VerifyIdentityParams} from './VerifyIdentityParams';
 export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams';
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
-export type {default as UpdateActivePolicyParams} from './UpdateActivePolicyParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
