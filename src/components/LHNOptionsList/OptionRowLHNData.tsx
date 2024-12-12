@@ -37,11 +37,10 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
     const isSettled = ReportUtils.isSettled(fullReport);
     const shouldDisplayReportViolations = !isSettled && ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
     // We only want to show RBR for expense reports with transaction violations not for transaction threads reports.
-    const doesExpenseReportHasViolations = ReportUtils.isExpenseReport(fullReport) && !isSettled && ReportUtils.hasViolations(reportID, transactionViolations, true);
+    const doesExpenseReportHasViolations = ReportUtils.isExpenseReport(fullReport) && !isSettled && ReportUtils.shouldShowViolations(reportID, transactionViolations, true);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -52,7 +51,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations || doesExpenseReportHasViolations,
+            hasViolations: shouldDisplayReportViolations || doesExpenseReportHasViolations,
             lastMessageTextFromReport,
             transactionViolations,
             invoiceReceiverPolicy,

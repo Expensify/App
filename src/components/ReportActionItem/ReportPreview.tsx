@@ -111,9 +111,9 @@ function ReportPreview({
     const {isOffline} = useNetwork();
     const allTransactions = useMemo(() => TransactionUtils.getAllReportTransactions(iouReportID, transactions), [iouReportID, transactions]);
 
-    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
+    const {shouldShowMissingSmartscanFieldsError, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
+            shouldShowMissingSmartscanFieldsError: ReportUtils.shouldShowMissingSmartscanFieldsError(iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: ReportUtils.hasOnlyTransactionsWithPendingRoutes(iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
@@ -166,11 +166,11 @@ function ReportPreview({
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors =
-        (hasMissingSmartscanFields && !iouSettled) ||
+        (shouldShowMissingSmartscanFieldsError && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ReportUtils.hasViolations(iouReportID, transactionViolations, true) ||
-        ReportUtils.hasNoticeTypeViolations(iouReportID, transactionViolations, true) ||
-        ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
+        ReportUtils.shouldShowViolations(iouReportID, transactionViolations, true) ||
+        ReportUtils.shouldShowNoticeTypeViolations(iouReportID, transactionViolations, true) ||
+        ReportUtils.shouldShowWarningTypeViolations(iouReportID, transactionViolations, true) ||
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = allTransactions.slice(-3);

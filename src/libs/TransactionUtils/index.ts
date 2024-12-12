@@ -25,7 +25,19 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReportAction,
+    ReviewDuplicates,
+    TaxRate,
+    TaxRates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -692,6 +704,19 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 }
 
 /**
+ * Check if the current user should be shown missing smart scan field error.
+ * So it checks if there are missing smart scan fields and the user can edit the transaction
+ * because there is no point of showing RBR for the user who cannot edit the request.
+ */
+function shouldShowMissingSmartscanFieldsError(transaction: OnyxInputOrEntry<Transaction>, parentReportAction?: OnyxEntry<ReportAction>): boolean {
+    if (!canEditTransaction(transaction?.transactionID ?? '-1', parentReportAction)) {
+        return false;
+    }
+
+    return hasMissingSmartscanFields(transaction);
+}
+
+/**
  * Get all transaction violations of the transaction with given tranactionID.
  */
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
@@ -871,17 +896,65 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
 
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
+ * and the user can edit the transaction as we don't want to show RBR if the user can't edit it.
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+function shouldShowViolation({
+    transactionID,
+    transactionViolations,
+    showInReview,
+    parentReportAction,
+}: {
+    transactionID: string;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    showInReview?: boolean;
+    parentReportAction: OnyxEntry<ReportAction>;
+}): boolean {
+    if (!canEditTransaction(transactionID, parentReportAction)) {
+        return false;
+    }
+
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
 }
 
 /**
- * Checks if any violations for the provided transaction are of type 'notice'
+ * Checks if the current user can edit the transaction. If the necessary
+ * info like parentReportAction and report doesn't exist in onyx we will return
+ * true because we use this function to show RBR only for the user side who can edit the transaction
+ * but if we can't determine they cannot edit it, we opted to show the RBR instead of hiding it.
  */
-function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function canEditTransaction(transactionID: string, parentReportAction: OnyxEntry<ReportAction>): boolean {
+    const report = ReportConnection.getReport(parentReportAction?.childReportID ?? '-1');
+    const transaction = getTransaction(transactionID ?? '-1');
+    if (report && transaction && parentReportAction) {
+        const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
+        const canEditRequest = canUserPerformWriteAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction);
+        return canEditRequest;
+    }
+
+    return true;
+}
+
+/**
+ * Checks if any violations for the provided transaction are of type 'notice'
+ * and the user can edit the transaction as we don't want to show RBR if the user can't edit it.
+ */
+function shouldShowNoticeTypeViolation({
+    transactionID,
+    transactionViolations,
+    showInReview,
+    parentReportAction,
+}: {
+    transactionID: string;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    showInReview?: boolean;
+    parentReportAction: OnyxEntry<ReportAction>;
+}): boolean {
+    if (!canEditTransaction(transactionID, parentReportAction)) {
+        return false;
+    }
+
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -889,8 +962,23 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
 
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
+ * and the user can edit the transaction as we don't want to show RBR if the user can't edit it.
  */
-function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function shouldShowWarningTypeViolation({
+    transactionID,
+    transactionViolations,
+    showInReview,
+    parentReportAction,
+}: {
+    transactionID: string;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    showInReview?: boolean;
+    parentReportAction: OnyxEntry<ReportAction>;
+}): boolean {
+    if (!canEditTransaction(transactionID, parentReportAction)) {
+        return false;
+    }
+
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
@@ -1290,6 +1378,7 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    shouldShowMissingSmartscanFieldsError,
     hasPendingRTERViolation,
     allHavePendingRTERViolation,
     hasPendingUI,
@@ -1297,11 +1386,11 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasReservationList,
-    hasViolation,
+    shouldShowViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
-    hasNoticeTypeViolation,
-    hasWarningTypeViolation,
+    shouldShowNoticeTypeViolation,
+    shouldShowWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,

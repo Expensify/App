@@ -259,7 +259,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     }
 
     let receiptURIs;
-    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.shouldShowMissingSmartscanFieldsError(transaction, parentReportAction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
@@ -269,6 +269,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+            if (readonly || !canEdit) {
+                return '';
+            }
+
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -288,10 +292,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
             const {isError, translationPath} = fieldChecks[field] ?? {};
 
-            if (readonly) {
-                return '';
-            }
-
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
                 return translate(translationPath);
@@ -309,7 +309,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField, canEdit],
     );
 
     const distanceRequestFields = (
@@ -364,8 +364,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations = [];
-        const allViolations = [];
+        const imageViolations: string[] = [];
+        const allViolations: string[] = [];
+        if (!canEdit) {
+            return [imageViolations, allViolations];
+        }
 
         for (const violation of transactionViolations ?? []) {
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
@@ -379,9 +382,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate]);
+    }, [transactionViolations, translate, canEdit]);
 
-    const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    const receiptRequiredViolation = canEdit && transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
