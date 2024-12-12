@@ -4,11 +4,11 @@ import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import Permissions from '@libs/Permissions';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
