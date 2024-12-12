@@ -1,41 +1,18 @@
 import {useNavigationState} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+import {getPolicyIDFromState} from '@libs/Navigation/helpers';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
-    const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(undefined);
+    const policyID = useNavigationState((state) => getPolicyIDFromState(state as State<RootStackParamList>));
 
-    const lastPolicyRoute = useNavigationState((state) =>
-        state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.CENTRAL_PANE),
-    );
-
-    const policyIDFromRouteParam = lastPolicyRoute?.params && 'policyID' in lastPolicyRoute.params ? (lastPolicyRoute?.params?.policyID as string) : '';
-    const queryFromRouteParam = lastPolicyRoute?.params && 'q' in lastPolicyRoute.params ? (lastPolicyRoute.params.q as string) : '';
+    const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(policyID);
 
     useEffect(() => {
-        if (policyIDFromRouteParam) {
-            setActiveWorkspaceID(policyIDFromRouteParam);
-            return;
-        }
-
-        if (!queryFromRouteParam) {
-            setActiveWorkspaceID(undefined);
-            return;
-        }
-
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(queryFromRouteParam);
-
-        if (!queryJSON) {
-            setActiveWorkspaceID(undefined);
-            return;
-        }
-
-        setActiveWorkspaceID(SearchQueryUtils.getPolicyIDFromSearchQuery(queryJSON));
-    }, [policyIDFromRouteParam, queryFromRouteParam, setActiveWorkspaceID]);
+        setActiveWorkspaceID(policyID);
+    }, [policyID, setActiveWorkspaceID]);
 
     const value = useMemo(
         () => ({
