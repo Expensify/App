@@ -1196,7 +1196,9 @@ function validateUserAndGetAccessiblePolicies(validateCode: string) {
 }
 
 function isUserOnPrivateDomain() {
-    return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    // TODO: Implement this function later, and skip the check for now
+    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    return false;
 }
 
 export {
