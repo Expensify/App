@@ -413,6 +413,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 value: {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
+                    isSuccess: true,
                 },
             },
         ],
@@ -423,6 +424,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 value: {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
+                    isSuccess: false,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
@@ -437,7 +439,7 @@ function clearReimbursementAccount() {
 }
 
 function clearReimbursementAccountBankCreation() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null});
 }
 
 /**

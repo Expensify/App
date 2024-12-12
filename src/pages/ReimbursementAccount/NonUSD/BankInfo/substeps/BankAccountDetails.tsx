@@ -17,7 +17,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const styles = useThemeStyles();
 
     const bankAccountDetailsFields = useMemo(() => {
-        return corpayFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
+        return corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
     }, [corpayFields]);
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
@@ -26,7 +26,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            corpayFields?.forEach((field) => {
+            corpayFields?.formFields?.forEach((field) => {
                 const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
                 if (field.isRequired && !values[fieldID]) {

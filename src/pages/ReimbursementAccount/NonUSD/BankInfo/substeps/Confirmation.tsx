@@ -23,7 +23,7 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = useMemo(() => {
         const keys: Record<string, keyof ReimbursementAccountForm> = {};
-        corpayFields?.forEach((field) => {
+        corpayFields?.formFields?.forEach((field) => {
             keys[field.id] = field.id as keyof ReimbursementAccountForm;
         });
         return keys;
@@ -33,7 +33,7 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
     const items = useMemo(
         () => (
             <>
-                {corpayFields?.map((field) => {
+                {corpayFields?.formFields?.map((field) => {
                     let title = values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : '';
 
                     if (field.id === ACCOUNT_HOLDER_COUNTRY) {
@@ -70,24 +70,28 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
     );
 
     const handleSubmit = () => {
-        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, preferredMethod} as ReimbursementAccountForm);
+        const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
+
+        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
     };
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isCreateCorpayBankAccount) {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isCreateCorpayBankAccount || !reimbursementAccount?.isSuccess) {
             return;
         }
 
-        onNext();
-        BankAccounts.clearReimbursementAccountBankCreation();
+        if (reimbursementAccount?.isSuccess) {
+            onNext();
+            BankAccounts.clearReimbursementAccountBankCreation();
+        }
 
         return () => BankAccounts.clearReimbursementAccountBankCreation();
-    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading]);
+    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}

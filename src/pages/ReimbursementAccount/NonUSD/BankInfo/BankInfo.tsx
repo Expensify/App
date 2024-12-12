@@ -86,8 +86,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
-                corpayFields={corpayFields?.formFields}
-                preferredMethod={corpayFields?.preferredMethod}
+                corpayFields={corpayFields}
             />
         </InteractiveStepWrapper>
     );
