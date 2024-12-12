@@ -64,8 +64,7 @@ function WorkspaceNewRoomPage() {
 
     const workspaceOptions = useMemo(
         () =>
-            PolicyUtils.getActivePolicies(policies)
-                ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
+            PolicyUtils.getActivePolicies(policies, true)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
