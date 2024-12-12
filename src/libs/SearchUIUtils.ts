@@ -177,7 +177,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     }
     return false;
 }
-
+console.log('1');
 /**
  * @private
  * Generates a display name for IOU reports considering the personal details of the payer and the transaction details.
