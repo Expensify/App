@@ -68,7 +68,7 @@ function OnyxTabNavigator({
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
-    // This callback is used to register the focus trap container element of each avaiable tab screen
+    // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
             const resultMapping = {...prevMapping};
