@@ -36,6 +36,7 @@ import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -107,6 +108,27 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return Expensicons.ReceiptScan;
         default:
             return Expensicons.MoneyCircle;
+    }
+};
+
+const getIouType = (action: QuickActionName) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return CONST.IOU.TYPE.SUBMIT;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return CONST.IOU.TYPE.SPLIT;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return CONST.IOU.TYPE.TRACK;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return CONST.IOU.TYPE.PAY;
+        default:
+            return undefined;
     }
 };
 
@@ -266,10 +288,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, false), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
@@ -450,6 +470,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         };
 
         if (quickAction?.action) {
+            const iouType = getIouType(quickAction?.action);
+            if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
             return [
                 {
                     ...baseQuickAction,
@@ -499,6 +523,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         navigateToQuickAction,
         selectOption,
         isValidReport,
+        quickActionPolicy,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
@@ -560,9 +585,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   text: translate('tour.takeATwoMinuteTour'),
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
-                                      Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
-                                      Task.completeTask(viewTourTaskReport);
+                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
+                                      if (viewTourTaskReport) {
+                                          Task.completeTask(viewTourTaskReport);
+                                      }
                                   },
                               },
                           ]

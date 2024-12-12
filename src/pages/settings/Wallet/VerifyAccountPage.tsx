@@ -1,21 +1,22 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type VerifyAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const styles = useThemeStyles();
@@ -29,7 +30,10 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
-    const navigateBackTo = route?.params?.backTo;
+    const navigateForwardTo = route.params?.forwardTo;
+    const backTo = route.params?.backTo;
+
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
 
@@ -47,8 +51,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const closeModal = useCallback(() => {
         // Disable modal visibility so the navigation is animated
         setIsValidateCodeActionModalVisible(false);
-        Navigation.goBack();
-    }, []);
+        Navigation.goBack(backTo);
+    }, [backTo]);
 
     // Handle navigation once the user is validated
     useEffect(() => {
@@ -58,24 +62,24 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
         setIsValidateCodeActionModalVisible(false);
 
-        if (navigateBackTo) {
-            Navigation.navigate(navigateBackTo, CONST.NAVIGATION.TYPE.UP);
+        if (navigateForwardTo) {
+            Navigation.navigate(navigateForwardTo, CONST.NAVIGATION.TYPE.UP);
         } else {
-            Navigation.goBack();
+            Navigation.goBack(backTo);
         }
-    }, [isUserValidated, navigateBackTo]);
+    }, [isUserValidated, navigateForwardTo, backTo]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isUserValidated || !isValidateCodeActionModalVisible) {
         return (
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={VerifyAccountPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             </ScreenWrapper>
