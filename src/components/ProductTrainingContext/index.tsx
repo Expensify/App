@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -35,7 +34,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
@@ -76,7 +74,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         (tooltipName: ProductTrainingTooltipName) => {
             const isDismissed = !!dismissedProductTraining?.[tooltipName];
 
-            if (isDismissed || !Permissions.shouldShowProductTrainingElements(allBetas)) {
+            if (isDismissed) {
                 return false;
             }
             const tooltipConfig = TOOLTIPS[tooltipName];
@@ -94,7 +92,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 shouldUseNarrowLayout,
             });
         },
-        [allBetas, dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
+        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
     );
 
     const registerTooltip = useCallback(
