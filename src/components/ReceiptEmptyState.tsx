@@ -118,7 +118,7 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
             style={[
                 styles.alignItemsCenter,
                 styles.justifyContentCenter,
-                styles.moneyRequestViewImage,
+                styles.moneyRequestImage,
                 isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
                 hasError && styles.borderColorDanger,
             ]}
