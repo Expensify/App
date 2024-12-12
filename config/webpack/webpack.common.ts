@@ -296,7 +296,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         passes: 2,
                     },
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    keep_classnames: /ImageManipulator/,
+                    keep_classnames: /ImageManipulator|ImageModule/,
                 },
             }),
             '...',
