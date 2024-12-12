@@ -390,7 +390,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
 
