@@ -465,6 +465,7 @@ function IOURequestStepDistance({
                 waypoints,
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,
+                transactionBackup,
             });
             transactionWasSaved.current = true;
             navigateBack();
