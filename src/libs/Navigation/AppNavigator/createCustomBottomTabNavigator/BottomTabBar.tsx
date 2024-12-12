@@ -12,7 +12,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -78,14 +77,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
     const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        isFocused,
+        selectedTab === SCREENS.HOME && isFocused,
     );
 
     useEffect(() => {
@@ -149,11 +147,9 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
-                        horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
-                    shiftVertical={variables.composerTooltipShiftVertical}
-                    shiftHorizontal={shouldUseNarrowLayout ? 0 : -15}
                     shouldUseOverlay
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.quickActionTooltipWrapper}

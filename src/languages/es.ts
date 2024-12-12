@@ -5987,13 +5987,14 @@ const translations = {
             part2: ' gastos',
             part3: ' aquí',
         },
-        searchFilterButtonTooltip: {
+        ssearchFilterButtonTooltip: {
             part1: 'Customize your search',
             part2: ' here!',
         },
         bottomNavInboxTooltip: {
             part1: 'Your to-do list',
-            part2: ' comes with 🟢 for actions to take and 🔴 for errors',
+            part2: ' comes with 🟢 for',
+            part3: '\n actions to take and 🔴 for errors',
         },
         workspaceChatTooltip: {
             part1: 'Review submitted expenses and chat',

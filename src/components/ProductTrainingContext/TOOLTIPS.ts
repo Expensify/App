@@ -95,6 +95,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
