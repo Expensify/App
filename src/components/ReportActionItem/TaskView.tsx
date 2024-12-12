@@ -104,7 +104,6 @@ function TaskView({report}: TaskViewProps) {
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
                                             disabled={!canActionTask}
-                                            shouldUseDefaultCursorWhenDisabled
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text

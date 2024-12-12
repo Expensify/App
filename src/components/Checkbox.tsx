@@ -47,9 +47,6 @@ type CheckboxProps = Partial<ChildrenProps> & {
 
     /** stop propagation of the mouse down event */
     shouldStopMouseDownPropagation?: boolean;
-
-    /** Should we use default cursor for disabled checkbox */
-    shouldUseDefaultCursorWhenDisabled?: boolean;
 };
 
 function Checkbox(
@@ -67,7 +64,6 @@ function Checkbox(
         onPress,
         accessibilityLabel,
         shouldStopMouseDownPropagation,
-        shouldUseDefaultCursorWhenDisabled,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
@@ -119,8 +115,7 @@ function Checkbox(
                         isChecked && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
                         disabled && styles.cursorDisabled,
-                        shouldUseDefaultCursorWhenDisabled && disabled && styles.cursorDefault,
-                        disabled && !shouldUseDefaultCursorWhenDisabled && styles.buttonOpacityDisabled,
+                        disabled && styles.buttonOpacityDisabled,
                         isChecked && styles.borderColorFocus,
                     ]}
                 >
