@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -216,7 +215,6 @@ function MoneyRequestConfirmationListFooter({
     unit,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -536,7 +534,6 @@ function MoneyRequestConfirmationListFooter({
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
                         isActive={iouIsBillable}
                         disabled={isReadOnly}
-                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
                         wrapperStyle={styles.flex1}
                     />
                 </View>

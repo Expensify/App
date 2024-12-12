@@ -15,7 +15,6 @@ import ViolationMessages from '@components/ViolationMessages';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
@@ -79,7 +78,6 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
@@ -729,7 +727,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}
