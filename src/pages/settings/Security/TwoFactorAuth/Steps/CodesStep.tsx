@@ -175,24 +175,24 @@ function CodesStep({backTo}: CodesStepProps) {
                         }}
                     />
                 </FixedFooter>
-                <ValidateCodeActionModal
-                    title={translate('contacts.validateAccount')}
-                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
-                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                    isVisible={isValidateModalVisible}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                    sendValidateCode={() => User.requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
-                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                    onModalHide={() => {}}
-                    onClose={() => {
-                        setIsValidateModalVisible(false);
-                        TwoFactorAuthActions.quitAndNavigateBack(backTo);
-                    }}
-                />
             </ScrollView>
+            <ValidateCodeActionModal
+                title={translate('contacts.validateAccount')}
+                descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+                isVisible={isValidateModalVisible}
+                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validatePendingAction={loginData?.pendingFields?.validateCodeSent}
+                sendValidateCode={() => User.requestValidateCodeAction()}
+                handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
+                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                onModalHide={() => {}}
+                onClose={() => {
+                    setIsValidateModalVisible(false);
+                    TwoFactorAuthActions.quitAndNavigateBack(backTo);
+                }}
+            />
         </StepWrapper>
     );
 }
