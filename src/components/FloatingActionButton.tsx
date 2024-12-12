@@ -1,4 +1,3 @@
-import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -6,16 +5,12 @@ import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {Platform} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
+import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CENTRAL_PANE_SCREENS from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import getTopmostFullScreenRoute from '@libs/Navigation/getTopmostFullScreenRoute';
-import type {CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 import {PressableWithoutFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -60,26 +55,13 @@ type FloatingActionButtonProps = {
     /* An accessibility role for the button */
     role: Role;
 };
-const useIsFocused = () => {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isFocused = useIsFocusedOriginal();
-    const topmostFullScreenName = useNavigationState<RootStackParamList, NavigationPartialRoute<FullScreenName> | undefined>(getTopmostFullScreenRoute);
-    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-    if (topmostFullScreenName) {
-        return false;
-    }
-    if (shouldUseNarrowLayout) {
-        return isFocused || topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE;
-    }
-    return isFocused || Object.keys(CENTRAL_PANE_SCREENS).includes(topmostCentralPane?.name ?? '');
-};
 function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
-    const isFocused = useIsFocused();
+    const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
         isFocused,
