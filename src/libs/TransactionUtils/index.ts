@@ -1232,6 +1232,23 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
+/**
+ * Return the sorted list transactions of an iou report
+ */
+function getAllSortedTransactions(iouReportID: string): Array<OnyxEntry<Transaction>> {
+    return getAllReportTransactions(iouReportID).sort((transA, transB) => {
+        if (transA.created < transB.created) {
+            return -1;
+        }
+
+        if (transA.created > transB.created) {
+            return 1;
+        }
+
+        return (transA.inserted ?? '') < (transB.inserted ?? '') ? -1 : 1;
+    });
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1315,6 +1332,7 @@ export {
     getCardName,
     hasReceiptSource,
     shouldShowAttendees,
+    getAllSortedTransactions,
     getFormattedPostedDate,
 };
 

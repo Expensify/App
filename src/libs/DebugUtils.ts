@@ -921,6 +921,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
+        case 'inserted':
         case 'posted':
             return validateDate(value);
         case 'isLoading':
@@ -1046,6 +1047,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
