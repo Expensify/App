@@ -91,7 +91,6 @@ const WRITE_COMMANDS = {
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
     SIGN_IN_WITH_APPLE: 'SignInWithApple',
     SIGN_IN_WITH_GOOGLE: 'SignInWithGoogle',
-    SIGN_IN_USER: 'SigninUser',
     SIGN_IN_USER_WITH_LINK: 'SigninUserWithLink',
     SEARCH: 'Search',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
@@ -307,7 +306,6 @@ const WRITE_COMMANDS = {
     TRANSACTION_MERGE: 'Transaction_Merge',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
-    SIGN_UP_USER: 'SignUpUser',
     UPDATE_SUBSCRIPTION_AUTO_RENEW: 'UpdateSubscriptionAutoRenew',
     UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY: 'UpdateSubscriptionAddNewUsersAutomatically',
     UPDATE_SUBSCRIPTION_SIZE: 'UpdateSubscriptionSize',
@@ -517,7 +515,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: Parameters.RequestNewValidateCodeParams;
     [WRITE_COMMANDS.SIGN_IN_WITH_APPLE]: Parameters.BeginAppleSignInParams;
     [WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE]: Parameters.BeginGoogleSignInParams;
-    [WRITE_COMMANDS.SIGN_IN_USER]: SignInUserParams;
     [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: Parameters.SignInUserWithLinkParams;
     [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: Parameters.RequestUnlinkValidationLinkParams;
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
@@ -758,7 +755,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.TRANSACTION_MERGE]: Parameters.TransactionMergeParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
-    [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
@@ -1033,6 +1029,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     DISCONNECT_AS_DELEGATE: 'DisconnectAsDelegate',
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
+    SIGN_IN_USER: 'SigninUser',
+    SIGN_UP_USER: 'SignUpUser',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
@@ -1056,6 +1054,8 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING]: EmptyObject;
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.ConnectPolicyToQuickBooksDesktopParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_USER]: SignInUserParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
 };
 
