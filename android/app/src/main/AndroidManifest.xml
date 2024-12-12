@@ -56,7 +56,7 @@
                 <!-- Production URLs -->
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/a"/>
-                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPattern="/settings/((?!subscription/add-payment-card).)*" />
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
