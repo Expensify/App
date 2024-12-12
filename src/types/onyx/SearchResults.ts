@@ -154,6 +154,9 @@ type SearchReport = {
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    hasError?: boolean;
 };
 
 /** Model of report action search result */
@@ -359,6 +362,9 @@ type SearchTransaction = {
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
+
+    /** Whether the transaction has violations or errors */
+    hasError?: boolean;
 };
 
 /** Types of searchable transactions */
