@@ -76,7 +76,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
-    const membersEmail = useMemo(() => approvalWorkflow?.members.map((mem) => mem.email), [approvalWorkflow?.members]);
+    const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
