@@ -427,19 +427,16 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const shouldScrollToBottom = useCallback(() => {
+    const isNewMessageDisplayed = useCallback(() => {
         const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
-        const lastPrevAction = prevActions.at(0); // Safely access the first element
-        return lastAction?.reportActionID === lastPrevAction?.reportActionID;
+        const lastPrevAction = prevActions.at(0);
+        return lastAction?.reportActionID !== lastPrevAction?.reportActionID;
     }, [prevSortedVisibleReportActionsObjects, lastAction]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser) {
-                return;
-            }
 
             if (!isFromCurrentUser || scrollingVerticalOffset.current === 0) {
                 return;
@@ -453,13 +450,13 @@ function ReportActionsList({
                 return;
             }
 
-            if (shouldScrollToBottom()) {
+            if (!isNewMessageDisplayed()) {
                 setPendingBottomScroll(true);
             } else {
                 InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
             }
         },
-        [isInNarrowPaneModal, reportScrollManager, report.reportID, shouldScrollToBottom],
+        [isInNarrowPaneModal, reportScrollManager, report.reportID, isNewMessageDisplayed],
     );
 
     useEffect(() => {
@@ -467,13 +464,13 @@ function ReportActionsList({
             return;
         }
 
-        if (shouldScrollToBottom()) {
+        if (isNewMessageDisplayed()) {
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
                 setPendingBottomScroll(false);
             });
         }
-    }, [pendingBottomScroll, prevSortedVisibleReportActionsObjects, reportScrollManager, shouldScrollToBottom]);
+    }, [pendingBottomScroll, prevSortedVisibleReportActionsObjects, reportScrollManager, isNewMessageDisplayed]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
