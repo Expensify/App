@@ -8,6 +8,7 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreateWorkspaceParams,
@@ -21,6 +22,7 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
+    ShareTrackedExpenseParams as ShareTrackedExpenseApiParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -124,6 +126,8 @@ type CategorizeTrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
+    waypoints?: string;
+    customUnitRateID?: string;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -595,7 +599,31 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  * Set custom unit rateID for the transaction draft
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
+            },
+        },
+    });
+}
+
+/**
+ * Revert custom unit of the draft transaction to the original transaction's value
+ */
+function resetDraftTransactionsCustomUnit(transactionID: string) {
+    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (!originalTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: originalTransaction.comment?.customUnit ?? {},
+        },
+    });
 }
 
 /** Set the distance rate of a new  transaction */
@@ -3585,8 +3613,8 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-    const parameters = {
-        onyxData,
+
+    const parameters: CategorizeTrackedExpenseApiParams = {
         ...reportInformation,
         ...policyParams,
         ...transactionParams,
@@ -3629,6 +3657,8 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    waypoints?: string,
+    customUnitRateID?: string,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3652,7 +3682,7 @@ function shareTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters = {
+    const parameters: ShareTrackedExpenseApiParams = {
         policyID,
         transactionID,
         moneyRequestPreviewReportActionID,
@@ -3672,6 +3702,8 @@ function shareTrackedExpense(
         taxAmount,
         billable,
         receipt,
+        waypoints,
+        customUnitRateID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3909,6 +3941,7 @@ function trackExpense(
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const {
         createdWorkspaceParams,
@@ -3963,7 +3996,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams = {
+            const transactionParams: CategorizeTrackedExpenseTransactionParams = {
                 transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
@@ -3976,12 +4009,14 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID,
             };
-            const policyParams = {
+            const policyParams: CategorizeTrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
             };
-            const reportInformation = {
+            const reportInformation: CategorizeTrackedExpenseReportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
@@ -3991,7 +4026,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
             };
-            const trackedExpenseParams = {
+            const trackedExpenseParams: CategorizeTrackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4029,6 +4064,8 @@ function trackExpense(
                 taxAmount,
                 billable,
                 trackedReceipt,
+                sanitizedWaypoints,
+                customUnitRateID,
                 createdWorkspaceParams,
             );
             break;
@@ -4058,7 +4095,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
+                waypoints: sanitizedWaypoints,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -5732,27 +5769,28 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
+    const reportActionsOnyxUpdates: OnyxUpdate[] = [];
     const onyxUpdates: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                      },
-            },
-        },
     ];
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: {
+            [reportAction.reportActionID]: shouldDeleteIOUReport
+                ? null
+                : {
+                      pendingAction: null,
+                  },
+        },
+    });
 
     if (reportPreviewAction?.reportActionID) {
-        onyxUpdates.push({
+        reportActionsOnyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
@@ -5789,12 +5827,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
     }
 
     // added operations to update IOU report and chat report
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: updatedReportAction,
+    });
     onyxUpdates.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: updatedReportAction,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -5845,9 +5883,14 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
-    Onyx.update(onyxUpdates);
-
-    return urlToNavigateBack;
+    // First, update the reportActions to ensure related actions are not displayed.
+    Onyx.update(reportActionsOnyxUpdates).then(() => {
+        Navigation.goBack(urlToNavigateBack);
+        InteractionManager.runAfterInteractions(() => {
+            // After navigation, update the remaining data.
+            Onyx.update(onyxUpdates);
+        });
+    });
 }
 
 /**
@@ -7150,6 +7193,17 @@ function canIOUBePaid(
         !shouldBeApproved &&
         !isPayAtEndExpenseReport
     );
+}
+
+function canSubmitReport(report: OnyxEntry<OnyxTypes.Report> | SearchReport, policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy) {
+    const currentUserAccountID = Report.getCurrentUserAccountID();
+    const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(report);
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    // This logic differs from the one in MoneyRequestHeader
+    // We are intentionally doing this for now because Auth violations are not ready and thus not returned by Search results. Additionally, the risk of a customer having either RTER or Broken connection violation is really small in the current cohort.
+    return isOpenExpenseReport && reimbursableSpend !== 0 && (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID);
 }
 
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string): OnyxEntry<ReportAction> {
@@ -8733,6 +8787,7 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
+    resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,
@@ -8784,5 +8839,6 @@ export {
     getIOUReportActionToApproveOrPay,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
+    canSubmitReport,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
