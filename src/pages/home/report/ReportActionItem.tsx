@@ -325,7 +325,7 @@ function ReportActionItem({
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
-    const isArchivedRoom = ReportUtils.isArchivedRoomWithID(originalReportID);
+    const isArchivedRoom = ReportUtils.isArchivedNonExpenseReportWithID(originalReportID);
     const disabledActions = useMemo(() => (!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
     const isChronosReport = ReportUtils.chatIncludesChronosWithID(originalReportID);
     /**
@@ -789,7 +789,7 @@ function ReportActionItem({
                                     ref={textInputRef}
                                     shouldDisableEmojiPicker={
                                         (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        ReportUtils.isArchivedRoom(report, reportNameValuePairs)
+                                        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
