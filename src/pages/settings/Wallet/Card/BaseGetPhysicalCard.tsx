@@ -69,8 +69,9 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
         <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
+            submitButtonStyles={styles.mh5}
             onSubmit={onSubmit}
-            style={[styles.flex1, styles.mh5]}
+            style={styles.flex1}
             validate={onValidate}
         >
             {children}
@@ -172,6 +173,14 @@ function BaseGetPhysicalCard({
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
+    const handleBackButtonPress = useCallback(() => {
+        if (currentCardID) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
+            return;
+        }
+        Navigation.goBack();
+    }, [currentCardID]);
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -180,12 +189,7 @@ function BaseGetPhysicalCard({
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={() => {
-                    if (currentCardID) {
-                        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
-                    }
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={handleBackButtonPress}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
