@@ -15,7 +15,7 @@ import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccoun
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoSubStepProps) {
+function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
