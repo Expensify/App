@@ -28,6 +28,7 @@ function ValidateCodeActionModal({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    isAddingNewContact,
     shouldHandleNavigationBack,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
@@ -43,13 +44,14 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent || isAddingNewContact) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent]);
+    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, isAddingNewContact]);
 
     return (
         <Modal
@@ -75,9 +77,9 @@ function ValidateCodeActionModal({
                     onBackButtonPress={hide}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+                <View style={[themeStyles.flex1, themeStyles.mt3, themeStyles.pb5]}>
+                    <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={[themeStyles.ph5, themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         isLoading={isLoading}
                         validateCodeAction={validateCodeAction}
@@ -89,9 +91,9 @@ function ValidateCodeActionModal({
                         buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        menuItems={footer}
                     />
                 </View>
-                {footer?.()}
             </ScreenWrapper>
         </Modal>
     );

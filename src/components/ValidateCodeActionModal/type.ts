@@ -44,6 +44,9 @@ type ValidateCodeActionModalProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
+    /** Whether adding new contact action is in progress */
+    isAddingNewContact?: boolean;
+
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 };
