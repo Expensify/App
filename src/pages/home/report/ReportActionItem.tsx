@@ -34,7 +34,6 @@ import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -205,10 +204,7 @@ function ReportActionItem({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || -1}`);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const reportScrollManager = useReportScrollManager();
-    const isActionableWhisper =
-        ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
-    const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+    const isActionableWhisper = ReportActionsUtils.isActionableWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -216,9 +212,6 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const isOriginalMessageAnObject = originalMessage && typeof originalMessage === 'object';
-    const hasResolutionInOriginalMessage = isOriginalMessageAnObject && 'resolution' in originalMessage;
-    const prevActionResolution = usePrevious(isActionableWhisper && hasResolutionInOriginalMessage ? originalMessage?.resolution : null);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney =
@@ -377,18 +370,6 @@ function ReportActionItem({
             isThreadReportParentAction,
         ],
     );
-
-    // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
-    // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
-    useEffect(() => {
-        if (index !== 0 || !isActionableWhisper) {
-            return;
-        }
-
-        if (prevActionResolution !== (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
-            reportScrollManager.scrollToIndex(index);
-        }
-    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper, hasResolutionInOriginalMessage]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
@@ -925,11 +906,6 @@ function ReportActionItem({
         ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         !isSendingMoney
     ) {
-        return null;
-    }
-
-    // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (hasResolutionInOriginalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 
