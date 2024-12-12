@@ -239,10 +239,11 @@ jobs:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Get current Android rollout percentage
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         id: getAndroidRolloutPercentage
         uses: ./.github/actions/javascript/getAndroidRolloutPercentage
         with:
-          GOOGLE_KEY_FILE: Mobile-Expensify/react-native/android-fastlane-json-key.json
+          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
 
       - name: Submit production build for Google Play review and a slow rollout
