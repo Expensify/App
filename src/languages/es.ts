@@ -5996,8 +5996,9 @@ const translations = {
             part2: ' comes with 🟢 for actions to take and 🔴 for errors',
         },
         workspaceChatTooltip: {
-            part1: 'Review submitted expenses and chat with approvers in your',
-            part2: ' workspace chat.',
+            part1: 'Review submitted expenses and chat',
+            part2: '\nwith approvers in your',
+            part3: ' workspace chat.',
         },
         globalCreateTooltip: {
             part1: 'Where to ',

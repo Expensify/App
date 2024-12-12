@@ -103,8 +103,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
