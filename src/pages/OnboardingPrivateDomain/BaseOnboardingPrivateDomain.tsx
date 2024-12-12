@@ -15,6 +15,7 @@ import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import * as User from '@userActions/User';
+import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -71,7 +72,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
-                        User.validateUserAndGetAccessiblePolicies(code);
+                        Session.validateUserAndGetAccessiblePolicies(code);
                         return Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     }}
                     sendValidateCode={sendValidateCode}

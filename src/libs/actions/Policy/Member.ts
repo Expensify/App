@@ -735,7 +735,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
 /**
  * Add member to the selected private domain workspace based on policyID
  */
-function addMemberToPrivateDomainWorkspace(policyID: string) {
+function joinAccessiblePolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
     const optimisticData: OnyxUpdate[] = [
@@ -948,7 +948,7 @@ export {
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
-    addMemberToPrivateDomainWorkspace,
+    joinAccessiblePolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,

@@ -64,7 +64,7 @@ type ValidateCodeFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** Whether to show the verify button (hidden in private domain onboarding)  */
+    /** Whether to show the verify button  */
     hideSubmitButton?: boolean;
 
     /** Function is called when validate code modal is mounted and on magic code resend */

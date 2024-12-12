@@ -1164,7 +1164,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 /**
- * Check which policies the user can join
+ * Validates user account and returns a list of accessible policies.
  */
 function validateUserAndGetAccessiblePolicies(validateCode: string) {
     const optimisticData: OnyxUpdate[] = [

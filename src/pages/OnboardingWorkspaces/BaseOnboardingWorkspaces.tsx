@@ -46,9 +46,9 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const handleJoinWorkspace = React.useCallback(
+    const handleJoinWorkspace = useCallback(
         (policyID: string) => {
-            MemberAction.addMemberToPrivateDomainWorkspace(policyID);
+            MemberAction.joinAccessiblePolicy(policyID);
             Report.completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],

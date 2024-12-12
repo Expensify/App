@@ -77,6 +77,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     );
 
     useEffect(() => {
+        /**
+         * Handle onboarding flow for users on private domains:
+         * 1. If on a private domain, the flow starts with personal details.
+         * 2. If the user skips this step, they must select an onboarding purpose.
+         * 3. If an onboarding purpose is selected and the person is on a private domain,
+         * skip the personal details step as it was already filled.
+         */
         const skippedPrivateDomainFlow = isPrivateDomain && onboardingPurposeSelected;
 
         if (!skippedPrivateDomainFlow || !onboardingPersonalDetails?.firstName || !onboardingPersonalDetails?.lastName) {
