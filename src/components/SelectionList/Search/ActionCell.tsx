@@ -32,6 +32,7 @@ type ActionCellProps = {
     isChildListItem?: boolean;
     parentAction?: string;
     isLoading?: boolean;
+    isDisabled?: boolean;
 };
 
 function ActionCell({
@@ -43,6 +44,7 @@ function ActionCell({
     isChildListItem = false,
     parentAction = '',
     isLoading = false,
+    isDisabled = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -110,7 +112,7 @@ function ActionCell({
             innerStyles={getButtonInnerStyles(shouldUseSuccessStyleProp)}
             isLoading={isLoading}
             success={shouldUseSuccessStyleProp}
-            isDisabled={isOffline}
+            isDisabled={isOffline || isDisabled}
         />
     );
 }
