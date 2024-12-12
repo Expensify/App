@@ -60,7 +60,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         if (shouldShowGetStartedTooltip) {
             return CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
         }
-        // Default to workspace chat tooltip if neither condition is met
+        // Default to workspace chat tooltip
         return CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
     }, [introSelected, report, session]);
 
