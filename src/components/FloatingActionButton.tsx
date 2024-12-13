@@ -6,6 +6,7 @@ import {Platform} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -60,6 +61,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
@@ -109,11 +111,11 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             shouldUseOverlay
-            shiftHorizontal={variables.fabTooltipShiftHorizontal}
+            shiftHorizontal={shouldUseNarrowLayout ? 0 : variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             onHideTooltip={hideProductTrainingTooltip}

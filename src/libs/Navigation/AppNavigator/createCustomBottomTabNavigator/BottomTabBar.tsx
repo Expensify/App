@@ -148,11 +148,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
-                        horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shouldUseOverlay
-                    shiftHorizontal={shouldUseNarrowLayout ? variables.bottomTabInboxTooltipShiftHorizontal : 0}
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     onHideTooltip={hideProductTrainingTooltip}

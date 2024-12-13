@@ -16,6 +16,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -69,6 +70,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const openMenu = useCallback(() => setIsPopoverVisible(true), []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
@@ -208,10 +211,10 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
                 anchorAlignment={{
+                    horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 }}
-                shiftHorizontal={variables.searchFiltersTooltipShiftHorizontalNarrow}
+                shiftHorizontal={shouldUseNarrowLayout ? 0 : variables.searchFiltersTooltipShiftHorizontalNarrow}
                 shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
