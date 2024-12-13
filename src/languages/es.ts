@@ -97,7 +97,6 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -974,7 +973,6 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
@@ -1004,7 +1002,6 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
-            invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
@@ -5999,6 +5996,25 @@ const translations = {
             part1: 'Envía tus',
             part2: ' gastos',
             part3: ' aquí',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Personaliza tu búsqueda',
+            part2: ' aquí!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Tu lista de tareas',
+            part2: '\n🟢 = listo para ti',
+            part3: ' 🔴 = necesita revisión',
+        },
+        workspaceChatTooltip: {
+            part1: 'Envía gastos',
+            part2: ' y chatea con',
+            part3: '\naprobadores aquí!',
+        },
+        globalCreateTooltip: {
+            part1: 'Crea gastos',
+            part2: ', comienza a chatear,',
+            part3: '\ny mucho más!',
         },
     },
 };

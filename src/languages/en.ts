@@ -98,7 +98,6 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -976,7 +975,6 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -1006,7 +1004,6 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
             atLeastOneAttendee: 'At least one attendee must be selected',
-            invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -5479,6 +5476,25 @@ const translations = {
             part1: 'Submit your',
             part2: ' expenses',
             part3: ' here!',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
+        },
+        workspaceChatTooltip: {
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
+        },
+        globalCreateTooltip: {
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
         },
     },
 };

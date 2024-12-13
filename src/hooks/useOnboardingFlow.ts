@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
+import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,9 +30,8 @@ function useOnboardingFlowRouter() {
     const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
-    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
 
@@ -40,7 +39,10 @@ function useOnboardingFlowRouter() {
             return;
         }
 
-        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
+            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+            const query = defaultCannedQuery;
+            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
             Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
             return;
         }
@@ -78,8 +80,6 @@ function useOnboardingFlowRouter() {
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
-        allBetasMetadata,
-        allBetas,
         isPrivateDomain,
     ]);
 

@@ -75,7 +75,6 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
-// eslint-disable-next-line import/no-cycle
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
@@ -1510,12 +1509,14 @@ function isArchivedRoom(report: OnyxInputOrEntry<Report> | SearchReport, reportN
 /**
  * Whether the report with the provided reportID is an archived room
  */
-function isArchivedRoomWithID(reportID?: string) {
-    if (!reportID) {
+function isArchivedRoomWithID(reportOrID?: string | SearchReport) {
+    if (!reportOrID) {
         return false;
     }
 
-    return isArchivedRoom(getReport(reportID), getReportNameValuePairs(reportID));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    return isArchivedRoom(report);
 }
 
 /**
@@ -2600,7 +2601,7 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
  */
 function getReimbursementQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     shouldUseShortDisplayName = true,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
@@ -2621,7 +2622,7 @@ function getReimbursementQueuedActionMessage(
  */
 function getReimbursementDeQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
@@ -3946,21 +3947,6 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
 const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
 
 /**
- * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
- */
-function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
-    const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
-}
-
-/**
  * Get the title for a report.
  */
 function getReportName(
@@ -4123,7 +4109,16 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+    const participantsWithoutCurrentUser: number[] = [];
+    Object.keys(report?.participants ?? {}).forEach((accountID) => {
+        const accID = Number(accountID);
+        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
+            participantsWithoutCurrentUser.push(accID);
+        }
+    });
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    const participantNames = participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport, true, false, personalDetails)).join(', ');
+    formattedName = participantNames;
 
     if (reportID) {
         reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
@@ -4827,7 +4822,7 @@ function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -4846,7 +4841,7 @@ function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeo
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -6787,17 +6782,18 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxInputOrEntry<Report>): boolean {
+function chatIncludesChronos(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
 
-function chatIncludesChronosWithID(reportID?: string): boolean {
-    if (!reportID) {
+function chatIncludesChronosWithID(reportOrID?: string | SearchReport): boolean {
+    if (!reportOrID) {
         return false;
     }
 
-    return chatIncludesChronos(getReport(reportID));
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    return chatIncludesChronos(report);
 }
 
 /**
@@ -8558,7 +8554,6 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildParticipantsFromAccountIDs,
-    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
@@ -8646,7 +8641,6 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
-    getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
@@ -8863,4 +8857,5 @@ export type {
     TransactionDetails,
     PartialReportAction,
     ParsingDetails,
+    MissingPaymentMethod,
 };
