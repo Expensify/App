@@ -106,9 +106,6 @@ jobs:
     runs-on: macos-latest
     needs: [validateActor, createNewVersion]
     if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-    defaults:
-      run:
-        working-directory: Mobile-Expensify
     steps:
       - name: Run turnstyle
         uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
@@ -121,22 +118,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          submodules: true
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - name: Check out `Mobile-Expensify` repo
-        uses: actions/checkout@v4
-        with:
-          repository: 'Expensify/Mobile-Expensify'
-          submodules: true
-          path: 'Mobile-Expensify'
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Update submodule
+      - name: Update submodule and checkout the main branch
         run: |
-          cd react-native
           git submodule update --init
+          cd Mobile-Expensify
+          git checkout main
+          git pull origin main
 
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotify
@@ -146,6 +138,7 @@ jobs:
 
       - name: Generate HybridApp version
         run: |
+          cd Mobile-Expensify
           # Generate all flavors of the version
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
           BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
@@ -178,6 +171,7 @@ jobs:
 
       - name: Commit new version
         run: |
+          cd Mobile-Expensify
           git add \
             ./Android/AndroidManifest.xml \
             ./app/config/config.json \
@@ -186,8 +180,14 @@ jobs:
             ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
-      - name: Update main branch
-        run: git push origin main
+      - name: Update main branch on Mobile-Expensify and App
+        run: |
+          cd Mobile-Expensify
+          git push origin main
+          cd ..
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+          git push origin main  
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
