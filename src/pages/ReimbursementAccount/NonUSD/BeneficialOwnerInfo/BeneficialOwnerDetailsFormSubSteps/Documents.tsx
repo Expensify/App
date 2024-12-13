@@ -12,6 +12,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,30 +25,19 @@ const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, COUNTRY, P
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;
     const codiceFiscaleInputID = `${PREFIX}_${ownerBeingModifiedID}_${CODICE_FISCALE}` as const;
     const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
     const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
-
-    const shouldGatherProofOfOwnership =
-        currency === CONST.CURRENCY.EUR ||
-        currency === CONST.CURRENCY.AUD ||
-        currency === CONST.CURRENCY.CAD ||
-        (currency === CONST.CURRENCY.GBP && beneficialOwnerCountry !== CONST.COUNTRY.GB);
-    const shouldGatherCopyOfID = currency === CONST.CURRENCY.GBP && beneficialOwnerCountry !== CONST.COUNTRY.GB;
-    const shouldGatherAddressProof = currency === CONST.CURRENCY.EUR || (currency === CONST.CURRENCY.GBP && beneficialOwnerCountry !== CONST.COUNTRY.GB);
-    const shouldGatherCodiceFiscale = countryStepCountryValue === CONST.COUNTRY.IT;
-
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
     const defaultValues: Record<string, FileObject[]> = {
         [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] as FileObject[]) ?? [] : [],
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] as FileObject[]) ?? [] : [],
@@ -115,7 +105,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
 
-            {shouldGatherProofOfOwnership && (
+            {isDocumentNeededStatus.isProofOfOwnershipNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.proofOfBeneficialOwner')}</Text>
                     <InputWrapper
@@ -137,11 +127,13 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={proofOfOwnershipInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
-                    {(shouldGatherCopyOfID || shouldGatherAddressProof || shouldGatherCodiceFiscale) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
+                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                    )}
                 </View>
             )}
 
-            {shouldGatherCopyOfID && (
+            {isDocumentNeededStatus.isCopyOfIDNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.copyOfID')}</Text>
                     <InputWrapper
@@ -163,11 +155,11 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={copyOfIDInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(shouldGatherAddressProof || shouldGatherCodiceFiscale) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
                 </View>
             )}
 
-            {shouldGatherAddressProof && (
+            {isDocumentNeededStatus.isProofOfAddressNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.proofOfAddress')}</Text>
                     <InputWrapper
@@ -189,11 +181,11 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={addressProofInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {shouldGatherCodiceFiscale && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
                 </View>
             )}
 
-            {shouldGatherCodiceFiscale && (
+            {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.codiceFiscale')}</Text>
                     <InputWrapper

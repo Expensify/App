@@ -138,6 +138,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     };
 
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY] ?? '';
+    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const beneficialOwnerAddressCountryValue = reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID] ?? '';
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -156,6 +158,21 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
+            if (screenIndex === 5) {
+                // User is on documents sub step and is not from US (no SSN needed)
+                if (beneficialOwnerAddressCountryValue !== CONST.COUNTRY.US) {
+                    moveTo(3, false);
+                    return;
+                }
+            }
+
+            if (screenIndex === 6) {
+                // User is on confirmation screen and is GB (no SSN or documents needed)
+                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerAddressCountryValue === CONST.COUNTRY.GB) {
+                    moveTo(3, false);
+                    return;
+                }
+            }
             prevScreen();
         } else {
             setCurrentSubStep((subStep) => subStep - 1);

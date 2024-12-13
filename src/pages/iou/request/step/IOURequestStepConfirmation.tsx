@@ -23,7 +23,6 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -136,6 +135,19 @@ function IOURequestStepConfirmation({
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
+    useEffect(
+        // This effect runs on the component unmount. It resets the custom unit rate ID of the transaction if it's moving from Track Expense.
+        // This is needed to revert the rate back to the original FAKE_P2P_RATE_ID when changing the destination workspace.
+        () => () => {
+            if (!isMovingTransactionFromTrackExpense) {
+                return;
+            }
+
+            IOU.resetDraftTransactionsCustomUnit(transactionID);
+        },
+        [isMovingTransactionFromTrackExpense, transactionID],
+    );
+
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -176,7 +188,7 @@ function IOURequestStepConfirmation({
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
-        if (action === CONST.IOU.ACTION.CATEGORIZE && PolicyUtils.hasNoPolicyOtherThanPersonalType()) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
             Navigation.goBack();
             return;
         }

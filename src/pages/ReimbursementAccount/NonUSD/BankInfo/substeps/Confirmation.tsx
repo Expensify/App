@@ -1,21 +1,21 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoSubStepProps) {
+const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -23,7 +23,7 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = useMemo(() => {
         const keys: Record<string, keyof ReimbursementAccountForm> = {};
-        corpayFields?.forEach((field) => {
+        corpayFields?.formFields?.forEach((field) => {
             keys[field.id] = field.id as keyof ReimbursementAccountForm;
         });
         return keys;
@@ -33,14 +33,24 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
     const items = useMemo(
         () => (
             <>
-                {corpayFields?.map((field) => {
+                {corpayFields?.formFields?.map((field) => {
+                    let title = values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : '';
+
+                    if (field.id === ACCOUNT_HOLDER_COUNTRY) {
+                        title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
+                    }
+
                     return (
                         <MenuItemWithTopDescription
                             description={field.label}
-                            title={values[field.id as keyof typeof values] ? String(values[field.id as keyof typeof values]) : ''}
+                            title={title}
                             shouldShowRightIcon
                             onPress={() => {
-                                onMove(0);
+                                if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
+                                    onMove(0);
+                                } else {
+                                    onMove(1);
+                                }
                             }}
                             key={field.id}
                         />
@@ -51,7 +61,7 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
                         description={translate('bankInfoStep.bankStatement')}
                         title={reimbursementAccountDraft[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT].map((file) => file.name).join(', ')}
                         shouldShowRightIcon
-                        onPress={() => onMove(1)}
+                        onPress={() => onMove(2)}
                     />
                 )}
             </>
@@ -59,41 +69,39 @@ function Confirmation({onNext, onMove, corpayFields, preferredMethod}: BankInfoS
         [corpayFields, onMove, reimbursementAccountDraft, translate, values],
     );
 
-    const handleNext = () => {
-        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, preferredMethod} as ReimbursementAccountForm);
+    const handleSubmit = () => {
+        const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
+
+        BankAccounts.createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
     };
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.isLoading || reimbursementAccount?.errors || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
             return;
         }
 
-        onNext();
-    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+        if (reimbursementAccount?.isSuccess) {
+            onNext();
+            BankAccounts.clearReimbursementAccountBankCreation();
+        }
+
+        return () => BankAccounts.clearReimbursementAccountBankCreation();
+    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('bankInfoStep.letsDoubleCheck')}</Text>
-                    <Text style={[styles.mutedTextLabel, styles.ph5, styles.mb5]}>{translate('bankInfoStep.thisBankAccount')}</Text>
-                    {items}
-                    <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
-                        <Button
-                            success
-                            style={[styles.w100]}
-                            onPress={handleNext}
-                            large
-                            text={translate('common.confirm')}
-                        />
-                    </View>
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+        <FormProvider
+            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            submitButtonText={translate('common.confirm')}
+            onSubmit={handleSubmit}
+            style={[styles.mh5, styles.flexGrow1]}
+        >
+            <View>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('bankInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.mutedTextLabel, styles.ph5, styles.mb5]}>{translate('bankInfoStep.thisBankAccount')}</Text>
+                {items}
+            </View>
+        </FormProvider>
     );
 }
 
