@@ -98,7 +98,6 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -229,6 +228,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        reports: 'Reports',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -647,10 +647,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -837,10 +833,6 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -980,7 +972,6 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -1010,7 +1001,6 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
             atLeastOneAttendee: 'At least one attendee must be selected',
-            invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
@@ -4442,7 +4432,7 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -4456,7 +4446,7 @@ const translations = {
         },
     },
     workspaceActions: {
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4556,7 +4546,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5456,6 +5445,25 @@ const translations = {
             chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
         },
     },
 };
