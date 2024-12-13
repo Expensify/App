@@ -406,7 +406,6 @@ describe('OptionsListUtils', () => {
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
-        console.log(OPTIONS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
@@ -1002,11 +1001,9 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return prefix match before suffix match', () => {
-            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
-            console.log(options);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS);
             const filteredOptions = OptionsListUtils.filterOptions(options, 'String');
 
-            console.log(filteredOptions);
             expect(filteredOptions.personalDetails.length).toBe(2);
             expect(filteredOptions.personalDetails.at(0)?.text).toBe('String');
             expect(filteredOptions.personalDetails.at(1)?.text).toBe('SubString');
