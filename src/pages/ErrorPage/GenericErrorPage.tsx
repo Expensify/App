@@ -18,11 +18,12 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
 
-function GenericErrorPage() {
+function GenericErrorPage({error}: {error?: Error}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
 
     return (
@@ -60,7 +61,7 @@ function GenericErrorPage() {
                                         success
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
-                                        onPress={refreshPage}
+                                        onPress={() => refreshPage(isChunkLoadError)}
                                     />
                                     <Button
                                         text={translate('initialSettingsPage.signOut')}

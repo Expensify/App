@@ -55,7 +55,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const backTo = route.params.backTo;
@@ -212,7 +212,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         let result: ListItem[] = [];
 
         participants.forEach((accountID) => {
-            const details = personalDetails[accountID];
+            const details = personalDetails?.[accountID];
 
             // If search value is provided, filter out members that don't match the search value
             if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
@@ -373,7 +373,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                        memberName: formatPhoneNumber(PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
