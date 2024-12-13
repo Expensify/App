@@ -272,36 +272,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         [quickActionReport?.policyID],
     );
 
-    const navigateToQuickAction = useCallback(() => {
-        const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
-        const requestType = IOU.getQuickActionRequestType(quickAction?.action);
-
-        switch (quickAction?.action) {
-            case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, requestType, true), true);
-                return;
-            case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-            case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-            case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, requestType, true), true);
-                return;
-            case CONST.QUICK_ACTIONS.SEND_MONEY:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
-                return;
-            case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
-                break;
-            case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, requestType, true), false);
-                break;
-            default:
-        }
-    }, [isValidReport, quickAction?.action, quickAction?.targetAccountID, quickActionReport?.reportID, selectOption]);
-
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
@@ -422,7 +392,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                    onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                    onSelected: () => interceptAnonymousUser(() => IOU.navigateToQuickAction(isValidReport, quickActionReport?.reportID ?? '-1', quickAction, selectOption)),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -455,13 +425,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.quickActionTooltipWrapper,
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
-        quickAction?.action,
+        quickAction,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
         shouldShowProductTrainingTooltip,
-        navigateToQuickAction,
         selectOption,
         isValidReport,
         quickActionPolicy,

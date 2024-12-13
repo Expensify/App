@@ -76,6 +76,7 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
+import * as Task from './Task';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import * as TransactionEdit from './TransactionEdit';
 
@@ -534,6 +535,41 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     }
 
     return requestType;
+}
+
+function navigateToQuickAction(
+    isValidReport: boolean,
+    quickActionReportID: string,
+    qAction: OnyxTypes.QuickAction,
+    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+) {
+    const reportID = isValidReport ? quickActionReportID : ReportUtils.generateReportID();
+    const requestType = getQuickActionRequestType(qAction?.action);
+
+    switch (qAction?.action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
+            return;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true), true);
+            return;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
+            return;
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', qAction.targetAccountID ?? -1), false);
+            break;
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        default:
+    }
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
@@ -8795,6 +8831,7 @@ export {
     detachReceipt,
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
+    navigateToQuickAction,
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
