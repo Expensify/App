@@ -18,6 +18,7 @@ function useFastSearchFromOptions(options: OptionsListUtils.Options, config: {in
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
+ * Builds a suffix tree and returns a function to search in it.
  *
  * @example
  * ```
