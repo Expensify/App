@@ -35,3 +35,19 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }
+
+function createCategoryTaxExpenseRules(category: string, taxCode: string) {
+    return [
+        {
+            applyWhen: [{condition: 'matches', field: 'category', value: category}],
+            id: '1',
+            tax: {
+                field_id_TAX: {
+                    externalID: taxCode,
+                },
+            },
+        },
+    ];
+}
+
+export {createCategoryTaxExpenseRules};
