@@ -102,7 +102,6 @@ function IOURequestStepScan({
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>(VIDEO_CONSTRAINTS);
-    const tabIndex = 1;
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -140,8 +139,7 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionState('denied');
             });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [videoConstraints]);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
@@ -651,7 +649,6 @@ function IOURequestStepScan({
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
-                        cameraTabIndex={tabIndex}
                         audio={false}
                         disablePictureInPicture={false}
                         imageSmoothing={false}
@@ -703,8 +700,8 @@ function IOURequestStepScan({
                     <Icon
                         height={32}
                         width={32}
-                        src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
+                        src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
+                        fill={theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>
