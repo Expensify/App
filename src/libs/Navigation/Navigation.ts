@@ -34,7 +34,7 @@ import {
 import linkingConfig from './linkingConfig';
 import RELATIONS from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorName, State} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -314,10 +314,10 @@ function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     const canGoBack = navigationRef.current?.canGoBack();
 
     if (!canGoBack && isSplitNavigatorName(lastRoute?.name) && lastRoute?.state?.routes?.length === 1) {
-        const name = RELATIONS.SPLIT_TO_SIDEBAR[lastRoute.name];
+        const name = RELATIONS.SPLIT_TO_SIDEBAR[lastRoute.name as SplitNavigatorName];
         const params = getSidebarScreenParams(lastRoute);
         navigationRef.dispatch({
-            type: 'REPLACE',
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
             payload: {
                 name,
                 params,
