@@ -4005,6 +4005,10 @@ function getReportName(
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (ReportActionsUtils.isActionableJoinRequest(parentReportAction)) {
+        return getJoinRequestMessage(parentReportAction);
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
@@ -4814,6 +4818,13 @@ function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.
 
 function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
     return Localize.translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+}
+
+function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
+    const policy = getPolicy(ReportActionsUtils.getOriginalMessage(reportAction)?.policyID);
+    const userDetail = PersonalDetailsUtils.getPersonalDetailByEmail(ReportActionsUtils.getOriginalMessage(reportAction)?.email ?? '');
+    const userName = userDetail?.firstName ? `${userDetail?.displayName} (${userDetail?.login})` : userDetail?.login ?? '';
+    return Localize.translateLocal('workspace.inviteMessage.joinRequest', {user: userName, workspaceName: policy?.name ?? ''});
 }
 
 /**
@@ -8617,6 +8628,7 @@ export {
     getRejectedReportMessage,
     getWorkspaceNameUpdatedMessage,
     getReportAutomaticallySubmittedMessage,
+    getJoinRequestMessage,
     getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
