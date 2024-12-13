@@ -26,6 +26,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -85,6 +86,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.values(CardUtils.getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
     const paymentAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const policyApproverEmail = policy?.approver;
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
+
+    console.log('****** approvalWorkflows ******', approvalWorkflows);
 
     useEffect(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -158,9 +171,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = useCallback(() => {
-        Member.removeMembers([accountID], policyID);
-        setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policyID]);
+        const ownerEmail = ownerDetails.login;
+        const isUserApprover = Member.isApprover(policy, accountID);
+        if (!ownerEmail || !isUserApprover) {
+            return;
+        }
+        const removedApprover = personalDetails?.[accountID];
+
+        if (!removedApprover?.login) {
+            return;
+        }
+        const updatedWorkflow = updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails});
+
+        console.log('****** updatedWorkflow ******', updatedWorkflow);
+
+        // Workflow.updateApprovalWorkflow(policyID, updatedWorkflow, [], []);
+        // Member.removeMembers([accountID], policyID);
+        // setIsRemoveMemberConfirmModalVisible(false);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));

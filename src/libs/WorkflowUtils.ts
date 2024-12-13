@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -200,6 +201,21 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
 
+type UpdateWorkflowDataOnApproverRemovalParams = {
+    /**
+     * An array of approval workflows that need to be updated.
+     */
+    approvalWorkflows: ApprovalWorkflow[];
+    /**
+     * The email of the approver being removed
+     */
+    removedApprover: PersonalDetails;
+    /**
+     * The email of the workspace owner
+     */
+    ownerDetails: PersonalDetails;
+};
+
 /**
  * This function converts an approval workflow into a list of policy employees.
  * An optimized list is created that contains only the updated employees to maintain minimal data changes.
@@ -281,5 +297,68 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     return updatedEmployeeList;
 }
+function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): ApprovalWorkflow[] {
+    const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+    const removedApproverEmail = removedApprover.login;
+    const ownerEmail = ownerDetails.login;
+    const ownerAvatar = ownerDetails.avatar ?? '';
+    const ownerDisplayName = ownerDetails.displayName ?? '';
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW};
+    return approvalWorkflows.flatMap((workflow) => {
+        const [currentApprover] = workflow.approvers;
+        const isSingleApprover = workflow.approvers.length === 1;
+        const isApproverToRemove = currentApprover?.email === removedApproverEmail;
+        const defaultHasOwner = defaultWorkflow?.approvers.some((approver) => approver.email === ownerEmail);
+
+        if (workflow.isDefault) {
+            // Handle default workflow
+            if (isSingleApprover && isApproverToRemove && currentApprover?.email !== ownerEmail) {
+                return {
+                    ...workflow,
+                    approvers: [
+                        {
+                            ...currentApprover,
+                            avatar: ownerAvatar,
+                            displayName: ownerDisplayName,
+                            email: ownerEmail ?? '',
+                        },
+                    ],
+                };
+            }
+            return workflow;
+        }
+
+        if (isSingleApprover) {
+            // Remove workflows with a single approver when owner is the approver
+            if (currentApprover?.email === ownerEmail) {
+                return [];
+            }
+
+            // Handle case where the approver is to be removed
+            if (isApproverToRemove) {
+                // Remove workflow if the default workflow includes the owner or approver is to be replaced
+                if (defaultHasOwner) {
+                    return [];
+                }
+
+                // Replace the approver with owner details
+                return {
+                    ...workflow,
+                    approvers: [
+                        {
+                            ...currentApprover,
+                            avatar: ownerAvatar,
+                            displayName: ownerDisplayName,
+                            email: ownerEmail ?? '',
+                        },
+                    ],
+                };
+            }
+        }
+
+        // Return the unchanged workflow in other cases
+        return workflow;
+    });
+}
+
+export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};
