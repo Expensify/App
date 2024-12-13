@@ -9,6 +9,7 @@ import * as PolicyActions from '@src/libs/actions/Policy/Policy';
 import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
+import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import * as Localize from '@src/libs/Localize';
 import * as NumberUtils from '@src/libs/NumberUtils';
@@ -3305,231 +3306,245 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('getSendInvoiceInformation', () => {
-        // Given a convertedInvoiceReport is stored in Onyx
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat.reportID}`, convertedInvoiceChat);
+    describe('sendInvoice', () => {
+        it('creates a new invoice chat when one has been converted from individual to business', async () => {
+            // Mock API.write for this test
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-        // And data for when a new invoice is sent to a user
-        const transaction: OnyxEntry<OnyxTypes.Transaction> = {
-            amount: 100,
-            attendees: [
-                {
-                    email: 'a1@53019.com',
-                    login: 'a1@53019.com',
-                    displayName: 'a1',
-                    avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-                    accountID: 32,
-                    text: 'a1@53019.com',
-                    selected: true,
-                    reportID: '3634215302663162',
-                },
-            ],
-            comment: {
-                customUnit: {
-                    customUnitRateID: '_FAKE_P2P_ID_',
-                },
-            },
-            created: '2024-12-13',
-            currency: 'USD',
-            iouRequestType: 'manual',
-            reportID: '3634215302663162',
-            transactionID: '1',
-            isFromGlobalCreate: true,
-            merchant: '(none)',
-            splitPayerAccountIDs: [32],
-            shouldShowOriginalAmount: true,
-            participants: [
-                {
-                    accountID: 33,
-                    login: 'b1@53019.com',
-                    isPolicyExpenseChat: false,
-                    reportID: '',
-                    selected: true,
-                    iouType: 'invoice',
-                },
-                {
-                    policyID: 'CC048FA711B35B1F',
-                    isSender: true,
-                    selected: false,
-                    iouType: 'invoice',
-                },
-            ],
-            tag: '',
-            category: '',
-            billable: false,
-        };
-        const currentUserAccountID = 32;
-        const policy: OnyxEntry<OnyxTypes.Policy> = {
-            id: 'CC048FA711B35B1F',
-            type: 'team',
-            name: "53019's Workspace",
-            role: 'admin',
-            owner: 'a1@53019.com',
-            ownerAccountID: 32,
-            isPolicyExpenseChatEnabled: true,
-            outputCurrency: 'USD',
-            autoReporting: true,
-            autoReportingFrequency: 'instant',
-            approvalMode: 'OPTIONAL',
-            harvesting: {
-                enabled: true,
-                jobID: 7206965285807173000,
-            },
-            customUnits: {
-                '39C3FF491F559': {
-                    customUnitID: '39C3FF491F559',
-                    name: 'Distance',
-                    attributes: {
-                        unit: 'mi',
+            // Given a convertedInvoiceReport is stored in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat.reportID}`, convertedInvoiceChat);
+
+            // And data for when a new invoice is sent to a user
+            const transaction: OnyxEntry<OnyxTypes.Transaction> = {
+                amount: 100,
+                attendees: [
+                    {
+                        email: 'a1@53019.com',
+                        login: 'a1@53019.com',
+                        displayName: 'a1',
+                        avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+                        accountID: 32,
+                        text: 'a1@53019.com',
+                        selected: true,
+                        reportID: '3634215302663162',
                     },
-                    rates: {
-                        '928A74633831E': {
-                            customUnitRateID: '928A74633831E',
-                            name: 'Default Rate',
-                            rate: 67,
-                            enabled: true,
-                            currency: 'USD',
-                        },
+                ],
+                comment: {
+                    customUnit: {
+                        customUnitRateID: '_FAKE_P2P_ID_',
                     },
-                    defaultCategory: 'Car',
+                },
+                created: '2024-12-13',
+                currency: 'USD',
+                iouRequestType: 'manual',
+                reportID: '3634215302663162',
+                transactionID: '1',
+                isFromGlobalCreate: true,
+                merchant: '(none)',
+                splitPayerAccountIDs: [32],
+                shouldShowOriginalAmount: true,
+                participants: [
+                    {
+                        accountID: 33,
+                        login: 'b1@53019.com',
+                        isPolicyExpenseChat: false,
+                        reportID: '',
+                        selected: true,
+                        iouType: 'invoice',
+                    },
+                    {
+                        policyID: 'CC048FA711B35B1F',
+                        isSender: true,
+                        selected: false,
+                        iouType: 'invoice',
+                    },
+                ],
+                tag: '',
+                category: '',
+                billable: false,
+            };
+            const currentUserAccountID = 32;
+            const policy: OnyxEntry<OnyxTypes.Policy> = {
+                id: 'CC048FA711B35B1F',
+                type: 'team',
+                name: "53019's Workspace",
+                role: 'admin',
+                owner: 'a1@53019.com',
+                ownerAccountID: 32,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency: 'USD',
+                autoReporting: true,
+                autoReportingFrequency: 'instant',
+                approvalMode: 'OPTIONAL',
+                harvesting: {
                     enabled: true,
+                    jobID: 7206965285807173000,
                 },
-            },
-            areCategoriesEnabled: true,
-            areTagsEnabled: false,
-            areDistanceRatesEnabled: false,
-            areWorkflowsEnabled: false,
-            areReportFieldsEnabled: false,
-            areConnectionsEnabled: false,
-            employeeList: {
-                'a1@53019.com': {
-                    role: 'admin',
-                    errors: {},
-                    email: 'a1@53019.com',
-                    forwardsTo: '',
-                    submitsTo: 'a1@53019.com',
+                customUnits: {
+                    '39C3FF491F559': {
+                        customUnitID: '39C3FF491F559',
+                        name: 'Distance',
+                        attributes: {
+                            unit: 'mi',
+                        },
+                        rates: {
+                            '928A74633831E': {
+                                customUnitRateID: '928A74633831E',
+                                name: 'Default Rate',
+                                rate: 67,
+                                enabled: true,
+                                currency: 'USD',
+                            },
+                        },
+                        defaultCategory: 'Car',
+                        enabled: true,
+                    },
                 },
-            },
-            pendingFields: {},
-            chatReportIDAnnounce: 0,
-            chatReportIDAdmins: 1811331783036078,
-            address: [],
-            approver: 'a1@53019.com',
-            areCompanyCardsEnabled: false,
-            areExpensifyCardsEnabled: false,
-            areInvoicesEnabled: true,
-            arePerDiemRatesEnabled: false,
-            areRulesEnabled: false,
-            autoReimbursement: {
-                limit: 0,
-            },
-            autoReimbursementLimit: 0,
-            autoReportingOffset: 1,
-            avatarURL: '',
-            defaultBillable: false,
-            description: '',
-            disabledFields: {
-                defaultBillable: true,
-                reimbursable: false,
-            },
-            fieldList: {
-                text_title: {
-                    defaultValue: '{report:type} {report:startdate}',
-                    deletable: true,
-                    disabledOptions: [],
-                    externalIDs: [],
-                    fieldID: 'text_title',
-                    isTax: false,
-                    keys: [],
-                    name: 'title',
-                    orderWeight: 0,
-                    target: 'expense',
-                    type: 'formula',
-                    values: [],
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
+                employeeList: {
+                    'a1@53019.com': {
+                        role: 'admin',
+                        errors: {},
+                        email: 'a1@53019.com',
+                        forwardsTo: '',
+                        submitsTo: 'a1@53019.com',
+                    },
                 },
-            },
-            hasMultipleTagLists: false,
-            invoice: {
-                markUp: 0,
-                companyName: 'b1-53019',
-                companyWebsite: 'https://www.53019.com',
                 pendingFields: {},
-                bankAccount: {
-                    stripeConnectAccountBalance: 0,
-                    stripeConnectAccountID: 'acct_1QVeO7S7tHTCCfyY',
-                    transferBankAccountID: 29,
+                chatReportIDAnnounce: 0,
+                chatReportIDAdmins: 1811331783036078,
+                address: [],
+                approver: 'a1@53019.com',
+                areCompanyCardsEnabled: false,
+                areExpensifyCardsEnabled: false,
+                areInvoicesEnabled: true,
+                arePerDiemRatesEnabled: false,
+                areRulesEnabled: false,
+                autoReimbursement: {
+                    limit: 0,
                 },
-            },
-            preventSelfApproval: false,
-            reimbursementChoice: 'reimburseManual',
-            requiresCategory: false,
-            requiresTag: false,
-            tax: {
-                trackingEnabled: false,
-            },
-            mccGroup: {
-                airlines: {
-                    category: 'Travel',
-                    groupID: 'airlines',
+                autoReimbursementLimit: 0,
+                autoReportingOffset: 1,
+                avatarURL: '',
+                defaultBillable: false,
+                description: '',
+                disabledFields: {
+                    defaultBillable: true,
+                    reimbursable: false,
                 },
-                commuter: {
-                    category: 'Car',
-                    groupID: 'commuter',
+                fieldList: {
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: true,
+                        disabledOptions: [],
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        keys: [],
+                        name: 'title',
+                        orderWeight: 0,
+                        target: 'expense',
+                        type: 'formula',
+                        values: [],
+                    },
                 },
-                gas: {
-                    category: 'Car',
-                    groupID: 'gas',
+                hasMultipleTagLists: false,
+                invoice: {
+                    markUp: 0,
+                    companyName: 'b1-53019',
+                    companyWebsite: 'https://www.53019.com',
+                    pendingFields: {},
+                    bankAccount: {
+                        stripeConnectAccountBalance: 0,
+                        stripeConnectAccountID: 'acct_1QVeO7S7tHTCCfyY',
+                        transferBankAccountID: 29,
+                    },
                 },
-                goods: {
-                    category: 'Materials',
-                    groupID: 'goods',
+                preventSelfApproval: false,
+                reimbursementChoice: 'reimburseManual',
+                requiresCategory: false,
+                requiresTag: false,
+                tax: {
+                    trackingEnabled: false,
                 },
-                groceries: {
-                    category: 'Meals and Entertainment',
-                    groupID: 'groceries',
+                mccGroup: {
+                    airlines: {
+                        category: 'Travel',
+                        groupID: 'airlines',
+                    },
+                    commuter: {
+                        category: 'Car',
+                        groupID: 'commuter',
+                    },
+                    gas: {
+                        category: 'Car',
+                        groupID: 'gas',
+                    },
+                    goods: {
+                        category: 'Materials',
+                        groupID: 'goods',
+                    },
+                    groceries: {
+                        category: 'Meals and Entertainment',
+                        groupID: 'groceries',
+                    },
+                    hotel: {
+                        category: 'Travel',
+                        groupID: 'hotel',
+                    },
+                    mail: {
+                        category: 'Office Supplies',
+                        groupID: 'mail',
+                    },
+                    meals: {
+                        category: 'Meals and Entertainment',
+                        groupID: 'meals',
+                    },
+                    rental: {
+                        category: 'Travel',
+                        groupID: 'rental',
+                    },
+                    services: {
+                        category: 'Professional Services',
+                        groupID: 'services',
+                    },
+                    taxi: {
+                        category: 'Travel',
+                        groupID: 'taxi',
+                    },
+                    uncategorized: {
+                        category: 'Other',
+                        groupID: 'uncategorized',
+                    },
+                    utilities: {
+                        category: 'Utilities',
+                        groupID: 'utilities',
+                    },
                 },
-                hotel: {
-                    category: 'Travel',
-                    groupID: 'hotel',
-                },
-                mail: {
-                    category: 'Office Supplies',
-                    groupID: 'mail',
-                },
-                meals: {
-                    category: 'Meals and Entertainment',
-                    groupID: 'meals',
-                },
-                rental: {
-                    category: 'Travel',
-                    groupID: 'rental',
-                },
-                services: {
-                    category: 'Professional Services',
-                    groupID: 'services',
-                },
-                taxi: {
-                    category: 'Travel',
-                    groupID: 'taxi',
-                },
-                uncategorized: {
-                    category: 'Other',
-                    groupID: 'uncategorized',
-                },
-                utilities: {
-                    category: 'Utilities',
-                    groupID: 'utilities',
-                },
-            },
-            rules: [],
-        };
-        const companyName = 'b1-53019';
-        const companyWebsite = 'https://www.53019.com';
+                rules: [],
+            };
+            const companyName = 'b1-53019';
+            const companyWebsite = 'https://www.53019.com';
 
-        // When getSendInvoiceInformation is called
-        const information = IOU.getSendInvoiceInformation(transaction, currentUserAccountID, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+            IOU.sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
 
-        // Then a new invoice chat/room is created
-        expect(information?.invoiceRoom?.reportID).not.toEqual(convertedInvoiceChat.reportID);
+            // Assert that API.write has been called with parameters where the parameters.invoiceRoomReportID is not the same as the convertedInvoiceChat.reportID
+            expect(writeSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
+                }),
+                expect.anything(),
+                expect.anything(),
+            );
+
+            // Restore the original implementation
+            writeSpy.mockRestore();
+        });
     });
 });
