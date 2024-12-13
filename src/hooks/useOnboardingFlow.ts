@@ -3,7 +3,6 @@ import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,9 +26,8 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
-    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
 
@@ -37,7 +35,7 @@ function useOnboardingFlowRouter() {
             return;
         }
 
-        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
             const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
             const query = defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
@@ -78,8 +76,6 @@ function useOnboardingFlowRouter() {
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
-        allBetasMetadata,
-        allBetas,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

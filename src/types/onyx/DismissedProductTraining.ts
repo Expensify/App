@@ -1,6 +1,15 @@
 import CONST from '@src/CONST';
 
-const {CONCEIRGE_LHN_GBR, RENAME_SAVED_SEARCH, WORKSAPCE_CHAT_CREATE, QUICK_ACTION_BUTTON} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {
+    CONCEIRGE_LHN_GBR,
+    RENAME_SAVED_SEARCH,
+    WORKSAPCE_CHAT_CREATE,
+    QUICK_ACTION_BUTTON,
+    SEARCH_FILTER_BUTTON_TOOLTIP,
+    BOTTOM_NAV_INBOX_TOOLTIP,
+    LHN_WORKSPACE_CHAT_TOOLTIP,
+    GLOBAL_CREATE_TOOLTIP,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
  */
@@ -29,6 +38,26 @@ type DismissedProductTraining = {
      * When user dismisses the quickActionButton product training tooltip, we store the timestamp here.
      */
     [QUICK_ACTION_BUTTON]: Date;
+
+    /**
+     * When user dismisses the searchFilterButtonTooltip product training tooltip, we store the timestamp here.
+     */
+    [SEARCH_FILTER_BUTTON_TOOLTIP]: Date;
+
+    /**
+     * When user dismisses the bottomNavInboxTooltip product training tooltip, we store the timestamp here.
+     */
+    [BOTTOM_NAV_INBOX_TOOLTIP]: Date;
+
+    /**
+     * When user dismisses the lhnWorkspaceChatTooltip product training tooltip, we store the timestamp here.
+     */
+    [LHN_WORKSPACE_CHAT_TOOLTIP]: Date;
+
+    /**
+     * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
+     */
+    [GLOBAL_CREATE_TOOLTIP]: Date;
 };
 
 export default DismissedProductTraining;

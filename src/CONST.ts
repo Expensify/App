@@ -6441,6 +6441,10 @@ const CONST = {
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         QUICK_ACTION_BUTTON: 'quickActionButton',
         WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
+        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
+        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
+        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
 } as const;
 
