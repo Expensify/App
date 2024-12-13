@@ -285,6 +285,15 @@ function clearValidateCodeActionError(fieldName: string) {
 }
 
 /**
+ * Reset validateCodeSent on validate action code.
+ */
+function resetValidateActionCodeSent() {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        validateCodeSent: false,
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -1416,4 +1425,5 @@ export {
     clearValidateCodeActionError,
     subscribeToActiveGuides,
     setIsDebugModeEnabled,
+    resetValidateActionCodeSent,
 };
