@@ -60,6 +60,9 @@ type ReportActionsListProps = {
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
+    /** Sorted actions that should be visible to the user */
+    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID?: string | null;
 
@@ -138,6 +141,7 @@ function ReportActionsList({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     sortedReportActions,
+    sortedVisibleReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
     loadNewerChats,
@@ -150,7 +154,7 @@ function ReportActionsList({
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -182,20 +186,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-
-    const sortedVisibleReportActions = useMemo(
-        () =>
-            sortedReportActions.filter(
-                (reportAction) =>
-                    (isOffline ||
-                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
-                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                        reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
-            ),
-        [sortedReportActions, isOffline, canUserPerformWriteAction],
-    );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
@@ -211,6 +201,13 @@ function ReportActionsList({
         return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
     }, [report.reportID, report.lastReadTime]);
 
+    // In a one-expense report, the report actions from the expense report and transaction thread are combined.
+    // If the transaction thread has a newer action, it will show an unread marker if we compare it with the expense report lastReadTime.
+    // - expense report action A <- expense report lastReadTime
+    // - transaction thread action A <- transaction thread lastReadTime
+    // So, we use whichever lastReadTime that is bigger.
+    const lastReadTime = transactionThreadReport?.lastReadTime && transactionThreadReport.lastReadTime > reportLastReadTime ? transactionThreadReport.lastReadTime : reportLastReadTime;
+
     /**
      * The timestamp for the unread marker.
      *
@@ -219,9 +216,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(lastReadTime);
     useEffect(() => {
-        setUnreadMarkerTime(reportLastReadTime);
+        setUnreadMarkerTime(lastReadTime);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);

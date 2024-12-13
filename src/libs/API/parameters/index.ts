@@ -284,6 +284,7 @@ export type {default as ExportReportCSVParams} from './ExportReportCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
+export type {default as GetAssignedSupportDataParams} from './GetAssignedSupportDataParams';
 export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
@@ -354,5 +355,6 @@ export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerD
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
+export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';

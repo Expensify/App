@@ -24,7 +24,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     const styles = useThemeStyles();
 
     const accountHolderDetailsFields = useMemo(() => {
-        return corpayFields?.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
+        return corpayFields?.formFields?.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
     }, [corpayFields]);
     const fieldIds = accountHolderDetailsFields?.map((field) => field.id);
 
