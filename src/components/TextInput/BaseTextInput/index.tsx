@@ -24,6 +24,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import * as InputUtils from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -50,7 +51,6 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
-        autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -105,6 +105,7 @@ function BaseTextInput(
 
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const didScrollToEndRef = useRef(false);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -251,8 +252,7 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -422,7 +422,19 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                                <View
+                                    onLayout={() => {
+                                        if (didScrollToEndRef.current || !input.current) {
+                                            return;
+                                        }
+                                        InputUtils.scrollToRight(input.current);
+                                        didScrollToEndRef.current = true;
+                                    }}
+                                >
+                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                </View>
+                            )}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
@@ -488,6 +500,7 @@ function BaseTextInput(
             )}
             {/*
                  Text input component doesn't support auto grow by default.
+                 We're using a hidden text input to achieve that.
                  This text view is used to calculate width or height of the input value given textStyle in this component.
                  This Text component is intentionally positioned out of the screen.
              */}
