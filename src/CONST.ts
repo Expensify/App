@@ -344,11 +344,14 @@ const CONST = {
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_THUMBSUP_DURATION: 250,
+    ANIMATION_THUMBSUP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
+    CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
@@ -6399,19 +6402,18 @@ const CONST = {
         },
     },
 
-    DEVICE_CONTACT: {
-        FIRST_NAME: 'FIRST_NAME',
-        LAST_NAME: 'LAST_NAME',
-        PHONE_NUMBERS: 'PHONE_NUMBERS',
-        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
-        IMAGE_DATA: 'IMAGE_DATA',
-    },
-
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        RENAME_SAVED_SEARCH: 'renameSavedSearch',
+        QUICK_ACTION_BUTTON: 'quickActionButton',
+        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
