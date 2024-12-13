@@ -177,7 +177,7 @@ function ScreenWrapper(
     }, [route?.params]);
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        NativeModules.HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
     });
 
     const panResponder = useRef(
