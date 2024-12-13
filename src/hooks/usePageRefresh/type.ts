@@ -1,3 +1,3 @@
-type UsePageRefresh = () => () => void;
+type UsePageRefresh = () => (isChunkLoadError?: boolean) => void;
 
 export default UsePageRefresh;
