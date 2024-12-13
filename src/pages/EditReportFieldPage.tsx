@@ -40,7 +40,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = (ReportUtils.isPaidGroupPolicyExpenseReport(report) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const reportFieldsEnabled = ((ReportUtils.isPaidGroupPolicyExpenseReport(report) || ReportUtils.isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
