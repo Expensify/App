@@ -1509,12 +1509,14 @@ function isArchivedRoom(report: OnyxInputOrEntry<Report> | SearchReport, reportN
 /**
  * Whether the report with the provided reportID is an archived room
  */
-function isArchivedRoomWithID(reportID?: string) {
-    if (!reportID) {
+function isArchivedRoomWithID(reportOrID?: string | SearchReport) {
+    if (!reportOrID) {
         return false;
     }
 
-    return isArchivedRoom(getReport(reportID), getReportNameValuePairs(reportID));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    return isArchivedRoom(report);
 }
 
 /**
@@ -2599,7 +2601,7 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
  */
 function getReimbursementQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     shouldUseShortDisplayName = true,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
@@ -2620,7 +2622,7 @@ function getReimbursementQueuedActionMessage(
  */
 function getReimbursementDeQueuedActionMessage(
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
-    reportOrID: OnyxEntry<Report> | string,
+    reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
@@ -4820,7 +4822,7 @@ function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -4839,7 +4841,7 @@ function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeo
  * We pass the reportID as older FORWARDED actions do not have the amount & currency stored in the message
  * so we retrieve the amount from the report instead
  */
-function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string) {
+function getIOUForwardedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>, reportOrID: OnyxInputOrEntry<Report> | string | SearchReport) {
     const expenseReport = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OriginalMessageIOU;
     let formattedAmount;
@@ -6780,17 +6782,18 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxInputOrEntry<Report>): boolean {
+function chatIncludesChronos(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
 
-function chatIncludesChronosWithID(reportID?: string): boolean {
-    if (!reportID) {
+function chatIncludesChronosWithID(reportOrID?: string | SearchReport): boolean {
+    if (!reportOrID) {
         return false;
     }
 
-    return chatIncludesChronos(getReport(reportID));
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
+    return chatIncludesChronos(report);
 }
 
 /**
@@ -8854,4 +8857,5 @@ export type {
     TransactionDetails,
     PartialReportAction,
     ParsingDetails,
+    MissingPaymentMethod,
 };
