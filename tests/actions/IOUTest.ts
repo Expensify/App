@@ -21,6 +21,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {convertedInvoiceChat} from '../unit/ReportUtilsTest';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -3302,5 +3303,233 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+    });
+
+    describe('getSendInvoiceInformation', () => {
+        // Given a convertedInvoiceReport is stored in Onyx
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat.reportID}`, convertedInvoiceChat);
+
+        // And data for when a new invoice is sent to a user
+        const transaction: OnyxEntry<OnyxTypes.Transaction> = {
+            amount: 100,
+            attendees: [
+                {
+                    email: 'a1@53019.com',
+                    login: 'a1@53019.com',
+                    displayName: 'a1',
+                    avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+                    accountID: 32,
+                    text: 'a1@53019.com',
+                    selected: true,
+                    reportID: '3634215302663162',
+                },
+            ],
+            comment: {
+                customUnit: {
+                    customUnitRateID: '_FAKE_P2P_ID_',
+                },
+            },
+            created: '2024-12-13',
+            currency: 'USD',
+            iouRequestType: 'manual',
+            reportID: '3634215302663162',
+            transactionID: '1',
+            isFromGlobalCreate: true,
+            merchant: '(none)',
+            splitPayerAccountIDs: [32],
+            shouldShowOriginalAmount: true,
+            participants: [
+                {
+                    accountID: 33,
+                    login: 'b1@53019.com',
+                    isPolicyExpenseChat: false,
+                    reportID: '',
+                    selected: true,
+                    iouType: 'invoice',
+                },
+                {
+                    policyID: 'CC048FA711B35B1F',
+                    isSender: true,
+                    selected: false,
+                    iouType: 'invoice',
+                },
+            ],
+            tag: '',
+            category: '',
+            billable: false,
+        };
+        const currentUserAccountID = 32;
+        const policy: OnyxEntry<OnyxTypes.Policy> = {
+            id: 'CC048FA711B35B1F',
+            type: 'team',
+            name: "53019's Workspace",
+            role: 'admin',
+            owner: 'a1@53019.com',
+            ownerAccountID: 32,
+            isPolicyExpenseChatEnabled: true,
+            outputCurrency: 'USD',
+            autoReporting: true,
+            autoReportingFrequency: 'instant',
+            approvalMode: 'OPTIONAL',
+            harvesting: {
+                enabled: true,
+                jobID: 7206965285807173000,
+            },
+            customUnits: {
+                '39C3FF491F559': {
+                    customUnitID: '39C3FF491F559',
+                    name: 'Distance',
+                    attributes: {
+                        unit: 'mi',
+                    },
+                    rates: {
+                        '928A74633831E': {
+                            customUnitRateID: '928A74633831E',
+                            name: 'Default Rate',
+                            rate: 67,
+                            enabled: true,
+                            currency: 'USD',
+                        },
+                    },
+                    defaultCategory: 'Car',
+                    enabled: true,
+                },
+            },
+            areCategoriesEnabled: true,
+            areTagsEnabled: false,
+            areDistanceRatesEnabled: false,
+            areWorkflowsEnabled: false,
+            areReportFieldsEnabled: false,
+            areConnectionsEnabled: false,
+            employeeList: {
+                'a1@53019.com': {
+                    role: 'admin',
+                    errors: {},
+                    email: 'a1@53019.com',
+                    forwardsTo: '',
+                    submitsTo: 'a1@53019.com',
+                },
+            },
+            pendingFields: {},
+            chatReportIDAnnounce: 0,
+            chatReportIDAdmins: 1811331783036078,
+            address: [],
+            approver: 'a1@53019.com',
+            areCompanyCardsEnabled: false,
+            areExpensifyCardsEnabled: false,
+            areInvoicesEnabled: true,
+            arePerDiemRatesEnabled: false,
+            areRulesEnabled: false,
+            autoReimbursement: {
+                limit: 0,
+            },
+            autoReimbursementLimit: 0,
+            autoReportingOffset: 1,
+            avatarURL: '',
+            defaultBillable: false,
+            description: '',
+            disabledFields: {
+                defaultBillable: true,
+                reimbursable: false,
+            },
+            fieldList: {
+                text_title: {
+                    defaultValue: '{report:type} {report:startdate}',
+                    deletable: true,
+                    disabledOptions: [],
+                    externalIDs: [],
+                    fieldID: 'text_title',
+                    isTax: false,
+                    keys: [],
+                    name: 'title',
+                    orderWeight: 0,
+                    target: 'expense',
+                    type: 'formula',
+                    values: [],
+                },
+            },
+            hasMultipleTagLists: false,
+            invoice: {
+                markUp: 0,
+                companyName: 'b1-53019',
+                companyWebsite: 'https://www.53019.com',
+                pendingFields: {},
+                bankAccount: {
+                    stripeConnectAccountBalance: 0,
+                    stripeConnectAccountID: 'acct_1QVeO7S7tHTCCfyY',
+                    transferBankAccountID: 29,
+                },
+            },
+            preventSelfApproval: false,
+            reimbursementChoice: 'reimburseManual',
+            requiresCategory: false,
+            requiresTag: false,
+            tax: {
+                trackingEnabled: false,
+            },
+            mccGroup: {
+                airlines: {
+                    category: 'Travel',
+                    groupID: 'airlines',
+                },
+                commuter: {
+                    category: 'Car',
+                    groupID: 'commuter',
+                },
+                gas: {
+                    category: 'Car',
+                    groupID: 'gas',
+                },
+                goods: {
+                    category: 'Materials',
+                    groupID: 'goods',
+                },
+                groceries: {
+                    category: 'Meals and Entertainment',
+                    groupID: 'groceries',
+                },
+                hotel: {
+                    category: 'Travel',
+                    groupID: 'hotel',
+                },
+                mail: {
+                    category: 'Office Supplies',
+                    groupID: 'mail',
+                },
+                meals: {
+                    category: 'Meals and Entertainment',
+                    groupID: 'meals',
+                },
+                rental: {
+                    category: 'Travel',
+                    groupID: 'rental',
+                },
+                services: {
+                    category: 'Professional Services',
+                    groupID: 'services',
+                },
+                taxi: {
+                    category: 'Travel',
+                    groupID: 'taxi',
+                },
+                uncategorized: {
+                    category: 'Other',
+                    groupID: 'uncategorized',
+                },
+                utilities: {
+                    category: 'Utilities',
+                    groupID: 'utilities',
+                },
+            },
+            rules: [],
+        };
+        const companyName = 'b1-53019';
+        const companyWebsite = 'https://www.53019.com';
+
+        // When getSendInvoiceInformation is called
+        const information = IOU.getSendInvoiceInformation(transaction, currentUserAccountID, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+
+        // Then a new invoice chat/room is created
+        expect(information?.invoiceRoom?.reportID).not.toEqual(convertedInvoiceChat.reportID);
     });
 });
