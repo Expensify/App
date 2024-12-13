@@ -4003,6 +4003,7 @@ const styles = (theme: ThemeColors) =>
 
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         productTrainingTooltipText: {
