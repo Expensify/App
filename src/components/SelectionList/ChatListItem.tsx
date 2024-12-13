@@ -67,6 +67,7 @@ function ChatListItem<TItem extends ListItem>({
     const pressableStyle = [
         styles.selectionListPressableItemWrapper,
         styles.textAlignLeft,
+        styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
