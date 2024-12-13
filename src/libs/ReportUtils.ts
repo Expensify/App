@@ -8830,7 +8830,6 @@ export {
     getReportLastMessage,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
-    getReport,
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,

@@ -91,7 +91,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const targetPolicyID = updatedTransaction?.reportID ? ReportUtils.getReport(updatedTransaction?.reportID)?.policyID : policyID;
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`);
+    const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
