@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
@@ -64,8 +65,9 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
                     Welcome.setOnboardingCompanySize(selectedCompanySize);
 
+                    const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+
                     if (!onboardingPolicyID) {
-                        const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
                     }
@@ -73,6 +75,21 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
+                    }
+
+                    // For other company sizes we want to complete onboarding here.
+                    // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
+                    if (onboardingPurposeSelected) {
+                        Report.completeOnboarding(
+                            onboardingPurposeSelected,
+                            CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            undefined,
+                            undefined,
+                            adminsChatReportID,
+                            onboardingPolicyID,
+                            undefined,
+                            onboardingCompanySize,
+                        );
                     }
 
                     NativeModules.HybridAppModule.closeReactNativeApp(false, true);
