@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -17,6 +16,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -41,9 +41,6 @@ import ShowMoreButton from './ShowMoreButton';
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
     action: IOUAction;
-
-    /** Flag indicating if P2P distance requests can be used */
-    canUseP2PDistanceRequests: boolean | undefined;
 
     /** The currency of the transaction */
     currency: string;
@@ -104,9 +101,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the merchant is required */
     isMerchantRequired: boolean | undefined;
-
-    /** Flag indicating if the transaction is moved from track expense */
-    isMovingTransactionFromTrackExpense: boolean;
 
     /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
@@ -177,7 +171,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
 function MoneyRequestConfirmationListFooter({
     action,
-    canUseP2PDistanceRequests,
     currency,
     didConfirm,
     distance,
@@ -198,7 +191,6 @@ function MoneyRequestConfirmationListFooter({
     isEditingSplitBill,
     isMerchantEmpty,
     isMerchantRequired,
-    isMovingTransactionFromTrackExpense,
     isPolicyExpenseChat,
     isReadOnly,
     isTypeInvoice,
@@ -223,7 +215,6 @@ function MoneyRequestConfirmationListFooter({
     unit,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -232,7 +223,7 @@ function MoneyRequestConfirmationListFooter({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && TagsOptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
@@ -353,24 +344,6 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.distance')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm}
-                    // todo: handle edit for transaction while moving from track expense
-                    interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
-                />
-            ),
-            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
-            isSupplementary: false,
-        },
-        {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
@@ -381,7 +354,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -398,7 +371,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
-            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            shouldShow: isDistanceRequest,
             isSupplementary: false,
         },
         {
@@ -454,7 +427,12 @@ function MoneyRequestConfirmationListFooter({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                            CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                        )
+                    }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -554,7 +532,6 @@ function MoneyRequestConfirmationListFooter({
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
                         isActive={iouIsBillable}
                         disabled={isReadOnly}
-                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
                         wrapperStyle={styles.flex1}
                     />
                 </View>
@@ -692,7 +669,6 @@ export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.action, nextProps.action) &&
-        prevProps.canUseP2PDistanceRequests === nextProps.canUseP2PDistanceRequests &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -711,7 +687,6 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isMovingTransactionFromTrackExpense === nextProps.isMovingTransactionFromTrackExpense &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&

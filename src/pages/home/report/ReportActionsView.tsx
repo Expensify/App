@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -6,12 +5,12 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -86,10 +85,11 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? -1}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+            ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, ReportUtils.canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
@@ -214,6 +214,20 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const visibleReportActions = useMemo(
+        () =>
+            reportActions.filter(
+                (reportAction) =>
+                    (isOffline ||
+                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        reportAction.errors) &&
+                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
+            ),
+        [reportActions, isOffline, canUserPerformWriteAction],
+    );
+
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions.map((action) => action.reportActionID);
         return reportActions.map((action) => ({
@@ -224,8 +238,8 @@ function ReportActionsView({
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
-    const hasNewestReportAction = reportActions.at(0)?.created === report.lastVisibleActionCreated || reportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
+    const hasNewestReportAction =
+        visibleReportActions.at(0)?.created === report.lastVisibleActionCreated || visibleReportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {
@@ -363,18 +377,16 @@ function ReportActionsView({
         }
 
         didLayout.current = true;
-        // Capture the init measurement only once not per each chat switch as the value gets overwritten
-        if (!ReportActionsView.initMeasured) {
-            Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            ReportActionsView.initMeasured = true;
-        } else {
-            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
-        }
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
+        Timing.end(CONST.TIMING.OPEN_REPORT);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
         Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-    }, [hasCachedActionOnFirstRender]);
+    }, []);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
@@ -417,6 +429,7 @@ function ReportActionsView({
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActions}
+                sortedVisibleReportActions={visibleReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
@@ -436,7 +449,6 @@ function ReportActionsView({
 }
 
 ReportActionsView.displayName = 'ReportActionsView';
-ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {

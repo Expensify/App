@@ -7,13 +7,17 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
-    query?: string;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
+    searchQuery?: string;
+    autocompleteID?: string;
+    roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+    mapKey?: string;
 };
 
 type SearchQueryListItemProps = {
@@ -24,6 +28,10 @@ type SearchQueryListItemProps = {
     onFocus?: () => void;
     shouldSyncFocus?: boolean;
 };
+
+function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQueryItem {
+    return 'searchItemType' in item;
+}
 
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
@@ -80,4 +88,5 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
 SearchQueryListItem.displayName = 'SearchQueryListItem';
 
 export default SearchQueryListItem;
+export {isSearchQueryItem};
 export type {SearchQueryItem, SearchQueryListItemProps};

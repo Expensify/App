@@ -54,11 +54,6 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
     useEffect(() => {
         updateDisplayTexts();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        updateDisplayTexts();
     }, [updateDisplayTexts]);
 
     const confirm = useCallback(() => {

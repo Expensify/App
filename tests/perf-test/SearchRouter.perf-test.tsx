@@ -133,7 +133,7 @@ function SearchRouterInputWrapper() {
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SearchRouterInput
                 value={value}
-                updateSearch={(searchTerm) => setValue(searchTerm)}
+                onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
             />
         </ComposeProviders>
@@ -143,7 +143,7 @@ function SearchRouterInputWrapper() {
 function SearchRouterWrapperWithCachedOptions() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, areOptionsInitialized: true}), [])}>
+            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
                 <SearchRouter onRouterClose={mockOnClose} />
             </OptionsListContext.Provider>
         </ComposeProviders>
