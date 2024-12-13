@@ -5481,7 +5481,7 @@ const translations = {
         },
         globalCreateTooltip: {
             part1: 'Where to ',
-            part2: ' create expenses,',
+            part2: 'create expenses,',
             part3: '\nstart chatting, and more.',
         },
     },
