@@ -3399,7 +3399,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-        })
+        });
     });
 
     describe('updateMoneyRequestCategory', () => {
