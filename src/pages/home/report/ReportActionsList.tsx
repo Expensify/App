@@ -420,7 +420,7 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            if (!hasNewestReportActionRef.current) {
+            if (!hasNewestReportActionRef.current && isFocused) {
                 if (isInNarrowPaneModal) {
                     return;
                 }
@@ -429,7 +429,7 @@ function ReportActionsList({
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [isInNarrowPaneModal, reportScrollManager, report.reportID],
+        [isInNarrowPaneModal, reportScrollManager, report.reportID, isFocused],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
