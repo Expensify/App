@@ -338,7 +338,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors | ReceiptErrors;
 
         /** Server side errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields<'route'>;
+        errorFields?: OnyxCommon.ErrorFields;
 
         /** The name of the file used for a receipt (formerly receiptFilename) */
         filename?: string;
