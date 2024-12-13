@@ -115,7 +115,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
-            // The result should be empty array since the policies contains only archived paid policy.
+            // The result should be an empty array since we have no active policies.
             expect(result.length).toBe(0);
         });
         it('should return array contains policy which has id = 1', () => {
