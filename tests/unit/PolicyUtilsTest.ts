@@ -126,7 +126,7 @@ describe('PolicyUtils', () => {
                 1: randomPolicy1,
             };
             const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
-            // The result should contain the mock paid policy.
+            // The result should contain the mock paid policy, since it is our only active paid policy.
             expect(result).toContainEqual(randomPolicy1);
         });
         it('should return empty array', () => {
