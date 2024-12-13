@@ -307,6 +307,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     return approvalWorkflows.flatMap((workflow) => {
         const [currentApprover] = workflow.approvers;
         const isSingleApprover = workflow.approvers.length === 1;
+        const isMultipleApprovers = workflow.approvers.length > 1;
         const isApproverToRemove = currentApprover?.email === removedApproverEmail;
         const defaultHasOwner = defaultWorkflow?.approvers.some((approver) => approver.email === ownerEmail);
 
@@ -354,6 +355,42 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     ],
                 };
             }
+        }
+
+        if (isMultipleApprovers && defaultHasOwner && workflow.approvers.some((item) => item.email === removedApproverEmail)) {
+            const removedApproverIndex = workflow.approvers.findIndex((item) => item.email === removedApproverEmail);
+
+            // If the removed approver is the first in the list, return an empty array
+            if (removedApproverIndex === 0) {
+                return [];
+            }
+
+            const updateApprovers = workflow.approvers.slice(0, removedApproverIndex);
+            const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
+
+            // If the owner is already in the approvers list, return the workflow with the updated approvers
+            if (updateApproversHasOwner) {
+                return {
+                    ...workflow,
+                    approvers: updateApprovers,
+                };
+            }
+
+            // Update forwardsTo if necessary and prepare the new approver object
+            const updatedApprovers = updateApprovers.flatMap((item) => (item.forwardsTo === removedApproverEmail ? {...item, forwardsTo: ownerEmail} : item));
+
+            const newApprover = {
+                email: ownerEmail ?? '',
+                forwardsTo: '',
+                avatar: ownerDetails?.avatar ?? '',
+                displayName: ownerDetails?.displayName ?? '',
+                isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
+            };
+
+            return {
+                ...workflow,
+                approvers: [...updatedApprovers, newApprover],
+            };
         }
 
         // Return the unchanged workflow in other cases
