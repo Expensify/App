@@ -1481,7 +1481,7 @@ describe('ReportUtils', () => {
             };
 
             // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(convertedInvoiceChat.policyID, 33, reports);
+            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(convertedInvoiceChat.policyID, 33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, reports);
 
             // Then no invoice chat should be returned because the receiver type does not match
             expect(invoiceChatReport).toBeUndefined();

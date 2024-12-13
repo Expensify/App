@@ -61,6 +61,9 @@ type InvoiceReceiver =
           policyID: string;
       };
 
+/** Type of invoice receiver */
+type InvoiceReceiverType = InvoiceReceiver['type'];
+
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
@@ -244,4 +247,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};

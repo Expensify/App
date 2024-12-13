@@ -52,7 +52,7 @@ import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/Ony
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
+import type {InvoiceReceiverType, NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -6746,7 +6746,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
 /**
  * Attempts to find an invoice chat report in onyx with the provided policyID and receiverID.
  */
-function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, receiverType: InvoiceReceiverType, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     return Object.values(reports ?? {}).find((report) => {
         if (!report || !isInvoiceRoom(report) || isArchivedRoom(report)) {
             return false;
@@ -6754,6 +6754,7 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 
         const isSameReceiver =
             report.invoiceReceiver &&
+            report.invoiceReceiver.type === receiverType &&
             (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
                 ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
 
