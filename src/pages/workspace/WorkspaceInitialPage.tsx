@@ -359,7 +359,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
+    const canAccessRoute = activeRoute && (menuItems.some((item) => item.routeName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
 
     useEffect(() => {
         if (!shouldShowNotFoundPage && canAccessRoute) {

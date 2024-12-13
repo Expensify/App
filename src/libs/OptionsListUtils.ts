@@ -351,7 +351,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login) || participant.text);
+    const displayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID),
@@ -401,7 +401,7 @@ function uniqFast(items: string[]): string[] {
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+          lastActorDetails.firstName || LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails))
         : '';
 }
 
@@ -499,7 +499,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+                    displayName: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)),
                     policyName: ReportUtils.getPolicyName(report, false, policy),
                 });
                 break;
@@ -1351,10 +1351,10 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
-    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
+    const login = personalDetail?.login ?? '';
     return {
-        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
-        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+        text: LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, login)),
+        alternateText: LocalePhoneNumber.formatPhoneNumber(login || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false)),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
