@@ -58,8 +58,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return {tooltipToRender: tooltip, shouldShowTooltip: isScreenFocused};
-    }, [shouldShowGetStartedTooltip, isScreenFocused]);
+        return {tooltipToRender: tooltip, shouldShowTooltip: shouldUseNarrowLayout ? isScreenFocused : true};
+    }, [shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
     const {translate} = useLocalize();

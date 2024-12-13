@@ -9,6 +9,7 @@ import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {PressableWithoutFeedback} from './Pressable';
@@ -62,6 +63,8 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const platform = getPlatform();
+    const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const isFocused = useBottomTabIsFocused();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
@@ -111,11 +114,11 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             shouldUseOverlay
-            shiftHorizontal={shouldUseNarrowLayout ? 0 : variables.fabTooltipShiftHorizontal}
+            shiftHorizontal={isNarrowScreenOnWeb ? 0 : variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             onHideTooltip={hideProductTrainingTooltip}

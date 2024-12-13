@@ -12,6 +12,7 @@ import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
@@ -30,7 +31,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+    const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
@@ -72,6 +73,10 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata)) {
+                return false;
+            }
+
             const isDismissed = !!dismissedProductTraining?.[tooltipName];
 
             if (isDismissed) {
@@ -79,12 +84,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             }
             const tooltipConfig = TOOLTIPS[tooltipName];
 
-            if (!isOnboardingCompleted && !hasBeenAddedToNudgeMigration) {
-                return false;
-            }
-
             // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
+                return false;
+            }
+            if (isOnboardingCompleted === false) {
                 return false;
             }
 
@@ -92,7 +96,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 shouldUseNarrowLayout,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, shouldUseNarrowLayout],
+        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout],
     );
 
     const registerTooltip = useCallback(

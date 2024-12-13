@@ -12,9 +12,9 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList, RootStackParamList, State} from '@libs/Navigation/types';
@@ -82,7 +82,8 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
     const isFocused = useBottomTabIsFocused();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         selectedTab !== SCREENS.HOME && isFocused,
@@ -148,9 +149,10 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
+                    shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
                     shouldUseOverlay
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
