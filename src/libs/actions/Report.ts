@@ -3969,14 +3969,14 @@ function prepareOnboardingOptimisticData(
         guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         const selfDMReportID = ReportUtils.findSelfDMReportID();
         const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
             value: {
-                isPinned: false,
+                isPinned: true,
             },
         });
 
