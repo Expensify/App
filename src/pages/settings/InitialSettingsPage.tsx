@@ -244,7 +244,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     ...(NativeModules.HybridAppModule
                         ? {
                               action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                                  NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setInitialURL(undefined);
                               },
                           }

@@ -140,7 +140,7 @@ function connect(email: string) {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccount(email);
+                    NativeModules.HybridAppModule.switchAccount({newDotCurrentAccount: email});
                 });
         })
         .catch((error) => {
@@ -210,7 +210,7 @@ function disconnect() {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '');
+                    NativeModules.HybridAppModule.switchAccount({newDotCurrentAccount: getCurrentUserEmail() ?? ''});
                 });
         })
         .catch((error) => {

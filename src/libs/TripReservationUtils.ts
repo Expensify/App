@@ -108,7 +108,7 @@ function bookATrip(translate: LocaleContextProps['translate'], setCtaErrorMessag
             }
 
             Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-            NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+            NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         })
         ?.catch(() => {
             setCtaErrorMessage(translate('travel.errorMessage'));
