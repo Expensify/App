@@ -112,46 +112,24 @@ function IOURequestStepCategory({
         const categorySearchText = category.searchText ?? '';
         const isSelectedCategory = categorySearchText === transactionCategory;
         const updatedCategory = isSelectedCategory ? '' : categorySearchText;
-        const categoryTaxCode = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], updatedCategory, policy?.taxRates?.defaultExternalID);
-        let categoryTaxPercentage;
-        let categoryTaxAmount;
-
-        if (categoryTaxCode) {
-            categoryTaxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, categoryTaxCode);
-
-            if (categoryTaxPercentage) {
-                categoryTaxAmount = CurrencyUtils.convertToBackendAmount(
-                    TransactionUtils.calculateTaxAmount(categoryTaxPercentage, TransactionUtils.getAmount(currentTransaction), TransactionUtils.getCurrency(transaction)),
-                );
-            }
-        }
 
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplitBill) {
                 const transactionChanges: TransactionUtils.TransactionChanges = {category: updatedCategory};
-                if (categoryTaxCode && categoryTaxAmount !== undefined) {
-                    transactionChanges.taxCode = categoryTaxCode;
-                    transactionChanges.taxAmount = categoryTaxAmount;
-                }
-                IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
+                IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges, policy);
                 navigateBack();
                 return;
             }
 
             if (isEditing && report) {
-                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, categoryTaxCode, categoryTaxAmount, policy, policyTags, policyCategories);
+                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
                 navigateBack();
                 return;
             }
         }
 
-        IOU.setMoneyRequestCategory(transactionID, updatedCategory);
-
-        if (categoryTaxCode && categoryTaxAmount !== undefined) {
-            IOU.setMoneyRequestTaxRate(transactionID, categoryTaxCode);
-            IOU.setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
-        }
+        IOU.setMoneyRequestCategory(transactionID, updatedCategory, policy?.id);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));

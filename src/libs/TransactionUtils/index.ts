@@ -9,7 +9,8 @@ import type {ValueOf} from 'type-fest';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {TransactionMergeParams} from '@libs/API/parameters';
-import {getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -1232,6 +1233,23 @@ function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicat
     };
 }
 
+function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+    const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
+    if (!taxRules || taxRules?.length === 0) {
+        return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
+    }
+
+    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, policy?.taxRates?.defaultExternalID);
+    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
+    let categoryTaxAmount;
+
+    if (categoryTaxPercentage) {
+        categoryTaxAmount = convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrency(transaction)));
+    }
+
+    return {categoryTaxCode, categoryTaxAmount};
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1316,6 +1334,7 @@ export {
     hasReceiptSource,
     shouldShowAttendees,
     getFormattedPostedDate,
+    getCategoryTaxCodeAndAmount,
 };
 
 export type {TransactionChanges};

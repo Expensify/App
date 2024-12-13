@@ -169,9 +169,9 @@ function IOURequestStepConfirmation({
             return;
         }
         if (policyCategories?.[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.setMoneyRequestCategory(transactionID, '');
+            IOU.setMoneyRequestCategory(transactionID, '', policy?.id);
         }
-    }, [policyCategories, transaction?.category, transactionID]);
+    }, [policy?.id, policyCategories, transaction?.category, transactionID]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
@@ -180,10 +180,10 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!transaction?.category) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory, policy?.id);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionID, requestType, defaultCategory]);
+    }, [transactionID, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
