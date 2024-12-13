@@ -2,6 +2,7 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import * as Localize from '@libs/Localize';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -12,6 +13,7 @@ import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
@@ -24,6 +26,9 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
     resume: () => Promise<void>;
     mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
 };
+
+type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
+type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -63,6 +68,19 @@ function buildPersonalDetails(login: string, accountID: number, firstName = 'Tes
         timezone: CONST.DEFAULT_TIME_ZONE,
         phoneNumber: '',
     };
+}
+
+function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
+    return new Promise<void>((resolve) => {
+        const connectionID = Onyx.connect({
+            ...options,
+            callback: (...params: ConnectionCallbackParams<TKey>) => {
+                Onyx.disconnect(connectionID);
+                (options.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
+                resolve();
+            },
+        });
+    });
 }
 
 /**
@@ -335,4 +353,5 @@ export {
     expectAPICommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
     navigateToSidebarOption,
+    getOnyxData,
 };
