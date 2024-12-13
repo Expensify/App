@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -86,10 +86,16 @@ function WorkspaceSwitcherPage() {
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             setActiveWorkspaceID(newPolicyID);
+            Navigation.goBack();
             if (newPolicyID !== activeWorkspaceID) {
-                InteractionManager.runAfterInteractions(() => {
+                if (Platform.OS === 'ios') {
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+                    });
+                } else {
                     Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
-                });
+                }
+
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID, isFocused],
