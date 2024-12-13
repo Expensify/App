@@ -166,7 +166,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1, styles.p2]}>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
                 <Icon
                     src={Expensicons.Lightbulb}
                     fill={theme.tooltipHighlightText}
@@ -191,7 +191,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.alignItemsCenter,
         styles.flexRow,
         styles.flexWrap,
-        styles.gap1,
+        styles.gap3,
         styles.justifyContentCenter,
         styles.mw100,
         styles.p2,

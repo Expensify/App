@@ -11,15 +11,15 @@ const useBottomTabIsFocused = () => {
     const isFocused = useIsFocused();
     const topmostFullScreenName = useNavigationState<RootStackParamList, NavigationPartialRoute<FullScreenName> | undefined>(getTopmostFullScreenRoute);
     const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-    // if there is a full screen like worspace settings, not found screen, etc. then bottom tab should is not focused
+    // If there is a full screen view such as Workspace Settings or Not Found screen, the bottom tab should not be considered focused
     if (topmostFullScreenName) {
         return false;
     }
-    // on search screen, isFocused is returned false but it is focused
+    // On the Search screen, isFocused returns false, but it is actually focused
     if (shouldUseNarrowLayout) {
         return isFocused || topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE;
     }
-    // on desktop screen size isFocused is always returned as false so we can't rely on it to determine if bottom tab is focused
+    // On desktop screen sizes, isFocused always returns false, so we cannot rely on it alone to determine if the bottom tab is focused
     return isFocused || Object.keys(CENTRAL_PANE_SCREENS).includes(topmostCentralPane?.name ?? '');
 };
 
