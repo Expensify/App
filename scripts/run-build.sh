@@ -25,7 +25,7 @@ if [ "$#" -eq 1 ]; then
     BUILD="$1"
 elif [ "$#" -eq 2 ]; then
     if [ "$1" == "--new-dot" ]; then
-        BUILD="$2"      
+        BUILD="$2"
         NEW_DOT_FLAG="true"
     elif [ "$2" == "--new-dot" ]; then
         BUILD="$1"
@@ -45,7 +45,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
     SCHEME="Expensify"
-    APP_ID="org.me.mobiexpensifyg"
+    APP_ID="org.me.mobiexpensifyg.dev"
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
     PROJECT_ROOT_PATH="Mobile-Expensify/"
