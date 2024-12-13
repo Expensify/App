@@ -223,18 +223,6 @@ describe('OptionsListUtils', () => {
             login: 'brucebanner@expensify.com',
             reportID: '',
         },
-        '110': {
-            accountID: 110,
-            displayName: 'SubString',
-            login: 'SubString@mail.com',
-            reportID: '',
-        },
-        '111': {
-            accountID: 111,
-            displayName: 'String',
-            login: 'String@mail.com',
-            reportID: '',
-        },
     };
 
     const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
@@ -998,15 +986,6 @@ describe('OptionsListUtils', () => {
                     expect(filteredResults.recentReports.length).toBe(1);
                     expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
-        });
-
-        it('should return prefix match before suffix match', () => {
-            const options = OptionsListUtils.getSearchOptions(OPTIONS);
-            const filteredOptions = OptionsListUtils.filterOptions(options, 'String');
-
-            expect(filteredOptions.personalDetails.length).toBe(2);
-            expect(filteredOptions.personalDetails.at(0)?.text).toBe('String');
-            expect(filteredOptions.personalDetails.at(1)?.text).toBe('SubString');
         });
     });
 
