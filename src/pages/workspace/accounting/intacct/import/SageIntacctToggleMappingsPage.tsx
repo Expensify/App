@@ -51,12 +51,14 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const policy = usePolicy(route.params.policyID);
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const policyID: string = policy?.id ?? '-1';
-
     const config = policy?.connections?.intacct?.config;
+    const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+
+    // We are storing translation keys in the local state for animation purposes.
+    // Otherwise, the values change to undefined immediately after clicking, before the closing animation finishes,
+    // resulting in a janky animation effect.
 
     const [translationKeys, setTranslationKey] = useState<DisplayTypeTranslationKeys | undefined>(undefined);
-
-    const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
 
     useEffect(() => {
         if (!isImportMappingEnable) {

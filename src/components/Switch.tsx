@@ -28,8 +28,8 @@ type SwitchProps = {
     disabledAction?: () => void;
 
     /**
-     * onStateChange: Callback function triggered only after the external state of the switch has successfully changed.
-     * This allows additional actions to be executed in response to the confirmed state transition.
+     * Callback function triggered only after a successful change
+     * in the external state of the switch, after the switch state change animation is triggered
      */
     onStateChange?: (isOn: boolean) => void;
 };

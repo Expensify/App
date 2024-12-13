@@ -3,10 +3,11 @@ import React from 'react';
 import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: ReactNode; duration?: number}) {
+function Accordion({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: ReactNode; duration?: number}) {
     const height = useSharedValue(0);
-
+    const styles = useThemeStyles();
     const derivedHeight = useDerivedValue(() =>
         withTiming(height.get() * Number(isExpanded.get()), {
             duration,
@@ -17,7 +18,7 @@ function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: Shar
     }));
 
     return (
-        <Animated.View style={[bodyStyle, {overflow: 'hidden'}]}>
+        <Animated.View style={[bodyStyle, styles.overflowHidden]}>
             <View
                 onLayout={(e) => {
                     height.set(e.nativeEvent.layout.height);
@@ -30,4 +31,4 @@ function AccordionItem({isExpanded, children, duration = 300}: {isExpanded: Shar
     );
 }
 
-export default AccordionItem;
+export default Accordion;

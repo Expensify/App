@@ -3,7 +3,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import AccordionItem from '@components/Acordition';
+import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -185,7 +185,7 @@ function ToggleSettingOptionRow({
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                <AccordionItem isExpanded={isExpanded}>{subMenuItems}</AccordionItem>
+                <Accordion isExpanded={isExpanded}>{subMenuItems}</Accordion>
             </View>
         </OfflineWithFeedback>
     );
