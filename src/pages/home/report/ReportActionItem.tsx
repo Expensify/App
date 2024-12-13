@@ -42,7 +42,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod?.(userWallet, linkedReport?.reportID ?? '-1', action);
+    const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
 
     return (
         <PureReportActionItem

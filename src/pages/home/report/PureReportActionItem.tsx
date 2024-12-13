@@ -42,6 +42,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -241,6 +242,11 @@ type PureReportActionItemProps = {
     reportAutomaticallyForwardedMessage?: string;
 };
 
+/**
+ * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
+ * Since the search result has a separate Onyx key under the 'snapshot_' prefix, we should not connect this component with Onyx.
+ * Instead, pass all Onyx read/write operations as props.
+ */
 function PureReportActionItem({
     action,
     report,
@@ -713,7 +719,7 @@ function PureReportActionItem({
             );
         } else if (ReportActionsUtils.isReimbursementQueuedAction(action)) {
             const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]);
+            const submitterDisplayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]));
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
