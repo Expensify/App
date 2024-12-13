@@ -46,7 +46,7 @@ function applyStateInChunks(state: OnyxValues) {
     return promise;
 }
 
-export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxStateProps) {
+export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -71,14 +71,7 @@ export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxSta
             })
             .catch(() => {
                 setIsErrorModalVisible(true);
-            })
-            .finally(() => {
-                setIsLoading(false);
             });
-
-        if (isLoading) {
-            setIsLoading(false);
-        }
     };
 
     return (

@@ -11,7 +11,7 @@ import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
 import {cleanAndTransformState} from './utils';
 
-export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxStateProps) {
+export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -33,24 +33,16 @@ export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxSta
                 setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-                    Onyx.multiSet(transformedState)
-                        .then(() => {
-                            setIsUsingImportedState(true);
-                            Navigation.navigate(ROUTES.HOME);
-                        })
-                        .finally(() => {
-                            setIsLoading(false);
-                        });
+                    Onyx.multiSet(transformedState).then(() => {
+                        setIsUsingImportedState(true);
+                        Navigation.navigate(ROUTES.HOME);
+                    });
                 });
             })
             .catch(() => {
                 setIsErrorModalVisible(true);
                 setIsLoading(false);
             });
-
-        if (isLoading) {
-            setIsLoading(false);
-        }
     };
 
     return (
