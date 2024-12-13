@@ -5986,24 +5986,24 @@ const translations = {
             part3: ' aquí',
         },
         searchFilterButtonTooltip: {
-            part1: "Personaliza tu búsqueda",
-            part2: " aquí!"
+            part1: 'Personaliza tu búsqueda',
+            part2: ' aquí!',
         },
         bottomNavInboxTooltip: {
-            part1: "Tu lista de tareas",
-            part2: "\n🟢 = listo para ti",
-            part3: " 🔴 = necesita revisión"
+            part1: 'Tu lista de tareas',
+            part2: '\n🟢 = listo para ti',
+            part3: ' 🔴 = necesita revisión',
         },
         workspaceChatTooltip: {
-            part1: "Envía gastos",
-            part2: " y chatea con",
-            part3: "\naprobadores aquí!"
+            part1: 'Envía gastos',
+            part2: ' y chatea con',
+            part3: '\naprobadores aquí!',
         },
         globalCreateTooltip: {
-            part1: "Crea gastos",
-            part2: ", comienza a chatear,",
-            part3: "\ny mucho más!"
-        }
+            part1: 'Crea gastos',
+            part2: ', comienza a chatear,',
+            part3: '\ny mucho más!',
+        },
     },
 };
 
