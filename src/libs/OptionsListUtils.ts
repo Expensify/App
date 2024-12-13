@@ -987,6 +987,23 @@ function orderReportOptionsWithSearch(
     );
 }
 
+function orderWorkspaceOptions(options: ReportUtils.OptionData[]): ReportUtils.OptionData[] {
+    return lodashOrderBy(
+        options,
+        [
+            (option) => {
+                // Put default workspace on top
+                if (option.isPolicyExpenseChat && option.policyID === activePolicyID) {
+                    return 0;
+                }
+
+                return 1;
+            },
+        ],
+        ['asc'],
+    );
+}
+
 function sortComparatorReportOptionByArchivedStatus(option: ReportUtils.OptionData) {
     return option.private_isArchived ? 1 : 0;
 }
@@ -997,7 +1014,7 @@ function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
     return options.lastVisibleActionCreated ?? '';
 }
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'recentWorkspaceChats'>;
 
 function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
 function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
@@ -1009,10 +1026,12 @@ function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: str
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
+    const orderedRecentWorkspaceChats = orderWorkspaceOptions(options?.recentWorkspaceChats ?? []);
 
     return {
         recentReports: orderedReportOptions,
         personalDetails: orderedPersonalDetailsOptions,
+        recentWorkspaceChats: orderedRecentWorkspaceChats,
     };
 }
 
