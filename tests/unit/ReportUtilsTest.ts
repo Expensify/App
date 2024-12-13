@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -1412,6 +1412,79 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                 }),
             ).toBeTruthy();
+        });
+    });
+
+    describe('getInvoiceChatByParticipants', () => {
+        it('only returns an invoice chat if the receiver type matches', () => {
+            // Given an invoice chat that has been converted from an individual to policy receiver type
+            const convertedInvoiceChat = {
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                currency: 'USD',
+                description: '',
+                errorFields: null,
+                hasOutstandingChildRequest: false,
+                hasOutstandingChildTask: false,
+                invoiceReceiver: {
+                    accountID: 33,
+                    policyID: '5F2F82F98C848CAA',
+                    type: 'policy',
+                },
+                isCancelledIOU: false,
+                isOwnPolicyExpenseChat: false,
+                isPinned: false,
+                isWaitingOnBankAccount: false,
+                lastActionType: 'REPORTPREVIEW',
+                lastActorAccountID: '32',
+                lastMessageHtml: 'paid $1.00',
+                lastMessageText: 'paid $1.00',
+                lastMessageTranslationKey: '',
+                lastReadSequenceNumber: 0,
+                lastReadTime: '2024-12-13 19:45:28.942',
+                lastVisibleActionCreated: '2024-12-13 19:19:01.794',
+                lastVisibleActionLastModified: '2024-12-13 19:19:01.794',
+                managerID: 0,
+                nonReimbursableTotal: 0,
+                oldPolicyName: '',
+                ownerAccountID: 0,
+                participants: {
+                    '32': {
+                        notificationPreference: 'always',
+                        role: 'admin',
+                    },
+                    '33': {
+                        notificationPreference: 'always',
+                        permissions: ['read', 'write', 'share', 'own'],
+                    },
+                },
+                policyAvatar: '',
+                policyID: 'CC048FA711B35B1F',
+                policyName: "53019's Workspace",
+                private_isArchived: '',
+                reportID: '7605647250932303',
+                reportName: 'Chat Report',
+                state: 'OPEN',
+                stateNum: 0,
+                statusNum: 0,
+                total: 0,
+                type: 'chat',
+                unheldNonReimbursableTotal: 0,
+                unheldTotal: 0,
+                visibility: 'private',
+                welcomeMessage: '',
+                writeCapability: 'all',
+            };
+
+            // Get an Onyx collection of reports
+            const reports: OnyxCollection<Report> = {
+                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
+            };
+
+            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
+            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(convertedInvoiceChat.policyID, 33, reports);
+
+            // Then no invoice chat should be returned because the receiver type does not match
+            expect(invoiceChatReport).toBeUndefined();
         });
     });
 });
