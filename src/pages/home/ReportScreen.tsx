@@ -132,7 +132,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [workspaceTooltip] = useOnyx(ONYXKEYS.NVP_WORKSPACE_TOOLTIP);
     const wasLoadingApp = usePrevious(isLoadingApp);
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -866,7 +865,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         isComposerFullSize={!!isComposerFullSize}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
-                                        workspaceTooltip={workspaceTooltip}
                                     />
                                 ) : null}
                             </View>
