@@ -65,7 +65,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -76,7 +75,6 @@ import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
 import * as Tag from './Policy/Tag';
 import * as Report from './Report';
-import * as Task from './Task';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import * as TransactionEdit from './TransactionEdit';
 
@@ -518,58 +516,6 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
-}
-
-function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
-    if (!action) {
-        return;
-    }
-
-    let requestType;
-    if ([CONST.QUICK_ACTIONS.REQUEST_MANUAL, CONST.QUICK_ACTIONS.SPLIT_MANUAL, CONST.QUICK_ACTIONS.TRACK_MANUAL].some((a) => a === action)) {
-        requestType = CONST.IOU.REQUEST_TYPE.MANUAL;
-    } else if ([CONST.QUICK_ACTIONS.REQUEST_SCAN, CONST.QUICK_ACTIONS.SPLIT_SCAN, CONST.QUICK_ACTIONS.TRACK_SCAN].some((a) => a === action)) {
-        requestType = CONST.IOU.REQUEST_TYPE.SCAN;
-    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
-        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-
-    return requestType;
-}
-
-function navigateToQuickAction(
-    isValidReport: boolean,
-    quickActionReportID: string,
-    qAction: OnyxTypes.QuickAction,
-    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
-) {
-    const reportID = isValidReport ? quickActionReportID : ReportUtils.generateReportID();
-    const requestType = getQuickActionRequestType(qAction?.action);
-
-    switch (qAction?.action) {
-        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
-            return;
-        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true), true);
-            return;
-        case CONST.QUICK_ACTIONS.SEND_MONEY:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
-            return;
-        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', qAction.targetAccountID ?? -1), false);
-            break;
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
-            break;
-        default:
-    }
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
@@ -8831,7 +8777,6 @@ export {
     detachReceipt,
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
-    navigateToQuickAction,
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
@@ -8840,7 +8785,6 @@ export {
     putOnHold,
     replaceReceipt,
     requestMoney,
-    getQuickActionRequestType,
     resetSplitShares,
     savePreferredPaymentMethod,
     sendInvoice,

@@ -21,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as QuickActionNavigation from '@libs/actions/QuickActionNavigation';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
@@ -392,7 +393,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                    onSelected: () => interceptAnonymousUser(() => IOU.navigateToQuickAction(isValidReport, quickActionReport?.reportID ?? '-1', quickAction, selectOption)),
+                    onSelected: () =>
+                        interceptAnonymousUser(() => QuickActionNavigation.navigateToQuickAction(isValidReport, quickActionReport?.reportID ?? '-1', quickAction, selectOption)),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                 },
             ];
