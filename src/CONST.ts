@@ -297,6 +297,9 @@ type OnboardingMessage = {
     type?: string;
 };
 
+const EMAIL_WITH_OPTIONAL_DOMAIN =
+    /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -341,11 +344,14 @@ const CONST = {
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
+    ANIMATION_THUMBSUP_DURATION: 250,
+    ANIMATION_THUMBSUP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
+    CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
@@ -1321,7 +1327,7 @@ const CONST = {
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
-        COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -3051,6 +3057,14 @@ const CONST = {
         get EXPENSIFY_POLICY_DOMAIN_NAME() {
             return new RegExp(`${EXPENSIFY_POLICY_DOMAIN}([a-zA-Z0-9]+)\\${EXPENSIFY_POLICY_DOMAIN_EXTENSION}`);
         },
+
+        /**
+         * Matching task rule by group
+         * Group 1: Start task rule with []
+         * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
+         * Group 3: Title is remaining characters
+         */
+        TASK_TITLE_WITH_OPTONAL_SHORT_MENTION: `^\\[\\]\\s+(?:@(?:${EMAIL_WITH_OPTIONAL_DOMAIN}))?\\s*([\\s\\S]*)`,
     },
 
     PRONOUNS: {
@@ -3180,7 +3194,6 @@ const CONST = {
         CANCEL_PAYMENT: 'cancelPayment',
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
-        GO_TO_WORKSPACE: 'goToWorkspace',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -6394,6 +6407,13 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        RENAME_SAVED_SEARCH: 'renameSavedSearch',
+        QUICK_ACTION_BUTTON: 'quickActionButton',
+        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
