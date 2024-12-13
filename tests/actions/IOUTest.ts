@@ -3540,7 +3540,6 @@ describe('actions/IOU', () => {
                     invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
                 }),
                 expect.anything(),
-                expect.anything(),
             );
 
             // Restore the original implementation
