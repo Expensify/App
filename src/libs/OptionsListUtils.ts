@@ -157,6 +157,8 @@ type OrderOptionsConfig = {
     preferRecentExpenseReports?: boolean;
 };
 
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -992,8 +994,6 @@ function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
     // (comparing a dateString > '' returns true, and we are sorting descending, so the dateString will come before '')
     return options.lastVisibleActionCreated ?? '';
 }
-
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
 
 function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
 function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
@@ -1840,4 +1840,4 @@ export {
     hasReportErrors,
 };
 
-export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions};

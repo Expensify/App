@@ -12,12 +12,12 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
-import FastSearch from '@libs/FastSearch';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -376,45 +376,7 @@ function SearchRouterList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const findInSearchTree = useMemo(() => {
-        const fastSearch = FastSearch.createFastSearch([
-            {
-                data: searchOptions.personalDetails,
-                toSearchableString: (option) => {
-                    const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
-                },
-            },
-            {
-                data: searchOptions.recentReports,
-                toSearchableString: (option) => {
-                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
-
-                    if (option.isThread) {
-                        if (option.alternateText) {
-                            searchStringForTree.push(option.alternateText);
-                        }
-                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
-                        if (option.subtitle) {
-                            searchStringForTree.push(option.subtitle);
-                        }
-                    }
-
-                    return searchStringForTree.join();
-                },
-            },
-        ]);
-        function search(searchInput: string) {
-            const [personalDetails, recentReports] = fastSearch.search(searchInput);
-
-            return {
-                personalDetails,
-                recentReports,
-            };
-        }
-
-        return search;
-    }, [searchOptions.personalDetails, searchOptions.recentReports]);
+    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
@@ -423,17 +385,16 @@ function SearchRouterList(
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         // const filteredOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
-        const filteredOptions = findInSearchTree(autocompleteQueryValue);
+        const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = OptionsListUtils.orderOptions(filteredOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
-        const filteredUserToInvite = OptionsListUtils.filterUserToInvite(searchOptions, autocompleteQueryValue);
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredUserToInvite) {
-            reportOptions.push(filteredUserToInvite);
+        if (filteredOptions.userToInvite) {
+            reportOptions.push(filteredOptions.userToInvite);
         }
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, findInSearchTree, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
         ReportUserActions.searchInServer(autocompleteQueryValue.trim());
