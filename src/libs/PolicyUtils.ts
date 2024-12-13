@@ -520,7 +520,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     return !!policy?.[featureName];
 }
 
-function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
     if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
@@ -528,14 +528,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function getDefaultApprover(policy: OnyxEntry<Policy>): string {
+function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
@@ -555,8 +555,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
             return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
         }
 
-        if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
-            tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
+        if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
+            tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
         }
     }
 
@@ -1084,8 +1084,8 @@ function hasVBBA(policyID: string) {
     return !!policy?.achAccount?.bankAccountID;
 }
 
-function getTagApproverRule(policyID: string, tagName: string) {
-    const policy = getPolicy(policyID);
+function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy>, tagName: string) {
+    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const approverRule = approvalRules.find((rule) =>
