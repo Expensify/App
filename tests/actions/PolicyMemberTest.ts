@@ -230,7 +230,7 @@ describe('actions/PolicyMember', () => {
     });
 
     describe('addMembersToWorkspace', () => {
-        it('Add new member to a workspace', async () => {
+        it('Add a new member to a workspace', async () => {
             const policyID = '1';
             const defaultApprover = 'approver@gmail.com';
             const newUserEmail = 'user@gmail.com';
