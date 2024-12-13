@@ -12,6 +12,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useBottomTabIsFocused from '@hooks/useBottomTabIsFocused';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -81,11 +82,11 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
     const isFocused = useBottomTabIsFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         selectedTab !== SCREENS.HOME && isFocused,
     );
-
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -147,12 +148,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shouldUseOverlay
+                    shiftHorizontal={shouldUseNarrowLayout ? variables.bottomTabInboxTooltipShiftHorizontal : 0}
                     renderTooltipContent={renderProductTrainingTooltip}
-                    wrapperStyle={styles.quickActionTooltipWrapper}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
                     onHideTooltip={hideProductTrainingTooltip}
                 >
                     <PressableWithFeedback

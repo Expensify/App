@@ -51,20 +51,15 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && activePolicyID === report?.policyID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
+    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
 
-    const tooltipToRender = useMemo(() => {
-        // Guides are assigned for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
-        const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-        const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
+    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
+        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
-        if (shouldShowGetStartedTooltip) {
-            return CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
-        }
-        // Default to workspace chat tooltip
-        return CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-    }, [introSelected, report, session]);
-
-    const shouldShowTooltip = tooltipToRender === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP ? isActiveWorkspaceChat : isScreenFocused;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return {tooltipToRender: tooltip, shouldShowTooltip: isScreenFocused};
+    }, [shouldShowGetStartedTooltip, isScreenFocused]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
     const {translate} = useLocalize();
@@ -163,7 +158,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                shouldRender={shouldShowProductTrainingTooltip && (isActiveWorkspaceChat || shouldShowGetStartedTooltip)}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
                     horizontal: isActiveWorkspaceChat ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -173,7 +169,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={isActiveWorkspaceChat ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
                 shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
                 onHideTooltip={hideProductTrainingTooltip}
-                wrapperStyle={styles.quickActionTooltipWrapper}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
             >
                 <View>
                     <Hoverable>

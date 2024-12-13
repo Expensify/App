@@ -168,13 +168,13 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     fill={theme.tooltipHighlightText}
                     medium
                 />
-                <Text style={[styles.quickActionTooltipSubtitle, styles.textWrap]}>
+                <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
                     {tooltip.content.map(({text, isBold}) => {
                         const translatedText = translate(text);
                         return (
                             <Text
                                 key={text}
-                                style={[styles.quickActionTooltipSubtitle, isBold && styles.textBold]}
+                                style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
                             >
                                 {translatedText}
                             </Text>
@@ -189,8 +189,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexWrap,
         styles.gap1,
         styles.justifyContentCenter,
+        styles.mw100,
         styles.p2,
-        styles.quickActionTooltipSubtitle,
+        styles.productTrainingTooltipText,
         styles.textAlignCenter,
         styles.textBold,
         styles.textWrap,
@@ -212,7 +213,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     return {
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
-        shouldShowProductTrainingTooltip: shouldShow && shouldShowProductTrainingTooltip,
+        shouldShowProductTrainingTooltip,
     };
 };
 

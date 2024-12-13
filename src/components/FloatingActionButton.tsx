@@ -112,10 +112,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={variables.fabTooltipShiftHorizontal}
             shouldUseOverlay
+            shiftHorizontal={variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
-            wrapperStyle={styles.quickActionTooltipWrapper}
+            wrapperStyle={styles.productTrainingTooltipWrapper}
             onHideTooltip={hideProductTrainingTooltip}
         >
             <PressableWithoutFeedback

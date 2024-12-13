@@ -362,9 +362,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         }}
-                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
-                        wrapperStyle={styles.quickActionTooltipWrapper}
                         shouldUseOverlay
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
                         onHideTooltip={hideProductTrainingTooltip}
                     >

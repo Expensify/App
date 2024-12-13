@@ -213,10 +213,10 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 }}
                 shiftHorizontal={variables.searchFiltersTooltipShiftHorizontalNarrow}
                 shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
-                wrapperStyle={styles.quickActionTooltipWrapper}
-                shouldUseOverlay
+                wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
                 onHideTooltip={hideProductTrainingTooltip}
+                shouldUseOverlay
             >
                 <Button
                     icon={Expensicons.Filters}
