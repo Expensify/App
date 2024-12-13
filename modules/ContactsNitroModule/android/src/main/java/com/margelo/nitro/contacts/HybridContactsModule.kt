@@ -154,7 +154,7 @@ class HybridContactsModule : HybridContactsModuleSpec() {
             }
 
             // Update memory size based on contact count
-            estimatedMemorySize = contacts.size.toLong() * 1024 // Assume ~ 1KB per contact
+            estimatedMemorySize = contacts.size.toLong() * 1024 // Assume ~1KB per contact
             contacts.toTypedArray()
         }
     }
