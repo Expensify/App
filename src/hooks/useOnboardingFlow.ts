@@ -26,7 +26,7 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (data) => data?.isSingleNewDotEntry});
     const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {

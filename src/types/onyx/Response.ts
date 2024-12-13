@@ -83,6 +83,9 @@ type Response = {
 
     /** If there is newer data to load for pagination commands */
     hasNewerActions?: boolean;
+
+    /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
+    tryNewDot?: boolean;
 };
 
 export default Response;
