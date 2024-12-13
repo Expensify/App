@@ -192,7 +192,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <PressableWithFeedback
                     onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
+                    accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
@@ -213,7 +213,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             styles.bottomTabBarLabel,
                         ]}
                     >
-                        {translate('common.search')}
+                        {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
                 <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />

@@ -187,7 +187,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -198,7 +197,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -368,66 +367,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         }
     };
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading, isCreateMenuActive]);
-
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
-        if (canUseCombinedTrackSubmit) {
-            return [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                    text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                    onSelected: () =>
-                        interceptAnonymousUser(() => {
-                            if (shouldRedirectToExpensifyClassic) {
-                                setModalVisible(true);
-                                return;
-                            }
-                            IOU.startMoneyRequest(
-                                CONST.IOU.TYPE.CREATE,
-                                // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                // for all of the routes in the creation flow.
-                                ReportUtils.generateReportID(),
-                            );
-                        }),
-                },
-            ];
-        }
-
         return [
-            ...(selfDMReportID
-                ? [
-                      {
-                          icon: getIconForAction(CONST.IOU.TYPE.TRACK),
-                          text: translate('iou.trackExpense'),
-                          shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                          onSelected: () => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
-                              interceptAnonymousUser(() => {
-                                  IOU.startMoneyRequest(
-                                      CONST.IOU.TYPE.TRACK,
-                                      // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                      // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                      ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                  );
-                              });
-                              if (!hasSeenTrackTraining && !isOffline) {
-                                  setTimeout(() => {
-                                      Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
-                                  }, CONST.ANIMATED_TRANSITION);
-                              }
-                          },
-                      },
-                  ]
-                : []),
             {
-                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: translate('iou.submitExpense'),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
@@ -435,9 +379,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             setModalVisible(true);
                             return;
                         }
-
                         IOU.startMoneyRequest(
-                            CONST.IOU.TYPE.SUBMIT,
+                            CONST.IOU.TYPE.CREATE,
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             ReportUtils.generateReportID(),
@@ -445,7 +388,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     }),
             },
         ];
-    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToExpensifyClassic]);
+    }, [translate, shouldRedirectToExpensifyClassic]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
