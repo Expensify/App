@@ -272,7 +272,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}
