@@ -189,6 +189,7 @@ function buildOptimisticTransaction(
         billable,
         reimbursable,
         attendees,
+        inserted: DateUtils.getDBTime(),
     };
 }
 
