@@ -3407,6 +3407,7 @@ describe('actions/IOU', () => {
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'a1@53019.com': {
                         role: 'admin',
                         errors: {},
@@ -3438,6 +3439,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: {
                         defaultValue: '{report:type} {report:startdate}',
                         deletable: true,
@@ -3537,7 +3539,7 @@ describe('actions/IOU', () => {
             expect(writeSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat?.reportID ?? ''),
                 }),
                 expect.anything(),
             );

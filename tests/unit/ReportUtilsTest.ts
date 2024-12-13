@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -62,24 +63,27 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-const convertedInvoiceChat = {
+const convertedInvoiceChat: OnyxEntry<Report> = {
     chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
     currency: 'USD',
     description: '',
     errorFields: null,
     hasOutstandingChildRequest: false,
     hasOutstandingChildTask: false,
+
+    // The invoice receiver shouldn't have an accountID when the type is business,
+    // but this is to test that it still works if the value is present
     invoiceReceiver: {
         accountID: 33,
         policyID: '5F2F82F98C848CAA',
         type: 'policy',
-    },
+    } as unknown as InvoiceReceiver,
     isCancelledIOU: false,
     isOwnPolicyExpenseChat: false,
     isPinned: false,
     isWaitingOnBankAccount: false,
     lastActionType: 'REPORTPREVIEW',
-    lastActorAccountID: '32',
+    lastActorAccountID: 32,
     lastMessageHtml: 'paid $1.00',
     lastMessageText: 'paid $1.00',
     lastMessageTranslationKey: '',
@@ -98,7 +102,7 @@ const convertedInvoiceChat = {
         },
         '33': {
             notificationPreference: 'always',
-            permissions: ['read', 'write', 'share', 'own'],
+            permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE, CONST.REPORT.PERMISSIONS.SHARE, CONST.REPORT.PERMISSIONS.OWN],
         },
     },
     policyAvatar: '',

@@ -194,7 +194,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         currency?: string;
 
         /** Collection of errors that exist in report fields */
-        errorFields?: OnyxCommon.ErrorFields;
+        errorFields?: OnyxCommon.ErrorFields | null;
 
         /** Whether the report is waiting on a bank account */
         isWaitingOnBankAccount?: boolean;
