@@ -139,7 +139,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
-            // The result should be empty array since there is only one policy which has pendingAction is 'delete'.
+            // The result should be an empty array since there is only one policy which is pending deletion, so we have no active paid policies.
             expect(result).toEqual([]);
         });
     });
