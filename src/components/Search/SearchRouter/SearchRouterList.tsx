@@ -384,7 +384,6 @@ function SearchRouterList(
         }
 
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        // const filteredOptions = OptionsListUtils.filterAndOrderOptions(searchOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = OptionsListUtils.orderOptions(filteredOptions, autocompleteQueryValue, {sortByReportTypeInSearch: true, preferChatroomsOverThreads: true});
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
