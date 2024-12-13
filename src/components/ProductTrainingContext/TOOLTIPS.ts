@@ -51,8 +51,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GLOBAL_CREATE_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
@@ -72,9 +72,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [WORKSAPCE_CHAT_CREATE]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
         name: WORKSAPCE_CHAT_CREATE,
@@ -83,8 +82,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SEARCH_FILTER_BUTTON_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
         name: SEARCH_FILTER_BUTTON_TOOLTIP,
@@ -104,9 +103,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,

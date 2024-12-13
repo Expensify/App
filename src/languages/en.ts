@@ -5471,18 +5471,18 @@ const translations = {
         },
         bottomNavInboxTooltip: {
             part1: 'Your to-do list',
-            part2: ' comes with 🟢 for',
-            part3: '\nactions to take and 🔴 for errors',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
         },
         workspaceChatTooltip: {
-            part1: 'Review submitted expenses and chat',
-            part2: '\nwith approvers in your',
-            part3: ' workspace chat.',
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
         },
         globalCreateTooltip: {
-            part1: 'Where to ',
-            part2: 'create expenses,',
-            part3: '\nstart chatting, and more.',
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
         },
     },
 };
