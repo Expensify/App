@@ -3969,29 +3969,86 @@ function prepareOnboardingOptimisticData(
         guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
     }
 
+    let selfDMParameters: {reportID?: string; createdReportActionID?: string} = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         const selfDMReportID = ReportUtils.findSelfDMReportID();
-        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-            value: {
-                isPinned: true,
-            },
-        });
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        let createdAction: ReportAction;
+        if (!selfDMReport) {
+            const currentTime = DateUtils.getDBTime();
+            selfDMReport = ReportUtils.buildOptimisticSelfDMReport(currentTime);
+            createdAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+            selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        ...selfDMReport,
+                        pendingFields: {
+                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [createdAction.reportActionID]: createdAction,
+                    },
+                },
+            );
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-            value: {
-                isPinned: selfDMReport?.isPinned,
-            },
-        });
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            createChat: null,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [createdAction.reportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            );
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: selfDMReport?.isPinned,
+                },
+            });
+        } else {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: true,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                value: {
+                    isPinned: selfDMReport?.isPinned,
+                },
+            });
+        }
     }
 
     guidedSetupData.push(...tasksForParameters);
 
-    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID};
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
 
 function completeOnboarding(
@@ -4006,7 +4063,7 @@ function completeOnboarding(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID} = prepareOnboardingOptimisticData(
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = prepareOnboardingOptimisticData(
         engagementChoice,
         data,
         adminsChatReportID,
@@ -4025,6 +4082,8 @@ function completeOnboarding(
         companySize,
         userReportedIntegration,
         policyID: onboardingPolicyID,
+        selfDMReportID: selfDMParameters.reportID,
+        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
