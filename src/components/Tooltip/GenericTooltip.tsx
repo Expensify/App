@@ -35,6 +35,7 @@ function GenericTooltip({
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
     onHideTooltip = () => {},
+    onChildrenElementPress = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -184,6 +185,7 @@ function GenericTooltip({
                     anchorAlignment={anchorAlignment}
                     shouldUseOverlay={shouldUseOverlay}
                     onHideTooltip={onPressOverlay}
+                    onChildrenElementPress={onChildrenElementPress}
                 />
             )}
             {/* eslint-disable-next-line react-compiler/react-compiler */}

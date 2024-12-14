@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type React from 'react';
-import type {LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -63,6 +63,8 @@ type GenericTooltipProps = SharedTooltipProps & {
 
     /** Whether to ignore TooltipSense activity and always triger animation */
     shouldForceAnimate?: boolean;
+
+    onChildrenElementPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
 type TooltipProps = ChildrenProps &
@@ -83,6 +85,7 @@ type EducationalTooltipProps = ChildrenProps &
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
+    onChildrenElementPress?: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
 export default TooltipProps;

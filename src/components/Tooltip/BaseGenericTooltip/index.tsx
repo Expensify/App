@@ -38,6 +38,7 @@ function BaseGenericTooltip({
     },
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    onChildrenElementPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -131,9 +132,27 @@ function BaseGenericTooltip({
         return null;
     }
 
+    const handleOverlayClick = (event?: MouseEvent | KeyboardEvent) => {
+        const clickX = event?.clientX;
+        const clickY = event?.clientY;
+
+        // Check if the click falls within the target element bounds
+        const isWithinTarget = !!clickX && !!clickY && clickX >= xOffset && clickX <= xOffset + targetWidth && clickY >= yOffset && clickY <= yOffset + targetHeight;
+
+        // Always hide the tooltip
+        onHideTooltip();
+
+        requestAnimationFrame(() => {
+            if (!isWithinTarget) {
+                return;
+            }
+            onChildrenElementPress?.();
+        });
+    };
+
     return ReactDOM.createPortal(
         <>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && <TransparentOverlay onPress={handleOverlayClick} />}
             <Animated.View
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}

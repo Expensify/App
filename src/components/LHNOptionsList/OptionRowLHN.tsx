@@ -170,6 +170,15 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
                 onHideTooltip={hideProductTrainingTooltip}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
+                onChildrenElementPress={(event) => {
+                    Performance.markStart(CONST.TIMING.OPEN_REPORT);
+                    Timing.start(CONST.TIMING.OPEN_REPORT);
+
+                    event?.preventDefault();
+                    // Enable Composer to focus on clicking the same chat after opening the context menu.
+                    ReportActionComposeFocusManager.focus();
+                    onSelectRow(optionItem, popoverAnchor);
+                }}
             >
                 <View>
                     <Hoverable>

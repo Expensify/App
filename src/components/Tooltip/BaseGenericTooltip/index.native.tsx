@@ -3,6 +3,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
+import type {GestureEvent} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
@@ -36,6 +37,7 @@ function BaseGenericTooltip({
     wrapperStyle = {},
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    onChildrenElementPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -103,9 +105,28 @@ function BaseGenericTooltip({
         );
     }
 
+    const handleOverlayClick = (event?: GestureEvent) => {
+        const pageX = event?.nativeEvent.pageX;
+        const pageY = event?.nativeEvent.pageY;
+
+        const isWithinTarget = !!pageX && !!pageY && pageX >= xOffset && pageX <= xOffset + targetWidth && pageY >= yOffset && pageY <= yOffset + targetHeight;
+
+        console.log('handleOverlayClick', pageX, pageY, xOffset, targetWidth, yOffset, targetHeight, isWithinTarget);
+        // Hide the tooltip
+        onHideTooltip();
+
+        // If the click is within target bounds, trigger the children element's press callback
+        requestAnimationFrame(() => {
+            if (!isWithinTarget) {
+                return;
+            }
+            onChildrenElementPress?.();
+        });
+    };
+
     return (
         <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
-            {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
+            {shouldUseOverlay && <TransparentOverlay onPress={handleOverlayClick} />}
             <Animated.View
                 ref={rootWrapper}
                 style={[rootWrapperStyle, animationStyle]}

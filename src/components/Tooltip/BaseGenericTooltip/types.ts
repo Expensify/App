@@ -1,3 +1,4 @@
+import type {GestureResponderEvent} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {SharedTooltipProps} from '@components/Tooltip/types';
 
@@ -30,6 +31,8 @@ type BaseGenericTooltipProps = {
 
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
+
+    onChildrenElementPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 } & Pick<
     SharedTooltipProps,
     'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'anchorAlignment' | 'shouldUseOverlay' | 'onHideTooltip'

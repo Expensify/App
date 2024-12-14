@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {PointerEvent} from 'react-native';
+import type {GestureResponderEvent} from 'react-native-modal';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -8,19 +9,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type TransparentOverlayProps = {
-    onPress: () => void;
+    onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
+    holeX?: number;
+    holeY?: number;
+    holeWidth?: number;
+    holeHeight?: number;
 };
 
 type OnPressHandler = PressableProps['onPress'];
 
-function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
+function TransparentOverlay({onPress: onPressProp, holeX = 0, holeY = 0, holeWidth = 0, holeHeight = 0}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const onPress = useCallback<NonNullable<OnPressHandler>>(
         (event) => {
             event?.preventDefault();
-            onPressProp();
+            onPressProp(event);
         },
         [onPressProp],
     );
@@ -38,6 +43,18 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
         [],
     );
 
+    const holeStyle = useMemo(
+        () => ({
+            position: styles.pFixed,
+            top: holeY,
+            left: holeX,
+            width: holeWidth,
+            height: holeHeight,
+            zIndex: 1500,
+        }),
+        [holeX, holeY, holeWidth, holeHeight, styles.pFixed],
+    );
+
     return (
         <View
             onPointerDown={handlePointerDown}
@@ -48,7 +65,14 @@ function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
                 style={[styles.flex1, styles.cursorDefault, overlay]}
                 accessibilityLabel={translate('common.close')}
                 role={CONST.ROLE.BUTTON}
-            />
+            >
+                <PressableWithoutFeedback
+                    onPress={onPress}
+                    style={holeStyle}
+                    accessibilityLabel={translate('common.close')}
+                    role={CONST.ROLE.BUTTON}
+                />
+            </PressableWithoutFeedback>
         </View>
     );
 }

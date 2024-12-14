@@ -221,6 +221,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 renderTooltipContent={renderProductTrainingTooltip}
                 onHideTooltip={hideProductTrainingTooltip}
                 shouldUseOverlay
+                onChildrenElementPress={onPress}
             >
                 <Button
                     icon={Expensicons.Filters}
