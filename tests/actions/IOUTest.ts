@@ -3328,12 +3328,10 @@ describe('actions/IOU', () => {
             expect(writeSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
-                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID),
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
                 }),
                 expect.anything(),
             );
-
-            // Restore the original implementation
             writeSpy.mockRestore();
         });
     });
