@@ -1,118 +1,123 @@
-import type {ValueOf} from 'type-fest';
-import {dismissProductTraining} from '@libs/actions/Welcome';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+{ValueOf} türünü 'type-fest'ten içe aktar;
+{dismissProductTraining} öğesini '@libs/actions/Welcome' konumundan içe aktarın;
+CONST'ı '@src/CONST'dan içe aktar;
+{TranslationPaths} türünü '@src/languages/types' dizininden içe aktar;
 
-const {
-    CONCEIRGE_LHN_GBR,
-    RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
-    QUICK_ACTION_BUTTON,
-    SEARCH_FILTER_BUTTON_TOOLTIP,
-    BOTTOM_NAV_INBOX_TOOLTIP,
-    LHN_WORKSPACE_CHAT_TOOLTIP,
-    GLOBAL_CREATE_TOOLTIP,
-} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+sabit {
+    KONSİYERJ_LHN_GBR,
+    YENİDEN ADLANDIRILMIŞ_ARAMA,
+    ÇALIŞMA ALANI_SOHBET_OLUŞTUR,
+    HIZLI_İŞLEM_DÜĞMESİ,
+    ARAMA_FİLTRE_DÜĞMESİ_ARAÇ_İPUCU,
+    ALT_NAV_GİRİŞ_KUTUSU_İPUCU,
+    LHN_WORKSPACE_CHAT_ARAÇ İPUCU,
+    GLOBAL_OLUŞTURMA_ARAÇ_İPUCU,
+} = CONST.ÜRÜN_EĞİTİMİ_ARAÇ_İPUCU_ADLARI;
 
-type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
+tür ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
-type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+tip ShouldShowConditionProps = {
+    DarDüzenKullanılmalı mı?: boolean;
 };
 
-type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+tip Araç İpucu Verileri = {
+    içerik: Dizi<{text: TranslationPaths; isBold: boolean}>;
     onHideTooltip: () => void;
-    name: ProductTrainingTooltipName;
-    priority: number;
-    shouldShow: (props: ShouldShowConditionProps) => boolean;
+    adı: ProductTrainingTooltipName;
+    öncelik: sayı;
+    shouldShow: (özellikler: ShouldShowConditionProps) => boolean;
 };
 
-const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
-    [CONCEIRGE_LHN_GBR]: {
-        content: [
+sabit Araç İpucu Verisi oluştur = (
+    adı: ProductTrainingTooltipName,
+    içerik: Dizi<{text: TranslationPaths; isBold: boolean}>,
+    öncelik: sayı,
+    shouldShow: (özellikler: ShouldShowConditionProps) => boolean
+): Araç İpucu Verileri => ({
+    içerik,
+    onHideTooltip: () => ceaseProductTraining(name),
+    isim,
+    öncelik,
+    Göstermeli,
+});
+
+sabit ARAÇ İPUÇLARI: Kayıt<ÜrünEğitimiAraçİpucuAdı, AraçİpucuVerisi> = {
+    [CONCIERGE_LHN_GBR]: Araç İpucu Verisi oluştur(
+        KONSİYERJ_LHN_GBR,
+        [
             {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
             {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
-        name: CONCEIRGE_LHN_GBR,
-        priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
-    },
-    [RENAME_SAVED_SEARCH]: {
-        content: [
+        1300,
+        ({shouldUseNarrowLayout = false}) => shouldUseNarrowLayout
+    ),
+    [RENAME_SAVED_SEARCH]: createTooltipData(
+        YENİDEN ADLANDIRILMIŞ_ARAMA,
+        [
             {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(RENAME_SAVED_SEARCH),
-        name: RENAME_SAVED_SEARCH,
-        priority: 1250,
-        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
-    },
-    [GLOBAL_CREATE_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
+        1250,
+        ({shouldUseNarrowLayout = false}) => !shouldUseNarrowLayout
+    ),
+    [GLOBAL_CREATE_TOOLTIP]: Araç İpucu Verisi oluştur(
+        GLOBAL_OLUŞTURMA_ARAÇ_İPUCU,
+        [
+            {metin: 'ürünEğitimAraçİpucu.globalOluşturAraçİpucu.part1', isBold: true},
+            {metin: 'ürünEğitimAraçİpucu.globalOluşturAraçİpucu.part2', isBold: false},
+            {metin: 'ürünEğitimAraçİpucu.globalOluşturAraçİpucu.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
-        name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1200,
-        shouldShow: () => true,
-    },
-    [QUICK_ACTION_BUTTON]: {
-        content: [
-            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
-            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
+        1200,
+        () => doğru
+    ),
+    [HIZLI_İŞLEM_DÜĞMESİ]: createTooltipData(
+        HIZLI_İŞLEM_DÜĞMESİ,
+        [
+            {metin: 'ürünEğitimAraçİpucu.hızlıAksiyonDüğmesi.bölüm1', isBold: doğru},
+            {metin: 'ürünEğitimAraçİpucu.hızlıAksiyonDüğmesi.bölüm2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
-        name: QUICK_ACTION_BUTTON,
-        priority: 1150,
-        shouldShow: () => true,
-    },
-    [WORKSAPCE_CHAT_CREATE]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: true},
+        1150,
+        () => doğru
+    ),
+    [WORKSPACE_CHAT_CREATE]: createTooltipData(
+        ÇALIŞMA ALANI_SOHBET_OLUŞTUR,
+        [
+            {metin: 'ürünEğitimAraçİpucu.çalışmaAlanıSohbetOluştur.part1', isBold: true},
             {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
-        name: WORKSAPCE_CHAT_CREATE,
-        priority: 1100,
-        shouldShow: () => true,
-    },
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
+        1100,
+        () => doğru
+    ),
+    [ARAMA_FİLTRE_DÜĞMESİ_ARAÇ_İPUCU]: createTooltipData(
+        ARAMA_FİLTRE_DÜĞMESİ_ARAÇ_İPUCU,
+        [
+            {metin: 'ürünEğitimAraçİpucu.aramaFiltresiDüğmesiAraçİpucu.bölüm1', isBold: doğru},
+            {metin: 'ürünEğitimAraçİpucu.aramaFiltresiDüğmesiAraçİpucu.bölüm2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
-        name: SEARCH_FILTER_BUTTON_TOOLTIP,
-        priority: 1000,
-        shouldShow: () => true,
-    },
-    [BOTTOM_NAV_INBOX_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+        1000,
+        () => doğru
+    ),
+    [ALT_NAV_GİRİŞ_KUTUSU_ARAÇ_İPUCU]: createTooltipData(
+        ALT_NAV_GİRİŞ_KUTUSU_İPUCU,
+        [
+            {metin: 'ürünEğitimAraçİpucu.bottomNavInboxAraçİpucu.part1', isBold: true},
+            {metin: 'ürünEğitimAraçİpucu.altGezintiGelenKutusuAraçİpucu.bölüm2', isBold: false},
+            {metin: 'ürünEğitimAraçİpucu.altGezintiGelenKutusuAraçİpucu.bölüm3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
-        name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 900,
-        shouldShow: () => true,
-    },
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: {
-        content: [
+        900,
+        () => doğru
+    ),
+    [LHN_WORKSPACE_CHAT_TOOLTIP]: Araç ipucu verisi oluştur(
+        LHN_WORKSPACE_CHAT_ARAÇ İPUCU,
+        [
             {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
-        name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
-        shouldShow: () => true,
-    },
+        800,
+        () => doğru
+    ),
 };
 
-export default TOOLTIPS;
-export type {ProductTrainingTooltipName};
+varsayılan İPUÇLARI'nı dışa aktar;
+dışa aktarma türü {ProductTrainingTooltipName};
