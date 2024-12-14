@@ -37,6 +37,7 @@ function BaseGenericTooltip({
     wrapperStyle = {},
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    onDismissTooltip = () => {},
     onChildrenElementPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -112,14 +113,16 @@ function BaseGenericTooltip({
         const isWithinTarget = !!pageX && !!pageY && pageX >= xOffset && pageX <= xOffset + targetWidth && pageY >= yOffset && pageY <= yOffset + targetHeight;
 
         console.log('handleOverlayClick', pageX, pageY, xOffset, targetWidth, yOffset, targetHeight, isWithinTarget);
+
         // Hide the tooltip
-        onHideTooltip();
+        onDismissTooltip();
 
         // If the click is within target bounds, trigger the children element's press callback
         requestAnimationFrame(() => {
             if (!isWithinTarget) {
                 return;
             }
+            onHideTooltip();
             onChildrenElementPress?.();
         });
     };

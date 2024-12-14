@@ -29,6 +29,8 @@ type BaseGenericTooltipProps = {
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
 
+    onDismissTooltip: () => void;
+
     /** Handles what to do when hiding the tooltip */
     onHideTooltip?: () => void;
 

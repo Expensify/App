@@ -38,6 +38,7 @@ function BaseGenericTooltip({
     },
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    onDismissTooltip = () => {},
     onChildrenElementPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -140,12 +141,14 @@ function BaseGenericTooltip({
         const isWithinTarget = !!clickX && !!clickY && clickX >= xOffset && clickX <= xOffset + targetWidth && clickY >= yOffset && clickY <= yOffset + targetHeight;
 
         // Always hide the tooltip
-        onHideTooltip();
+        onDismissTooltip();();
 
         requestAnimationFrame(() => {
             if (!isWithinTarget) {
                 return;
             }
+            // the tooltip should not be displayed again
+            onHideTooltip();
             onChildrenElementPress?.();
         });
     };
