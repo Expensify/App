@@ -141,7 +141,7 @@ function BaseGenericTooltip({
         const isWithinTarget = !!clickX && !!clickY && clickX >= xOffset && clickX <= xOffset + targetWidth && clickY >= yOffset && clickY <= yOffset + targetHeight;
 
         // Always hide the tooltip
-        onDismissTooltip();();
+        onDismissTooltip();;
 
         requestAnimationFrame(() => {
             if (!isWithinTarget) {
