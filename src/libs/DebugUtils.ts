@@ -469,6 +469,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'iouReportID':
         case 'preexistingReportID':
         case 'private_isArchived':
+        case 'state':
+        case 'welcomeMessage':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
