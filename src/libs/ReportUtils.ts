@@ -6746,7 +6746,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
 /**
  * Attempts to find an invoice chat report in onyx with the provided policyID and receiverID.
  */
-function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, receiverType: InvoiceReceiverType, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getInvoiceChatByParticipants(receiverID: string | number, receiverType: InvoiceReceiverType, policyID?: string, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     return Object.values(reports ?? {}).find((report) => {
         if (!report || !isInvoiceRoom(report) || isArchivedRoom(report)) {
             return false;

@@ -42,6 +42,9 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
+
+    /** Permissions granted to the participant */
+    permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 }>;
 
 /** Types of invoice receivers in a report */
@@ -133,10 +136,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** ID of the chat report */
         chatReportID?: string;
 
-        /** The state that the report is currently in */
+        /** The state of the report */
+        state?: keyof typeof CONST.REPORT.STATE_NUM;
+
+        /** The state number of the report */
         stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
-        /** The status of the current report */
+        /** The state that the report is currently in */
         statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
         /** Which user role is capable of posting messages on the report */
@@ -238,6 +244,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is archived */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived?: string;
+
+        /** The report's welcome message */
+        welcomeMessage?: string;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
 >;

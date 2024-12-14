@@ -1636,6 +1636,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         harvesting?: {
             /** Whether the scheduled submit is enabled */
             enabled: boolean;
+
+            /** The ID of the Bedrock job that runs harvesting */
+            jobID: number;
         };
 
         /** Whether the self approval or submitting is enabled */

@@ -2084,7 +2084,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID, receiverType) ?? null;
+        chatReport = ReportUtils.getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
     }
 
     if (!chatReport) {
@@ -6849,7 +6849,7 @@ function getPayMoneyRequestParams(
     }
 
     if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS);
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
         if (existingB2BInvoiceRoom) {
             chatReport = existingB2BInvoiceRoom;
         }

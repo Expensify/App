@@ -2,13 +2,13 @@
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {convertedInvoiceChat} from 'tests/data/Invoice';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -61,66 +61,6 @@ const policy: Policy = {
     owner: '',
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
-};
-
-const convertedInvoiceChat: OnyxEntry<Report> = {
-    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-    currency: 'USD',
-    description: '',
-    errorFields: null,
-    hasOutstandingChildRequest: false,
-    hasOutstandingChildTask: false,
-
-    // The invoice receiver shouldn't have an accountID when the type is business,
-    // but this is to test that it still works if the value is present
-    invoiceReceiver: {
-        accountID: 33,
-        policyID: '5F2F82F98C848CAA',
-        type: 'policy',
-    } as unknown as InvoiceReceiver,
-    isCancelledIOU: false,
-    isOwnPolicyExpenseChat: false,
-    isPinned: false,
-    isWaitingOnBankAccount: false,
-    lastActionType: 'REPORTPREVIEW',
-    lastActorAccountID: 32,
-    lastMessageHtml: 'paid $1.00',
-    lastMessageText: 'paid $1.00',
-    lastMessageTranslationKey: '',
-    lastReadSequenceNumber: 0,
-    lastReadTime: '2024-12-13 19:45:28.942',
-    lastVisibleActionCreated: '2024-12-13 19:19:01.794',
-    lastVisibleActionLastModified: '2024-12-13 19:19:01.794',
-    managerID: 0,
-    nonReimbursableTotal: 0,
-    oldPolicyName: '',
-    ownerAccountID: 0,
-    participants: {
-        '32': {
-            notificationPreference: 'always',
-            role: 'admin',
-        },
-        '33': {
-            notificationPreference: 'always',
-            permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE, CONST.REPORT.PERMISSIONS.SHARE, CONST.REPORT.PERMISSIONS.OWN],
-        },
-    },
-    policyAvatar: '',
-    policyID: 'CC048FA711B35B1F',
-    policyName: "53019's Workspace",
-    private_isArchived: '',
-    reportID: '7605647250932303',
-    reportName: 'Chat Report',
-    state: 'OPEN',
-    stateNum: 0,
-    statusNum: 0,
-    total: 0,
-    type: 'chat',
-    unheldNonReimbursableTotal: 0,
-    unheldTotal: 0,
-    visibility: 'private',
-    welcomeMessage: '',
-    writeCapability: 'all',
 };
 
 Onyx.init({keys: ONYXKEYS});
@@ -1484,13 +1424,10 @@ describe('ReportUtils', () => {
             };
 
             // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(convertedInvoiceChat.policyID, 33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, reports);
+            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
 
             // Then no invoice chat should be returned because the receiver type does not match
             expect(invoiceChatReport).toBeUndefined();
         });
     });
 });
-
-// eslint-disable-next-line import/prefer-default-export
-export {convertedInvoiceChat};
