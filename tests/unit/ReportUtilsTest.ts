@@ -2,7 +2,6 @@
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {convertedInvoiceChat} from 'tests/data/Invoice';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -11,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import {convertedInvoiceChat} from '../data/Invoice';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
