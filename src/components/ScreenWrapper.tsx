@@ -9,6 +9,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useReadyWithDimensions from '@hooks/useReadyWithDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
@@ -104,6 +105,8 @@ type ScreenWrapperProps = {
 
     /** Overrides the focus trap default settings */
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
+
+    shouldListenToDimensionChanges?: boolean;
 };
 
 type ScreenWrapperStatusContextType = {
@@ -136,6 +139,7 @@ function ScreenWrapper(
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
+        shouldListenToDimensionChanges = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -161,8 +165,11 @@ function ScreenWrapper(
     const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
+
+    const {isReady} = useReadyWithDimensions(Browser.isMobileSafari() && shouldListenToDimensionChanges);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+
+    const maxHeight = shouldEnableMaxHeight && isReady ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
     const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 

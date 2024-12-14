@@ -603,6 +603,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
+            shouldListenToDimensionChanges
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton
