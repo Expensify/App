@@ -48,21 +48,6 @@ function BaseEducationalTooltip({children, onHideTooltip: onHideTooltipProp, sho
         [],
     );
 
-    // Automatically hide tooltip after 5 seconds
-    useEffect(() => {
-        if (!shouldAutoDismiss) {
-            return;
-        }
-
-        // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
-        const timerID = setTimeout(() => {
-            closeTooltip();
-        }, 5000);
-        return () => {
-            clearTimeout(timerID);
-        };
-    }, [shouldAutoDismiss, closeTooltip]);
-
     useEffect(() => {
         if (!shouldMeasure || !shouldRender || didShow.current) {
             return;
