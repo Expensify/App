@@ -1599,7 +1599,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         outputCurrency: string;
 
         /** The address of the company */
-        address?: CompanyAddress | [];
+        address?: CompanyAddress;
 
         /** The URL for the policy avatar */
         avatarURL?: string;
@@ -1751,15 +1751,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         taxRates?: TaxRatesWithDefault;
 
         /** A set of rules related to the workpsace */
-        rules?:
-            | {
-                  /** A set of rules related to the workpsace approvals */
-                  approvalRules?: ApprovalRule[];
+        rules?: {
+            /** A set of rules related to the workpsace approvals */
+            approvalRules?: ApprovalRule[];
 
-                  /** A set of rules related to the workpsace expenses */
-                  expenseRules?: ExpenseRule[];
-              }
-            | [];
+            /** A set of rules related to the workpsace expenses */
+            expenseRules?: ExpenseRule[];
+        };
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;

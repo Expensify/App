@@ -61,7 +61,6 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
     pendingFields: {},
     chatReportIDAnnounce: 0,
     chatReportIDAdmins: 1811331783036078,
-    address: [],
     approver: 'a1@53019.com',
     areCompanyCardsEnabled: false,
     areExpensifyCardsEnabled: false,
@@ -170,7 +169,6 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
             groupID: 'utilities',
         },
     },
-    rules: [],
 };
 
 const transaction: OnyxEntry<OnyxTypes.Transaction> = {
@@ -226,7 +224,6 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
     currency: 'USD',
     description: '',
-    errorFields: null,
     hasOutstandingChildRequest: false,
     hasOutstandingChildTask: false,
 

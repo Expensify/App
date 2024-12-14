@@ -514,6 +514,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingFields: 'object',
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                    permissions: 'array',
                 },
                 'number',
             );
@@ -630,6 +631,8 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                state: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
