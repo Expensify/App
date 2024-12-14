@@ -1,0 +1,123 @@
+import type {ValueOf} from 'type-fest';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+
+const {
+    CONCIERGE_LHN_GBR,
+    RENAME_SAVED_SEARCH,
+    WORKSPACE_CHAT_CREATE,
+    QUICK_ACTION_BUTTON,
+    SEARCH_FILTER_BUTTON_TOOLTIP,
+    BOTTOM_NAV_INBOX_TOOLTIP,
+    LHN_WORKSPACE_CHAT_TOOLTIP,
+    GLOBAL_CREATE_TOOLTIP,
+} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+
+type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
+
+type ShouldShowConditionProps = {
+    shouldUseNarrowLayout?: boolean;
+};
+
+type TooltipData = {
+    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    onHideTooltip: () => void;
+    name: ProductTrainingTooltipName;
+    priority: number;
+    shouldShow: (props: ShouldShowConditionProps) => boolean;
+};
+
+const createTooltipData = (
+    name: ProductTrainingTooltipName,
+    content: Array<{text: TranslationPaths; isBold: boolean}>,
+    priority: number,
+    shouldShow: (props: ShouldShowConditionProps) => boolean
+): TooltipData => ({
+    content,
+    onHideTooltip: () => dismissProductTraining(name),
+    name,
+    priority,
+    shouldShow,
+});
+
+const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
+    [CONCIERGE_LHN_GBR]: createTooltipData(
+        CONCIERGE_LHN_GBR,
+        [
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+        ],
+        1300,
+        ({shouldUseNarrowLayout = false}) => shouldUseNarrowLayout
+    ),
+    [RENAME_SAVED_SEARCH]: createTooltipData(
+        RENAME_SAVED_SEARCH,
+        [
+            {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
+        ],
+        1250,
+        ({shouldUseNarrowLayout = false}) => !shouldUseNarrowLayout
+    ),
+    [GLOBAL_CREATE_TOOLTIP]: createTooltipData(
+        GLOBAL_CREATE_TOOLTIP,
+        [
+            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
+        ],
+        1200,
+        () => true
+    ),
+    [QUICK_ACTION_BUTTON]: createTooltipData(
+        QUICK_ACTION_BUTTON,
+        [
+            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
+            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
+        ],
+        1150,
+        () => true
+    ),
+    [WORKSPACE_CHAT_CREATE]: createTooltipData(
+        WORKSPACE_CHAT_CREATE,
+        [
+            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: false},
+        ],
+        1100,
+        () => true
+    ),
+    [SEARCH_FILTER_BUTTON_TOOLTIP]: createTooltipData(
+        SEARCH_FILTER_BUTTON_TOOLTIP,
+        [
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
+        ],
+        1000,
+        () => true
+    ),
+    [BOTTOM_NAV_INBOX_TOOLTIP]: createTooltipData(
+        BOTTOM_NAV_INBOX_TOOLTIP,
+        [
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+        ],
+        900,
+        () => true
+    ),
+    [LHN_WORKSPACE_CHAT_TOOLTIP]: createTooltipData(
+        LHN_WORKSPACE_CHAT_TOOLTIP,
+        [
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
+        ],
+        800,
+        () => true
+    ),
+};
+
+export default TOOLTIPS;
+export type {ProductTrainingTooltipName};
