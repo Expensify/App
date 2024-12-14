@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectorModal from './ValueSelectorModal';
 
@@ -14,7 +15,9 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
-        setIsPickerVisible(true);
+        KeyboardUtils.dismiss().then(() => {
+            setIsPickerVisible(true);
+        });
     };
 
     const hidePickerModal = () => {

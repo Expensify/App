@@ -1,5 +1,6 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
@@ -21,21 +22,17 @@ type OnValidateResult = {
     legalLastName?: string;
 };
 
-type GetPhysicalCardNameOnyxProps = {
-    /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm>;
-};
-
-type GetPhysicalCardNameProps = GetPhysicalCardNameOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
+type GetPhysicalCardNameProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
 
 function GetPhysicalCardName({
-    draftValues,
     route: {
         params: {domain},
     },
 }: GetPhysicalCardNameProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
 
     const {legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
@@ -66,37 +63,35 @@ function GetPhysicalCardName({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                name={INPUT_IDS.LEGAL_FIRST_NAME}
-                label={translate('getPhysicalCard.legalFirstName')}
-                aria-label={translate('getPhysicalCard.legalFirstName')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="words"
-                defaultValue={legalFirstName}
-                shouldSaveDraft
-            />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                name={INPUT_IDS.LEGAL_LAST_NAME}
-                label={translate('getPhysicalCard.legalLastName')}
-                aria-label={translate('getPhysicalCard.legalLastName')}
-                role={CONST.ROLE.PRESENTATION}
-                autoCapitalize="words"
-                defaultValue={legalLastName}
-                containerStyles={styles.mt5}
-                shouldSaveDraft
-            />
+            <View style={styles.mh5}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                    name={INPUT_IDS.LEGAL_FIRST_NAME}
+                    label={translate('getPhysicalCard.legalFirstName')}
+                    aria-label={translate('getPhysicalCard.legalFirstName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="words"
+                    defaultValue={legalFirstName}
+                    shouldSaveDraft
+                />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                    name={INPUT_IDS.LEGAL_LAST_NAME}
+                    label={translate('getPhysicalCard.legalLastName')}
+                    aria-label={translate('getPhysicalCard.legalLastName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="words"
+                    defaultValue={legalLastName}
+                    containerStyles={styles.mt5}
+                    shouldSaveDraft
+                />
+            </View>
         </BaseGetPhysicalCard>
     );
 }
 
 GetPhysicalCardName.displayName = 'GetPhysicalCardName';
 
-export default withOnyx<GetPhysicalCardNameProps, GetPhysicalCardNameOnyxProps>({
-    draftValues: {
-        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
-    },
-})(GetPhysicalCardName);
+export default GetPhysicalCardName;

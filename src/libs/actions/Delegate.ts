@@ -12,7 +12,9 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
+import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
+import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -25,13 +27,38 @@ Onyx.connect({
     },
 });
 
+let credentials: Credentials = {};
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: (value) => (credentials = value ?? {}),
+});
+
+let stashedCredentials: Credentials = {};
+Onyx.connect({
+    key: ONYXKEYS.STASHED_CREDENTIALS,
+    callback: (value) => (stashedCredentials = value ?? {}),
+});
+
+let session: Session = {};
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => (session = value ?? {}),
+});
+
+let stashedSession: Session = {};
+Onyx.connect({
+    key: ONYXKEYS.STASHED_SESSION,
+    callback: (value) => (stashedSession = value ?? {}),
+});
+
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.SESSION,
+    ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.IS_LOADING_APP,
-    ONYXKEYS.CREDENTIALS,
+    ONYXKEYS.STASHED_CREDENTIALS,
 
     // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
@@ -42,6 +69,9 @@ function connect(email: string) {
     if (!delegatedAccess?.delegators) {
         return;
     }
+
+    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
+    Onyx.set(ONYXKEYS.STASHED_SESSION, session);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -172,6 +202,11 @@ function disconnect() {
                     updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
+
+                    Onyx.set(ONYXKEYS.CREDENTIALS, stashedCredentials);
+                    Onyx.set(ONYXKEYS.SESSION, stashedSession);
+                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
                     openApp();
 
@@ -329,6 +364,15 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
             },
         },
     ];
+
+    const optimisticResetActionCode = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.VALIDATE_ACTION_CODE,
+        value: {
+            validateCodeSent: null,
+        },
+    };
+    optimisticData.push(optimisticResetActionCode);
 
     const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
 
