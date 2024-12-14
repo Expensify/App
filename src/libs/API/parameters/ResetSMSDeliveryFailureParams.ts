@@ -1,5 +1,5 @@
 type ResetSMSDeliveryFailureParams = {
-    email: string;
+    login: string;
 };
 
 export default ResetSMSDeliveryFailureParams;

@@ -1204,10 +1204,45 @@ function isUserOnPrivateDomain() {
 /**
  * To reset SMS delivery failure
  */
-function resetSMSDeliveryFailure(email: string) {
-    const params: ResetSMSDeliveryFailureParams = {email};
+function resetSMSDeliveryFailure(login: string) {
+    const params: ResetSMSDeliveryFailureParams = {login};
 
-    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE, params);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                smsDeliveryFailureStatus: {
+                    isLoading: true,
+                    isReset: true,
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                smsDeliveryFailureStatus: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                smsDeliveryFailureStatus: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE, params, {optimisticData, successData, failureData});
 }
 
 export {
