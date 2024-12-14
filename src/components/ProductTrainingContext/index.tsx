@@ -16,17 +16,15 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
+// Context type definition
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
     registerTooltip: (tooltipName: ProductTrainingTooltipName) => void;
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
 
-const ProductTrainingContext = createContext<ProductTrainingContextType>({
-    shouldRenderTooltip: () => false,
-    registerTooltip: () => {},
-    unregisterTooltip: () => {},
-});
+// Create Context with default values
+const ProductTrainingContext = createContext<ProductTrainingContextType | null>(null);
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
@@ -39,16 +37,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
-    const unregisterTooltip = useCallback(
-        (tooltipName: ProductTrainingTooltipName) => {
-            setActiveTooltips((prev) => {
-                const next = new Set(prev);
-                next.delete(tooltipName);
-                return next;
-            });
-        },
-        [setActiveTooltips],
-    );
+    const unregisterTooltip = useCallback((tooltipName: ProductTrainingTooltipName) => {
+        setActiveTooltips((prev) => {
+            const next = new Set(prev);
+            next.delete(tooltipName);
+            return next;
+        });
+    }, []);
 
     const determineVisibleTooltip = useCallback(() => {
         if (activeTooltips.size === 0) {
@@ -62,13 +57,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             }))
             .sort((a, b) => b.priority - a.priority);
 
-        const highestPriorityTooltip = sortedTooltips.at(0);
-
-        if (!highestPriorityTooltip) {
-            return null;
-        }
-
-        return highestPriorityTooltip.name;
+        return sortedTooltips[0]?.name || null;
     }, [activeTooltips]);
 
     const shouldTooltipBeVisible = useCallback(
@@ -77,54 +66,45 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            const isDismissed = !!dismissedProductTraining?.[tooltipName];
-
-            if (isDismissed) {
+            if (dismissedProductTraining?.[tooltipName]) {
                 return false;
             }
-            const tooltipConfig = TOOLTIPS[tooltipName];
 
-            // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
+            const tooltipConfig = TOOLTIPS[tooltipName];
+            if (!tooltipConfig) {
+                console.warn(`Tooltip configuration for '${tooltipName}' not found.`);
+                return false;
+            }
+
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
                 return false;
             }
-            if (isOnboardingCompleted === false) {
+
+            if (!isOnboardingCompleted) {
                 return false;
             }
 
-            return tooltipConfig.shouldShow({
-                shouldUseNarrowLayout,
-            });
+            return tooltipConfig.shouldShow({shouldUseNarrowLayout});
         },
         [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout],
     );
 
     const registerTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            const shouldRegister = shouldTooltipBeVisible(tooltipName);
-            if (!shouldRegister) {
-                return;
+            if (shouldTooltipBeVisible(tooltipName)) {
+                setActiveTooltips((prev) => new Set([...prev, tooltipName]));
             }
-            setActiveTooltips((prev) => new Set([...prev, tooltipName]));
         },
         [shouldTooltipBeVisible],
     );
 
     const shouldRenderTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
-            // First check base conditions
-            const shouldShow = shouldTooltipBeVisible(tooltipName);
-            if (!shouldShow) {
+            if (!shouldTooltipBeVisible(tooltipName)) {
                 return false;
             }
-            const visibleTooltip = determineVisibleTooltip();
 
-            // If this is the highest priority visible tooltip, show it
-            if (tooltipName === visibleTooltip) {
-                return true;
-            }
-
-            return false;
+            return tooltipName === determineVisibleTooltip();
         },
         [shouldTooltipBeVisible, determineVisibleTooltip],
     );
@@ -141,14 +121,14 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
+function useProductTrainingContext(tooltipName: ProductTrainingTooltipName, shouldShow = true) {
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     if (!context) {
-        throw new Error('useProductTourContext must be used within a ProductTourProvider');
+        throw new Error('useProductTrainingContext must be used within a ProductTrainingContextProvider');
     }
 
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
@@ -156,61 +136,51 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     useEffect(() => {
         if (shouldShow) {
             registerTooltip(tooltipName);
-            return () => {
-                unregisterTooltip(tooltipName);
-            };
+            return () => unregisterTooltip(tooltipName);
         }
         return () => {};
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+        if (!tooltip) {
+            return null;
+        }
+
         return (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
-                <Icon
-                    src={Expensicons.Lightbulb}
-                    fill={theme.tooltipHighlightText}
-                    medium
-                />
+            <View
+                style={[
+                    styles.alignItemsCenter,
+                    styles.flexRow,
+                    styles.justifyContentCenter,
+                    styles.flexWrap,
+                    styles.textAlignCenter,
+                    styles.gap3,
+                    styles.p2,
+                ]}
+            >
+                <Icon src={Expensicons.Lightbulb} fill={theme.tooltipHighlightText} medium />
                 <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                    {tooltip.content.map(({text, isBold}) => {
-                        const translatedText = translate(text);
-                        return (
-                            <Text
-                                key={text}
-                                style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                            >
-                                {translatedText}
-                            </Text>
-                        );
-                    })}
+                    {tooltip.content.map(({text, isBold}) => (
+                        <Text
+                            key={text}
+                            style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
+                        >
+                            {translate(text)}
+                        </Text>
+                    ))}
                 </Text>
             </View>
         );
-    }, [
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.flexWrap,
-        styles.gap3,
-        styles.justifyContentCenter,
-        styles.mw100,
-        styles.p2,
-        styles.productTrainingTooltipText,
-        styles.textAlignCenter,
-        styles.textBold,
-        styles.textWrap,
-        theme.tooltipHighlightText,
-        tooltipName,
-        translate,
-    ]);
+    }, [styles, theme.tooltipHighlightText, tooltipName, translate]);
 
-    const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName]);
+    const shouldShowProductTrainingTooltip = useMemo(() => shouldRenderTooltip(tooltipName), [shouldRenderTooltip, tooltipName]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
-        tooltip.onHideTooltip();
+        if (tooltip?.onHideTooltip) {
+            tooltip.onHideTooltip();
+        }
         unregisterTooltip(tooltipName);
     }, [tooltipName, unregisterTooltip]);
 
@@ -219,6 +189,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         hideProductTrainingTooltip,
         shouldShowProductTrainingTooltip,
     };
-};
+}
 
 export {ProductTrainingContextProvider, useProductTrainingContext};
