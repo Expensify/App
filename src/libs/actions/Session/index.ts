@@ -17,6 +17,7 @@ import type {
     RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
+    ResetSMSDeliveryFailureParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
     UnlinkLoginParams,
@@ -1200,6 +1201,15 @@ function isUserOnPrivateDomain() {
     return false;
 }
 
+/**
+ * To reset SMS delivery failure
+ */
+function resetSMSDeliveryFailure(email: string) {
+    const params: ResetSMSDeliveryFailureParams = {email};
+
+    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE, params);
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1239,4 +1249,5 @@ export {
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
+    resetSMSDeliveryFailure,
 };

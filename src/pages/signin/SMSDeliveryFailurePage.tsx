@@ -27,6 +27,7 @@ function SMSDeliveryFailurePage() {
     }, [credentials?.login]);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
+    const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     useEffect(() => {
         if (!isKeyboardShown) {
@@ -35,22 +36,67 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
+    if (hasSMSDeliveryFailure === true) {
+        return (
+            <>
+                <View style={[styles.mv3, styles.flexRow]}>
+                    <View style={[styles.flex1]}>
+                        <Text>
+                            {translate('smsDeliveryFailurePage.validationFailed')} {SMSDeliveryFailureMessage}
+                        </Text>
+                    </View>
+                </View>
+                <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
+                    <Button
+                        success
+                        medium
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => Session.clearSignInData()}
+                        pressOnEnter
+                        style={styles.w100}
+                    />
+                </View>
+            </>
+        );
+    }
+
+    if (hasSMSDeliveryFailure === false) {
+        return (
+            <>
+                <View style={[styles.mv3, styles.flexRow]}>
+                    <View style={[styles.flex1]}>
+                        <Text>{translate('smsDeliveryFailurePage.validationSuccess')}</Text>
+                    </View>
+                </View>
+                <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
+                    <Button
+                        success
+                        medium
+                        text={translate('common.send')}
+                        onPress={() => Session.beginSignIn(login)}
+                        pressOnEnter
+                        style={styles.w100}
+                    />
+                </View>
+            </>
+        );
+    }
+
     return (
         <>
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <Text>
-                        {translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})} {SMSDeliveryFailureMessage}
-                    </Text>
+                    <Text>{translate('smsDeliveryFailurePage.smsDeliveryFailureMessage', {login})}</Text>
                 </View>
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                 <Button
                     success
                     medium
-                    text={translate('common.buttonConfirm')}
-                    onPress={() => Session.clearSignInData()}
+                    text={translate('common.validate')}
+                    onPress={() => console.log('resetSMSDeliveryFailure')}
                     pressOnEnter
+                    style={styles.w100}
                 />
             </View>
             <View style={[styles.mt3, styles.mb2]}>
