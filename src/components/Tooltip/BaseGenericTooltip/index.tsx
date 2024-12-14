@@ -155,7 +155,15 @@ function BaseGenericTooltip({
 
     return ReactDOM.createPortal(
         <>
-            {shouldUseOverlay && <TransparentOverlay onPress={handleOverlayClick} />}
+            {shouldUseOverlay && (
+                <TransparentOverlay
+                    onPress={handleOverlayClick}
+                    holeX={xOffset}
+                    holeY={yOffset}
+                    holeWidth={targetWidth}
+                    holeHeight={targetHeight}
+                />
+            )}
             <Animated.View
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}

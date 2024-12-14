@@ -129,7 +129,15 @@ function BaseGenericTooltip({
 
     return (
         <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
-            {shouldUseOverlay && <TransparentOverlay onPress={handleOverlayClick} />}
+            {shouldUseOverlay && (
+                <TransparentOverlay
+                    onPress={handleOverlayClick}
+                    holeX={xOffset}
+                    holeY={yOffset}
+                    holeWidth={targetWidth}
+                    holeHeight={targetHeight}
+                />
+            )}
             <Animated.View
                 ref={rootWrapper}
                 style={[rootWrapperStyle, animationStyle]}
