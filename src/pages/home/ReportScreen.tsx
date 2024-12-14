@@ -557,14 +557,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (
-            !shouldUseNarrowLayout ||
-            !isFocused ||
-            prevIsFocused ||
-            !ReportUtils.isChatThread(report) ||
-            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
-            isSingleTransactionView
-        ) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || !ReportUtils.isHiddenParticipant(report) || isSingleTransactionView) {
             return;
         }
         Report.openReport(reportID ?? '');

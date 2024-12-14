@@ -1294,12 +1294,9 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
 }
 
 /**
- * Get the notification preference given a report
+ * Get the notification preference given a report. This should ALWAYS default to 'hidden'. Do not change this!
  */
-function getReportNotificationPreference(report: OnyxEntry<Report>, shouldDefaltToHidden = true): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
-    if (!shouldDefaltToHidden) {
-        return report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? getDefaultNotificationPreferenceForReport(report);
-    }
+function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     return report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
@@ -1416,6 +1413,23 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * For all intents and purposes a report that has no notificationPreference at all should be considered "hidden".
+ * We will remove the 'hidden' field entirely once the backend changes for https://github.com/Expensify/Expensify/issues/450891 are done.
+ */
+function isHiddenParticipant(notificationPreference: string | null | undefined): boolean;
+function isHiddenParticipant(report: OnyxEntry<Report>): boolean;
+function isHiddenParticipant(reportOrPreference: OnyxEntry<Report> | string | null | undefined): boolean {
+    if (typeof reportOrPreference === 'object' && reportOrPreference !== null) {
+        const notificationPreference = getReportNotificationPreference(reportOrPreference);
+        return isHiddenParticipant(notificationPreference);
+    }
+    if (reportOrPreference === undefined || reportOrPreference == null) {
+        return true;
+    }
+    return reportOrPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+}
+
+/**
  * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
  * by cross-referencing the accountIDs with personalDetails since guides that are participants
  * of the user's chats should have their personal details in Onyx.
@@ -1426,7 +1440,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = !isChatThread(report) || getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const shouldKeep = !isChatThread(report) || !isHiddenParticipant(report);
         return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
@@ -2233,7 +2247,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
                 return false;
             }
 
-            if (shouldExcludeHidden && reportParticipants[accountID]?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            if (shouldExcludeHidden && isHiddenParticipant(reportParticipants[accountID]?.notificationPreference)) {
                 return false;
             }
 
@@ -8119,7 +8133,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
     }
 
     // If the notification preference of the chat is not hidden that means we have already joined the chat
-    if (getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (!isHiddenParticipant(report)) {
         return false;
     }
 
@@ -8153,7 +8167,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (isHiddenParticipant(report)) {
         return false;
     }
 
@@ -8835,6 +8849,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
+    isHiddenParticipant,
 };
 
 export type {
