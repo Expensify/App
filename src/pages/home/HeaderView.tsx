@@ -290,7 +290,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
-                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && Task.canModifyTask(report, accountID, true) && (
+                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && Task.canActionTask(report, accountID) && (
                                     <TaskHeaderActionButton report={report} />
                                 )}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}

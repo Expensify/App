@@ -1225,18 +1225,37 @@ function canModifyTask(
 ): boolean {
     const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
     const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
-
     if (ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
+        return false;
+    }
+
+    if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-
-    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs) || ReportUtils.isCanceledTaskReport(taskReport)) {
+    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
         return false;
     }
 
+    if (sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID) {
+        return true;
+    }
+
+    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
+        return false;
+    }
+
+    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+}
+
+/**
+ * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ */
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, taskAssigneeAccountID?: number): boolean {
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
@@ -1283,6 +1302,7 @@ export {
     canModifyTask,
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
+    canActionTask,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
