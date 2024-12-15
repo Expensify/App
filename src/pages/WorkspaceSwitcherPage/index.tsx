@@ -89,8 +89,8 @@ function WorkspaceSwitcherPage() {
             setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
             if (newPolicyID !== activeWorkspaceID) {
-                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while also navigating back
-                // Therefore we delay the workspace switching until the back navigation animation is complete, using the InteractionManager.
+                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
+                // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
                 const platform = getPlatform();
                 if (platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID) {
                     InteractionManager.runAfterInteractions(() => {
