@@ -431,6 +431,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(ReportActionsUtils.getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
                     Clipboard.setString(ReportActionsUtils.getPolicyChangeLogMaxExpenseAmountMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
+                    Clipboard.setString(ReportActionsUtils.getPolicyChangeLogDefaultBillableMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
+                    Clipboard.setString(ReportActionsUtils.getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {

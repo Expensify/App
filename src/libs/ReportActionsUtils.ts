@@ -1876,6 +1876,31 @@ function getPolicyChangeLogMaxExpenseAmountMessage(action: ReportAction): string
     return getReportActionText(action);
 }
 
+function getPolicyChangeLogDefaultBillableMessage(action: ReportAction): string {
+    const {oldDefaultBillable, newDefaultBillable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE>) ?? {};
+
+    if (typeof oldDefaultBillable === 'string' && typeof newDefaultBillable === 'string') {
+        return Localize.translateLocal('workspaceActions.updateDefaultBillable', {
+            oldValue: oldDefaultBillable,
+            newValue: newDefaultBillable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
+    const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
+
+    if (typeof value === 'boolean') {
+        return Localize.translateLocal('workspaceActions.updateDefaultTitleEnforced', {
+            value,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
     if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
         return '';
@@ -2122,6 +2147,8 @@ export {
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
 };
 
 export type {LastVisibleMessage};

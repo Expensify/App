@@ -168,8 +168,9 @@ import type {
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
-    UpdatedPolicyMaxExepenseAmountParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
@@ -4520,10 +4521,13 @@ const translations = {
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `Renombró la categoría "${oldName}" a "${newName}".`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `actualizó "Evitar la autoaprobación" de "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}"`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) => `cambió el monto máximo de gasto requerido sin recibo de ${oldValue} a ${newValue}`,
-        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) => `cambió el monto máximo de gasto para violaciones de ${oldValue} a ${newValue}`,
-        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) =>
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto requerido sin recibo de ${oldValue} a ${newValue}`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `cambió el monto máximo de gasto para violaciones de ${oldValue} a ${newValue}`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `actualizó "Antigüedad Máxima de Gastos (días)" de "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}" a "${newValue}"`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `actualizó "Refacturar gastos a clientes" de "${oldValue}" a "${newValue}"`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Aplicar título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';

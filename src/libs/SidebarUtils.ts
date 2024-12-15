@@ -482,6 +482,10 @@ function getOptionData({
             result.alternateText = ReportActionsUtils.getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
             result.alternateText = ReportActionsUtils.getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogDefaultBillableMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {

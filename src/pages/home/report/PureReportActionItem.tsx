@@ -838,6 +838,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action)} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogMaxExpenseAmountMessage(action)} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDefaultBillableMessage(action)} />;
+        } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogDefaultTitleEnforcedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getPolicyChangeLogAddEmployeeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {

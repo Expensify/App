@@ -353,6 +353,15 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New value for max expense amount for violations */
     newMaxExpenseAmount?: number;
+
+    /** Old default billable value */
+    oldDefaultBillable?: string;
+
+    /** New default billable value */
+    newDefaultBillable?: string;
+
+    /** value -- returned when updating "Auto-approve compliant reports" */
+    value?: boolean;
 };
 
 /** Model of `join policy changelog` report action */
