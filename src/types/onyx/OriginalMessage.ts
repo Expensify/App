@@ -338,6 +338,15 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Name of the updated field */
     updatedField?: string;
+
+    /** Old value for max expense amount with no receipt */
+    oldMaxExpenseAmountNoReceipt?: number;
+
+    /** New value for max expense amount with no receipt */
+    newMaxExpenseAmountNoReceipt?: number;
+
+    /** Currency of the policy */
+    currency?: string;
 };
 
 /** Model of `join policy changelog` report action */

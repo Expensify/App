@@ -2581,6 +2581,9 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
         },
+        EXPENSE_REPORT_RULES: {
+            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+        },
         CONNECTIONS: {
             NAME: {
                 // Here we will add other connections names when we add support for them

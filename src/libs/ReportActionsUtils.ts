@@ -16,6 +16,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -1830,6 +1831,27 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
         });
     }
 
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return Localize.translateLocal('workspaceActions.preventSelfApproval', {
+            oldValue,
+            newValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxAmmountNoReceiptMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
+
+    if (typeof oldMaxExpenseAmountNoReceipt === 'number' && typeof newMaxExpenseAmountNoReceipt === 'number') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
+            oldValue: CurrencyUtils.convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
+            newValue: CurrencyUtils.convertToDisplayString(newMaxExpenseAmountNoReceipt, currency),
+        });
+    }
+
     return getReportActionText(action);
 }
 
@@ -2077,6 +2099,7 @@ export {
     getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getPolicyChangeLogMaxAmmountNoReceiptMessage,
 };
 
 export type {LastVisibleMessage};
