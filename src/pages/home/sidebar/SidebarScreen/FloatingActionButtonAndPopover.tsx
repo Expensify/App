@@ -405,7 +405,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
-            tooltipWrapperStyle: styles.quickActionTooltipWrapper,
+            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
             onHideTooltip: hideProductTrainingTooltip,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
@@ -451,7 +451,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionAvatars,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
-        styles.quickActionTooltipWrapper,
+        styles.productTrainingTooltipWrapper,
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
         quickAction?.action,
