@@ -192,7 +192,9 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -349,6 +351,7 @@ const translations = {
         semicolon: 'el punto y coma',
         please: 'Por favor',
         rename: 'Renombrar',
+        skip: 'Saltarse',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un correo electrónico o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -1756,6 +1759,11 @@ const translations = {
         },
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
+        peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
+        joinAWorkspace: 'Unirse a un espacio de trabajo',
+        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Por favor selecciona una opción para continuar.',
         purpose: {
@@ -2796,6 +2804,10 @@ const translations = {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
+        },
+        workspaceList: {
+            joinNow: 'Únete ahora',
+            askToJoin: 'Pedir unirse',
         },
         xero: {
             organization: 'Organización Xero',
@@ -5984,6 +5996,25 @@ const translations = {
             part1: 'Envía tus',
             part2: ' gastos',
             part3: ' aquí',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Personaliza tu búsqueda',
+            part2: ' aquí!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Tu lista de tareas',
+            part2: '\n🟢 = listo para ti',
+            part3: ' 🔴 = necesita revisión',
+        },
+        workspaceChatTooltip: {
+            part1: 'Envía gastos',
+            part2: ' y chatea con',
+            part3: '\naprobadores aquí!',
+        },
+        globalCreateTooltip: {
+            part1: 'Crea gastos',
+            part2: ', comienza a chatear,',
+            part3: '\ny mucho más!',
         },
     },
 };
