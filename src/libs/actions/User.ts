@@ -285,6 +285,15 @@ function clearValidateCodeActionError(fieldName: string) {
 }
 
 /**
+ * Reset validateCodeSent on validate action code.
+ */
+function resetValidateActionCodeSent() {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        validateCodeSent: false,
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -1362,14 +1371,6 @@ function dismissTrackTrainingModal() {
     });
 }
 
-function dismissWorkspaceTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
-}
-
-function dismissGBRTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, true);
-}
-
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1390,7 +1391,6 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
-    dismissWorkspaceTooltip,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1424,6 +1424,6 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     subscribeToActiveGuides,
-    dismissGBRTooltip,
     setIsDebugModeEnabled,
+    resetValidateActionCodeSent,
 };

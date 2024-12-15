@@ -273,52 +273,52 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
 }
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
-    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: transactionIDList
-                    ? (Object.fromEntries(
-                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
-                      ) as Partial<SearchTransaction>)
-                    : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+                    ? (Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, update])) as Partial<SearchTransaction>)
+                    : (Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, update])) as Partial<SearchReport>),
             },
         },
     ];
-    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
-    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
 }
 
 function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[]) {
-    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: transactionIDList
-                    ? (Object.fromEntries(
-                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
-                      ) as Partial<SearchTransaction>)
-                    : (Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+                    ? (Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, update])) as Partial<SearchTransaction>)
+                    : (Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, update])) as Partial<SearchReport>),
             },
         },
     ];
 
-    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
-    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+    const failureData: OnyxUpdate[] = createOnyxData({hasError: true});
+    const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH, {hash, paymentData: JSON.stringify(paymentData)}, {optimisticData, finallyData}).then(
-        (response) => {
-            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-            playSound(SOUNDS.SUCCESS);
-        },
-    );
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH,
+        {hash, paymentData: JSON.stringify(paymentData)},
+        {optimisticData, failureData, finallyData},
+    ).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+        playSound(SOUNDS.SUCCESS);
+    });
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
@@ -380,14 +380,6 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-function showSavedSearchRenameTooltip() {
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
-}
-
-function dismissSavedSearchRenameTooltip() {
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
-}
-
 export {
     saveSearch,
     search,
@@ -400,8 +392,6 @@ export {
     clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
-    dismissSavedSearchRenameTooltip,
-    showSavedSearchRenameTooltip,
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
