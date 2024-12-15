@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import searchHeaderHeight from '@styles/utils/searchHeaderHeight';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,7 +36,7 @@ function SearchPageBottomTab() {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(variables.searchHeaderHeight);
+    const topBarOffset = useSharedValue<number>(searchHeaderHeight);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
@@ -50,9 +51,9 @@ function SearchPageBottomTab() {
             const isScrollingDown = currentOffset > scrollOffset.get();
             const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, variables.searchHeaderHeight));
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, searchHeaderHeight));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                topBarOffset.set(withTiming(searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
             }
             scrollOffset.set(currentOffset);
         },
@@ -63,7 +64,7 @@ function SearchPageBottomTab() {
             if (windowHeight <= h) {
                 return;
             }
-            topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+            topBarOffset.set(withTiming(searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
         },
         [windowHeight, topBarOffset],
     );
@@ -102,6 +103,7 @@ function SearchPageBottomTab() {
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
             offlineIndicatorStyle={styles.mtAuto}
+            headerGapStyles={styles.searchHeaderGap}
         >
             {!selectionMode?.isEnabled ? (
                 <>
@@ -122,7 +124,7 @@ function SearchPageBottomTab() {
                             <SearchStatusBar
                                 queryJSON={queryJSON}
                                 onStatusChange={() => {
-                                    topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                                    topBarOffset.set(withTiming(searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
                         </Animated.View>
