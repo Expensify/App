@@ -650,7 +650,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
-            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
+            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength && !shouldResetFocusedIndex) ||
             flattenedSections.allOptions.length === 0 ||
             shouldUpdateFocusedIndex
         ) {
