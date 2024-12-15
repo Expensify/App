@@ -932,7 +932,7 @@ function shouldShowViolation({
  * but if we can't determine they cannot edit it, we opted to show the RBR instead of hiding it.
  */
 function canEditTransaction(transactionID: string, parentReportAction: OnyxEntry<ReportAction>): boolean {
-    const report = ReportConnection.getReport(parentReportAction?.childReportID ?? '-1');
+    const report = ReportUtils.getReport(parentReportAction?.childReportID ?? '-1');
     const transaction = getTransaction(transactionID ?? '-1');
     if (report && transaction && parentReportAction) {
         const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
