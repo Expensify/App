@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, Platform} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,6 +12,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
@@ -90,7 +91,8 @@ function WorkspaceSwitcherPage() {
             if (newPolicyID !== activeWorkspaceID) {
                 // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while also navigating back
                 // Therefore we delay the workspace switching until the back navigation animation is complete, using the InteractionManager.
-                if (Platform.OS === 'ios' || Platform.OS === 'android') {
+                const platform = getPlatform();
+                if (platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID) {
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
                     });
