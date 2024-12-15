@@ -170,7 +170,7 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyFrequencyParams,
-    UpdatedPolicyMaxExepenseAmountNoReceiptParams,
+    UpdatedPolicyMaxExepenseAmountParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
@@ -4471,8 +4471,11 @@ const translations = {
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent Self-Approval" from "${oldValue === 'true' ? 'Enabled' : 'Disabled'}" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}"`,
-        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountNoReceiptParams) =>
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) =>
             `changed the maximum receipt required expense amount from ${oldValue} to ${newValue}`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) => `changed the maximum expense amount for violations from ${oldValue} to ${newValue}`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyMaxExepenseAmountParams) =>
+            `updated "Max Expense Age (Days)" from "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}" to "${newValue}"`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';

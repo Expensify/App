@@ -347,6 +347,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Currency of the policy */
     currency?: string;
+
+    /** Old value for max expense amount for violations */
+    oldMaxExpenseAmount?: number;
+
+    /** New value for max expense amount for violations */
+    newMaxExpenseAmount?: number;
 };
 
 /** Model of `join policy changelog` report action */

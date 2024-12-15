@@ -1838,10 +1838,17 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
         });
     }
 
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAge', {
+            oldValue,
+            newValue,
+        });
+    }
+
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxAmmountNoReceiptMessage(action: ReportAction): string {
+function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
@@ -1849,6 +1856,20 @@ function getPolicyChangeLogMaxAmmountNoReceiptMessage(action: ReportAction): str
         return Localize.translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
             oldValue: CurrencyUtils.convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
             newValue: CurrencyUtils.convertToDisplayString(newMaxExpenseAmountNoReceipt, currency),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpenseAmountMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmount, newMaxExpenseAmount, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
+
+    if (typeof oldMaxExpenseAmount === 'number' && typeof newMaxExpenseAmount === 'number') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAmount', {
+            oldValue: CurrencyUtils.convertToDisplayString(oldMaxExpenseAmount, currency),
+            newValue: CurrencyUtils.convertToDisplayString(newMaxExpenseAmount, currency),
         });
     }
 
@@ -2099,7 +2120,8 @@ export {
     getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getPolicyChangeLogMaxAmmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
 };
 
 export type {LastVisibleMessage};

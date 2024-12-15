@@ -294,7 +294,7 @@ type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
-type UpdatedPolicyMaxExepenseAmountNoReceiptParams = {oldValue: string; newValue: string};
+type UpdatedPolicyMaxExepenseAmountParams = {oldValue: string; newValue: string};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
@@ -805,5 +805,5 @@ export type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyMaxExepenseAmountNoReceiptParams,
+    UpdatedPolicyMaxExepenseAmountParams,
 };

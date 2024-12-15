@@ -2583,6 +2583,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         CONNECTIONS: {
             NAME: {
