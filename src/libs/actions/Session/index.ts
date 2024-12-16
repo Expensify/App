@@ -1212,9 +1212,9 @@ function resetSMSDeliveryFailure(login: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                errors: null,
                 smsDeliveryFailureStatus: {
                     isLoading: true,
-                    isReset: true,
                 },
             },
         },
@@ -1226,6 +1226,7 @@ function resetSMSDeliveryFailure(login: string) {
             value: {
                 smsDeliveryFailureStatus: {
                     isLoading: false,
+                    isReset: true,
                 },
             },
         },
@@ -1235,6 +1236,7 @@ function resetSMSDeliveryFailure(login: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 smsDeliveryFailureStatus: {
                     isLoading: false,
                 },
