@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type PaymentVolumeProps = SubStepProps;
 
-const {ANNUAL_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {ANNUAL_VOLUME, TRADE_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [ANNUAL_VOLUME];
 
 function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
@@ -36,8 +36,19 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
             return accumulator;
         }, {} as Record<string, string>);
     }, [corpayOnboardingFields]);
+    const tradeVolumeRangeListOptions = useMemo(() => {
+        if (!corpayOnboardingFields?.picklists.TradeVolumeRange) {
+            return {};
+        }
+
+        return corpayOnboardingFields.picklists.TradeVolumeRange.reduce((accumulator, currentValue) => {
+            accumulator[currentValue.name] = currentValue.stringValue;
+            return accumulator;
+        }, {} as Record<string, string>);
+    }, [corpayOnboardingFields]);
 
     const annualVolumeDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[ANNUAL_VOLUME] ?? reimbursementAccountDraft?.[ANNUAL_VOLUME] ?? '';
+    const tradeVolumeDefaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[TRADE_VOLUME] ?? reimbursementAccountDraft?.[TRADE_VOLUME] ?? '';
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
@@ -68,6 +79,16 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
                 inputID={ANNUAL_VOLUME}
                 shouldSaveDraft={!isEditing}
                 value={annualVolumeDefaultValue}
+            />
+            <InputWrapper
+                InputComponent={PushRowWithModal}
+                optionsList={tradeVolumeRangeListOptions}
+                description={translate('businessInfoStep.tradeVolumeRangeInCurrency', {currencyCode: CONST.CURRENCY.USD})}
+                modalHeaderTitle={translate('businessInfoStep.selectTradeVolumeRange')}
+                searchInputTitle={translate('businessInfoStep.findTradeVolumeRange')}
+                inputID={TRADE_VOLUME}
+                shouldSaveDraft={!isEditing}
+                value={tradeVolumeDefaultValue}
             />
         </FormProvider>
     );
