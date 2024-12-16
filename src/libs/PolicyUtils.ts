@@ -69,11 +69,13 @@ Onyx.connect({
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
+ * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy> | null): Policy[] {
+function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+        (policy): policy is Policy =>
+            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
 /**
@@ -520,7 +522,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     return !!policy?.[featureName];
 }
 
-function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
     if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
@@ -528,14 +530,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function getDefaultApprover(policy: OnyxEntry<Policy>): string {
+function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
@@ -555,8 +557,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
             return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
         }
 
-        if (!tagApprover && getTagApproverRule(policy?.id ?? '-1', tag)?.approver) {
-            tagApprover = getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
+        if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
+            tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
         }
     }
 
@@ -636,7 +638,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies);
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
@@ -652,7 +654,7 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogi
 }
 
 function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
-    const activePolicies = getActivePolicies(allPolicies);
+    const activePolicies = getActivePolicies(allPolicies, currentUserLogin);
     return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
 }
 
@@ -1084,8 +1086,8 @@ function hasVBBA(policyID: string) {
     return !!policy?.achAccount?.bankAccountID;
 }
 
-function getTagApproverRule(policyID: string, tagName: string) {
-    const policy = getPolicy(policyID);
+function getTagApproverRule(policyOrID: string | SearchPolicy | OnyxEntry<Policy>, tagName: string) {
+    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
 
     const approvalRules = policy?.rules?.approvalRules ?? [];
     const approverRule = approvalRules.find((rule) =>
