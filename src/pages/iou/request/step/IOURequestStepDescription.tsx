@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -73,6 +74,8 @@ function IOURequestStepDescription({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
     const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    const descriptionRef = useRef(currentDescription);
+    const isSavedRef = useRef(false);
 
     /**
      * @returns - An object containing the errors for each inputID
@@ -98,7 +101,12 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     };
 
+    const updateDescriptionRef = (value: string) => {
+        descriptionRef.current = value;
+    };
+
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
+        isSavedRef.current = true;
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
@@ -151,10 +159,12 @@ function IOURequestStepDescription({
             >
                 <View style={styles.mb4}>
                     <InputWrapper
+                        valueType="string"
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescription}
+                        onValueChange={updateDescriptionRef}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
@@ -167,6 +177,14 @@ function IOURequestStepDescription({
                     />
                 </View>
             </FormProvider>
+            <DiscardChangesConfirmation
+                getHasUnsavedChanges={() => {
+                    if (isSavedRef.current) {
+                        return false;
+                    }
+                    return descriptionRef.current !== currentDescription;
+                }}
+            />
         </StepScreenWrapper>
     );
 }

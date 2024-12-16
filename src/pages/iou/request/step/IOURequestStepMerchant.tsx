@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -62,6 +63,9 @@ function IOURequestStepMerchant({
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const initialMerchant = isEmptyMerchant ? '' : merchant;
+    const merchantRef = useRef(initialMerchant);
+    const isSavedRef = useRef(false);
 
     const isMerchantRequired =
         ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
@@ -83,7 +87,12 @@ function IOURequestStepMerchant({
         [isMerchantRequired, translate],
     );
 
+    const updateMerchantRef = (value: string) => {
+        merchantRef.current = value;
+    };
+
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        isSavedRef.current = true;
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -124,10 +133,12 @@ function IOURequestStepMerchant({
             >
                 <View style={styles.mb4}>
                     <InputWrapper
+                        valueType="string"
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        defaultValue={isEmptyMerchant ? '' : merchant}
+                        defaultValue={initialMerchant}
+                        onValueChange={updateMerchantRef}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
@@ -136,6 +147,14 @@ function IOURequestStepMerchant({
                     />
                 </View>
             </FormProvider>
+            <DiscardChangesConfirmation
+                getHasUnsavedChanges={() => {
+                    if (isSavedRef.current) {
+                        return false;
+                    }
+                    return merchantRef.current !== initialMerchant;
+                }}
+            />
         </StepScreenWrapper>
     );
 }
