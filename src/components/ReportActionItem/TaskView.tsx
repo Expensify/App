@@ -114,7 +114,7 @@ function TaskView({report}: TaskViewProps) {
                                                 {taskTitle}
                                             </Text>
                                         </View>
-                                        {isOpen && (
+                                        {!isDisableInteractive && (
                                             <View style={styles.taskRightIconContainer}>
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
@@ -135,7 +135,7 @@ function TaskView({report}: TaskViewProps) {
                         description={translate('task.description')}
                         title={report.description ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                        shouldShowRightIcon={isOpen}
+                        shouldShowRightIcon={!isDisableInteractive}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         shouldGreyOutWhenDisabled={false}
@@ -154,7 +154,7 @@ function TaskView({report}: TaskViewProps) {
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
+                            shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
                             isSmallAvatarSubscriptMenu
@@ -167,7 +167,7 @@ function TaskView({report}: TaskViewProps) {
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
+                            shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
                             shouldGreyOutWhenDisabled={false}
