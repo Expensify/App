@@ -49,7 +49,7 @@ type SignInPageRef = {
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
-    shouldShowSMSDeliveryFailurePage: boolean;
+    shouldShowSMSDeliveryFailurePage: boolean | undefined;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
     shouldShowChooseSSOOrMagicCode: boolean;
