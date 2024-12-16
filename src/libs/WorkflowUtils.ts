@@ -396,7 +396,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 
             const newApprover = {
                 email: ownerEmail ?? '',
-                forwardsTo: '',
+                forwardsTo: undefined,
                 avatar: ownerDetails?.avatar ?? '',
                 displayName: ownerDetails?.displayName ?? '',
                 isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
