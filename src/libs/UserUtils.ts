@@ -68,6 +68,17 @@ function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
 }
 
 /**
+ * Checks if the current user has a validated the primary contact method
+ */
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>): boolean {
+    if (!loginList || !session?.email) {
+        return false;
+    }
+
+    return !!loginList?.[session.email]?.validatedDate;
+}
+
+/**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
@@ -265,5 +276,6 @@ export {
     hashText,
     isDefaultAvatar,
     getContactMethod,
+    isCurrentUserValidated,
 };
 export type {AvatarSource, LoginListIndicator};

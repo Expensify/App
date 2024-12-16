@@ -66,6 +66,7 @@ const defaultReportMetadata = {
     hasLoadingOlderReportActionsError: false,
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
+    isOptimisticReport: false,
 };
 
 /** Get the currently viewed report ID as number */
@@ -130,7 +131,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [workspaceTooltip] = useOnyx(ONYXKEYS.NVP_WORKSPACE_TOOLTIP);
     const wasLoadingApp = usePrevious(isLoadingApp);
     const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
@@ -186,7 +186,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
      * put this into onyx selector as it will be the same.
      */
     const report = useMemo(
-        (): OnyxEntry<OnyxTypes.Report> =>
+        () =>
             reportOnyx && {
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID ?? '',
@@ -223,7 +223,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyName: reportOnyx.policyName,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: reportOnyx.private_isArchived,
-                isOptimisticReport: reportOnyx.isOptimisticReport,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
                 permissions,
@@ -864,7 +863,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
-                                        workspaceTooltip={workspaceTooltip}
                                         showSoftInputOnFocus={showSoftInputOnFocus}
                                         setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                     />

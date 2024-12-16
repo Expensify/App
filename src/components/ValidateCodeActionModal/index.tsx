@@ -28,6 +28,7 @@ function ValidateCodeActionModal({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    shouldHandleNavigationBack,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -38,6 +39,7 @@ function ValidateCodeActionModal({
     const hide = useCallback(() => {
         clearError();
         onClose?.();
+        firstRenderRef.current = true;
     }, [onClose, clearError]);
 
     useEffect(() => {
@@ -51,6 +53,7 @@ function ValidateCodeActionModal({
 
     return (
         <Modal
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}

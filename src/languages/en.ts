@@ -192,7 +192,9 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -216,7 +218,7 @@ const translations = {
         no: 'No',
         ok: 'OK',
         notNow: 'Not now',
-        learnMore: 'Learn more',
+        learnMore: 'Learn more.',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -228,6 +230,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        reports: 'Reports',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -477,6 +480,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
@@ -533,6 +537,7 @@ const translations = {
         noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -645,10 +650,6 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
-        tooltip: {
-            title: 'Get started!',
-            subtitle: ' Submit your first expense',
-        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -698,6 +699,7 @@ const translations = {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
         askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        conciergeSupport: '24/7 support',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -834,10 +836,6 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
-        tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
-        },
     },
     iou: {
         amount: 'Amount',
@@ -1309,13 +1307,13 @@ const translations = {
         addKey: 'Or add this secret key to your authenticator app:',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
-        enabled: 'Two-factor authentication is now enabled!',
-        congrats: 'Congrats, now you’ve got that extra security.',
+        enabled: 'Two-factor authentication enabled',
+        congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
-        twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
+        twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },
     recoveryCodeForm: {
@@ -1758,6 +1756,11 @@ const translations = {
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
+        peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        joinAWorkspace: 'Join a workspace',
+        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Please make a selection to continue.',
         purpose: {
@@ -2506,7 +2509,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2770,6 +2773,10 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
+        },
+        workspaceList: {
+            joinNow: 'Join now',
+            askToJoin: 'Ask to join',
         },
         xero: {
             organization: 'Xero organization',
@@ -3813,6 +3820,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
+            talkYourAccountManager: 'Chat with your account manager.',
+            talkToConcierge: 'Chat with Concierge.',
+            needAnotherAccounting: 'Need another accounting software? ',
             connectionName: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -4433,7 +4444,7 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -4447,7 +4458,7 @@ const translations = {
         },
     },
     workspaceActions: {
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace from ${oldName} to ${newName}`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4536,6 +4547,10 @@ const translations = {
                 title: "You haven't created any expenses yet",
                 subtitle: 'Use the green button below to create an expense or take a tour of Expensify to learn more.',
             },
+            emptyInvoiceResults: {
+                title: "You haven't created any \ninvoices yet",
+                subtitle: 'Use the green button below to send an invoice or take a tour of Expensify to learn more.',
+            },
             emptyTripResults: {
                 title: 'No trips to display',
                 subtitle: 'Get started by booking your first trip below.',
@@ -4543,7 +4558,6 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
-        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -4577,6 +4591,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
+            submitted: 'Submitted',
+            approved: 'Approved',
+            paid: 'Paid',
+            exported: 'Exported',
+            posted: 'Posted',
         },
         noCategory: 'No category',
         noTag: 'No tag',
@@ -5341,8 +5360,10 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to add a copilot. It should arrive within a minute or two.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to update your copilot.`,
         notAllowed: 'Not so fast...',
-        notAllowedMessageStart: ({accountOwnerEmail}: AccountOwnerParams) => `You don't have permission to take this action for ${accountOwnerEmail} as a`,
+        noAccessMessage: "As a copilot, you don't have access to \nthis page. Sorry!",
+        notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
     },
     debug: {
         debug: 'Debug',
@@ -5427,6 +5448,54 @@ const translations = {
     tour: {
         takeATwoMinuteTour: 'Take a 2-minute tour',
         exploreExpensify: 'Explore everything Expensify has to offer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Travel and expense, at the speed of chat',
+        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        confirmText: "Let's go!",
+        features: {
+            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
+            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
+            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: 'Get started',
+            part2: ' here!',
+        },
+        saveSearchTooltip: {
+            part1: 'Rename your saved searches',
+            part2: ' here!',
+        },
+        quickActionButton: {
+            part1: 'Quick action!',
+            part2: ' Just a tap away',
+        },
+        workspaceChatCreate: {
+            part1: 'Submit your',
+            part2: ' expenses',
+            part3: ' here!',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Customize your search',
+            part2: ' here!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Your to-do list',
+            part2: '\n🟢 = ready for you',
+            part3: ' 🔴 = needs review',
+        },
+        workspaceChatTooltip: {
+            part1: 'Submit expenses',
+            part2: ' and chat with',
+            part3: '\napprovers here!',
+        },
+        globalCreateTooltip: {
+            part1: 'Create expenses',
+            part2: ', start chatting,',
+            part3: '\nand more!',
+        },
     },
 };
 

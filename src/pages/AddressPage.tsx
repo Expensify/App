@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -81,27 +83,29 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             includeSafeAreaPaddingBottom
             testID={AddressPage.displayName}
         >
-            <HeaderWithBackButton
-                title={title}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(backTo)}
-            />
-            {isLoadingApp ? (
-                <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <AddressForm
-                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                    onSubmit={updateAddress}
-                    submitButtonText={translate('common.save')}
-                    city={city}
-                    country={currentCountry}
-                    onAddressChanged={handleAddressChange}
-                    state={state}
-                    street1={street1}
-                    street2={street2}
-                    zip={zipcode}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={title}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-            )}
+                {isLoadingApp ? (
+                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <AddressForm
+                        formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                        onSubmit={updateAddress}
+                        submitButtonText={translate('common.save')}
+                        city={city}
+                        country={currentCountry}
+                        onAddressChanged={handleAddressChange}
+                        state={state}
+                        street1={street1}
+                        street2={street2}
+                        zip={zipcode}
+                    />
+                )}
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
