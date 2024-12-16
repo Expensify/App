@@ -8,6 +8,7 @@ import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import usePermissions from '@hooks/usePermissions';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
@@ -30,6 +31,8 @@ function useOnboardingFlowRouter() {
     const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const {canUsePrivateDomainOnboardingCheck} = usePermissions();
+    
     useEffect(() => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
@@ -61,13 +64,13 @@ function useOnboardingFlowRouter() {
             // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
             // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
             if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                OnboardingFlow.startOnboardingFlow(isPrivateDomain, canUsePrivateDomainOnboardingCheck);
             }
         }
 
         // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-            OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+            OnboardingFlow.startOnboardingFlow(isPrivateDomain, canUsePrivateDomainOnboardingCheck);
         }
     }, [
         isOnboardingCompleted,

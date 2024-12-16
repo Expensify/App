@@ -722,7 +722,7 @@ const ONYXKEYS = {
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
         ONBOARDING_WORK_EMAIL_FORM: 'onboardingWorkEmailForm',
-        ONBOARDING_WORK_EMAIL_FORM_Draft: 'onboardingWorkEmailFormDraft',
+        ONBOARDING_WORK_EMAIL_FORM_DRAFT: 'onboardingWorkEmailFormDraft',
     },
 } as const;
 
