@@ -5099,7 +5099,7 @@ const translations = {
         tryAgain: 'Try again',
     },
     systemMessage: {
-        mergedWithCashTransaction: 'matched a receipt to this transaction.',
+        mergedWithCashTransaction: 'matched a receipt to this transaction',
     },
     subscription: {
         authenticatePaymentCard: 'Authenticate payment card',
