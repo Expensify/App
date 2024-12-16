@@ -56,4 +56,8 @@ function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDIN
     return !!onboarding?.selfTourViewed;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector};
+function wasInvitedToNewDot(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean | undefined {
+    return introSelected?.inviteType !== undefined;
+}
+
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDot};
