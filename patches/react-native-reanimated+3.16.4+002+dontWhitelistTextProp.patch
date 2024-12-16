@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx b/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
-index 38e3d39..9936670 100644
+index d4b31f2..ced6561 100644
 --- a/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
 +++ b/node_modules/react-native-reanimated/src/component/PerformanceMonitor.tsx
 @@ -46,7 +46,6 @@ function createCircularDoublesBuffer(size: number) {

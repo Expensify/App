@@ -50,7 +50,7 @@ function ActionCell({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const text = translate(actionTranslationsMap[action]);
+    const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
 
     const getButtonInnerStyles = useCallback(
         (shouldUseSuccessStyle: boolean) => {
@@ -90,7 +90,7 @@ function ActionCell({
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction) {
         return isLargeScreenWidth ? (
             <Button
-                text={translate(actionTranslationsMap[action])}
+                text={text}
                 onPress={goToItem}
                 small
                 style={[styles.w100]}

@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import Permissions from '@libs/Permissions';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,10 +26,12 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
-    const [allBetas, allBetasMetadata] = useOnyx(ONYXKEYS.BETAS);
     useEffect(() => {
-        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
+        if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
 
@@ -37,7 +39,7 @@ function useOnboardingFlowRouter() {
             return;
         }
 
-        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal && Permissions.shouldShowProductTrainingElements(allBetas)) {
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
             const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
             const query = defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
@@ -59,13 +61,13 @@ function useOnboardingFlowRouter() {
             // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
             // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
             if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow();
+                OnboardingFlow.startOnboardingFlow(isPrivateDomain);
             }
         }
 
         // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
         if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-            OnboardingFlow.startOnboardingFlow();
+            OnboardingFlow.startOnboardingFlow(isPrivateDomain);
         }
     }, [
         isOnboardingCompleted,
@@ -78,8 +80,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
-        allBetasMetadata,
-        allBetas,
+        isPrivateDomain,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
