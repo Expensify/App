@@ -1,7 +1,10 @@
 import {Str} from 'expensify-common';
 import findLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
@@ -65,6 +68,55 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile, filename};
 }
 
+type ValidateReceiptResult = {
+    isValid: boolean;
+    title?: TranslationPaths;
+    reason?: TranslationPaths;
+};
+/**
+ * Validate a given receipt file for correctness and adherence to file constraints
+ */
+function validateReceipt(file: FileObject): Promise<ValidateReceiptResult> {
+    return FileUtils.validateImageForCorruption(file)
+        .then(() => {
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+            const extension = fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>;
+
+            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(extension)) {
+                return {
+                    isValid: false,
+                    title: 'attachmentPicker.wrongFileType' as TranslationPaths,
+                    reason: 'attachmentPicker.notAllowedExtension' as TranslationPaths,
+                };
+            }
+
+            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                return {
+                    isValid: false,
+                    title: 'attachmentPicker.attachmentTooLarge' as TranslationPaths,
+                    reason: 'attachmentPicker.sizeExceeded' as TranslationPaths,
+                };
+            }
+
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                return {
+                    isValid: false,
+                    title: 'attachmentPicker.attachmentTooSmall' as TranslationPaths,
+                    reason: 'attachmentPicker.sizeNotMet' as TranslationPaths,
+                };
+            }
+
+            return {isValid: true};
+        })
+        .catch(() => {
+            return {
+                isValid: false,
+                title: 'attachmentPicker.attachmentError' as TranslationPaths,
+                reason: 'attachmentPicker.errorWhileSelectingCorruptedAttachment' as TranslationPaths,
+            };
+        });
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {getThumbnailAndImageURIs};
+export {getThumbnailAndImageURIs, validateReceipt};
 export type {ThumbnailAndImageURI};
