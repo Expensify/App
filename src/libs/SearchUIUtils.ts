@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchColumnType, SearchStatus, SingleSearchStatus, SortOrder, TripSearchStatus} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -523,6 +523,39 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 /**
  * Returns the corresponding translation key for expense type
  */
+function getStatusTranslationKey(status: SingleSearchStatus): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (status) {
+        case CONST.SEARCH.STATUS.EXPENSE.ALL:
+            return 'common.all';
+        case CONST.SEARCH.STATUS.EXPENSE.PAID:
+            return 'iou.settledExpensify';
+        case CONST.SEARCH.STATUS.EXPENSE.APPROVED:
+            return 'iou.approved';
+        case CONST.SEARCH.STATUS.EXPENSE.DRAFTS:
+            return 'common.drafts';
+        case CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING:
+            return 'common.outstanding';
+        case CONST.SEARCH.STATUS.TRIP.CURRENT:
+            return 'search.filters.current';
+        case CONST.SEARCH.STATUS.TRIP.PAST:
+            return 'search.filters.past';
+        case CONST.SEARCH.STATUS.CHAT.UNREAD:
+            return 'common.unread';
+        case CONST.SEARCH.STATUS.CHAT.SENT:
+            return 'common.sent';
+        case CONST.SEARCH.STATUS.CHAT.ATTACHMENTS:
+            return 'common.attachments';
+        case CONST.SEARCH.STATUS.CHAT.LINKS:
+            return 'common.links';
+        case CONST.SEARCH.STATUS.CHAT.PINNED:
+            return 'search.filters.pinned';
+    }
+}
+
+/**
+ * Returns the corresponding translation key for expense type
+ */
 function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
     // eslint-disable-next-line default-case
     switch (expenseType) {
@@ -585,4 +618,5 @@ export {
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
+    getStatusTranslationKey,
 };

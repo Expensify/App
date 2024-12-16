@@ -305,8 +305,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (status) {
-        const sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+        if (typeof status === 'string') {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeSearchValue(status)}`);
+        } else {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${status.map(sanitizeSearchValue).join(',')}`);
+        }
     }
 
     if (policyID) {
@@ -469,7 +472,7 @@ function buildFilterFormValuesFromQuery(
         ) ?? [];
 
     if (typeKey === statusKey) {
-        filtersForm[FILTER_KEYS.STATUS] = Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status;
+        filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
     } else {
         filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
     }
