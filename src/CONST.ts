@@ -4577,6 +4577,14 @@ const CONST = {
         DISABLED: 'DISABLED',
         GETCODE: 'GETCODE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        PENDING: 'PENDING',
+        SUCCESS: 'SUCCESS',
+        ERR_PRIMARY_LOGIN: 'ERR_PRIMARY_LOGIN',
+        ERR_2FA: 'ERR_2FA',
+        ERR_NO_EXIST: 'ERR_NO_EXIST',
+        ERR_SMART_SCANNER: 'ERR_SMART_SCANNER',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',

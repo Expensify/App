@@ -122,6 +122,11 @@ function SecuritySettingsPage() {
                 icon: Expensicons.ClosedSign,
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
             },
+            {
+                translationKey: 'mergeAccountsPage.mergeAccount',
+                icon: Expensicons.ArrowCollapse,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS)),
+            },
         ];
 
         return baseMenuItems.map((item) => ({

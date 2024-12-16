@@ -143,6 +143,11 @@ const SCREENS = {
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
             UPDATE_DELEGATE_ROLE_MAGIC_CODE: 'Settings_Delegate_Update_Magic_Code',
         },
+        MERGE_ACCOUNTS: {
+            ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
+            ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
+            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',

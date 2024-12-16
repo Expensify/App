@@ -356,3 +356,6 @@ export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicy
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
+export type {default as GetValidateCodeForAccountMergeParams} from './GetValidateCodeForAccountMerge';
+export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
+export type {default as AcceptMergeAccountRequestParams} from './AcceptMergeAccountRequest';

@@ -1114,7 +1114,7 @@ const translations = {
     },
     securityPage: {
         title: 'Security options',
-        subtitle: 'Enable two-factor authentication to keep your account safe.',
+        subtitle: 'Keep your account even safer with two-factor authentication and other security features.',
     },
     shareCodePage: {
         title: 'Your code',
@@ -1280,6 +1280,9 @@ const translations = {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
+    },
+    mergeAccountsPage: {
+        mergeAccount: 'Merge accounts',
     },
     passwordPage: {
         changePassword: 'Change password',
