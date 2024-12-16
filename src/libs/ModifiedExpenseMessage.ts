@@ -1,17 +1,15 @@
-import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import Log from './Log';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-// eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -135,37 +133,19 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     });
 }
 
-function getForExpenseMovedFromSelfDM(destinationReportID: string) {
-    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
-    const rootParentReport = getRootParentReport(destinationReport);
-
-    // The "Move report" flow only supports moving expenses to a policy expense chat or a 1:1 DM.
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
-    const policyName = getPolicyName(rootParentReport, true);
-
-    return Localize.translateLocal('iou.movedFromSelfDM', {
-        reportName,
-        workspaceName: !isEmpty(policyName) ? policyName : undefined,
-    });
-}
-
 /**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction(reportOrID: string | SearchReport | undefined, reportAction: OnyxEntry<ReportAction>): string {
     if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
-
     const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-    const policyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
-
-    if (reportActionOriginalMessage?.movedToReportID) {
-        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
-    }
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    const policyID = report?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];

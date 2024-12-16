@@ -3,6 +3,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
 const MASKING_PATTERN = '***';
+const keysToMask = [
+    'plaidLinkToken',
+    'plaidAccessToken',
+    'plaidAccountID',
+    'addressName',
+    'addressCity',
+    'addressStreet',
+    'addressZipCode',
+    'street',
+    'city',
+    'state',
+    'zip',
+    'edits',
+    'lastMessageHtml',
+    'lastMessageText',
+];
+
 const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
 const emailMap = new Map<string, string>();
@@ -94,12 +111,18 @@ const maskFragileData = (data: Record<string, unknown> | unknown[] | null, paren
 
         const value = data[propertyName];
 
-        if (typeof value === 'string' && Str.isValidEmail(value)) {
+        if (keysToMask.includes(key)) {
+            if (Array.isArray(value)) {
+                maskedData[key] = value.map(() => MASKING_PATTERN);
+            } else {
+                maskedData[key] = MASKING_PATTERN;
+            }
+        } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[propertyName] = maskEmail(value);
         } else if (typeof value === 'string' && stringContainsEmail(value)) {
             maskedData[propertyName] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? ''));
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
-            maskedData[propertyName] = MASKING_PATTERN;
+            maskedData[key] = MASKING_PATTERN;
         } else if (typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as Record<string, unknown>, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
         } else {

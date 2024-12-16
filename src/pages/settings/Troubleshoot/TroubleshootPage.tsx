@@ -144,10 +144,7 @@ function TroubleshootPage() {
                                     />
                                 </TestToolRow>
                             </View>
-                            <ImportOnyxState
-                                setIsLoading={setIsLoading}
-                                isLoading={isLoading}
-                            />
+                            <ImportOnyxState setIsLoading={setIsLoading} />
                             <MenuItemList
                                 menuItems={menuItems}
                                 shouldUseSingleExecution
