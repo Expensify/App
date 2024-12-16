@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {AppState, View} from 'react-native';
+import {Alert, AppState, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ShareActions from '@userActions/Share';
 import CONST from '@src/CONST';
@@ -26,7 +27,16 @@ function ShareRootPage() {
         setIsFileScannable(false);
         ShareActionHandlerModule.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
-
+            if (tempFile?.mimeType) {
+                // alert(tempFile.mimeType === 'image/png');
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
+                    {
+                        onPress: () => {
+                            Navigation.navigate('');
+                        },
+                    },
+                ]);
+            }
             if (tempFile) {
                 if (tempFile.mimeType && imageFileFormats.includes(tempFile.mimeType)) {
                     setIsFileScannable(true);
