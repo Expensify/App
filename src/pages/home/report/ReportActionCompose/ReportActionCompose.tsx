@@ -93,6 +93,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** A method to update showSoftInputOnFocus */
     setShowSoftInputOnFocus: (value: boolean) => void;
+
+    /** Whether the main composer was hidden */
+    didHideComposerInput?: boolean;
 };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
@@ -114,6 +117,7 @@ function ReportActionCompose({
     onComposerFocus,
     onComposerBlur,
     setShowSoftInputOnFocus,
+    didHideComposerInput,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -509,6 +513,7 @@ function ReportActionCompose({
                                             showSoftInputOnFocus={showSoftInputOnFocus}
                                             setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                             onValueChange={onValueChange}
+                                            didHideComposerInput={didHideComposerInput}
                                         />
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {

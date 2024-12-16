@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -172,6 +172,15 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
+
+    useEffect(() => {
+        if (didHideComposerInput || shouldShowComposeInput) {
+            return;
+        }
+        setDidHideComposerInput(true);
+    }, [shouldShowComposeInput]);
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -220,6 +229,7 @@ function ReportFooter({
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
                             showSoftInputOnFocus={showSoftInputOnFocus}
                             setShowSoftInputOnFocus={setShowSoftInputOnFocus}
+                            didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>
                 </View>
