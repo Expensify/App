@@ -5627,7 +5627,7 @@ const translations = {
         tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
-        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
