@@ -87,8 +87,8 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     describe('Migrated User Scenarios', () => {
-        it('should not show tooltips for migration users before welcome modal dismissal', async () => {
-            // When user is a migration user and welcome modal is not dismissed
+        it('should not show tooltips for migrated users before welcome modal dismissal', async () => {
+            // When user is a migrated user and welcome modal is not dismissed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             await waitForBatchedUpdatesWithAct();
@@ -101,8 +101,8 @@ describe('ProductTrainingContextProvider', () => {
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
 
-        it('should show tooltips for migration users after welcome modal dismissal', async () => {
-            // When migration user has dismissed welcome modal
+        it('should show tooltips for migrated users after welcome modal dismissal', async () => {
+            // When migrated user has dismissed welcome modal
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
