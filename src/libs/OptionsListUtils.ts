@@ -152,6 +152,9 @@ type OrderOptionsConfig = {
     /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
     sortByReportTypeInSearch?: boolean;
     maxRecentReportsToShow?: number;
+};
+
+type OrderReportOptionsConfig = {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
@@ -939,7 +942,7 @@ function orderReportOptions(options: ReportUtils.OptionData[]) {
 function orderReportOptionsWithSearch(
     options: ReportUtils.OptionData[],
     searchValue: string,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderOptionsConfig = {},
+    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -995,9 +998,16 @@ function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
     return options.lastVisibleActionCreated ?? '';
 }
 
+/**
+ * Sorts reports and personal details independently.
+ */
 function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderOptionsConfig) {
+
+/**
+ * Sorts reports and personal details independently, but prioritizes the search value.
+ */
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
     let orderedReportOptions: ReportUtils.OptionData[];
     if (searchValue) {
         orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
@@ -1730,25 +1740,24 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
-type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
+type AllOrderConfigs = OrderReportOptionsConfig & OrderOptionsConfig;
+type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
 
 /**
- * Filters and orders the options based on the search input value.
- * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
+ * Orders the reports and personal details based on the search input value.
+ * Personal details will be filtered out if they are part of the recent reports.
+ * Additional configs can be applied.
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
-    const {sortByReportTypeInSearch = false} = config;
+function combinedOrderingOfReportsAndPersonalDetails(
+    options: ReportAndPersonalDetailOptions,
+    searchInputValue: string,
+    {maxRecentReportsToShow, sortByReportTypeInSearch = false, ...orderReportOptionsConfig}: AllOrderConfigs = {},
+): ReportAndPersonalDetailOptions {
+    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = options;
 
-    let filterResult = options;
-    if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, config);
-    }
-
-    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
-
-    if (typeof config?.maxRecentReportsToShow === 'number') {
-        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
-        filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
+    if (typeof maxRecentReportsToShow === 'number') {
+        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, orderReportOptionsConfig);
+        filteredReports = filteredReports.slice(0, maxRecentReportsToShow);
     }
 
     const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
@@ -1762,13 +1771,29 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         filteredPersonalDetails = orderedPersonalDetails;
     }
 
-    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
+    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, orderReportOptionsConfig);
 
     return {
         recentReports: orderedReports,
         personalDetails: filteredPersonalDetails,
-        userToInvite: filterResult.userToInvite,
-        currentUserOption: filterResult.currentUserOption,
+    };
+}
+
+/**
+ * Filters and orders the options based on the search input value.
+ * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
+ */
+function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
+    let filterResult = options;
+    if (searchInputValue.trim().length > 0) {
+        filterResult = filterOptions(options, searchInputValue, config);
+    }
+
+    const orderedOptions = combinedOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
+
+    return {
+        ...filterResult,
+        ...orderedOptions,
     };
 }
 
@@ -1838,6 +1863,7 @@ export {
     getAttendeeOptions,
     getAlternateText,
     hasReportErrors,
+    combinedOrderingOfReportsAndPersonalDetails,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions};
