@@ -163,7 +163,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
-        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         const detail = personalDetails?.[accountID];
         if (!detail) {
             return [];

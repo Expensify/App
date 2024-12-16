@@ -54,7 +54,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
         privateNotes: unknown;
-        pendingChatMembers: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
