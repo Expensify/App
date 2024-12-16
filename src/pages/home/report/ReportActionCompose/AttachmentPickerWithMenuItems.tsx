@@ -12,7 +12,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -121,7 +120,6 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const {canUseCombinedTrackSubmit} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -143,8 +141,8 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.submitExpense'),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.PAY]: {
@@ -159,8 +157,8 @@ function AttachmentPickerWithMenuItems({
                 },
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: canUseCombinedTrackSubmit ? getIconForAction(CONST.IOU.TYPE.CREATE) : getIconForAction(CONST.IOU.TYPE.TRACK),
-                text: canUseCombinedTrackSubmit ? translate('iou.createExpense') : translate('iou.trackExpense'),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
                 onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'), true),
             },
             [CONST.IOU.TYPE.INVOICE]: {
@@ -174,11 +172,8 @@ function AttachmentPickerWithMenuItems({
             ...options[option],
         }));
 
-        return canUseCombinedTrackSubmit
-            ? // Removes track option for the workspace with the canUseCombinedTrackSubmit enabled
-              moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text))
-            : moneyRequestOptionsList;
-    }, [translate, canUseCombinedTrackSubmit, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
+        return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
+    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
     /**
      * Determines if we can show the task option
