@@ -98,8 +98,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
 
-    console.log('****** approvalWorkflows ******', approvalWorkflows);
-
     useEffect(() => {
         CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -173,25 +171,33 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const removeUser = useCallback(() => {
         const ownerEmail = ownerDetails.login;
-        const isUserApprover = Member.isApprover(policy, accountID);
-        if (!ownerEmail || !isUserApprover) {
-            return;
-        }
         const removedApprover = personalDetails?.[accountID];
 
-        if (!removedApprover?.login) {
+        // If the user is not an approver, simply remove the member and close the modal
+        if (!Member.isApprover(policy, accountID)) {
+            Member.removeMembers([accountID], policyID);
+            setIsRemoveMemberConfirmModalVisible(false);
             return;
         }
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails});
 
-        updatedWorkflows.forEach((workflow) => {
-            Workflow.updateApprovalWorkflow(policyID, workflow, [], []);
+        // Ensure both the approver's login and the owner's email exist
+        if (!removedApprover?.login || !ownerEmail) {
+            return;
+        }
+
+        // Update workflows after removing the approver
+        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+            approvalWorkflows,
+            removedApprover,
+            ownerDetails,
         });
 
+        updatedWorkflows.forEach((workflow) => Workflow.updateApprovalWorkflow(policyID, workflow, [], []));
+
+        // Remove the member and close the modal
         Member.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
     }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID]);
-
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
