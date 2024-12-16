@@ -1753,29 +1753,25 @@ function combinedOrderingOfReportsAndPersonalDetails(
     searchInputValue: string,
     {maxRecentReportsToShow, sortByReportTypeInSearch = false, ...orderReportOptionsConfig}: AllOrderConfigs = {},
 ): ReportAndPersonalDetailOptions {
-    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = options;
-
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
     if (typeof maxRecentReportsToShow === 'number') {
-        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, orderReportOptionsConfig);
-        filteredReports = filteredReports.slice(0, maxRecentReportsToShow);
+        orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
 
-    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
-    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(orderedReports, options.personalDetails);
+    let orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
 
     // sortByReportTypeInSearch option will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
-        filteredReports = filteredReports.concat(orderedPersonalDetails);
-        filteredPersonalDetails = [];
-    } else {
-        filteredPersonalDetails = orderedPersonalDetails;
+        orderedReports = orderedReports.concat(orderedPersonalDetails);
+        orderedPersonalDetails = [];
+        // As we are combining the two lists here we need to re-order them
+        orderedReports = orderOptions({recentReports: orderedReports, personalDetails: []}, searchInputValue, orderReportOptionsConfig).recentReports;
     }
-
-    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, orderReportOptionsConfig);
 
     return {
         recentReports: orderedReports,
-        personalDetails: filteredPersonalDetails,
+        personalDetails: orderedPersonalDetails,
     };
 }
 
