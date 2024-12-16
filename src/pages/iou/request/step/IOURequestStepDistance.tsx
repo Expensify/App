@@ -341,29 +341,6 @@ function IOURequestStepDistance({
                 }
 
                 playSound(SOUNDS.DONE);
-                //     report,
-                //     participants,
-                //     '',
-                //     transaction?.created ?? '',
-                //     '',
-                //     '',
-                //     '',
-                //     0,
-                //     0,
-                //     transaction?.currency ?? 'USD',
-                //     translate('iou.fieldPending'),
-                //     !!policy?.defaultBillable,
-                //     TransactionUtils.getValidWaypoints(waypoints, true),
-                //     undefined,
-                //     undefined,
-                //     undefined,
-                //     DistanceRequestUtils.getCustomUnitRateID(report.reportID),
-                //     currentUserPersonalDetails.login ?? '',
-                //     currentUserPersonalDetails.accountID,
-                //     transaction?.splitShares,
-                //     iouType,
-                //     transaction,
-                // );
                 IOU.createDistanceRequest({
                     report,
                     participants,
