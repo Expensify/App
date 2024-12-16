@@ -6,6 +6,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 import {useSession} from './OnyxProvider';
@@ -28,7 +29,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canActionTask(report, session?.accountID ?? -1)}
+                isDisabled={!Task.canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
