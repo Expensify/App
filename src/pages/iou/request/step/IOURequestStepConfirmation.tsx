@@ -135,19 +135,6 @@ function IOURequestStepConfirmation({
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, IOUUtils.shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
-    useEffect(
-        // This effect runs on the component unmount. It resets the custom unit rate ID of the transaction if it's moving from Track Expense.
-        // This is needed to revert the rate back to the original FAKE_P2P_RATE_ID when changing the destination workspace.
-        () => () => {
-            if (!isMovingTransactionFromTrackExpense) {
-                return;
-            }
-
-            IOU.resetDraftTransactionsCustomUnit(transactionID);
-        },
-        [isMovingTransactionFromTrackExpense, transactionID],
-    );
-
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
