@@ -49,7 +49,7 @@ type SignInPageRef = {
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
-    shouldShowSMSDeliveryFailurePage: boolean | undefined;
+    shouldShowSMSDeliveryFailurePage: boolean;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
     shouldShowChooseSSOOrMagicCode: boolean;
@@ -111,7 +111,7 @@ function getRenderOptions({
     const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const shouldShowSMSDeliveryFailurePage = hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin && account?.accountExists;
+    const shouldShowSMSDeliveryFailurePage = !!(hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin && account?.accountExists);
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
