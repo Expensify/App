@@ -22,11 +22,11 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOU.IOU
     return requestType;
 }
 
-function navigateToQuickAction(isValidReport: boolean, quickActionReportID: string, qAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
+function navigateToQuickAction(isValidReport: boolean, quickActionReportID: string, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
     const reportID = isValidReport ? quickActionReportID : generateReportID();
-    const requestType = getQuickActionRequestType(qAction?.action);
+    const requestType = getQuickActionRequestType(quickAction?.action);
 
-    switch (qAction?.action) {
+    switch (quickAction?.action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
@@ -41,7 +41,7 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
             selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             return;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', qAction.targetAccountID ?? -1), false);
+            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? -1), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
