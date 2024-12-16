@@ -60,13 +60,14 @@ describe('Button Component', () => {
     });
 
     it('disables button when isDisabled is true', () => {
-        // Given the component is rendered with isDisabled true
-        renderButton({isDisabled: true});
+        // Given the component is rendered with isDisabled set to true
+        renderButton({isDisabled: true, onPress});
 
-        // Then the button is disabled
-        expect(getButton()).toHaveStyle({opacity: 0.5});
-        expect(getButton()).toHaveStyle({boxShadow: 'none'});
-        expect(getButton()).toHaveStyle({outlineStyle: 'none'});
+        // When the button is pressed
+        fireEvent.press(getButton());
+
+        // Then the onPress function should not be called
+        expect(onPress).not.toHaveBeenCalled();
     });
 
     it('sets accessibility label correctly', () => {

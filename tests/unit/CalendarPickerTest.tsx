@@ -133,8 +133,12 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        // then the back arrow should be blocked
-        expect(screen.getByTestId('prev-month-arrow')).toHaveStyle({opacity: 0.5});
+        // When the previous month arrow is pressed
+        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+
+        // Then the previous month should not be called as the previous month button is disabled
+        const prevMonth = subMonths(new Date(), 1).getMonth();
+        expect(screen.queryByText(monthNames.at(prevMonth) ?? '')).not.toBeOnTheScreen();
     });
 
     test('should block the next arrow when there is no available dates in the next month', () => {
@@ -147,7 +151,12 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByTestId('next-month-arrow')).toHaveStyle({opacity: 0.5});
+        // When the next month arrow is pressed
+        fireEvent.press(screen.getByTestId('next-month-arrow'));
+
+        // Then the next month should not be called as the next month button is disabled
+        const nextMonth = addMonths(new Date(), 1).getMonth();
+        expect(screen.queryByText(monthNames.at(nextMonth) ?? '')).not.toBeOnTheScreen();
     });
 
     test('should allow navigating to the month of the max date when it has less days than the selected date', () => {
@@ -204,35 +213,55 @@ describe('CalendarPicker', () => {
     test('should not allow to press earlier day than minDate', () => {
         const value = '2003-02-17';
         const minDate = new Date('2003-02-16');
+        const onSelectedMock = jest.fn();
 
         // given the min date is 16
         render(
             <CalendarPicker
                 minDate={minDate}
                 value={value}
+                onSelected={onSelectedMock}
             />,
         );
 
-        // then the label 15 should not be clickable
-        expect(screen.getByLabelText('15')).toHaveStyle({boxShadow: 'none'});
-        expect(screen.getByLabelText('15')).toHaveStyle({outlineStyle: 'none'});
+        //  When the day 15 is pressed
+        fireEvent.press(screen.getByLabelText('15'));
+
+        // Then the onSelected should not be called as the label 15 is disabled
+        expect(onSelectedMock).not.toHaveBeenCalled();
+
+        // When the day 16 is pressed
+        fireEvent.press(screen.getByLabelText('16'));
+
+        // Then the onSelected should be called as the label 16 is enabled
+        expect(onSelectedMock).toHaveBeenCalledWith('2003-02-16');
     });
 
     test('should not allow to press later day than max', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
+        const onSelectedMock = jest.fn();
 
         // given the max date is 24
         render(
             <CalendarPicker
                 maxDate={maxDate}
                 value={value}
+                onSelected={onSelectedMock}
             />,
         );
 
-        // then the label 25 should not be clickable
-        expect(screen.getByLabelText('25')).toHaveStyle({boxShadow: 'none'});
-        expect(screen.getByLabelText('25')).toHaveStyle({outlineStyle: 'none'});
+        //  When the day 25 is pressed
+        fireEvent.press(screen.getByLabelText('25'));
+
+        // Then the onSelected should not be called as the label 15 is disabled
+        expect(onSelectedMock).not.toHaveBeenCalled();
+
+        // When the day 24 is pressed
+        fireEvent.press(screen.getByLabelText('24'));
+
+        // Then the onSelected should be called as the label 24 is enabled
+        expect(onSelectedMock).toHaveBeenCalledWith('2003-02-24');
     });
 
     test('should allow to press min date', () => {
