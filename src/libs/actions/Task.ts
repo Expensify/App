@@ -1216,16 +1216,9 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
  */
-function canModifyTask(
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    sessionAccountID: number,
-    allowEditingConciergeTask?: boolean,
-    taskOwnerAccountID?: number,
-    taskAssigneeAccountID?: number,
-): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number): boolean {
     const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
-    const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
-    if (ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE && !allowEditingConciergeTask) {
+    if (ownerAccountID !== sessionAccountID) {
         return false;
     }
 
@@ -1239,15 +1232,11 @@ function canModifyTask(
         return false;
     }
 
-    if (sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID) {
+    if (sessionAccountID === ownerAccountID) {
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
-        return false;
-    }
-
-    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+    return false;
 }
 
 /**

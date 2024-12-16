@@ -108,7 +108,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             style={[styles.mr2]}
                             isChecked={isTaskCompleted}
                             disabled={
-                                !Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, true, taskOwnerAccountID, taskAssigneeAccountID) ||
+                                !Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, taskOwnerAccountID) ||
                                 !Task.canActionTask(taskReport, currentUserPersonalDetails.accountID, taskOwnerAccountID, taskAssigneeAccountID)
                             }
                             onPress={Session.checkIfActionIsAllowed(() => {
