@@ -369,7 +369,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             }
         }
 
-        if (isMultipleApprovers && defaultHasOwner && workflow.approvers.some((item) => item.email === removedApproverEmail)) {
+        if (isMultipleApprovers && workflow.approvers.some((item) => item.email === removedApproverEmail)) {
             const removedApproverIndex = workflow.approvers.findIndex((item) => item.email === removedApproverEmail);
 
             // If the removed approver is the first in the list, return an empty array
