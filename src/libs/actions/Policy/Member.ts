@@ -510,6 +510,44 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
         },
     ];
 
+    const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
+    if (adminRoom) {
+        const failureDataParticipants = {...adminRoom.participants};
+        const optimisticParticipants = {};
+        if (newRole === CONST.POLICY.ROLE.ADMIN) {
+            accountIDs.forEach((accountID) => {
+                if (adminRoom?.participants[accountID]) {
+                    return;
+                }
+                optimisticParticipants[accountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+                failureDataParticipants[accountID] = null;
+            });
+        } else {
+            accountIDs.forEach((accountID) => {
+                if (!adminRoom?.participants[accountID]) {
+                    return;
+                }
+                optimisticParticipants[accountID] = null;
+            });
+        }
+        if (!isEmptyObject(optimisticParticipants)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                value: {
+                    participants: optimisticParticipants,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                value: {
+                    participants: failureDataParticipants,
+                },
+            });
+        }
+    }
+
     const params: UpdateWorkspaceMembersRoleParams = {
         policyID,
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
