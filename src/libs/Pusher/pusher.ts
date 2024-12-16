@@ -75,7 +75,7 @@ const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
 let resolveInitPromise: (value?: unknown) => void;
-const initPromise = new Promise((resolve) => {
+let initPromise = new Promise((resolve) => {
     resolveInitPromise = resolve;
 });
 
@@ -397,6 +397,9 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    initPromise = new Promise((resolve) => {
+        resolveInitPromise = resolve;
+    });
 }
 
 /**
