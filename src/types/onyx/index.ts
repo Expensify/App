@@ -32,6 +32,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
@@ -243,5 +244,6 @@ export type {
     ValidateMagicCodeAction,
     CorpayFields,
     CorpayFormField,
+    JoinablePolicies,
     DismissedProductTraining,
 };
