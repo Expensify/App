@@ -121,6 +121,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${accountManagerReportID || '-1'}`);
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [reportNameValuePairsOnyx, reportNameValuePairsResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {initialValue: defaultReportMetadata});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
@@ -222,7 +223,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 oldPolicyName: reportOnyx.oldPolicyName,
                 policyName: reportOnyx.policyName,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: reportOnyx.private_isArchived,
+                private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
                 permissions,
@@ -230,7 +231,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                 policyAvatar: reportOnyx.policyAvatar,
                 pendingChatMembers: reportOnyx.pendingChatMembers,
             },
-        [reportOnyx, permissions],
+        [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
     const reportID = report?.reportID;
 

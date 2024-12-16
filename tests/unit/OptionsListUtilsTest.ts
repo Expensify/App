@@ -153,7 +153,6 @@ describe('OptionsListUtils', () => {
             stateNum: 2,
             statusNum: 2,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            private_isArchived: DateUtils.getDBTime(),
         },
     };
 
