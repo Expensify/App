@@ -416,16 +416,18 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
-                return;
-            }
-            if (!hasNewestReportActionRef.current) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                return;
-            }
-            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
+            InteractionManager.runAfterInteractions(() => {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
+                if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
+                    return;
+                }
+                if (!hasNewestReportActionRef.current) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    return;
+                }
+                reportScrollManager.scrollToBottom();
+            });
         },
         [reportScrollManager, report.reportID],
     );
