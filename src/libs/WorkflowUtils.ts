@@ -216,6 +216,12 @@ type UpdateWorkflowDataOnApproverRemovalParams = {
     ownerDetails: PersonalDetails;
 };
 
+type UpdateWorkflowDataOnApproverRemovalResult = Array<
+    ApprovalWorkflow & {
+        removeApprovalWorkflow?: boolean;
+    }
+>;
+
 /**
  * This function converts an approval workflow into a list of policy employees.
  * An optimized list is created that contains only the updated employees to maintain minimal data changes.
@@ -297,7 +303,7 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     return updatedEmployeeList;
 }
-function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): ApprovalWorkflow[] {
+function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
     const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
     const removedApproverEmail = removedApprover.login;
     const ownerEmail = ownerDetails.login;
@@ -334,7 +340,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             if (currentApprover?.email === ownerEmail) {
                 return {
                     ...workflow,
-                    removeWorkflow: true,
+                    removeApprovalWorkflow: true,
                 };
             }
 
@@ -344,7 +350,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                 if (defaultHasOwner) {
                     return {
                         ...workflow,
-                        removeWorkflow: true,
+                        removeApprovalWorkflow: true,
                     };
                 }
 

@@ -193,8 +193,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         });
 
         updatedWorkflows.forEach((workflow) => {
-            if (workflow?.removeWorkflow) {
-                Workflow.removeApprovalWorkflow(policyID, workflow);
+            if (workflow?.removeApprovalWorkflow) {
+                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                Workflow.removeApprovalWorkflow(policyID, updatedWorkflow);
             } else {
                 Workflow.updateApprovalWorkflow(policyID, workflow, [], []);
             }

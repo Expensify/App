@@ -265,17 +265,24 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 removedApprover,
                 ownerDetails,
             });
-            console.log('****** updatedWorkflows ******', updatedWorkflows);
 
-            updatedWorkflows.forEach((workflow) => Workflow.updateApprovalWorkflow(policyID, workflow, [], []));
+            updatedWorkflows.forEach((workflow) => {
+                if (workflow?.removeApprovalWorkflow) {
+                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                    Workflow.removeApprovalWorkflow(policyID, updatedWorkflow);
+                } else {
+                    Workflow.updateApprovalWorkflow(policyID, workflow, [], []);
+                }
+            });
         });
 
-        // setSelectedEmployees([]);
-        // setRemoveMembersConfirmModalVisible(false);
+        setSelectedEmployees([]);
+        setRemoveMembersConfirmModalVisible(false);
 
-        // InteractionManager.runAfterInteractions(() => {
-        //     Member.removeMembers(accountIDsToRemove, route.params.policyID);
-        // });
+        InteractionManager.runAfterInteractions(() => {
+            Member.removeMembers(accountIDsToRemove, route.params.policyID);
+        });
     };
 
     /**
