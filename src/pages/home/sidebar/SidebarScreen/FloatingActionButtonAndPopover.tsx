@@ -366,6 +366,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         // Define common properties in baseQuickAction
         const baseQuickAction = {
             label: translate('quickAction.header'),
+            labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
             floatRightAvatars: quickActionAvatars,
             floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
@@ -409,8 +410,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
-                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
@@ -422,8 +423,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [
         translate,
         quickActionAvatars,
+        isValidReport,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
+        styles.pt3,
+        styles.pb2,
         styles.productTrainingTooltipWrapper,
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
@@ -434,7 +438,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionReport,
         shouldShowProductTrainingTooltip,
         selectOption,
-        isValidReport,
         quickActionPolicy,
     ]);
 
@@ -450,12 +453,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
+                    ...expenseMenuItems,
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...expenseMenuItems,
                     ...(canSendInvoice
                         ? [
                               {
