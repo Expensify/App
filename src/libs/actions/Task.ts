@@ -125,7 +125,7 @@ function createTaskAndNavigate(
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
-    const assigneeChatReportID = assigneeChatReport?.reportID;
+    const assigneeChatReportID = assigneeChatReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
     const taskReportID = optimisticTaskReport.reportID;
     let assigneeChatReportOnyxData;
 
@@ -222,7 +222,15 @@ function createTaskAndNavigate(
     ];
 
     if (assigneeChatReport) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(currentUserAccountID, assigneeAccountID, taskReportID, parentReportID, title, assigneeChatReport);
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assigneeAccountID,
+            taskReportID,
+            assigneeChatReportID,
+            parentReportID,
+            title,
+            assigneeChatReport,
+        );
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
@@ -612,7 +620,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
-    const assigneeChatReportID = assigneeChatReport?.reportID;
+    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '-1';
     const assigneeChatReportMetadata = ReportUtils.getReportMetadata(assigneeChatReport?.reportID);
     const parentReport = getParentReport(report);
     const taskOwnerAccountID = getTaskOwnerAccountID(report);
@@ -705,7 +713,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
-    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== sessionAccountID && assigneeChatReport && report.parentReportID && reportName) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== sessionAccountID && assigneeChatReport) {
         optimisticReport.participants = {
             ...(optimisticReport.participants ?? {}),
             [assigneeAccountID]: {
@@ -713,7 +721,15 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
             },
         };
 
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(currentUserAccountID, assigneeAccountID, report.reportID, report.parentReportID, reportName, assigneeChatReport);
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assigneeAccountID,
+            report.reportID,
+            assigneeChatReportID ?? '-1',
+            report.parentReportID ?? '-1',
+            reportName ?? '',
+            assigneeChatReport,
+        );
 
         if (assigneeChatReportMetadata?.isOptimisticReport && assigneeChatReport.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
