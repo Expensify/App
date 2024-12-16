@@ -37,6 +37,7 @@ import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import * as CompanyCards from '@userActions/CompanyCards';
 import * as Member from '@userActions/Policy/Member';
+import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -181,14 +182,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (!removedApprover?.login) {
             return;
         }
-        const updatedWorkflow = updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails});
+        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails});
 
-        console.log('****** updatedWorkflow ******', updatedWorkflow);
+        updatedWorkflows.forEach((workflow) => {
+            Workflow.updateApprovalWorkflow(policyID, workflow, [], []);
+        });
 
-        // Workflow.updateApprovalWorkflow(policyID, updatedWorkflow, [], []);
-        // Member.removeMembers([accountID], policyID);
-        // setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy]);
+        Member.removeMembers([accountID], policyID);
+        setIsRemoveMemberConfirmModalVisible(false);
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
