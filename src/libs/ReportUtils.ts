@@ -2805,7 +2805,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (isArchivedRoom(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedRoom(getReportNameValuePairs(optionOrReport?.reportID))) {
+    if (isArchivedRoom(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedRoom(getReportNameValuePairs(optionOrReport?.parentReportID))) {
         return null;
     }
 
