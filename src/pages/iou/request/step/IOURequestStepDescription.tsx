@@ -1,14 +1,15 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -29,45 +30,38 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDescriptionOnyxProps = {
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The policy of the report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-
-    /** The actions from the parent report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
+type IOURequestStepDescriptionProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
+    /** Holds data related to Expense view state, rather than the underlying Expense data. */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
-
-type IOURequestStepDescriptionProps = IOURequestStepDescriptionOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
-        /** Holds data related to Expense view state, rather than the underlying Expense data. */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
 
 function IOURequestStepDescription({
     route: {
-        params: {action, iouType, reportID, backTo, reportActionID},
+        params: {action, iouType, reportID, backTo, reportActionID, transactionID},
     },
     transaction,
-    splitDraftTransaction,
-    policy,
-    policyTags,
-    policyCategories,
-    reportActions,
-    session,
     report,
 }: IOURequestStepDescriptionProps) {
+    const policy = usePolicy(report?.policyID);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    const reportActionsReportID = useMemo(() => {
+        let actionsReportID = '-1';
+        if (action === CONST.IOU.ACTION.EDIT) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID || '-1' : report?.parentReportID || '-1';
+        }
+        return actionsReportID;
+    }, [action, iouType, report?.reportID, report?.parentReportID]);
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
+        canEvict: false,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        selector: (reportActions) => reportActions?.[report?.parentReportActionID || reportActionID],
+    });
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput(true);
@@ -132,8 +126,6 @@ function IOURequestStepDescription({
         navigateBack();
     };
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
-    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
@@ -191,44 +183,8 @@ function IOURequestStepDescription({
 
 IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
-const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProps, IOURequestStepDescriptionOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-    },
-    reportActions: {
-        key: ({
-            report,
-            route: {
-                params: {action, iouType},
-            },
-        }) => {
-            let reportID = '-1';
-            if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '-1' : report?.parentReportID ?? '-1';
-            }
-            return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-        },
-        canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(IOURequestStepDescription);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithOnyx);
+const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
