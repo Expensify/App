@@ -33,6 +33,11 @@ const SCREENS = {
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
+        ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
+        ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
+        ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
+        ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
@@ -498,7 +503,6 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
-        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -575,8 +579,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {
@@ -585,6 +591,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
@@ -51,6 +52,7 @@ function WorkspaceNewRoomPage() {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
@@ -62,14 +64,14 @@ function WorkspaceNewRoomPage() {
 
     const workspaceOptions = useMemo(
         () =>
-            PolicyUtils.getActivePolicies(policies)
+            PolicyUtils.getActivePolicies(policies, session?.email)
                 ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
                 }))
                 .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
-        [policies],
+        [policies, session?.email],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
         if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
@@ -239,7 +241,7 @@ function WorkspaceNewRoomPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -247,94 +249,92 @@ function WorkspaceNewRoomPage() {
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
         >
-            {({insets}) =>
-                workspaceOptions.length === 0 ? (
-                    renderEmptyWorkspaceView()
-                ) : (
-                    <KeyboardAvoidingView
-                        style={styles.h100}
-                        behavior="padding"
-                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
+            {workspaceOptions.length === 0 ? (
+                renderEmptyWorkspaceView()
+            ) : (
+                <KeyboardAvoidingView
+                    style={styles.h100}
+                    behavior="padding"
+                    // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                    // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
+                >
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                        submitButtonText={translate('newRoomPage.createRoom')}
+                        style={[styles.mh5, styles.flexGrow1]}
+                        validate={validate}
+                        onSubmit={submit}
+                        enabledWhenOffline
                     >
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                            submitButtonText={translate('newRoomPage.createRoom')}
-                            style={[styles.mh5, styles.flexGrow1]}
-                            validate={validate}
-                            onSubmit={submit}
-                            enabledWhenOffline
-                        >
-                            <View style={styles.mb5}>
-                                <InputWrapper
-                                    InputComponent={RoomNameInput}
-                                    ref={inputCallbackRef}
-                                    inputID={INPUT_IDS.ROOM_NAME}
-                                    isFocused={isFocused}
-                                    shouldDelayFocus
-                                    autoFocus
-                                />
-                            </View>
-                            <View style={styles.mb5}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    inputID={INPUT_IDS.REPORT_DESCRIPTION}
-                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
-                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    autoGrowHeight
-                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
-                                    autoCapitalize="none"
-                                    shouldInterceptSwipe
-                                    isMarkdownEnabled
-                                />
-                            </View>
-                            <View style={[styles.mhn5]}>
-                                <InputWrapper
-                                    InputComponent={ValuePicker}
-                                    inputID={INPUT_IDS.POLICY_ID}
-                                    label={translate('workspace.common.workspace')}
-                                    items={workspaceOptions}
-                                    value={policyID}
-                                    onValueChange={(value) => setPolicyID(value as typeof policyID)}
-                                />
-                            </View>
-                            {isPolicyAdmin && (
-                                <View style={styles.mhn5}>
-                                    <InputWrapper
-                                        InputComponent={ValuePicker}
-                                        inputID={INPUT_IDS.WRITE_CAPABILITY}
-                                        label={translate('writeCapabilityPage.label')}
-                                        items={writeCapabilityOptions}
-                                        value={writeCapability}
-                                        onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
-                                    />
-                                </View>
-                            )}
-                            <View style={[styles.mb1, styles.mhn5]}>
+                        <View style={styles.mb5}>
+                            <InputWrapper
+                                InputComponent={RoomNameInput}
+                                ref={inputCallbackRef}
+                                inputID={INPUT_IDS.ROOM_NAME}
+                                isFocused={isFocused}
+                                shouldDelayFocus
+                                autoFocus
+                            />
+                        </View>
+                        <View style={styles.mb5}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.REPORT_DESCRIPTION}
+                                label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
+                                autoCapitalize="none"
+                                shouldInterceptSwipe
+                                isMarkdownEnabled
+                            />
+                        </View>
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.POLICY_ID}
+                                label={translate('workspace.common.workspace')}
+                                items={workspaceOptions}
+                                value={policyID}
+                                onValueChange={(value) => setPolicyID(value as typeof policyID)}
+                            />
+                        </View>
+                        {isPolicyAdmin && (
+                            <View style={styles.mhn5}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID={INPUT_IDS.VISIBILITY}
-                                    label={translate('newRoomPage.visibility')}
-                                    items={visibilityOptions}
-                                    onValueChange={(value) => setVisibility(value as typeof visibility)}
-                                    value={visibility}
-                                    furtherDetails={visibilityDescription}
-                                    shouldShowTooltips={false}
+                                    inputID={INPUT_IDS.WRITE_CAPABILITY}
+                                    label={translate('writeCapabilityPage.label')}
+                                    items={writeCapabilityOptions}
+                                    value={writeCapability}
+                                    onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
                                 />
                             </View>
-                        </FormProvider>
-                        {isSmallScreenWidth && (
-                            <>
-                                <OfflineIndicator />
-                                <ImportedStateIndicator />
-                            </>
                         )}
-                    </KeyboardAvoidingView>
-                )
-            }
+                        <View style={[styles.mb1, styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.VISIBILITY}
+                                label={translate('newRoomPage.visibility')}
+                                items={visibilityOptions}
+                                onValueChange={(value) => setVisibility(value as typeof visibility)}
+                                value={visibility}
+                                furtherDetails={visibilityDescription}
+                                shouldShowTooltips={false}
+                            />
+                        </View>
+                    </FormProvider>
+                    {isSmallScreenWidth && (
+                        <>
+                            <OfflineIndicator />
+                            <ImportedStateIndicator />
+                        </>
+                    )}
+                </KeyboardAvoidingView>
+            )}
         </ScreenWrapper>
     );
 }

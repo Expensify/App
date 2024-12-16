@@ -50,7 +50,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
             testID={SavedSearchRenamePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('common.rename')} />
             <FormProvider

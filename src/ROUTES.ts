@@ -58,6 +58,11 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
+    SEARCH_ADVANCED_FILTERS_SUBMITTED: 'search/filters/submitted',
+    SEARCH_ADVANCED_FILTERS_APPROVED: 'search/filters/approved',
+    SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
+    SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
+    SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
@@ -711,10 +716,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile/address',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
-    WORKSPACE_PROFILE_PLAN: {
-        route: 'settings/workspaces/:policyID/profile/plan',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/plan` as const, backTo),
-    },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
@@ -978,9 +979,9 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
-        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
+        route: 'settings/workspaces/:policyID/upgrade/:featureName',
+        getRoute: (policyID: string, featureName: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID/downgrade/',
@@ -1372,6 +1373,10 @@ const ROUTES = {
         route: 'onboarding/personal-details',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        route: 'onboarding/private-domain',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
+    },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
@@ -1384,8 +1389,13 @@ const ROUTES = {
         route: 'onboarding/purpose',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
+    ONBOARDING_WORKSPACES: {
+        route: 'onboarding/join-workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
+    MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',

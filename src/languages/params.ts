@@ -543,6 +543,16 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
+type WorkspaceMemberList = {
+    employeeCount: number;
+    policyOwner: string;
+};
+
 type FileLimitParams = {
     fileLimit: number;
 };
@@ -559,12 +569,12 @@ type CurrencyCodeParams = {
     currencyCode: string;
 };
 
-type WorkspaceLockedPlanTypeParams = {
-    subscriptionUsersCount: number;
-    annualSubscriptionEndDate: string;
-};
 type CompanyNameParams = {
     companyName: string;
+};
+
+type CustomUnitRateParams = {
+    rate: number;
 };
 
 type ChatWithAccountManagerParams = {
@@ -771,9 +781,11 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin,
+    WorkspaceMemberList,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
-    WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
+    CustomUnitRateParams,
     ChatWithAccountManagerParams,
 };
