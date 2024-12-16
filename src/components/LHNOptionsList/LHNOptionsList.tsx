@@ -203,6 +203,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             reportActions,
             reports,
+            reportNameValuePairs,
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
@@ -211,8 +212,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
     );
 
     const previousOptionMode = usePrevious(optionMode);
