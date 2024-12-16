@@ -520,7 +520,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 
 function requestWorkspaceOwnerChange(policyID: string) {
     const policy = getPolicy(policyID);
-    const ownershipChecks = {...policyOwnershipChecks?.[policyID]} ?? {};
+    const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
     const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
@@ -733,6 +733,31 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
 }
 
 /**
+ * Add member to the selected private domain workspace based on policyID
+ */
+function joinAccessiblePolicy(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
@@ -923,6 +948,7 @@ export {
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
+    joinAccessiblePolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
