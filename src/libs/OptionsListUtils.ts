@@ -148,11 +148,17 @@ type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 
     excludeLogins?: string[];
 };
 
-type OrderOptionsConfig = {
-    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
-    sortByReportTypeInSearch?: boolean;
-    maxRecentReportsToShow?: number;
-};
+type OrderOptionsConfig =
+    | {
+          maxRecentReportsToShow?: never;
+          /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
+          sortByReportTypeInSearch?: true;
+      }
+    | {
+          // When specifying maxRecentReportsToShow, you can't sort by report type in search
+          maxRecentReportsToShow?: number;
+          sortByReportTypeInSearch?: false;
+      };
 
 type OrderReportOptionsConfig = {
     preferChatroomsOverThreads?: boolean;
@@ -1751,23 +1757,22 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
 function combinedOrderingOfReportsAndPersonalDetails(
     options: ReportAndPersonalDetailOptions,
     searchInputValue: string,
-    {maxRecentReportsToShow, sortByReportTypeInSearch = false, ...orderReportOptionsConfig}: AllOrderConfigs = {},
+    {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
 ): ReportAndPersonalDetailOptions {
+    // sortByReportTypeInSearch will show the personal details as part of the recent reports
+    if (sortByReportTypeInSearch) {
+        const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
+        const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+    }
+
     let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
     if (typeof maxRecentReportsToShow === 'number') {
         orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
 
     const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(orderedReports, options.personalDetails);
-    let orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
-
-    // sortByReportTypeInSearch option will show the personal details as part of the recent reports
-    if (sortByReportTypeInSearch) {
-        orderedReports = orderedReports.concat(orderedPersonalDetails);
-        orderedPersonalDetails = [];
-        // As we are combining the two lists here we need to re-order them
-        orderedReports = orderOptions({recentReports: orderedReports, personalDetails: []}, searchInputValue, orderReportOptionsConfig).recentReports;
-    }
+    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
 
     return {
         recentReports: orderedReports,
