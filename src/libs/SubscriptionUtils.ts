@@ -442,7 +442,6 @@ function doesUserHavePaymentCardAdded(): boolean {
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(policyID: string): boolean {
-    return false;
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
