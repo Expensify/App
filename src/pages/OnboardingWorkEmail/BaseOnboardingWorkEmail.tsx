@@ -20,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
@@ -49,9 +50,20 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     }, []);
 
     const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
-        // Welcome.setOnboardingWorkEmail(values[INPUT_IDS.WORK_EMAIL])
-        // Waiting for the exact props to be passed
-        // SessionActions.signInWithPrivateDomainAccount()
+        Session.AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
+
+        if(onboardingValues && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate) {
+
+            return;
+        }
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+        
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+
     }, []);
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
@@ -64,8 +76,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)) {
+        if ((PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, 'Please enter a valid work email from a private domain e.g. mitch@company.com');
+        }
+
+        if (isOffline) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, "We couldn't add your work email as you appear to be offline");
         }
 
         return errors;
