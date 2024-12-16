@@ -103,11 +103,12 @@ function SubmitDetailsPage({
 
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCANREADY;
-        if (transaction?.amount === undefined || transaction?.amount === 0) {
+        // I guess we don't need to check the amount, it is checked in IOURequestStepConfirmation to deduce whether it is a scan or normal request, so here we only need locationPermissionGranted, btw we should still finishRequestAndNavigate even if locationPermissionGranted is false, just without coordinates, just like with error
+        if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {
-                    Report.openReport(report.reportID, '', [unknownUserDetails?.login ?? ''], optimisticReport, undefined, undefined, undefined, undefined);
-
+                    // I guess we don't need it, IOURequestStepConfirmation doesn't
+                    // Report.openReport(report.reportID, '', [unknownUserDetails?.login ?? ''], optimisticReport, undefined, undefined, undefined, undefined);
                     finishRequestAndNavigate(participant, receipt, {
                         lat: successData.coords.latitude,
                         long: successData.coords.longitude,
@@ -124,6 +125,8 @@ function SubmitDetailsPage({
                 },
             );
         }
+        // If the GPS localization is prohibited the money can still be requested, it just won't include the GPS coordinates
+        finishRequestAndNavigate(participant, receipt);
     };
 
     const onConfirm = (gpsRequired?: boolean) => {
