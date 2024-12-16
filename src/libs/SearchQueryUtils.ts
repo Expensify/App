@@ -613,21 +613,36 @@ function buildUserReadableQueryString(
 }
 
 /**
- * Returns properly built QueryString for a canned query, with the optional policyID.
+ * Returns properly built QueryString for a canned query, used to build more complex canned queries.
  */
 function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
+    to,
     policyID,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
+    to?: string;
     policyID?: string;
-} = {}): SearchQueryString {
-    const queryString = policyID
-        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
-        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+} = {}): {queryString: SearchQueryString; queryJSON: SearchQueryJSON | undefined} {
+    let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+    if (policyID) {
+        queryString = `${queryString} policyID:${policyID}`;
+    }
+    if (to) {
+        queryString = `${queryString} to:${to} `;
+    }
+    // Parse the query to fill all default query fields with values
+    const normalizedQueryJSON = buildSearchQueryJSON(queryString);
+    return {queryString: buildSearchQueryString(normalizedQueryJSON), queryJSON: normalizedQueryJSON};
+}
 
+/**
+ * Returns properly built QueryString for a default canned query.
+ */
+function buildDefaultCannedSearchQuery(): SearchQueryString {
+    const queryString = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} status:${CONST.SEARCH.STATUS.EXPENSE.ALL}`;
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
     return buildSearchQueryString(normalizedQueryJSON);
@@ -718,6 +733,7 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
+    buildDefaultCannedSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
     sanitizeSearchValue,

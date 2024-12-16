@@ -19,8 +19,8 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import CannedSearchMenu from './CannedSearchMenu';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
-import SearchTypeMenu from './SearchTypeMenu';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -77,7 +77,7 @@ function SearchPageBottomTab() {
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildDefaultCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -115,7 +115,7 @@ function SearchPageBottomTab() {
                     </View>
                     {shouldUseNarrowLayout ? (
                         <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                            <SearchTypeMenu
+                            <CannedSearchMenu
                                 queryJSON={queryJSON}
                                 searchName={searchName}
                             />
@@ -127,7 +127,7 @@ function SearchPageBottomTab() {
                             />
                         </Animated.View>
                     ) : (
-                        <SearchTypeMenu
+                        <CannedSearchMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
                         />

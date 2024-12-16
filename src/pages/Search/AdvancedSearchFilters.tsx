@@ -349,7 +349,7 @@ function getStatusDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, tran
     }
     return Array.isArray(filterValue)
         ? filterValue.map((status) => translate(SearchUIUtils.getStatusTranslationKey(status as SingleSearchStatus))).join(', ')
-        : SearchUIUtils.getStatusTranslationKey(filterValue as SingleSearchStatus);
+        : translate(SearchUIUtils.getStatusTranslationKey(filterValue as SingleSearchStatus));
 }
 
 function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
@@ -437,7 +437,7 @@ function AdvancedSearchFilters() {
     }
 
     const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildDefaultCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();

@@ -75,7 +75,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         accessibilityLabel={translate('common.cancel')}
                         style={[styles.textBlue]}
                         onPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildDefaultCannedSearchQuery()}));
                         }}
                     >
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>

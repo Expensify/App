@@ -4608,6 +4608,7 @@ const translations = {
         },
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
+
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
@@ -4621,6 +4622,10 @@ const translations = {
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
+        cannedSearches: {
+            allExpenses: 'Todos los gastos',
+            expensesWaitingOnYou: 'Gastos pendientes de tu aprobación',
+        },
         filters: {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,

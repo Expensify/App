@@ -123,9 +123,9 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 return;
             }
 
-            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+            const defaultQuery = SearchQueryUtils.buildDefaultCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
-            const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
+            const query = activeWorkspaceID ? `${defaultQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultQuery;
             Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
         });
     }, [activeWorkspaceID, selectedTab]);

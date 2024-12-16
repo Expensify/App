@@ -35,7 +35,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q || SearchQueryUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q || SearchQueryUtils.buildDefaultCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         SearchActions.saveSearch({
             queryJSON,

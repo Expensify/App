@@ -15,15 +15,24 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasWorkspaceWithInvoices} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuItem} from '@pages/Search/SearchTypeMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {SearchQueryJSON} from './types';
 
 type SearchTypeBarProps = {
     queryJSON: SearchQueryJSON;
     onTypeChange?: () => void;
+};
+
+type SearchTypeMenuItem = {
+    title: string;
+    type: SearchDataTypes;
+    icon: IconAsset;
+    getRoute: (policyID?: string) => Route;
 };
 
 function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
@@ -44,7 +53,7 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
                 const query = SearchQueryUtils.buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
             },
         },
         {
@@ -53,7 +62,7 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
             icon: Expensicons.ChatBubbles,
             getRoute: (policyID?: string) => {
                 const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
             },
         },
     ];
@@ -65,7 +74,7 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
             icon: Expensicons.InvoiceGeneric,
             getRoute: (policyID?: string) => {
                 const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
             },
         });
     }
@@ -75,7 +84,7 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
         icon: Expensicons.Suitcase,
         getRoute: (policyID?: string) => {
             const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
         },
     });
 

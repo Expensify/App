@@ -4563,6 +4563,10 @@ const translations = {
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
+        cannedSearches: {
+            allExpenses: 'All expenses',
+            expensesWaitingOnYou: 'Expenses waiting on you',
+        },
         bulkActions: {
             approve: 'Approve',
             pay: 'Pay',
