@@ -686,6 +686,7 @@ const CONST = {
         CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         PRODUCT_TRAINING: 'productTraining',
+        PRIVATE_DOMAIN_ONBOARDING_CHECK: 'privateDomainOnboardingCheck',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
