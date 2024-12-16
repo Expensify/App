@@ -1339,7 +1339,7 @@ describe('ReportUtils', () => {
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = false;
@@ -1368,7 +1368,7 @@ describe('ReportUtils', () => {
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = true;
