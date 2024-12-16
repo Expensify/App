@@ -74,7 +74,10 @@ let pusherSocketID = '';
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
-let initPromise: Promise<void>;
+let resolveInitPromise: (value?: unknown) => void;
+const initPromise = new Promise((resolve) => {
+    resolveInitPromise = resolve;
+});
 
 const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
 
@@ -90,8 +93,9 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * @returns resolves when Pusher has connected
  */
 function init(args: Args, params?: unknown): Promise<void> {
-    initPromise = new Promise((resolve) => {
+    return new Promise((resolve) => {
         if (socket) {
+            resolveInitPromise();
             resolve();
             return;
         }
@@ -131,6 +135,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         socket?.connection.bind('connected', () => {
             pusherSocketID = socket?.connection.socket_id ?? '';
             callSocketEventCallbacks('connected');
+            resolveInitPromise();
             resolve();
         });
 
@@ -142,8 +147,6 @@ function init(args: Args, params?: unknown): Promise<void> {
             callSocketEventCallbacks('state_change', states);
         });
     });
-
-    return initPromise;
 }
 
 /**
