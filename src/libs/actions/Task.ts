@@ -125,7 +125,7 @@ function createTaskAndNavigate(
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
-    const assigneeChatReportID = assigneeChatReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const assigneeChatReportID = assigneeChatReport?.reportID ?? '-1';
     const taskReportID = optimisticTaskReport.reportID;
     let assigneeChatReportOnyxData;
 
