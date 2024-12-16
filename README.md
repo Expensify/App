@@ -472,7 +472,7 @@ At this point, the default behavior of some `npm` scripts will change to target 
 - `npm run pod-install` - install pods for HybridApp
 - `npm run clean` - clean native code of HybridApp
 
-If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). 
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
 
 ## Working with HybridApp
 Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
