@@ -8,8 +8,8 @@ import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import usePermissions from '@hooks/usePermissions';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import usePermissions from './usePermissions';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -32,7 +32,7 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     const {canUsePrivateDomainOnboardingCheck} = usePermissions();
-    
+
     useEffect(() => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
@@ -84,6 +84,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
         isPrivateDomain,
+        canUsePrivateDomainOnboardingCheck,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

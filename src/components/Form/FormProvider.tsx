@@ -106,7 +106,7 @@ function FormProvider(
             FormActions.clearErrorFields(formID);
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
-                console.log('validateErrors', validateErrors)
+
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error
                 Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
@@ -396,7 +396,7 @@ function FormProvider(
         [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
-    console.log('errorserrorserrors', errors)
+
     return (
         <FormContext.Provider value={value}>
             {/* eslint-disable react/jsx-props-no-spreading */}

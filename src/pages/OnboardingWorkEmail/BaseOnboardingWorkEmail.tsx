@@ -1,6 +1,7 @@
+import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,17 +13,13 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
@@ -31,15 +28,14 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkEmailProps} from './types';
-import { PUBLIC_DOMAINS, Str } from 'expensify-common';
 
 function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
-    const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL]
-    console.log('workEmailworkEmail', workEmail)
+    const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
+    console.log('workEmailworkEmail', workEmail);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -52,38 +48,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         Welcome.setOnboardingErrorMessage('');
     }, []);
 
-    const validatePrivateDomain = useCallback(
-        (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
-
-
-
-            // Welcome.setOnboardingWorkEmail(values[INPUT_IDS.WORK_EMAIL])
-
-
-
-            // Waiting for the exact props to be passed
-            // SessionActions.signInWithPrivateDomainAccount() 
-
-
-
-        },
-        [],
-    );
+    const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
+        // Welcome.setOnboardingWorkEmail(values[INPUT_IDS.WORK_EMAIL])
+        // Waiting for the exact props to be passed
+        // SessionActions.signInWithPrivateDomainAccount()
+    }, []);
 
     const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
         if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
         }
-        const userEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL]
-
+        const userEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL];
 
         const errors = {};
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-
-        if(PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)){
-            ErrorUtils.addErrorMessage(errors, 'workEmail', 'Please enter a valid work email from a private domain e.g. mitch@company.com')
+        if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, 'Please enter a valid work email from a private domain e.g. mitch@company.com');
         }
 
         return errors;
@@ -155,7 +137,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 <View>{section.items.map(renderItem)}</View>
             </View>
         ),
-        [shouldUseNarrowLayout, styles, renderItem, translate],
+        [shouldUseNarrowLayout, styles, renderItem, translate, onboardingIsMediumOrLargerScreenWidth],
     );
 
     const ICON_SIZE = 48;
@@ -202,7 +184,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                 shouldRenderFooterAboveSubmit
             >
                 {section.map(renderSection)}
-
 
                 <View style={[styles.mb4, styles.pt3]}>
                     <InputWrapper

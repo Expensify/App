@@ -56,7 +56,6 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
     const isVsb = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isIndividual = onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
 
-
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
@@ -66,7 +65,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, canUsePrivateDomain
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
 
-    if(!isPrivateDomain && canUsePrivateDomainOnboardingCheck) {
+    if (!isPrivateDomain && canUsePrivateDomainOnboardingCheck) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 

@@ -21,7 +21,7 @@ type FormWrapperProps = ChildrenProps &
     FormProps & {
         /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
-            
+
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
 
@@ -156,6 +156,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
+            shouldRenderFooterAboveSubmit,
         ],
     );
 
