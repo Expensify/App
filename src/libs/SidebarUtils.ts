@@ -429,10 +429,11 @@ function getOptionData({
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
     const lastAction = visibleReportActionItems[report.reportID];
+    const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
 
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.private_isArchived) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (ReportActionsUtils.isRenamedAction(lastAction)) {
@@ -495,10 +496,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = ReportUtils.formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? Localize.translateLocal('report.noActivityYet'));
         }
-        result.alternateText =
-            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
-                ? ReportUtils.formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`))
-                : ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        result.alternateText = ReportUtils.formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);

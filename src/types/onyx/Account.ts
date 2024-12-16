@@ -101,6 +101,15 @@ type Account = {
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
+    /** The Report ID of the admins room */
+    adminsRoomReportID?: string;
+
+    /** The Account ID of the account manager */
+    accountManagerAccountID?: string;
+
+    /** The Report ID of the account manager */
+    accountManagerReportID?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
@@ -157,6 +166,14 @@ type Account = {
 
     /** Indicates SMS delivery failure status and associated information */
     smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
 };
 
 export default Account;

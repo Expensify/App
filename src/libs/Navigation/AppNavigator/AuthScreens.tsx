@@ -169,7 +169,6 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            timezone.selected = currentTimezone;
             PersonalDetails.updateAutomaticTimezone({
                 automatic: true,
                 selected: currentTimezone,
@@ -241,7 +240,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
-    const [didPusherInit, setDidPusherInit] = useState(false);
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -280,9 +278,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
-        initializePusher().then(() => {
-            setDidPusherInit(true);
-        });
+        initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!NativeModules.HybridAppModule) {
@@ -591,7 +587,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <TestToolsModal />
                 <SearchRouterModal />
             </View>
-            {didPusherInit && <ActiveGuidesEventListener />}
+            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

@@ -2,7 +2,8 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {useSharedValue, withSpring} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -23,7 +24,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
@@ -94,8 +94,8 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
-    const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
-    const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
+    const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
+    const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
@@ -117,16 +117,8 @@ function BaseTextInput(
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
-            Animated.parallel([
-                Animated.spring(labelTranslateY, {
-                    toValue: translateY,
-                    useNativeDriver,
-                }),
-                Animated.spring(labelScale, {
-                    toValue: scale,
-                    useNativeDriver,
-                }),
-            ]).start();
+            labelScale.set(withSpring(scale, {overshootClamping: false}));
+            labelTranslateY.set(withSpring(translateY, {overshootClamping: false}));
         },
         [labelScale, labelTranslateY],
     );
