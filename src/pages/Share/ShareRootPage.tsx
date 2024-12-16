@@ -22,12 +22,13 @@ function ShareRootPage() {
     const {translate} = useLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
     const imageFileFormats = Object.values(CONST.IMAGE_FILE_FORMAT) as string[];
+    const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
 
     const handleProcessFiles = useCallback(() => {
         setIsFileScannable(false);
         ShareActionHandlerModule.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
-            if (tempFile?.mimeType) {
+            if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
                 Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
                     {
                         onPress: () => {
@@ -44,7 +45,7 @@ function ShareRootPage() {
                 ShareActions.addTempShareFile(tempFile);
             }
         });
-    }, [imageFileFormats, translate]);
+    }, [imageFileFormats, shareFileMimetypes, translate]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
