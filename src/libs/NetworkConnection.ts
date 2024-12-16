@@ -116,7 +116,6 @@ Onyx.connect({
     },
 });
 
-/** Controls poor connection simulation */
 function simulatePoorConnection(network: Network) {
     // Starts random network status change when shouldSimulatePoorConnection is turned into true
     // or after app restart if shouldSimulatePoorConnection is true already
