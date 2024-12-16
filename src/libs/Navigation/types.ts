@@ -1542,6 +1542,12 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACES]: {
+        backTo?: string;
+    };
     [SCREENS.ONBOARDING.PURPOSE]: {
         backTo?: string;
     };
@@ -1559,6 +1565,10 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
+};
+
+type MigratedUserModalNavigatorParamList = {
+    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
 type BottomTabNavigatorParamList = {
@@ -1634,6 +1644,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
         [SCREENS.TRANSACTION_RECEIPT]: {
             reportID: string;
@@ -1791,4 +1802,5 @@ export type {
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
     DebugParamList,
+    MigratedUserModalNavigatorParamList,
 };

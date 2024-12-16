@@ -543,6 +543,16 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
+type WorkspaceMemberList = {
+    employeeCount: number;
+    policyOwner: string;
+};
+
 type FileLimitParams = {
     fileLimit: number;
 };
@@ -775,6 +785,8 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin,
+    WorkspaceMemberList,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     CompanyNameParams,
