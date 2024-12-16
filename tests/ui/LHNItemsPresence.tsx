@@ -261,7 +261,7 @@ describe('SidebarLinksData', () => {
             const reportNameValuePairs = {
                 type: 'chat',
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             await initializeState({
