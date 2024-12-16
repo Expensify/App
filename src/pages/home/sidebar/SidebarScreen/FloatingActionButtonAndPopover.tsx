@@ -437,8 +437,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
-                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
@@ -465,7 +465,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         shouldShowProductTrainingTooltip,
         navigateToQuickAction,
         selectOption,
-        isValidReport,
         quickActionPolicy,
     ]);
 
