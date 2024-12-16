@@ -348,13 +348,15 @@ function getOptionData({
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
 
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(report.reportID);
+
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    result.private_isArchived = report?.private_isArchived;
+    result.private_isArchived = reportNameValuePairs?.private_isArchived;
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);

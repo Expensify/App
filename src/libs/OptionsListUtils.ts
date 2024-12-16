@@ -490,7 +490,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastOriginalReportAction = lastReportActions[reportID] ?? null;
     let lastMessageTextFromReport = '';
 
-    if (report?.private_isArchived) {
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(reportID);
+
+    if (reportNameValuePairs?.private_isArchived) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
