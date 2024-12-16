@@ -108,7 +108,7 @@ function SearchPageBottomTab() {
                     <View style={[styles.zIndex10, styles.appBG]}>
                         <TopBar
                             activeWorkspaceID={policyID}
-                            breadcrumbLabel={translate('common.search')}
+                            breadcrumbLabel={translate('common.reports')}
                             shouldDisplaySearch={shouldUseNarrowLayout}
                             shouldDisplayCancelSearch={shouldDisplayCancelSearch}
                         />
