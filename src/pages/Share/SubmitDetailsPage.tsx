@@ -23,7 +23,6 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';

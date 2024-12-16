@@ -28,7 +28,6 @@ function ShareRootPage() {
         ShareActionHandlerModule.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
             if (tempFile?.mimeType) {
-                // alert(tempFile.mimeType === 'image/png');
                 Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
                     {
                         onPress: () => {
@@ -45,7 +44,7 @@ function ShareRootPage() {
                 ShareActions.addTempShareFile(tempFile);
             }
         });
-    }, [imageFileFormats]);
+    }, [imageFileFormats, translate]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
