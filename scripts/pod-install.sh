@@ -8,6 +8,9 @@
 # Exit immediately if any command exits with a non-zero status
 set -e
 
+BLUE='\033[1;34m'
+NC='\033[0m'
+
 # Go to project root
 START_DIR="$(pwd)"
 ROOT_DIR="$(dirname "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)")"
@@ -39,6 +42,25 @@ if ! yq --version > /dev/null 2>&1; then
   error 'yq is not installed. Please install yq and try again'
   cleanupAndExit 1
 fi
+
+# See if we're in the HybridApp repo
+IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
+NEW_DOT_FLAG="false"
+
+if [ "$1" == "--new-dot" ]; then   
+    NEW_DOT_FLAG="true"
+fi
+
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+    echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"
+    # Navigate to the OldDot repository, and run bundle install and pod install
+    cd Mobile-Expensify/ios
+    bundle install
+    bundle exec pod install
+    exit 0
+fi
+
+echo -e "${BLUE}Executing npm run pod-install for standalone NewDot...${NC}"
 
 CACHED_PODSPEC_DIR='ios/Pods/Local Podspecs'
 if [ -d "$CACHED_PODSPEC_DIR" ]; then
