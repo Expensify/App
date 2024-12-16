@@ -332,14 +332,20 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
         if (isSingleApprover) {
             // Remove workflows with a single approver when owner is the approver
             if (currentApprover?.email === ownerEmail) {
-                return [];
+                return {
+                    ...workflow,
+                    removeWorkflow: true,
+                };
             }
 
             // Handle case where the approver is to be removed
             if (isApproverToRemove) {
                 // Remove workflow if the default workflow includes the owner or approver is to be replaced
                 if (defaultHasOwner) {
-                    return [];
+                    return {
+                        ...workflow,
+                        removeWorkflow: true,
+                    };
                 }
 
                 // Replace the approver with owner details

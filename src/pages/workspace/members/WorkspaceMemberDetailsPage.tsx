@@ -169,35 +169,41 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
+    // Function to remove a member and close the modal
+    const removeMemberAndCloseModal = useCallback(() => {
+        Member.removeMembers([accountID], policyID);
+        setIsRemoveMemberConfirmModalVisible(false);
+    }, [accountID, policyID]);
+
     const removeUser = useCallback(() => {
-        const ownerEmail = ownerDetails.login;
+        const ownerEmail = ownerDetails?.login;
         const removedApprover = personalDetails?.[accountID];
 
-        // If the user is not an approver, simply remove the member and close the modal
-        if (!Member.isApprover(policy, accountID)) {
-            Member.removeMembers([accountID], policyID);
-            setIsRemoveMemberConfirmModalVisible(false);
+        // If the user is not an approver, proceed with member removal
+        if (!Member.isApprover(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+            removeMemberAndCloseModal();
             return;
         }
 
-        // Ensure both the approver's login and the owner's email exist
-        if (!removedApprover?.login || !ownerEmail) {
-            return;
-        }
-
-        // Update workflows after removing the approver
+        // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
             removedApprover,
             ownerDetails,
         });
 
-        updatedWorkflows.forEach((workflow) => Workflow.updateApprovalWorkflow(policyID, workflow, [], []));
+        updatedWorkflows.forEach((workflow) => {
+            if (workflow?.removeWorkflow) {
+                Workflow.removeApprovalWorkflow(policyID, workflow);
+            } else {
+                Workflow.updateApprovalWorkflow(policyID, workflow, [], []);
+            }
+        });
 
         // Remove the member and close the modal
-        Member.removeMembers([accountID], policyID);
-        setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID]);
+        removeMemberAndCloseModal();
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
+
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);

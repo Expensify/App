@@ -41,14 +41,16 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import * as Modal from '@userActions/Modal';
 import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -86,6 +88,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -103,6 +106,17 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+
+    const policyApproverEmail = policy?.approver;
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
@@ -222,11 +236,46 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
-        setSelectedEmployees([]);
-        setRemoveMembersConfirmModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            Member.removeMembers(accountIDsToRemove, route.params.policyID);
+
+        // Check if any of the account IDs are approvers
+        const hasApprovers = accountIDsToRemove.some((accountID) => Member.isApprover(policy, accountID));
+
+        if (!hasApprovers) {
+            setSelectedEmployees([]);
+            setRemoveMembersConfirmModalVisible(false);
+
+            InteractionManager.runAfterInteractions(() => {
+                Member.removeMembers(accountIDsToRemove, route.params.policyID);
+            });
+
+            return;
+        }
+
+        const ownerEmail = ownerDetails.login;
+
+        accountIDsToRemove.forEach((accountID) => {
+            const removedApprover = personalDetails?.[accountID];
+
+            if (!removedApprover?.login || !ownerEmail) {
+                return;
+            }
+
+            const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows,
+                removedApprover,
+                ownerDetails,
+            });
+            console.log('****** updatedWorkflows ******', updatedWorkflows);
+
+            updatedWorkflows.forEach((workflow) => Workflow.updateApprovalWorkflow(policyID, workflow, [], []));
         });
+
+        // setSelectedEmployees([]);
+        // setRemoveMembersConfirmModalVisible(false);
+
+        // InteractionManager.runAfterInteractions(() => {
+        //     Member.removeMembers(accountIDsToRemove, route.params.policyID);
+        // });
     };
 
     /**
