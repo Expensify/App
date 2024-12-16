@@ -3,7 +3,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchPageHeader from '@components/Search/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchTypeBar from '@components/Search/SearchTypeBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,7 +44,7 @@ function SearchPage({route}: SearchPageProps) {
                 {!!queryJSON && (
                     <>
                         <SearchPageHeader queryJSON={queryJSON} />
-                        <SearchStatusBar queryJSON={queryJSON} />
+                        <SearchTypeBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>
                 )}

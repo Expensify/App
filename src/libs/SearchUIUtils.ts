@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchColumnType, SearchStatus, SingleSearchStatus, SortOrder, TripSearchStatus} from '@components/Search/types';
+import type {SearchColumnType, SearchStatus, SingleSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';

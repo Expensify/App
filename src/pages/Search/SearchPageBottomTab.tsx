@@ -5,7 +5,7 @@ import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedVa
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchTypeBar from '@components/Search/SearchTypeBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -119,9 +119,9 @@ function SearchPageBottomTab() {
                                 queryJSON={queryJSON}
                                 searchName={searchName}
                             />
-                            <SearchStatusBar
+                            <SearchTypeBar
                                 queryJSON={queryJSON}
-                                onStatusChange={() => {
+                                onTypeChange={() => {
                                     topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
