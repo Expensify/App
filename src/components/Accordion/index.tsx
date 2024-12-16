@@ -5,7 +5,18 @@ import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function Accordion({isExpanded, children, duration = 300}: {isExpanded: SharedValue<boolean>; children: ReactNode; duration?: number}) {
+type AccordionProps = {
+    /** Giving information whether the component is open */
+    isExpanded: SharedValue<boolean>;
+
+    /** Element that is inside Accordion */
+    children: ReactNode;
+
+    /** Duration of expansion animation  */
+    duration?: number;
+};
+
+function Accordion({isExpanded, children, duration = 300}: AccordionProps) {
     const height = useSharedValue(0);
     const styles = useThemeStyles();
     const derivedHeight = useDerivedValue(() =>
@@ -23,7 +34,7 @@ function Accordion({isExpanded, children, duration = 300}: {isExpanded: SharedVa
                 onLayout={(e) => {
                     height.set(e.nativeEvent.layout.height);
                 }}
-                style={{position: 'absolute', left: 0, right: 0, top: 0}}
+                style={[styles.pAbsolute, styles.l0, styles.r0, styles.t0]}
             >
                 {children}
             </View>

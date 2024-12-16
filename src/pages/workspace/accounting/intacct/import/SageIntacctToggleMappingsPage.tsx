@@ -57,7 +57,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     // We are storing translation keys in the local state for animation purposes.
     // Otherwise, the values change to undefined immediately after clicking, before the closing animation finishes,
     // resulting in a janky animation effect.
-
     const [translationKeys, setTranslationKey] = useState<DisplayTypeTranslationKeys | undefined>(undefined);
 
     useEffect(() => {
