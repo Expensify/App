@@ -228,7 +228,7 @@ describe('SidebarLinksData', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
-            // The RBR icon should be shown
+            // Then the RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
         });
 
@@ -326,7 +326,7 @@ describe('SidebarLinksData', () => {
                 lastReadTime: report.lastVisibleActionCreated,
             });
 
-            // The report should not disappear in the sidebar because we are in the focus mode
+            // Then the report should not disappear in the sidebar because we are in the focus mode
             expect(getOptionRows()).toHaveLength(0);
         });
     });
@@ -519,7 +519,7 @@ describe('SidebarLinksData', () => {
             // When the user is in focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
-            // The report should not disappear in the sidebar because it's read
+            // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
         });
     });
