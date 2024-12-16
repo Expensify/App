@@ -17,6 +17,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -329,6 +330,16 @@ function MoneyRequestPreviewContent({
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
+    const isInvoice = ReportUtils.isInvoiceReport(iouReport);
+    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(iouReport);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isApprover = ReportUtils.isMoneyRequestReport(iouReport) && iouReport?.managerID !== null && currentUserPersonalDetails?.accountID === iouReport?.managerID;
+    const isRequestor = currentUserPersonalDetails.accountID === action?.actorAccountID;
+    const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(action, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const shouldShowReceiptEmptyState =
+        !isInvoice && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(iouReport));
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -349,12 +360,14 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    <ReportActionItemImages
-                        images={receiptImages}
-                        isHovered={isHovered || isScanning}
-                        size={1}
-                        onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
-                    />
+                    {(shouldShowReceiptEmptyState || hasReceipt) && (
+                        <ReportActionItemImages
+                            images={receiptImages}
+                            isHovered={isHovered || isScanning}
+                            size={1}
+                            onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
+                        />
+                    )}
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
