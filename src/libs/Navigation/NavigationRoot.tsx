@@ -13,7 +13,7 @@ import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
@@ -100,8 +100,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
-    const [wasInvited = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: wasInvitedToNewDot,
+    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: wasInvitedToNewDotSelector,
     });
 
     const initialState = useMemo(() => {
@@ -111,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && !wasInvited && authenticated && !shouldShowRequire2FAModal) {
+        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
             const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
             return adaptedState;
         }
