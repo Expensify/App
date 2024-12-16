@@ -44,9 +44,9 @@ function AgreeToTheLabel() {
     return (
         <Text>
             {`${translate('termsStep.agreeToThe')} `}
-            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
             {`${translate('common.and')} `}
-            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
         </Text>
     );
 }
