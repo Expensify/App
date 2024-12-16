@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -55,13 +54,10 @@ function SubmitDetailsPage({
     const report = onyxReport ?? optimisticReport;
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
-    const participants = selectedParticipants.map((participant) => {
-        const participantAccountID = participant?.accountID ?? -1;
-        const result = participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-        return result;
-    });
+    const participants = selectedParticipants.map((participant) =>
+        participant?.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant),
+    );
 
-    console.log('participants', participants);
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -72,9 +68,6 @@ function SubmitDetailsPage({
         if (!transaction) {
             return;
         }
-
-        console.log('report', report);
-        console.log('reportID', reportID);
 
         IOU.requestMoney({
             report,
@@ -110,7 +103,6 @@ function SubmitDetailsPage({
 
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCANREADY;
-        console.log('locationPermissionGranted', locationPermissionGranted);
         if (transaction?.amount === undefined || transaction?.amount === 0) {
             getCurrentPosition(
                 (successData) => {

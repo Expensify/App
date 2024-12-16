@@ -365,9 +365,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         } else {
             showCreateMenu();
         }
-
-        // IOU.clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false);
-        // Navigation.navigate(ROUTES.SHARE_ROOT);
     };
 
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
@@ -409,6 +406,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
             onHideTooltip: hideProductTrainingTooltip,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,

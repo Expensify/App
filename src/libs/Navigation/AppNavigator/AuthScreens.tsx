@@ -63,7 +63,6 @@ import beforeRemoveReportOpenedFromSearchRHP from './beforeRemoveReportOpenedFro
 import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
-import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';

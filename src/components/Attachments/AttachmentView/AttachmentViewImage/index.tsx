@@ -33,7 +33,7 @@ function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPr
         <PressableWithoutFeedback
             onPress={onPress}
             disabled={loadComplete}
-            style={[styles.flex1, styles.flexRow, styles.alignSelfStretch, {objectFit: 'fill'}]}
+            style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={file?.name || translate('attachmentView.unknownFilename')}

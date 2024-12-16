@@ -1062,8 +1062,8 @@ const translations = {
         justTrackIt: 'Solo guardarlo (no enviarlo)',
     },
     share: {
-        shareToExpensify: 'Share to expensify',
-        messageInputLabel: 'Message',
+        shareToExpensify: 'Compartir para expensify',
+        messageInputLabel: 'Mensaje',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

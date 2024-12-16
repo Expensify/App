@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
