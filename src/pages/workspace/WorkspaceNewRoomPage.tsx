@@ -64,14 +64,14 @@ function WorkspaceNewRoomPage() {
 
     const workspaceOptions = useMemo(
         () =>
-            PolicyUtils.getActivePolicies(policies, session?.email)
+            PolicyUtils.getActivePolicies(policies)
                 ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
                 }))
                 .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
-        [policies, session?.email],
+        [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
         if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
