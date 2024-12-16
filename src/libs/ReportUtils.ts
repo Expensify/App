@@ -703,6 +703,7 @@ Onyx.connect({
 });
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
+const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
@@ -711,6 +712,15 @@ Onyx.connect({
             return;
         }
         allReportMetadata = value;
+
+        Object.entries(value).forEach(([reportID, reportMetadata]) => {
+            if (!reportMetadata) {
+                return;
+            }
+
+            const [, id] = reportID.split('_');
+            allReportMetadataKeyValue[id] = reportMetadata;
+        });
     },
 });
 
@@ -8511,7 +8521,7 @@ function hasInvoiceReports() {
 }
 
 function getReportMetadata(reportID?: string) {
-    return allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+    return allReportMetadataKeyValue[reportID ?? '-1'];
 }
 
 export {
