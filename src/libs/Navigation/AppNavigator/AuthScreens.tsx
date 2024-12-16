@@ -542,20 +542,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {isOnboardingCompleted === false ||
-                        (shouldRenderOnboardingExclusivelyOnHybridApp && (
-                            <RootStack.Screen
-                                name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                                options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
-                                component={OnboardingModalNavigator}
-                                listeners={{
-                                    focus: () => {
-                                        Modal.setDisableDismissOnEscape(true);
-                                    },
-                                    beforeRemove: () => Modal.setDisableDismissOnEscape(false),
-                                }}
-                            />
-                        ))}
+                    {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
+                        <RootStack.Screen
+                            name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                            options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
+                            component={OnboardingModalNavigator}
+                            listeners={{
+                                focus: () => {
+                                    Modal.setDisableDismissOnEscape(true);
+                                },
+                                beforeRemove: () => Modal.setDisableDismissOnEscape(false),
+                            }}
+                        />
+                    )}
                     <RootStack.Screen
                         name={SCREENS.WORKSPACE_JOIN_USER}
                         options={{
