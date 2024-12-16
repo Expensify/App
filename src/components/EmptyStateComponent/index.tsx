@@ -26,6 +26,7 @@ function EmptyStateComponent({
     headerStyles,
     headerContentStyles,
     lottieWebViewStyles,
+    showsVerticalScrollIndicator,
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
@@ -83,6 +84,7 @@ function EmptyStateComponent({
 
     return (
         <ScrollView
+            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
             contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
             style={styles.flex1}
         >
