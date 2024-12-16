@@ -374,7 +374,10 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 
             // If the removed approver is the first in the list, return an empty array
             if (removedApproverIndex === 0) {
-                return [];
+                return {
+                    ...workflow,
+                    removeApprovalWorkflow: true,
+                };
             }
 
             const updateApprovers = workflow.approvers.slice(0, removedApproverIndex);
