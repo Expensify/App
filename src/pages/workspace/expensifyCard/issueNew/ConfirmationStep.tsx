@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,8 +47,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const submitButton = useRef<View>(null);
 
+    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
     useEffect(() => {
         submitButton.current?.focus();
+        User.resetValidateActionCodeSent();
     }, []);
 
     useEffect(() => {

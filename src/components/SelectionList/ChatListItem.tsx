@@ -5,12 +5,14 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import MultipleAvatars from '@components/MultipleAvatars';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
@@ -58,12 +60,27 @@ function ChatListItem<TItem extends ListItem>({
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID ?? '-1'}), [item.reportID]);
-
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
+    const pressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.textAlignLeft,
+        styles.overflowHidden,
+        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        styles.bgTransparent,
+        item.isSelected && styles.activeComponentBG,
+        styles.mh0,
+        item.cursorStyle,
+    ];
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, styles.textAlignLeft, item.isSelected && styles.activeComponentBG, item.cursorStyle]]}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+            pressableStyle={pressableStyle}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
@@ -77,6 +94,7 @@ function ChatListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (

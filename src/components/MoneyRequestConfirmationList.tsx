@@ -303,8 +303,6 @@ function MoneyRequestConfirmationList({
         return false;
     };
 
-    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
-
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -320,6 +318,7 @@ function MoneyRequestConfirmationList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
 
     useEffect(() => {
@@ -697,7 +696,7 @@ function MoneyRequestConfirmationList({
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyTagLists, policyTags]);
+    }, [transactionID, policyTagLists, policyTags]);
 
     /**
      * Navigate to report details or profile of selected user
@@ -706,14 +705,14 @@ function MoneyRequestConfirmationList({
         const activeRoute = Navigation.getActiveRoute();
 
         if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
             return;
         }
 
         if (option.accountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
         }
     };
 
@@ -853,7 +852,6 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                success
                 pressOnEnter
                 onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
