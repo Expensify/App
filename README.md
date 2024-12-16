@@ -456,7 +456,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init` to download the `Mobile-Expensify` sourcecode.
+2. Run `git submodule update --init --progress` to download the `Mobile-Expensify` sourcecode.
 - If you have access to `Mobile-Expensify` and the command fails with a https-related error add this to your `~/.gitconfig` file:
 
     ```

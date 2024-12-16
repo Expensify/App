@@ -18,7 +18,7 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isDeletedAction} from './ReportActionsUtils';
-import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
+import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
@@ -257,6 +257,17 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const transaction = isTransaction ? data[key] : undefined;
     const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
 
+    // Tracked and unreported expenses don't have a report, so we return early.
+    if (!report) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.hasError || report.hasError) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     if (isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
@@ -265,8 +276,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
-    // We don't need to run the logic if this is not an iou/expense report, so let's shortcircuit the logic for performance reasons
-    if (!isMoneyRequestReport(report)) {
+    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
+    if (!isMoneyRequestReport(report) || (isTransaction && !data[key].isFromOneTransactionReport)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
@@ -292,11 +303,13 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport(report, undefined, policy)) {
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    if (canSubmitReport(report, policy)) {
+    // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
+    if (canSubmitReport(report, policy) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
@@ -586,4 +599,5 @@ export {
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
+    isReportActionEntry,
 };
