@@ -260,6 +260,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     }, [theme]);
 
+    const pusherInitialized = useRef(false);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    if (!pusherInitialized.current) {
+        PusherConnectionManager.init();
+        initializePusher();
+        // eslint-disable-next-line react-compiler/react-compiler
+        pusherInitialized.current = true;
+    }
+
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -277,8 +287,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(handleNetworkReconnect);
-        PusherConnectionManager.init();
-        initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!NativeModules.HybridAppModule) {
