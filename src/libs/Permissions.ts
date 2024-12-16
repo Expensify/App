@@ -6,6 +6,7 @@ import * as SessionUtils from './SessionUtils';
 const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
+    return true;
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 

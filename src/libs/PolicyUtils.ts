@@ -537,33 +537,35 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>, isDefault = false): number {
     const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
-    let categoryAppover;
-    let tagApprover;
-    const allTransactions = getAllSortedTransactions(expenseReport?.reportID ?? '-1');
+    if (!isDefault) {
+        let categoryAppover;
+        let tagApprover;
+        const allTransactions = getAllSortedTransactions(expenseReport?.reportID ?? '-1');
 
-    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
-    // Category approvers are prioritized, then tag approvers.
-    for (let i = 0; i < allTransactions.length; i++) {
-        const transaction = allTransactions.at(i);
-        const tag = getTag(transaction);
-        const category = getCategory(transaction);
-        categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-        if (categoryAppover) {
-            return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
+        // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
+        // Category approvers are prioritized, then tag approvers.
+        for (let i = 0; i < allTransactions.length; i++) {
+            const transaction = allTransactions.at(i);
+            const tag = getTag(transaction);
+            const category = getCategory(transaction);
+            categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+            if (categoryAppover) {
+                return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
+            }
+
+            if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
+                tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
+            }
         }
 
-        if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
-            tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
+        if (tagApprover) {
+            return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
         }
-    }
-
-    if (tagApprover) {
-        return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
     }
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -579,8 +581,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseR
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, isDefault = false): string {
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, isDefault);
     return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
