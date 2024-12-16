@@ -999,7 +999,6 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
@@ -1335,7 +1334,6 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
@@ -1364,7 +1362,6 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',

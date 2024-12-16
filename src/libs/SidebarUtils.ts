@@ -613,7 +613,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (report?.private_isArchived) {
+    if (ReportUtils.isArchivedRoomWithID(report?.reportID)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (ReportUtils.isDomainRoom(report)) {

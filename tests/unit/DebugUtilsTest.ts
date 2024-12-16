@@ -788,8 +788,6 @@ describe('DebugUtils', () => {
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: 'true',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });

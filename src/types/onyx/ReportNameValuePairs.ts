@@ -6,7 +6,7 @@ import type * as OnyxCommon from './OnyxCommon';
 type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report is an archived room */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private_isArchived: string;
+    private_isArchived?: string;
 }>;
 
 /** Collection of reportNameValuePairs, indexed by reportNameValuePairs_{reportID} */
