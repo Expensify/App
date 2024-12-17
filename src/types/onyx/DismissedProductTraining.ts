@@ -17,47 +17,47 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the nudgeMigration Welcome Modal, we store the timestamp here.
      */
-    [CONST.MIGRATED_USER_WELCOME_MODAL]: Date;
+    [CONST.MIGRATED_USER_WELCOME_MODAL]: string;
 
     /**
      * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
      */
-    [CONCEIRGE_LHN_GBR]: Date;
+    [CONCEIRGE_LHN_GBR]: string;
 
     /**
      * When user dismisses the renameSavedSearch product training tooltip, we store the timestamp here.
      */
-    [RENAME_SAVED_SEARCH]: Date;
+    [RENAME_SAVED_SEARCH]: string;
 
     /**
      * When user dismisses the workspaceChatCreate product training tooltip, we store the timestamp here.
      */
-    [WORKSAPCE_CHAT_CREATE]: Date;
+    [WORKSAPCE_CHAT_CREATE]: string;
 
     /**
      * When user dismisses the quickActionButton product training tooltip, we store the timestamp here.
      */
-    [QUICK_ACTION_BUTTON]: Date;
+    [QUICK_ACTION_BUTTON]: string;
 
     /**
      * When user dismisses the searchFilterButtonTooltip product training tooltip, we store the timestamp here.
      */
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: Date;
+    [SEARCH_FILTER_BUTTON_TOOLTIP]: string;
 
     /**
      * When user dismisses the bottomNavInboxTooltip product training tooltip, we store the timestamp here.
      */
-    [BOTTOM_NAV_INBOX_TOOLTIP]: Date;
+    [BOTTOM_NAV_INBOX_TOOLTIP]: string;
 
     /**
      * When user dismisses the lhnWorkspaceChatTooltip product training tooltip, we store the timestamp here.
      */
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: Date;
+    [LHN_WORKSPACE_CHAT_TOOLTIP]: string;
 
     /**
      * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
      */
-    [GLOBAL_CREATE_TOOLTIP]: Date;
+    [GLOBAL_CREATE_TOOLTIP]: string;
 };
 
 export default DismissedProductTraining;
