@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
@@ -21,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {Policy} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -55,6 +57,14 @@ type PersonalAddress = {
     requestorAddressState?: string;
     requestorAddressZipCode?: string;
 };
+
+let allPolicies: OnyxCollection<Policy> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
 
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -275,6 +285,32 @@ function deletePaymentBankAccount(bankAccountID: number) {
             },
         ],
     };
+
+    Object.values(allPolicies ?? {}).forEach((policy) => {
+        if (policy?.achAccount && policy?.achAccount?.bankAccountID === bankAccountID) {
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    achAccount: null,
+                },
+            });
+            onyxData?.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    achAccount: null,
+                },
+            });
+            onyxData?.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    achAccount: policy?.achAccount,
+                },
+            });
+        }
+    });
 
     API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
 }
