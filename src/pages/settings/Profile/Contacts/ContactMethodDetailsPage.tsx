@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-//import {InteractionManager, Keyboard} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -9,14 +8,12 @@ import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem/';
+import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import ValidateCodeForm from './ValidateCodeForm';
-
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -45,7 +42,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
@@ -262,26 +258,22 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 )}
 
-
-
-
-
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{translate('contacts.enterMagicCode', {contactMethod})}</Text>
-                    <ValidateCodeForm
-                        validateCodeAction={validateCodeAction}
-                        validatePendingAction={loginData.pendingFields?.validateCodeSent}
-                        validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                        handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
-                        sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                        clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
-                        ref={validateCodeFormRef}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    />
-                </View>
-
-
+                <ValidateCodeActionModal
+                    title={formattedContactMethod}
+                    onModalHide={() => {}}
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    isVisible={isValidateCodeActionModalVisible && !loginData.validatedDate && !!loginData}
+                    validatePendingAction={loginData.pendingFields?.validateCodeSent}
+                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                    onClose={() => {
+                        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                        setIsValidateCodeActionModalVisible(false);
+                    }}
+                    sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
+                />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}
             </ScrollView>
