@@ -65,13 +65,13 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
 /**
  * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
+function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
 }
 
-function openOldDotLink(url: string) {
+function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     if (isNetworkOffline) {
-        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL));
+        buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
 
@@ -82,6 +82,8 @@ function openOldDotLink(url: string) {
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
+        undefined,
+        shouldOpenInSameTab,
     );
 }
 
@@ -181,10 +183,10 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }
-
     // If we are handling an old dot Expensify link we need to open it with openOldDotLink() so we can navigate to it with the user already logged in.
     // As attachments also use expensify.com we don't want it working the same as links.
-    if (internalExpensifyPath && !isAttachment) {
+    const isPublicOldDotURL = (Object.values(CONST.OLD_DOT_PUBLIC_URLS) as string[]).includes(href);
+    if (internalExpensifyPath && !isAttachment && !isPublicOldDotURL) {
         openOldDotLink(internalExpensifyPath);
         return;
     }

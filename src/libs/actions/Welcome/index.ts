@@ -3,6 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -185,7 +186,12 @@ function resetAllChecks() {
     OnboardingFlow.clearInitialPath();
 }
 
-function setSelfTourViewed() {
+function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
+    if (shouldUpdateOnyxDataOnlyLocally) {
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -199,9 +205,24 @@ function setSelfTourViewed() {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
+function dismissProductTraining(elementName: string) {
+    const date = new Date();
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+            value: {
+                [elementName]: DateUtils.getDBTime(date.valueOf()),
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
+    dismissProductTraining,
     setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,

@@ -338,7 +338,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors | ReceiptErrors;
 
         /** Server side errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields<'route'>;
+        errorFields?: OnyxCommon.ErrorFields;
 
         /** The name of the file used for a receipt (formerly receiptFilename) */
         filename?: string;
@@ -458,6 +458,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction is linked to a managed card */
         managedCard?: boolean;
+
+        /** The card transaction's posted date */
+        posted?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;

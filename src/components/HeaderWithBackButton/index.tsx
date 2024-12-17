@@ -10,7 +10,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -65,13 +64,13 @@ function HeaderWithBackButton({
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
+    subTitleLink = '',
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
@@ -108,10 +107,12 @@ function HeaderWithBackButton({
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                subTitleLink={subTitleLink}
             />
         );
     }, [
         StyleUtils,
+        subTitleLink,
         isCentralPaneSettings,
         policy,
         progressBarPercentage,
@@ -152,7 +153,7 @@ function HeaderWithBackButton({
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (isKeyboardShown) {
+                                if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();
                                 }
                                 const topmostReportId = Navigation.getTopmostReportId();

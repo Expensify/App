@@ -19,6 +19,7 @@ import * as Browser from '@libs/Browser';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -70,9 +71,11 @@ function Composer(
         start: selectionProp.start,
         end: selectionProp.end,
     });
+    const [hasMultipleLines, setHasMultipleLines] = useState(false);
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
@@ -241,11 +244,11 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined) {
+        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        textInput.current.scrollTop = prevScroll;
+        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
@@ -328,10 +331,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
-            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
+            textContainsOnlyEmojis && hasMultipleLines ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, hasMultipleLines, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
@@ -350,6 +353,10 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
+            onContentSizeChange={(e) => {
+                setPrevHeight(e.nativeEvent.contentSize.height);
+                setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
+            }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
             addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}

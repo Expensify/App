@@ -11502,31 +11502,38 @@ const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 function getTestBuildMessage() {
-    console.log('Input for android', core.getInput('ANDROID', { required: true }));
-    const androidSuccess = core.getInput('ANDROID', { required: true }) === 'success';
-    const desktopSuccess = core.getInput('DESKTOP', { required: true }) === 'success';
-    const iOSSuccess = core.getInput('IOS', { required: true }) === 'success';
-    const webSuccess = core.getInput('WEB', { required: true }) === 'success';
-    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
-    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
-    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
-    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
-    const androidQRCode = androidSuccess
-        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
-        : "The QR code can't be generated, because the android build failed";
-    const desktopQRCode = desktopSuccess
-        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
-        : "The QR code can't be generated, because the Desktop build failed";
-    const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
-    const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
+    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
+    const names = {
+        [inputs[0]]: 'Android',
+        [inputs[1]]: 'Desktop',
+        [inputs[2]]: 'iOS',
+        [inputs[3]]: 'Web',
+    };
+    const result = inputs.reduce((acc, platform) => {
+        const input = core.getInput(platform, { required: false });
+        if (!input) {
+            acc[platform] = { link: 'N/A', qrCode: 'N/A' };
+            return acc;
+        }
+        const isSuccess = input === 'success';
+        const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
+        const qrCode = isSuccess
+            ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
+            : `The QR code can't be generated, because the ${names[platform]} build failed`;
+        acc[platform] = {
+            link,
+            qrCode,
+        };
+        return acc;
+    }, {});
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
-| ${androidLink}  | ${iOSLink}  |
-| ${androidQRCode}  | ${iOSQRCode}  |
+| ${result.ANDROID.link}  | ${result.IOS.link}  |
+| ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 | Desktop :computer: | Web :spider_web: |
-| ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |
+| ${result.DESKTOP.link}  | ${result.WEB.link}  |
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
 
 ---
 

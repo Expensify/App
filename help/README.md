@@ -48,7 +48,7 @@ Every PR pushed by an authorized Expensify employee or representative will autom
 3. Install Ruby and Jekyll
 4. Build the entire site using Jekyll
 5. Create a "preview" of the newly built site in Cloudflare
-6. Record a link to that preview in the PR.
+6. Record a link to that preview in the PR
 
 ## How to deploy the site for real
 Whenever a PR that touches the `/help` directory is merged, it will re-run the build just like before.  However, it will detect that this build is being run from the `main` branch, and thus push the changes to the `production` Cloudflare environment -- meaning, it will replace the contents hosted at https://newhelp.expensify.com

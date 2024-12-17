@@ -1,7 +1,7 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import Animations from '..';
-import type SlideFromBottomTransitionNavigationOptions from './types';
+import type {PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {InternalPlatformAnimations} from '..';
 
-const slideFromBottom: SlideFromBottomTransitionNavigationOptions = {animation: Animations.SLIDE_FROM_BOTTOM} satisfies NativeStackNavigationOptions;
+const slideFromBottom: PlatformSpecificNavigationOptions = {animation: InternalPlatformAnimations.SLIDE_FROM_BOTTOM} satisfies NativeStackNavigationOptions;
 
 export default slideFromBottom;

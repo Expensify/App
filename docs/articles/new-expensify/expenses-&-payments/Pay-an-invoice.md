@@ -10,7 +10,7 @@ Anyone who receives an Expensify invoice can pay it using Expensify—even if th
 
 You'll receive an automated email or text notification when an invoice is sent to you for payment. 
 
-To pay an invoice, 
+# Pay an invoice 
 
 {% include selector.html values="desktop, mobile" %}
 

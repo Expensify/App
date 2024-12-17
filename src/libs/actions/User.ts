@@ -285,6 +285,15 @@ function clearValidateCodeActionError(fieldName: string) {
 }
 
 /**
+ * Reset validateCodeSent on validate action code.
+ */
+function resetValidateActionCodeSent() {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        validateCodeSent: false,
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -443,6 +452,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
+                contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
@@ -583,7 +593,7 @@ function validateLogin(accountID: number, validateCode: string) {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -728,6 +738,19 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
             value: {isLoading: false},
         },
     ];
+
+    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
+    if (shouldResetActionCode) {
+        const optimisticResetActionCode = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        };
+        successData.push(optimisticResetActionCode);
+        failureData.push(optimisticResetActionCode);
+    }
 
     const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode};
 
@@ -1348,14 +1371,6 @@ function dismissTrackTrainingModal() {
     });
 }
 
-function dismissWorkspaceTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_WORKSPACE_TOOLTIP, {shouldShow: false});
-}
-
-function dismissGBRTooltip() {
-    Onyx.merge(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, true);
-}
-
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1376,7 +1391,6 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
-    dismissWorkspaceTooltip,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1410,6 +1424,6 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     subscribeToActiveGuides,
-    dismissGBRTooltip,
     setIsDebugModeEnabled,
+    resetValidateActionCodeSent,
 };

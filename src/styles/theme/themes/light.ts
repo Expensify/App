@@ -81,7 +81,7 @@ const lightTheme = {
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
     tooltipHighlightBG: colors.green100,
-    tooltipHighlightText: colors.green500,
+    tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
@@ -152,6 +152,7 @@ const lightTheme = {
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+    navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
     colorScheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 

@@ -66,4 +66,20 @@ You'll have the option to change the tax rate from within the expense as needed.
 
 If the tax amount doesn't show up on your receipt or is different than the calculated amount, you can manually type in the correct tax amount.
 
+**Why is the tax amount different than I expect?**
+
+In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown.
+
+To determine the inclusive tax from a total price that already includes tax, you can use the following formula:
+
+**Tax amount = (Total price x Tax rate) ÷ (1 + Tax Rate)**
+
+For example, if an item costs $100  and the tax rate is 20%:
+Tax amount = (**$100** x .20) ÷ (1 + .**20**) = **$16.67**
+This means the tax amount $16.67 is included in the total.
+
+If you are simply trying to calculate the price before tax, you can use the formula: 
+
+**Price before tax = (Total price) ÷ (1 + Tax rate)**
+
 {% include faq-end.md %}
