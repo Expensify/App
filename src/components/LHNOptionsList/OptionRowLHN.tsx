@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -47,21 +47,19 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && activePolicyID === report?.policyID;
+
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
+
+    // Guides are assigned for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
+    const shouldShowToooltipOnThisReport = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
 
-    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
-        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return {tooltipToRender: tooltip, shouldShowTooltip: shouldUseNarrowLayout ? isScreenFocused : true};
-    }, [shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout]);
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
+    const shouldShowGetStartedTooltip = shouldShowToooltipOnThisReport && isScreenFocused;
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR,
+        shouldShowGetStartedTooltip,
+    );
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
@@ -158,18 +156,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                shouldRender={shouldShowProductTrainingTooltip && (isActiveWorkspaceChat || shouldShowGetStartedTooltip)}
+                shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
-                    horizontal: isActiveWorkspaceChat ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shouldUseOverlay
-                shiftHorizontal={isActiveWorkspaceChat ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
-                shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
+                shiftHorizontal={variables.gbrTooltipShiftHorizontal}
                 onHideTooltip={hideProductTrainingTooltip}
-                wrapperStyle={styles.productTrainingTooltipWrapper}
+                shiftVertical={variables.composerTooltipShiftVertical}
+                wrapperStyle={styles.quickActionTooltipWrapper}
             >
                 <View>
                     <Hoverable>

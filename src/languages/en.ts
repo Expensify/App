@@ -5478,25 +5478,6 @@ const translations = {
             part2: ' expenses',
             part3: ' here!',
         },
-        searchFilterButtonTooltip: {
-            part1: 'Customize your search',
-            part2: ' here!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Your to-do list',
-            part2: '\n🟢 = ready for you',
-            part3: ' 🔴 = needs review',
-        },
-        workspaceChatTooltip: {
-            part1: 'Submit expenses',
-            part2: ' and chat with',
-            part3: '\napprovers here!',
-        },
-        globalCreateTooltip: {
-            part1: 'Create expenses',
-            part2: ', start chatting,',
-            part3: '\nand more!',
-        },
     },
 };
 
