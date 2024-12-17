@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterKey} from '@components/Search/types';
+import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -40,9 +40,10 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getSubstitutionMapKey} from './getQueryWithSubstitutions';
 
 type AutocompleteItemData = {
-    filterKey: SearchFilterKey;
+    filterKey: UserFriendlyKey;
     text: string;
     autocompleteID?: string;
+    mapKey?: SearchFilterKey;
 };
 
 type SearchRouterListProps = {
@@ -80,6 +81,10 @@ const setPerformanceTimersEnd = () => {
 
 function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     return isSearchQueryItem(listItem.item);
+}
+
+function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
+    return `${filterKey}:${value}`;
 }
 
 function getItemHeight(item: OptionData | SearchQueryItem) {
@@ -226,7 +231,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredTags.map((tagName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAG,
                     text: tagName,
                 }));
             }
@@ -238,7 +243,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCategories.map((categoryName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY,
                     text: categoryName,
                 }));
             }
@@ -250,7 +255,7 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CURRENCY,
                     text: currencyName,
                 }));
             }
@@ -261,9 +266,10 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredTaxRates.map((tax) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAX_RATE,
                     text: tax.taxRateName,
                     autocompleteID: tax.taxRateIds.join(','),
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
@@ -272,9 +278,10 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FROM,
                     text: participant.name,
                     autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
@@ -283,9 +290,10 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO,
                     text: participant.name,
                     autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
@@ -294,9 +302,10 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredChats.map((chat) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
                     text: chat.text ?? '',
                     autocompleteID: chat.reportID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
                 }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
@@ -304,7 +313,7 @@ function SearchRouterList(
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
-                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, text: type}));
+                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -312,7 +321,7 @@ function SearchRouterList(
                     .sort()
                     .slice(0, 10);
 
-                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, text: status}));
+                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS, text: status}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
@@ -320,7 +329,7 @@ function SearchRouterList(
                     .sort();
 
                 return filteredExpenseTypes.map((expenseType) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE,
                     text: expenseType,
                 }));
             }
@@ -334,9 +343,10 @@ function SearchRouterList(
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
-                    filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    text: CardUtils.getCardDescription(card.cardID, allCards),
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
+                    text: CardUtils.getCardDescription(card.cardID, allCard),
                     autocompleteID: card.cardID.toString(),
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
             default: {
@@ -415,9 +425,10 @@ function SearchRouterList(
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
-        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID}) => {
+        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
             return {
-                text: getSubstitutionMapKey(filterKey, text),
+                text: getAutocompleteDisplayText(filterKey, text),
+                mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
                 singleIcon: Expensicons.MagnifyingGlass,
                 searchQuery: text,
                 autocompleteID,
