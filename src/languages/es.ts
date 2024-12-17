@@ -639,6 +639,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        tooltip: {
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -828,6 +832,10 @@ const translations = {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        tooltip: {
+            title: '¡Acción rápida! ',
+            subtitle: 'A un click.',
+        },
     },
     iou: {
         amount: 'Importe',
@@ -4595,6 +4603,7 @@ const translations = {
             },
         },
         saveSearch: 'Guardar búsqueda',
+        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -5967,6 +5976,7 @@ const translations = {
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
         },
     },
+<<<<<<< HEAD
     productTrainingTooltip: {
         conciergeLHNGBR: {
             part1: '¡Comienza',
@@ -5986,6 +5996,8 @@ const translations = {
             part3: ' aquí',
         },
     },
+=======
+>>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

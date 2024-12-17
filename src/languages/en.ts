@@ -647,6 +647,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -833,6 +837,10 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -4546,6 +4554,7 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5447,6 +5456,7 @@ const translations = {
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
         },
     },
+<<<<<<< HEAD
     productTrainingTooltip: {
         conciergeLHNGBR: {
             part1: 'Get started',
@@ -5466,6 +5476,8 @@ const translations = {
             part3: ' here!',
         },
     },
+=======
+>>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;

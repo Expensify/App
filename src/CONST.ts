@@ -6408,6 +6408,7 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+<<<<<<< HEAD
 
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
@@ -6415,6 +6416,8 @@ const CONST = {
         QUICK_ACTION_BUTTON: 'quickActionButton',
         WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
     },
+=======
+>>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
