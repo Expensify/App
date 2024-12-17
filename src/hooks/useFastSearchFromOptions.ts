@@ -8,6 +8,11 @@ type Options = {
     includeUserToInvite: boolean;
 };
 
+const emptyResult = {
+    personalDetails: [],
+    recentReports: [],
+};
+
 // You can either use this to search within report and personal details options
 function useFastSearchFromOptions(
     options: OptionsListUtils.ReportAndPersonalDetailOptions,
@@ -57,8 +62,23 @@ function useFastSearchFromOptions(
                 },
             },
         ]);
+
         function search(searchInput: string): AllOrSelectiveOptions {
-            const [personalDetails, recentReports] = fastSearch.search(searchInput);
+            const searchWords = searchInput.split(' ').sort(); // asc sorted
+            const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
+            if (!longestSearchWord) {
+                return emptyResult;
+            }
+
+            // The user might separated words with spaces to do a search such as: "jo d" -> "john doe"
+            // With the suffix search tree you can only search for one word at a time. Its most efficient to search for the longest word,
+            // (as this will limit the results the most) and then afterwards run a quick filter on the results to see if the other words are present.
+            let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
+
+            if (searchWords.length > 1) {
+                personalDetails = personalDetails.filter((pd) => OptionsListUtils.isSearchStringMatch(searchInput, pd.text));
+                recentReports = recentReports.filter((rr) => OptionsListUtils.isSearchStringMatch(searchInput, rr.text));
+            }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
                 const userToInvite = OptionsListUtils.filterUserToInvite(options, searchInput);
