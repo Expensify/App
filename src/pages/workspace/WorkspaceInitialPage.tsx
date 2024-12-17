@@ -390,11 +390,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         };
     }, [policy]);
 
+    const shouldShowBottomTab = !shouldShowNotFoundPage;
+
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom
-            bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} /> : null}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
