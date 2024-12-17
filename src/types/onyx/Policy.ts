@@ -1842,6 +1842,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Setup specialist guide assigned for the policy */
+        assignedGuide?: {
+            /** The guide's email */
+            email: string;
+        };
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;

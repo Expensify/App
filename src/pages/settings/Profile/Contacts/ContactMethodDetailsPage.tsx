@@ -281,7 +281,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     }}
                     isAddingNewContact={isAddingNewContact}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}
