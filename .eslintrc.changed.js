@@ -10,7 +10,7 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['src/libs/ReportUtils.ts', 'src/libs/actions/IOU.ts', 'src/libs/actions/Report.ts', 'src/libs/actions/Task.ts'],
+            files: ['src/libs/ReportUtils.ts', 'src/libs/actions/IOU.ts', 'src/libs/actions/Report.ts', 'src/libs/actions/Task.ts', 'src/libs/OptionsListUtils.ts'],
             rules: {
                 'rulesdir/no-default-id-values': 'off',
             },
