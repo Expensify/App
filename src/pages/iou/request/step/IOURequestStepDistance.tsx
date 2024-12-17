@@ -29,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -162,9 +163,11 @@ function IOURequestStepDistance({
         }
 
         return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
+            iouType !== CONST.IOU.TYPE.SPLIT &&
+            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) &&
+            !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -301,28 +304,11 @@ function IOURequestStepDistance({
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: 0,
-                        comment: '',
-                        currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.fieldPending'),
-                        created: transaction?.created ?? '',
-                        category: '',
-                        tag: '',
-                        billable: false,
-                        iouRequestType,
-                        existingSplitChatReportID: report?.reportID,
-                    });
-                    return;
-                }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+                    playSound(SOUNDS.DONE);
                     IOU.trackExpense(
                         report,
                         0,
@@ -333,6 +319,7 @@ function IOURequestStepDistance({
                         currentUserPersonalDetails.accountID,
                         participant,
                         '',
+                        false,
                         {},
                         '',
                         '',
@@ -353,30 +340,26 @@ function IOURequestStepDistance({
                     return;
                 }
 
-                IOU.createDistanceRequest(
+                playSound(SOUNDS.DONE);
+                IOU.createDistanceRequest({
                     report,
                     participants,
-                    '',
-                    transaction?.created ?? '',
-                    '',
-                    '',
-                    '',
-                    0,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    translate('iou.fieldPending'),
-                    !!policy?.defaultBillable,
-                    TransactionUtils.getValidWaypoints(waypoints, true),
-                    undefined,
-                    undefined,
-                    undefined,
-                    DistanceRequestUtils.getCustomUnitRateID(report.reportID),
-                    currentUserPersonalDetails.login ?? '',
-                    currentUserPersonalDetails.accountID,
-                    transaction?.splitShares,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     iouType,
-                    transaction,
-                );
+                    existingTransaction: transaction,
+                    transactionParams: {
+                        amount: 0,
+                        comment: '',
+                        created: transaction?.created ?? '',
+                        currency: transaction?.currency ?? 'USD',
+                        merchant: translate('iou.fieldPending'),
+                        billable: !!policy?.defaultBillable,
+                        validWaypoints: TransactionUtils.getValidWaypoints(waypoints, true),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                        splitShares: transaction?.splitShares,
+                    },
+                });
                 return;
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
@@ -401,7 +384,6 @@ function IOURequestStepDistance({
         navigateToParticipantPage,
         navigateToConfirmationPage,
         policy,
-        iouRequestType,
         reportNameValuePairs,
         customUnitRateID,
         setDistanceRequestData,
@@ -458,7 +440,7 @@ function IOURequestStepDistance({
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
-        if (!isCreatingNewRequest) {
+        if (!isCreatingNewRequest && !isEditing) {
             transactionWasSaved.current = true;
         }
         if (isEditing) {
@@ -478,7 +460,9 @@ function IOURequestStepDistance({
                 waypoints,
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,
+                transactionBackup,
             });
+            transactionWasSaved.current = true;
             navigateBack();
             return;
         }
@@ -556,7 +540,7 @@ function IOURequestStepDistance({
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
+                        style={[styles.w100, styles.mb5, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

@@ -8,8 +8,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import searchCountryOptions from '@libs/searchCountryOptions';
-import type {CountryData} from '@libs/searchCountryOptions';
+import searchOptions from '@libs/searchOptions';
+import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -29,7 +29,7 @@ type StateSelectorModalProps = {
     currentState: string;
 
     /** Function to call when the user selects a state */
-    onStateSelected: (value: CountryData) => void;
+    onStateSelected: (value: Option) => void;
 
     /** Function to call when the user presses on the modal backdrop */
     onBackdropPress?: () => void;
@@ -56,7 +56,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchCountryOptions(debouncedSearchValue, countryStates);
+    const searchResults = searchOptions(debouncedSearchValue, countryStates);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();

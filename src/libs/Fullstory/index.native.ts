@@ -40,7 +40,8 @@ const FS = {
             // after the init function since this function is also called on updates for
             // UserMetadata onyx key.
             Environment.getEnvironment().then((envName: string) => {
-                if (envName !== CONST.ENVIRONMENT.PRODUCTION) {
+                const isTestEmail = value.email !== undefined && value.email.startsWith('fullstory') && value.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) {
                     return;
                 }
                 FullStory.restart();

@@ -51,7 +51,10 @@ For example:
 1. Click on the text input to bring it into focus
 2. Upload an image via copy paste
 3. Verify a modal appears displaying a preview of that image
+
+It's acceptable to write "Same as tests" if the QA team is able to run the tests in the above "Tests" section.
 --->
+// TODO: These must be filled out, or the issue title must include "[No QA]."
 
 - [ ] Verify that no errors appear in the JS console
 
@@ -82,7 +85,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
-      - [ ] If any non-english text was added/modified, I verified the translation was requested/reviewed in #expensify-open-source and it was approved by an internal Expensify engineer. Link to Slack message:
+      - [ ] If any non-english text was added/modified, I used [JaimeGPT](https://chatgpt.com/g/g-2dgOQl5VM-english-to-spanish-translator-aka-jaimegpt) to get English > Spanish translation. I then posted it in #expensify-open-source and it was approved by an internal Expensify engineer. Link to Slack message:
     - [ ] I verified all numbers, amounts, dates and phone numbers shown in the product are using the [localization methods](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60-L68)
     - [ ] I verified any copy / text that was added to the app is grammatically correct in English. It adheres to proper capitalization guidelines (note: only the first word of header/labels should be capitalized), and is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
@@ -91,7 +94,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
-- [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified any variables that can be defined as constants (ie. in CONST.ts or at the top of the file that uses the constant) are defined as such
 - [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If any new file was added I verified that:
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
@@ -106,6 +109,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
+- [ ] I added [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) for any new feature or bug fix in this PR to help automatically prevent regressions in this user flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 
 ### Screenshots/Videos

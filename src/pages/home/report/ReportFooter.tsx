@@ -45,9 +45,6 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Whether to show educational tooltip in workspace chat for first-time user */
-    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
-
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
 
@@ -76,7 +73,6 @@ function ReportFooter({
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
-    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
@@ -118,24 +114,13 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow && !isUserPolicyAdmin;
+    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            /**
-             * Matching task rule by group
-             * Group 1: Start task rule with []
-             * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
-             * Group 3: Title is remaining characters
-             */
-            // The regex is copied from the expensify-common CONST file, but the domain is optional to accept short mention
-            const emailWithOptionalDomainRegex =
-                /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
-            const taskRegex = `^\\[\\]\\s+(?:@(?:${emailWithOptionalDomainRegex.source}))?\\s*([\\s\\S]*)`;
-
-            const match = text.match(taskRegex);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
@@ -152,7 +137,7 @@ function ReportFooter({
             let assigneeChatReport;
             if (mentionWithDomain) {
                 if (isValidMention) {
-                    assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                    assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
                         const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
                         const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
@@ -249,7 +234,6 @@ export default memo(
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),

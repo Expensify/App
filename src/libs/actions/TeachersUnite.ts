@@ -52,6 +52,13 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${publicRoomReportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
     ];
 
     const parameters: ReferTeachersUniteVolunteerParams = {
@@ -137,6 +144,13 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
         {

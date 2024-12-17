@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CountryData} from '@libs/searchCountryOptions';
+import type {Option} from '@libs/searchOptions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import CountrySelectorModal from './CountrySelectorModal';
@@ -26,7 +26,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
         setIsPickerVisible(false);
     };
 
-    const updateInput = (item: CountryData) => {
+    const updateInput = (item: Option) => {
         onInputChange?.(item.value);
         hidePickerModal();
     };

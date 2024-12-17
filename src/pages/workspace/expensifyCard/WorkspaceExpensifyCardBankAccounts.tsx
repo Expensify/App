@@ -1,9 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,7 +31,7 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceExpensifyCardBankAccountsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
+type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();
@@ -151,7 +153,10 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             text={translate('workspace.expensifyCard.gotIt')}
                             style={[styles.m5]}
                             pressOnEnter
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID))}
+                            onPress={() => {
+                                Navigation.dismissModal();
+                                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+                            }}
                         />
                     </>
                 );
@@ -182,24 +187,29 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    title={getHeaderButtonText()}
-                />
-                {isInVerificationState && renderVerificationStateView()}
-                {!isInVerificationState && (
-                    <View style={styles.flex1}>
-                        <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                        {renderBankOptions()}
-                        <MenuItem
-                            icon={Expensicons.Plus}
-                            title={translate('workspace.expensifyCard.addNewBankAccount')}
-                            onPress={handleAddBankAccount}
-                        />
-                    </View>
-                )}
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                        title={getHeaderButtonText()}
+                    />
+                    {isInVerificationState && renderVerificationStateView()}
+                    {!isInVerificationState && (
+                        <FullPageOfflineBlockingView>
+                            <View style={styles.flex1}>
+                                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                                {renderBankOptions()}
+                                <MenuItem
+                                    icon={Expensicons.Plus}
+                                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                    onPress={handleAddBankAccount}
+                                />
+                            </View>
+                        </FullPageOfflineBlockingView>
+                    )}
+                </DelegateNoAccessWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

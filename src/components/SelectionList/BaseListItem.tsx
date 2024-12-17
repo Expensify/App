@@ -94,17 +94,25 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
+                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
-                style={pressableStyle}
+                style={[
+                    pressableStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <View style={[wrapperStyle, StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, theme.activeComponentBG, theme.hoverComponentBG)]}>
+                <View
+                    style={[
+                        wrapperStyle,
+                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    ]}
+                >
                     {typeof children === 'function' ? children(hovered) : children}
 
                     {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (

@@ -1,3 +1,4 @@
+import {format, subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,9 +9,8 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,15 +19,15 @@ import TransactionStartDateSelectorModal from './TransactionStartDateSelectorMod
 function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
+    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const [isModalOpened, setIsModalOpened] = useState(false);
-    const [startDate, setStartDate] = useState(DateUtils.extractDate(new Date().toString()));
+    const [startDate, setStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -47,17 +47,18 @@ function TransactionStartDateStep() {
     const handleSelectDateOption = (dateOption: string) => {
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
-            const newStartDate = new Date();
-            setStartDate(DateUtils.extractDate(newStartDate.toString()));
+            setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
         }
     };
 
     const submit = () => {
+        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
+
         CompanyCards.setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
-                startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },
             isEditing: false,
         });
@@ -88,6 +89,7 @@ function TransactionStartDateStep() {
             startStepIndex={2}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            headerSubtitle={assigneeDisplayName}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
@@ -125,7 +127,7 @@ function TransactionStartDateStep() {
                 pressOnEnter
                 text={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onPress={submit}
-                style={[styles.m5, safePaddingBottomStyle]}
+                style={styles.m5}
             />
         </InteractiveStepWrapper>
     );
