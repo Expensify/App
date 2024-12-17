@@ -487,7 +487,7 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const reportID = report?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const reportID = report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
     const lastReportAction = lastVisibleReportActions[reportID] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
@@ -543,9 +543,16 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString())) {
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID))) {
         lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
-    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
+    } else if (
+        ReportUtils.isReportMessageAttachment({
+            text: report?.lastMessageText ?? String(CONST.DEFAULT_NUMBER_ID),
+            html: report?.lastMessageHtml,
+            translationKey: report?.lastMessageTranslationKey,
+            type: '',
+        })
+    ) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
@@ -1142,7 +1149,7 @@ function getValidOptions(
         shouldSeparateWorkspaceChat = false,
     }: GetOptionsConfig = {},
 ): Options {
-    const topmostReportId = Navigation.getTopmostReportId() ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const topmostReportId = Navigation.getTopmostReportId() ?? String(CONST.DEFAULT_NUMBER_ID);
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
@@ -1262,7 +1269,7 @@ function getValidOptions(
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID ?? String(CONST.DEFAULT_NUMBER_ID), policies) &&
                 !reportOption.private_isArchived &&
                 PolicyUtils.canSendInvoiceFromWorkspace(reportOption.policyID);
 

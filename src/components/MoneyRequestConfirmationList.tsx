@@ -202,16 +202,16 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const transactionID = transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? String(CONST.DEFAULT_NUMBER_ID);
 
     useEffect(() => {
         if ((customUnitRateID && customUnitRateID !== '0') || !isDistanceRequest) {
             return;
         }
 
-        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
-        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
+        const defaultRate = defaultMileageRate?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)] ?? defaultRate;
         const rateID = lastSelectedRate;
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
@@ -373,7 +373,7 @@ function MoneyRequestConfirmationList({
         let taxCode: string;
         if (isDistanceRequest) {
             const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
+            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? String(CONST.DEFAULT_NUMBER_ID);
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
         } else {
             taxableAmount = transaction.amount ?? 0;
@@ -382,7 +382,7 @@ function MoneyRequestConfirmationList({
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? String(CONST.DEFAULT_NUMBER_ID), taxAmountInSmallestCurrencyUnits);
     }, [
         policy,
         shouldShowTax,

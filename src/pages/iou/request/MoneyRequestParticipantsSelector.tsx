@@ -158,7 +158,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? '-1'})),
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? String(CONST.DEFAULT_NUMBER_ID)})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -192,7 +192,11 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         if (
             chatOptions.userToInvite &&
-            !OptionsListUtils.isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? -1, status: chatOptions.userToInvite?.status ?? undefined})
+            !OptionsListUtils.isCurrentUser({
+                ...chatOptions.userToInvite,
+                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                status: chatOptions.userToInvite?.status ?? undefined,
+            })
         ) {
             newSections.push({
                 title: undefined,

@@ -37,7 +37,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -105,7 +105,7 @@ function IOURequestStepParticipants({
                 return;
             }
 
-            const firstParticipantReportID = val.at(0)?.reportID ?? '';
+            const firstParticipantReportID = val.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
