@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -115,7 +114,6 @@ function SubmitDetailsPage({
                     });
                 },
                 (errorData) => {
-                    Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                     // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                     finishRequestAndNavigate(participant, receipt);
                 },
