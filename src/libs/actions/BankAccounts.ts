@@ -287,29 +287,31 @@ function deletePaymentBankAccount(bankAccountID: number) {
     };
 
     Object.values(allPolicies ?? {}).forEach((policy) => {
-        if (policy?.achAccount && policy?.achAccount?.bankAccountID === bankAccountID) {
-            onyxData?.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {
-                    achAccount: null,
-                },
-            });
-            onyxData?.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {
-                    achAccount: null,
-                },
-            });
-            onyxData?.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {
-                    achAccount: policy?.achAccount,
-                },
-            });
+        if (!policy?.achAccount || policy.achAccount.bankAccountID !== bankAccountID) {
+            return;
         }
+
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                achAccount: null,
+            },
+        });
+        onyxData?.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                achAccount: null,
+            },
+        });
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                achAccount: policy?.achAccount,
+            },
+        });
     });
 
     API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
