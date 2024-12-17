@@ -83,6 +83,8 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
         isPrivateDomain,
+        allBetas,
+        allBetasMetadata,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
