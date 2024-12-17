@@ -16,10 +16,10 @@ const emptyResult = {
 // You can either use this to search within report and personal details options
 function useFastSearchFromOptions(
     options: OptionsListUtils.ReportAndPersonalDetailOptions,
-    config: {includeUserToInvite: false},
+    config?: {includeUserToInvite: false},
 ): (searchInput: string) => OptionsListUtils.ReportAndPersonalDetailOptions;
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListUtils.Options, config: {includeUserToInvite: true}): (searchInput: string) => OptionsListUtils.Options;
+function useFastSearchFromOptions(options: OptionsListUtils.Options, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListUtils.Options;
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
