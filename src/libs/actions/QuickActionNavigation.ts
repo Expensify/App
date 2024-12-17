@@ -41,7 +41,7 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
             selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
             return;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? -1), false);
+            selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
