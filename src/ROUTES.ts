@@ -1777,7 +1777,7 @@ const ROUTES = {
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
-        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
+        getRoute: (reportID = '') => `debug/report/${reportID}` as const,
     },
     DEBUG_REPORT_TAB_DETAILS: {
         route: 'debug/report/:reportID/details',
