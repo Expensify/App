@@ -418,7 +418,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
             renderTooltipContent: renderProductTrainingTooltip,
-            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
+            tooltipWrapperStyle: styles.quickActionTooltipWrapper,
             onHideTooltip: hideProductTrainingTooltip,
             shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
