@@ -33,9 +33,9 @@ export default function (): Promise<void> {
                         Promise.all([
                             // @ts-expect-error pendingChatMembers is not a valid property of Report anymore
                             // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {pendingChatMembers: null}),
+                            Onyx.merge(reportID, {pendingChatMembers: null}),
                             // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingChatMembers: report.pendingChatMembers}),
+                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {pendingChatMembers: report.pendingChatMembers}),
                         ]).then(() => {
                             Log.info(`[Migrate Onyx] Successfully moved pendingChatMembers to reportMetadata for ${reportID}`);
                         }),

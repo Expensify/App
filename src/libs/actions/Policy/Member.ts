@@ -147,14 +147,22 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     const participantAccountIDs = [...Object.keys(announceReport.participants ?? {}).map(Number), ...accountIDs];
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-    announceRoomMembers.onyxOptimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
-        value: {
-            participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
-            pendingChatMembers,
+    announceRoomMembers.onyxOptimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
+            value: {
+                participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
+            },
         },
-    });
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${announceReport?.reportID}`,
+            value: {
+                pendingChatMembers,
+            },
+        },
+    );
 
     announceRoomMembers.onyxFailureData.push(
         {
