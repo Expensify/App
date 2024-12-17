@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,15 +9,6 @@ import type BackgroundImageProps from './types';
 
 function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
     const styles = useThemeStyles();
-    const fadeIn = {
-        from: {
-            opacity: 0,
-        },
-        to: {
-            opacity: 1,
-        },
-    };
-
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
     const isAnonymous = isAnonymousUser();
 
@@ -40,24 +31,30 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
         return;
     }
 
-    return (
-        <Animatable.View
-            style={styles.signInBackground}
-            animation={fadeIn}
-            duration={transitionDuration}
-        >
-            {isSmallScreen ? (
+    if (isSmallScreen) {
+        return (
+            <Animated.View
+                style={styles.signInBackground}
+                entering={FadeIn.duration(transitionDuration)}
+            >
                 <MobileBackgroundImage
                     width={width}
                     style={styles.signInBackground}
                 />
-            ) : (
-                <DesktopBackgroundImage
-                    width={width}
-                    style={styles.signInBackground}
-                />
-            )}
-        </Animatable.View>
+            </Animated.View>
+        );
+    }
+
+    return (
+        <Animated.View
+            style={styles.signInBackground}
+            entering={FadeIn.duration(transitionDuration)}
+        >
+            <DesktopBackgroundImage
+                width={width}
+                style={styles.signInBackground}
+            />
+        </Animated.View>
     );
 }
 
