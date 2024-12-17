@@ -1281,7 +1281,49 @@ const translations = {
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
     },
     mergeAccountsPage: {
-        mergeAccount: 'Merge accounts',
+        mergeAccount: 'Fusionar cuentas',
+        accountDetails: {
+            accountToMergeInto: (email: string) => `Introduce la cuenta en la que deseas fusionar ${email}`,
+            notReversibleConsent: 'Entiendo que esto no es reversible',
+        },
+        accountValidate: {
+            confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
+            lossOfUnsubmittedData: (email: string) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de ${email}.`,
+            enterMagicCode: (email: string) => `Para continuar, por favor introduce el código mágico enviado a ${email}.`,
+        },
+        mergeSuccess: {
+            accountsMerged: 'Accounts merged!',
+            successfullyMergedAllData: (oldEmail: string, newEmail: string) =>
+                `You've successfully merged all data from ${oldEmail} into ${newEmail}. Moving forward, you can use either login for this account.`,
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'Estamos trabajando en ello',
+            limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
+            reachOutForHelp: {
+                beforeLink: '¡No dudes ',
+                linkText: 'en comunicarte con Concierge',
+                afterLink: ' si tienes alguna pregunta!',
+            },
+            goToExpensifyClassic: 'Dirígete a Expensify Classic',
+        },
+        mergeFailureSAMLAccount: (email: string) =>
+            `No puedes fusionar ${email} en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: (oldEmail: string) =>
+                `No puedes fusionar cuentas porque ${oldEmail} tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ${oldEmail} e inténtalo nuevamente.`,
+            learnMore: 'Aprende más sobre cómo fusionar cuentas.',
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: (email: string) => `No puedes fusionar cuentas porque ${email} no tiene una cuenta de Expensify.`,
+            addContactMethod: {
+                beforeLink: 'Por favor, ',
+                linkText: 'añádela como método de contacto en su',
+                afterLink: ' lugar.',
+            },
+        },
+        mergeFailureSmartScannerAccount: (email: string) => `No puedes fusionar ${email} en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailureInvoicedAccount: (email: string) =>
+            `No puedes fusionar ${email} en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.`,
         requestValidationCodeForAccountMerge: {
             genericError: '',
         },

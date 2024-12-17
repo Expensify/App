@@ -1284,9 +1284,47 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
         accountDetails: {
-            accountToMergeInto: (email: string) => `Enter the account you want to merge into ${email}.`,
-            notReversibleConsent: 'I understand this is not reversible.',
+            accountToMergeInto: (email: string) => `Enter the account you want to merge into ${email}`,
+            notReversibleConsent: 'I understand this is not reversible',
         },
+        accountValidate: {
+            confirmMerge: 'Are you sure you want to merge accounts?',
+            lossOfUnsubmittedData: (email: string) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for ${email}`,
+            enterMagicCode: (email: string) => `To continue, please enter the magic code sent to ${email}`,
+        },
+        mergeSuccess: {
+            accountsMerged: 'Accounts merged!',
+            successfullyMergedAllData: (oldEmail: string, newEmail: string) =>
+                `You've successfully merged all data from ${oldEmail} into ${newEmail}. Moving forward, you can use either login for this account.`,
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'We’re working on it',
+            limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
+            reachOutForHelp: {
+                beforeLink: 'Feel free to ',
+                linkText: 'reach out to Concierge',
+                afterLink: ' if you have any questions!',
+            },
+            goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergeFailureSAMLAccount: (email: string) =>
+            `You can’t merge ${email} into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.`,
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: (oldEmail: string) =>
+                `You can’t merge accounts because ${oldEmail} has two-factor authentication (2FA) enabled. Please disable 2FA for ${oldEmail} and try again.`,
+            learnMore: 'Learn more about merging accounts.',
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: (email: string) => `You can’t merge accounts because ${email} doesn’t have an Expensify account.`,
+            addContactMethod: {
+                beforeLink: 'Please ',
+                linkText: 'add it as a contact method',
+                afterLink: ' instead.',
+            },
+        },
+        mergeFailureSmartScannerAccount: (email: string) => `You can’t merge ${email} into other accounts. Please merge other accounts into it instead.`,
+        mergeFailureInvoicedAccount: (email: string) =>
+            `You can’t merge ${email} into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.`,
         requestValidationCodeForAccountMerge: {
             genericError: '',
         },

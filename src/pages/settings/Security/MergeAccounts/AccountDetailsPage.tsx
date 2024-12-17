@@ -20,7 +20,8 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/CloseAccountForm';
+import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 
 function AccountDetailsPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -81,7 +82,7 @@ function AccountDetailsPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                    formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
                     validate={validate}
                     onSubmit={showConfirmModal}
                     submitButtonText={translate('common.next')}
@@ -98,6 +99,12 @@ function AccountDetailsPage() {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
+                        />
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
+                            inputID={INPUT_IDS.CONSENT}
+                            label={translate('closeAccountPage.enterDefaultContact')}
+                            aria-label={translate('closeAccountPage.enterDefaultContact')}
                         />
                     </View>
                 </FormProvider>
