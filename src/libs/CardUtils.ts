@@ -77,7 +77,7 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
-    return 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
+    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -186,6 +186,10 @@ function SearchFiltersCardPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
     const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
+
+    useEffect(() => {
+        SearchActions.openSearchFiltersCardPage();
+    }, []);
 
     const individualCardsSectionData = useMemo(
         () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, selectedCards, styles.cardIcon),
