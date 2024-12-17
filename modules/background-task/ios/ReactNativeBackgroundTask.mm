@@ -17,7 +17,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (BOOL)scheduleNewBackgroundTask:(NSString *)identifier {
-    BGProcessingTaskRequest *request = [[BGProcessingTaskRequest alloc] initWithIdentifier:identifier];
+    BGAppRefreshTaskRequest *request = [[BGAppRefreshTaskRequest alloc] initWithIdentifier:identifier];
     
     // Set earliest begin date to some time in the future
     request.earliestBeginDate = [NSDate dateWithTimeIntervalSinceNow:15 * 60]; // 15 minutes from now
