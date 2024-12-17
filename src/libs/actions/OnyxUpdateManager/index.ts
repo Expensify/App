@@ -63,13 +63,23 @@ function finalizeUpdatesAndResumeQueue() {
     DeferredOnyxUpdates.clear();
 }
 
+type FetchMissingUpdatesIds = {
+    clientLastUpdateID?: number;
+    shouldFetchPendingUpdates?: boolean;
+};
+
 /**
  *
  * @param onyxUpdatesFromServer
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  * @returns
  */
-function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number) {
+function handleOnyxUpdateGap(
+    onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>,
+    {clientLastUpdateID, shouldFetchPendingUpdates: shouldFetchPendingUpdatesProp}: FetchMissingUpdatesIds = {},
+) {
+    const shouldFetchPendingUpdates = shouldFetchPendingUpdatesProp ?? onyxUpdatesFromServer?.shouldFetchPendingUpdates;
+
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
     // we'll only have them overriten by the openApp response. So let's skip it and return.
@@ -87,18 +97,21 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
         return;
     }
 
-    // When there is no value or an invalid value, there's nothing to process, so let's return early.
-    if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
-        return;
+    if (!shouldFetchPendingUpdates) {
+        // When there is no value or an invalid value, there's nothing to process, so let's return early.
+        if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
+            return;
+        }
+
+        // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
+        // current authToken is probably invalid.
+        updateAuthTokenIfNecessary(onyxUpdatesFromServer);
     }
 
-    // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
-    // current authToken is probably invalid.
-    updateAuthTokenIfNecessary(onyxUpdatesFromServer);
-
-    const updateParams = onyxUpdatesFromServer;
-    const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
-    const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const updateParams = onyxUpdatesFromServer!;
+    const lastUpdateIDFromServer = updateParams.lastUpdateID;
+    const previousUpdateIDFromServer = updateParams.previousUpdateID;
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
     // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
@@ -182,3 +195,4 @@ export default () => {
 };
 
 export {handleOnyxUpdateGap, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
+export type {FetchMissingUpdatesIds};

@@ -32,6 +32,9 @@ type OnyxUpdatesFromServer = {
     /** Previous update ID from server */
     previousUpdateID: number | string;
 
+    /** Whether the client should fetch pending updates from the server */
+    shouldFetchPendingUpdates?: boolean;
+
     /** Request data sent to the server */
     request?: Request;
 

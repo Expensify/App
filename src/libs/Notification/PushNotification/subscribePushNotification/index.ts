@@ -48,7 +48,7 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     });
 }
 
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}: ReportActionPushNotificationData): Promise<void> {
+function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -56,7 +56,22 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    if (!onyxData || !lastUpdateID || !previousUpdateID) {
+    const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID && !!previousUpdateID;
+    if (shouldFetchPendingUpdates) {
+        const updates: OnyxUpdatesFromServer = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            previousUpdateID,
+            shouldFetchPendingUpdates: true,
+        };
+
+        return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) =>
+            applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: lastUpdateID}),
+        );
+    }
+
+    const isDataMissing = !onyxData || !previousUpdateID || !lastUpdateID;
+    if (isDataMissing) {
         Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         return Promise.resolve();
     }
@@ -79,7 +94,9 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
+    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) =>
+        applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: lastUpdateID}),
+    );
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {

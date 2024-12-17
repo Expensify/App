@@ -163,19 +163,24 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
 
+type ManualOnyxUpdateCheckIds = {
+    clientLastUpdateID?: number;
+    previousUpdateID?: number;
+};
+
 /**
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  */
-function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: ManualOnyxUpdateCheckIds): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient;
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
@@ -192,3 +197,4 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
 
 // eslint-disable-next-line import/prefer-default-export
 export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};
+export type {ManualOnyxUpdateCheckIds};
