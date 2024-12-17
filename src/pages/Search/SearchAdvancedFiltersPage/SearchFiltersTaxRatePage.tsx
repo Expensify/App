@@ -46,7 +46,6 @@ function SearchFiltersTaxRatePage() {
             testID={SearchFiltersTaxRatePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
