@@ -4643,6 +4643,8 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+
     return {
         reportID: generateReportID(),
         chatReportID,
@@ -4652,7 +4654,7 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         managerID: receiverAccountID,
         currency,
         // We don’t translate reportName because the server response is always in English
-        reportName: `Invoice ${DateUtils.extractDate(new Date().toString())}`,
+        reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
