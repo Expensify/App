@@ -2283,7 +2283,7 @@ describe('actions/IOU', () => {
 
             // Then verify that the comment is correctly added
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2295,7 +2295,7 @@ describe('actions/IOU', () => {
             expect(Object.values(reportActions ?? {}).length).toBe(3);
 
             // Then check the loading state of our action
-            const resultActionAfterUpdate = reportActions?.[reportActionID];
+            const resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
             // When we attempt to delete an expense from the IOU report
@@ -2577,7 +2577,7 @@ describe('actions/IOU', () => {
 
             // Then comment details should match the expected report action
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
 
@@ -2585,7 +2585,7 @@ describe('actions/IOU', () => {
 
             // Then the report should have 2 actions
             expect(Object.values(reportActions ?? {}).length).toBe(2);
-            const resultActionAfter = reportActions?.[reportActionID];
+            const resultActionAfter = reportActionID ? reportActions?.[reportActionID] : undefined;
             expect(resultActionAfter?.pendingAction).toBeUndefined();
 
             mockFetch?.pause?.();
@@ -2690,7 +2690,7 @@ describe('actions/IOU', () => {
             });
 
             let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2701,7 +2701,7 @@ describe('actions/IOU', () => {
             // Verify there are three actions (created + addcomment) and our optimistic comment has been removed
             expect(Object.values(reportActions ?? {}).length).toBe(2);
 
-            let resultActionAfterUpdate = reportActions?.[reportActionID];
+            let resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
 
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
@@ -2724,7 +2724,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2735,7 +2735,7 @@ describe('actions/IOU', () => {
             // Verify there are three actions (created + iou + addcomment) and our optimistic comment has been removed
             expect(Object.values(reportActions ?? {}).length).toBe(3);
 
-            resultActionAfterUpdate = reportActions?.[reportActionID];
+            resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
 
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
@@ -2826,7 +2826,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '-1', iouReport?.reportID ?? '-1');
+            const ioupreview = chatReport?.reportID && iouReport?.reportID ? ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
             expect(ioupreview).toBeTruthy();
             expect(ReportActionsUtils.getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
 
@@ -2984,7 +2984,11 @@ describe('actions/IOU', () => {
                 navigateToAfterDelete = IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report
-            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '-1'));
+            expect(chatReport?.reportID).not.toBeUndefined();
+
+            if (chatReport?.reportID) {
+                expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
+            }
         });
     });
 
