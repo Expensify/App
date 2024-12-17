@@ -8,7 +8,7 @@ jest.mock('@libs/actions/IOU', () => ({
 }));
 
 describe('IOU Utils', () => {
-    // Given navigateToQuickAction is called with quick action param
+    // Given navigateToQuickAction is called with quick action argument when clicking on quick action button from Global create menu
     describe('navigateToQuickAction', () => {
         const reportID = ReportUtils.generateReportID();
 
@@ -17,7 +17,7 @@ describe('IOU Utils', () => {
             QuickActionNavigate.navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL}, (onSelected: () => void) => {
                 onSelected();
             });
-            // Then we should start manual type submit request
+            // Then we should start manual submit request flow
             expect(IOU.startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
         });
 
@@ -26,7 +26,7 @@ describe('IOU Utils', () => {
             QuickActionNavigate.navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN}, (onSelected: () => void) => {
                 onSelected();
             });
-            // Then we should start scan type split request
+            // Then we should start scan split request flow
             expect(IOU.startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
         });
 
@@ -35,7 +35,7 @@ describe('IOU Utils', () => {
             QuickActionNavigate.navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE}, (onSelected: () => void) => {
                 onSelected();
             });
-            // Then we should start distance type track request
+            // Then we should start distance track request flow
             expect(IOU.startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
         });
     });
