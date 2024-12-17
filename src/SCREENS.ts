@@ -156,7 +156,6 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
-        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -317,8 +316,6 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
-
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -582,8 +579,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {

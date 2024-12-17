@@ -128,12 +128,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+                    path: ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.EMPLOYEES]: {
                     path: ROUTES.ONBOARDING_EMPLOYEES.route,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.ACCOUNTING]: {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACES]: {
+                    path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
             },
@@ -1148,11 +1156,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {

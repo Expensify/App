@@ -25,6 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import * as InputUtils from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -105,6 +106,7 @@ function BaseTextInput(
 
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+    const didScrollToEndRef = useRef(false);
 
     useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, isMarkdownEnabled);
 
@@ -423,7 +425,19 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                                <View
+                                    onLayout={() => {
+                                        if (didScrollToEndRef.current || !input.current) {
+                                            return;
+                                        }
+                                        InputUtils.scrollToRight(input.current);
+                                        didScrollToEndRef.current = true;
+                                    }}
+                                >
+                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                </View>
+                            )}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"

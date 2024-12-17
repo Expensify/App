@@ -23,7 +23,6 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -54,7 +53,7 @@ function IOURequestStepConfirmation({
     isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
 
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
@@ -176,7 +175,7 @@ function IOURequestStepConfirmation({
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
         // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
-        if (action === CONST.IOU.ACTION.CATEGORIZE && PolicyUtils.hasNoPolicyOtherThanPersonalType()) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
             Navigation.goBack();
             return;
         }
@@ -321,30 +320,34 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            IOU.createDistanceRequest(
+            IOU.createDistanceRequest({
                 report,
-                selectedParticipants,
-                trimmedComment,
-                transaction.created,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.amount,
-                transaction.currency,
-                transaction.merchant,
-                transaction.billable,
-                TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
-                policy,
-                policyTags,
-                policyCategories,
-                customUnitRateID,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                transaction.splitShares,
+                participants: selectedParticipants,
+                currentUserLogin: currentUserPersonalDetails.login,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
-                transaction,
-            );
+                existingTransaction: transaction,
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    comment: trimmedComment,
+                    created: transaction.created,
+                    currency: transaction.currency,
+                    merchant: transaction.merchant,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    customUnitRateID,
+                    splitShares: transaction.splitShares,
+                    validWaypoints: TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
+                    billable: transaction.billable,
+                },
+            });
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
