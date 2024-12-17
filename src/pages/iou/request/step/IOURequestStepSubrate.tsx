@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -206,13 +207,15 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                 >
                     <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
-                    <InputWrapperWithRef
-                        InputComponent={ValuePicker}
-                        inputID={`subrate${pageIndex}`}
-                        label={translate('common.subrate')}
-                        defaultValue={currentSubrate?.id}
-                        items={validOptions}
-                    />
+                    <View style={[styles.mhn5]}>
+                        <InputWrapperWithRef
+                            InputComponent={ValuePicker}
+                            inputID={`subrate${pageIndex}`}
+                            label={translate('common.subrate')}
+                            defaultValue={currentSubrate?.id}
+                            items={validOptions}
+                        />
+                    </View>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
                         inputID={`quantity${pageIndex}`}
