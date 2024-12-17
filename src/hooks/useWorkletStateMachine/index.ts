@@ -20,6 +20,12 @@ type State<P> = {
     current: StateHolder<P>;
 };
 
+/**
+ * Represents the state machine configuration as a nested record where:
+ * - The first level keys are the state names.
+ * - The second level keys are the action types valid for that state.
+ * - The corresponding values are the next states to transition to when the action is triggered.
+ */
 type StateMachine = Record<string, Record<string, string>>;
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
