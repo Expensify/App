@@ -1,8 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import * as Animatable from 'react-native-animatable';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {AnimationDirection} from './AnimatedStepContext';
@@ -19,30 +17,24 @@ type AnimatedStepProps = ChildrenProps & {
 };
 
 function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
-    const styles = useThemeStyles();
+    const sharedTranslateX = useSharedValue(0);
+    const transitionValue = useMemo(() => (direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE), [direction]);
 
-    const animationStyle = useMemo(() => {
-        const transitionValue = direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+    useEffect(() => {
+        sharedTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, onAnimationEnd));
+    }, [sharedTranslateX, transitionValue, onAnimationEnd]);
 
-        return styles.makeSlideInTranslation('translateX', transitionValue);
-    }, [direction, styles]);
+    // Animated style for the reanimated component
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateX: sharedTranslateX.get()}],
+    }));
 
     return (
-        <Animatable.View
-            onAnimationEnd={() => {
-                if (!onAnimationEnd) {
-                    return;
-                }
-                onAnimationEnd();
-            }}
-            duration={CONST.ANIMATED_TRANSITION}
-            animation={animationStyle}
-            // eslint-disable-next-line react-compiler/react-compiler
-            useNativeDriver={useNativeDriver}
-            style={style}
+        <Animated.View
+            style={[style, animatedStyle]} // Combine external style and animation style
         >
             {children}
-        </Animatable.View>
+        </Animated.View>
     );
 }
 
