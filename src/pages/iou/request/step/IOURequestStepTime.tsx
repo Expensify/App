@@ -46,9 +46,7 @@ function IOURequestStepTime({
     const {canUseCombinedTrackSubmit} = usePermissions();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
-    const currentStartTime = currentDateAttributes?.start ? DateUtils.extractTime12Hour(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    const currentEndTime = currentDateAttributes?.end ? DateUtils.extractTime12Hour(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
 
@@ -112,7 +110,7 @@ function IOURequestStepTime({
                     InputComponent={TimeModalPicker}
                     inputID={INPUT_IDS.START_TIME}
                     label={translate('iou.startTime')}
-                    defaultValue={currentStartTime}
+                    defaultValue={currentDateAttributes?.start}
                 />
                 <InputWrapper
                     InputComponent={DatePicker}
@@ -126,7 +124,7 @@ function IOURequestStepTime({
                     InputComponent={TimeModalPicker}
                     inputID={INPUT_IDS.END_TIME}
                     label={translate('iou.endTime')}
-                    defaultValue={currentEndTime}
+                    defaultValue={currentDateAttributes?.end}
                 />
             </FormProvider>
         </StepScreenWrapper>

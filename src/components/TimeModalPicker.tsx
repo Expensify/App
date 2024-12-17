@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -25,13 +26,15 @@ type TimeModalPickerProps = {
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
 
     const updateInput = (time: string) => {
-        onInputChange?.(time);
+        const newTime = DateUtils.combineDateAndTime(time, value ?? '');
+        onInputChange?.(newTime);
         hidePickerModal();
     };
 
@@ -39,7 +42,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value}
+                title={currentTime}
                 description={label}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
