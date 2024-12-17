@@ -8599,7 +8599,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
         },
     };
 
-    const iouActionsToDelete = getIOUActionForTransactions(params.transactionIDList, params.reportID);
+    const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
 
     const deletedTime = DateUtils.getDBTime();
     const expenseReportActionsOptimisticData: OnyxUpdate = {
@@ -8666,6 +8666,10 @@ function updateLastLocationPermissionPrompt() {
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
 function resolveDuplicates(params: TransactionMergeParams) {
+    if (!params.transactionID) {
+        return;
+    }
+
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -8713,7 +8717,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    const iouActionList = getIOUActionForTransactions(params.transactionIDList, params.reportID);
+    const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
     const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
@@ -8765,7 +8769,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         });
     });
 
-    const transactionThreadReportID = getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID;
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
     const optimisticReportAction = ReportUtils.buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -8796,6 +8800,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const parameters: ResolveDuplicatesParams = {
         ...otherParams,
+        transactionID: params.transactionID,
         reportActionIDList,
         transactionIDList: orderedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
