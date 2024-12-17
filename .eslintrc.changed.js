@@ -40,7 +40,7 @@ module.exports = {
                         message: 'Namespace imports are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
                     },
                 ],
-            }
-        }
+            },
+        },
     ],
 };
