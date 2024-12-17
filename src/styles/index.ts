@@ -4,7 +4,6 @@ import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
-import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -70,8 +69,6 @@ type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | nu
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
-type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
-
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
@@ -88,7 +85,7 @@ type Styles = Record<
     | MapDirectionStyle
     | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
+    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle)
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -3384,16 +3381,6 @@ const styles = (theme: ThemeColors) =>
             };
         },
 
-        makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
-            ({
-                from: {
-                    [translationType]: fromValue,
-                },
-                to: {
-                    [translationType]: 0,
-                },
-            } satisfies CustomAnimation),
-
         growlNotificationBox: {
             backgroundColor: theme.inverse,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -4367,7 +4354,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+            backgroundColor: (hovered && !isFocused ? theme.highlightBG : background) as string,
         }),
 
         tabOpacity: (
