@@ -191,9 +191,18 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 }
 
                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                SearchActions.exportSearchItemsToCSV({query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys}, () => {
-                    setIsDownloadErrorModalVisible(true);
-                });
+                SearchActions.exportSearchItemsToCSV(
+                    {
+                        query: status,
+                        jsonQuery: JSON.stringify(queryJSON),
+                        reportIDList,
+                        transactionIDList: selectedTransactionsKeys,
+                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                    },
+                    () => {
+                        setIsDownloadErrorModalVisible(true);
+                    },
+                );
             },
         });
 
@@ -273,19 +282,20 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         return options;
     }, [
-        queryJSON,
-        status,
         selectedTransactionsKeys,
         selectedTransactions,
+        isOffline,
+        selectedReports,
         translate,
         hash,
+        lastPaymentMethods,
+        status,
+        queryJSON,
+        activeWorkspaceID,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        isOffline,
-        selectedReports,
         styles.textWrap,
-        lastPaymentMethods,
     ]);
 
     if (shouldUseNarrowLayout) {
