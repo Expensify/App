@@ -185,6 +185,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             personalDetails,
             reports,
             taxRates,
+            allCards,
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,

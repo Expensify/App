@@ -191,12 +191,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                 }
 
                 const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                SearchActions.exportSearchItemsToCSV(
-                    {query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyIDs: [activeWorkspaceID ?? '']},
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
+                SearchActions.exportSearchItemsToCSV({query: status, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys}, () => {
+                    setIsDownloadErrorModalVisible(true);
+                });
             },
         });
 
