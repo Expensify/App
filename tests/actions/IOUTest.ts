@@ -21,6 +21,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -3301,6 +3302,34 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('sendInvoice', () => {
+        it('should not clear transaction pending action when send invoice fails', async () => {
+            // Given a send invoice request
+            mockFetch?.pause?.();
+            IOU.sendInvoice(1, createRandomTransaction(1));
+
+            // When the request fails
+            mockFetch?.fail?.();
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the pending action of the optimistic transaction shouldn't be cleared
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const transaction = Object.values(transactions).at(0);
+                        expect(transaction?.errors).not.toBeUndefined();
+                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });
