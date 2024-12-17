@@ -101,8 +101,8 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email)
-        .map((mappedPolicy) => PolicyUtils.getPerDiemCustomUnit(mappedPolicy))
-        .filter((customUnit) => !isEmptyObject(customUnit));
+        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: PolicyUtils.getPerDiemCustomUnit(mappedPolicy)}))
+        .filter(({customUnit}) => !isEmptyObject(customUnit));
 
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
 
@@ -203,6 +203,7 @@ function IOURequestStartPage({
                                                 ) : (
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
+                                                        explictPolicyID={perDiemCustomUnits.at(0)?.policyID}
                                                         route={route}
                                                         navigation={navigation}
                                                     />

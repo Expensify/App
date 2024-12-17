@@ -27,10 +27,13 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import * as ReportUtils from '@libs/ReportUtils';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
+        explictPolicyID?: string;
     };
 
 function IOURequestStepDestination({
@@ -40,8 +43,11 @@ function IOURequestStepDestination({
     },
     transaction,
     openedFromStartPage = false,
+    explictPolicyID,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explictPolicyID ?? IOU.getIOURequestPolicyID(transaction, report)}`);
+    const {accountID} = useCurrentUserPersonalDetails();
+    const policyExpenseReport = ReportUtils.getPolicyExpenseChat(accountID, policy?.id ?? '-1');
 
     const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
@@ -65,14 +71,14 @@ function IOURequestStepDestination({
 
     const updateDestination = (destination: ListItem) => {
         if (openedFromStartPage) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            IOU.setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
         }
         IOU.setCustomUnitRateID(transactionID, destination.keyForList ?? '');
 
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         }
     };
 
