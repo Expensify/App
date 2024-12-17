@@ -214,13 +214,15 @@ function CannedSearchMenu({queryJSON, searchName}: CannedSearchMenuProps) {
         [styles],
     );
 
+    const activeCannedItemIndex = cannedMenuItems.findIndex((item) => item.hash === hash);
+
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates);
+        const title = searchName ?? (activeCannedItemIndex !== -1 ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates));
 
         return (
             <CannedSearchMenuNarrow
                 cannedMenuItems={cannedMenuItems}
-                activeItemIndex={-1}
+                activeItemIndex={activeCannedItemIndex}
                 queryJSON={queryJSON}
                 title={title}
                 savedSearchesMenuItems={savedSearchesMenuItems()}
