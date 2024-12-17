@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,8 +9,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -21,8 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
-type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
-
 /**
  * Submit form to update user's first and last name (and display name)
  */
@@ -31,39 +27,42 @@ const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_
     Navigation.goBack();
 };
 
-function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
+function DisplayNamePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
-    const currentUserDetails = currentUserPersonalDetails ?? {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+            // First we validate the first name field
+            if (!ValidationUtils.isValidDisplayName(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            } else if (values.firstName.length === 0) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+            }
+            if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+            }
 
-        // First we validate the first name field
-        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-        } else if (values.firstName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
-        }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
-        }
+            // Then we validate the last name field
+            if (!ValidationUtils.isValidDisplayName(values.lastName)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            }
+            if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
+            }
 
-        // Then we validate the last name field
-        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-        }
-        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
-        }
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -96,9 +95,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             label={translate('common.firstName')}
                             aria-label={translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                     <View>
@@ -109,9 +106,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             label={translate('common.lastName')}
                             aria-label={translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
@@ -122,4 +117,4 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
 
 DisplayNamePage.displayName = 'DisplayNamePage';
 
-export default withCurrentUserPersonalDetails(DisplayNamePage);
+export default DisplayNamePage;
