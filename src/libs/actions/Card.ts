@@ -64,15 +64,15 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+    // const successData: OnyxUpdate[] = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
+    //         value: {
+    //             isLoading: false,
+    //         },
+    //     },
+    // ];
 
     const failureData: OnyxUpdate[] = [
         {
@@ -111,7 +111,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
 
     API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
         optimisticData,
-        successData,
+        // successData,
         failureData,
     });
 }
@@ -220,6 +220,10 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
+}
+
+function clearVirtualExpensifyCardFraudErrors() {
+    Onyx.merge(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {errors: null, isLoading: false});
 }
 
 /**
@@ -891,6 +895,7 @@ export {
     clearCardListErrors,
     clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
+    clearVirtualExpensifyCardFraudErrors,
     revealVirtualCardDetails,
     updateSettlementFrequency,
     setIssueNewCardStepAndData,

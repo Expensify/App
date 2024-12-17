@@ -56,7 +56,8 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        console.log('navigate to card page');
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID, true));
     }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
@@ -64,6 +65,7 @@ function ReportVirtualCardFraudPage({
             if (!virtualCard) {
                 return;
             }
+            console.log('handleValidateCodeEntered', virtualCard, validateCode);
             Card.reportVirtualExpensifyCardFraud(virtualCard, validateCode);
         },
         [virtualCard],
@@ -81,7 +83,8 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard)) {
+    if (isEmptyObject(virtualCard) && !formData?.isLoading) {
+        console.log('notFoundPage');
         return <NotFoundPage />;
     }
 
@@ -106,6 +109,7 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
+                        console.log('clearError', virtualCard);
                         Card.clearCardListErrors(virtualCard.cardID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
