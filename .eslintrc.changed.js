@@ -10,17 +10,17 @@ module.exports = {
             'error',
             {
                 selector: "ImportNamespaceSpecifier[parent.source.value=/^@libs/]",
-                message: 'Namespace imports are not allowed. Use named imports instead. Example: import { method } from "@libs/module"'
+                message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"'
             },
             {
                 selector: "ImportNamespaceSpecifier[parent.source.value=/^@userActions/]",
-                message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@useractions/module"'
+                message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"'
             }
         ]
     },
     overrides: [
         {
-            files: ['**/libs/**/*.{ts,tsx,js,jsx}'],
+            files: ['**/libs/**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-syntax': [
                     'error',
