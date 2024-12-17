@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +19,6 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {q} = route.params;
-    const isFocused = useIsFocused();
 
     const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(q), [q]);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
@@ -45,10 +43,7 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <>
-                        <SearchPageHeader
-                            queryJSON={queryJSON}
-                            isFocused={isFocused}
-                        />
+                        <SearchPageHeader queryJSON={queryJSON} />
                         <SearchStatusBar queryJSON={queryJSON} />
                         <Search queryJSON={queryJSON} />
                     </>

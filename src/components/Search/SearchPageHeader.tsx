@@ -1,5 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -32,11 +32,11 @@ import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 import type {PaymentData, SearchQueryJSON} from './types';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; isFocused: boolean};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, isFocused}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -61,7 +61,19 @@ function SearchPageHeader({queryJSON, isFocused}: SearchPageHeaderProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
     const {status, hash} = queryJSON;
+
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -288,7 +300,7 @@ function SearchPageHeader({queryJSON, isFocused}: SearchPageHeaderProps) {
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isFocused && !isModalVisible && !!queryJSON && headerButtonsOptions.length === 0,
+        isScreenFocused && !isModalVisible && !!queryJSON && headerButtonsOptions.length === 0,
     );
 
     if (shouldUseNarrowLayout) {

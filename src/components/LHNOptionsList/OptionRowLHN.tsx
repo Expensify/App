@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -58,14 +58,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const tooltipToRender = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
-    const isFocusedHookResult = useIsFocused();
-
-    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused && !isModalVisible && isFocusedHookResult : !isModalVisible && isFocusedHookResult;
-
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
-    const {translate} = useLocalize();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
-
     useFocusEffect(
         useCallback(() => {
             setIsScreenFocused(true);
@@ -74,6 +66,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             };
         }, []),
     );
+
+    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused && !isModalVisible : !isModalVisible;
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
+    const {translate} = useLocalize();
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
