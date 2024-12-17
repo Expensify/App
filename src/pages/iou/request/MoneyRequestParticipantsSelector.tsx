@@ -129,7 +129,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 personalDetails: [],
                 currentUserOption: null,
                 headerMessage: '',
-                recentWorkspaceChats: [],
+                workspaceChats: [],
                 selfDMChat: null,
             };
         }
@@ -168,8 +168,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         newSections.push({
             title: translate('workspace.common.workspace'),
-            data: chatOptions.recentWorkspaceChats ?? [],
-            shouldShow: (chatOptions.recentWorkspaceChats ?? []).length > 0,
+            data: chatOptions.workspaceChats ?? [],
+            shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
         newSections.push({
             title: translate('workspace.invoices.paymentMethods.personal'),
@@ -219,7 +219,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.selfDMChat,
-        chatOptions.recentWorkspaceChats,
+        chatOptions.workspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
