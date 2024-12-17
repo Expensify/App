@@ -9,6 +9,10 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
+function canUsePrivateDomainOnboardingCheck(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING_CHECK) || canUseAllBetas(betas);
+}
+
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
@@ -43,6 +47,7 @@ function canUseLinkPreviews(): boolean {
 }
 
 export default {
+    canUsePrivateDomainOnboardingCheck,
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,

@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of onboarding */
 type Onboarding = {
@@ -14,6 +15,15 @@ type Onboarding = {
 
     /** A Boolean that tells whether the user has seen navattic tour  */
     selfTourViewed?: boolean;
+
+    /** A Boolean that tells whether the user should be redirected to OD after merging work email  */
+    shouldRedirectToClassicAfterMerge?: boolean;
+
+    /** A Boolean that informs whether the user needs to validate their work email */
+    shouldValidate?: boolean;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: OnyxCommon.Errors;
 };
 
 export default Onboarding;

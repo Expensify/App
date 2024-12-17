@@ -1200,6 +1200,51 @@ function isUserOnPrivateDomain() {
     return false;
 }
 
+function AddWorkEmail(workEmail: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: null,
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.ADD_WORK_EMAIL,
+        {workEmail},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1239,4 +1284,5 @@ export {
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
+    AddWorkEmail,
 };

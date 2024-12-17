@@ -120,6 +120,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
             screens: {
+                [SCREENS.ONBOARDING.WORK_EMAIL]: {
+                    path: ROUTES.ONBOARDING_WORK_EMAIL.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
                     exact: true,

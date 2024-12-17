@@ -36,6 +36,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Callback to submit the form */
         onSubmit: () => void;
+
+        /** should render the extra button above submit button */
+        shouldRenderFooterAboveSubmit?: boolean;
     };
 
 function FormWrapper({
@@ -57,6 +60,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    shouldRenderFooterAboveSubmit = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -122,6 +126,7 @@ function FormWrapper({
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
                         enterKeyEventListenerPriority={1}
+                        shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     />
                 )}
             </FormElement>
@@ -151,6 +156,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
+            shouldRenderFooterAboveSubmit,
         ],
     );
 

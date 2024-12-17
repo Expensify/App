@@ -1532,6 +1532,9 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.WORK_EMAIL]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {

@@ -474,6 +474,7 @@ const translations = {
         days: 'días',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
+        workEmail: 'correo electrónico de trabajo',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1790,6 +1791,16 @@ const translations = {
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar.',
+        },
+        workEmail: {
+            title: 'Cuál es tu correo electrónico de trabajo',
+            subtitle: 'Expensify funciona mejor cuando conectas tu correo electrónico de trabajo.',
+            explanationModal: {
+                descriptionOne: 'Reenvía a receipts@expensify.com para escanear',
+                descriptionTwo: 'Únete a tus compañeros de trabajo que ya están usando Expensify',
+                descriptionThree: 'Disfruta de una experiencia más personalizada',
+            },
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
         },
     },
     featureTraining: {

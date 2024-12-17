@@ -1393,6 +1393,10 @@ const ROUTES = {
         route: 'onboarding/join-workspaces',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
     },
+    ONBOARDING_WORK_EMAIL: {
+        route: 'onboarding/work-email',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',

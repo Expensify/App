@@ -483,6 +483,7 @@ const translations = {
         skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
+        workEmail: 'Work email',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1787,6 +1788,16 @@ const translations = {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue.',
+        },
+        workEmail: {
+            title: 'What’s your work email?',
+            subtitle: 'Expensify works best when you connect your work email.',
+            explanationModal: {
+                descriptionOne: 'Forward to receipts@expensify.com for scanning',
+                descriptionTwo: 'Join your colleagues already using Expensify',
+                descriptionThree: 'Enjoy a more customized experience',
+            },
+            addWorkEmail: 'Add work email',
         },
     },
     featureTraining: {

@@ -583,6 +583,7 @@ const SCREENS = {
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
         WORKSPACES: 'Onboarding_Workspaces',
+        WORK_EMAIL: 'Onboarding_Work_Email',
     },
 
     WELCOME_VIDEO: {
