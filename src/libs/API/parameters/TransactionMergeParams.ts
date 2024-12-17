@@ -11,7 +11,7 @@ type TransactionMergeParams = {
     reimbursable: boolean;
     tag: string;
     receiptID: number;
-    reportID: string;
+    reportID: string | undefined;
 };
 
 export default TransactionMergeParams;
