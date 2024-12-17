@@ -136,6 +136,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    console.log("[wildebug] ~ file: index.tsx:139 ~ Search ~ hash:", hash)
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);

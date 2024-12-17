@@ -17,7 +17,9 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
-import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
+import { SearchPersonalDetails, SearchReport } from '@src/types/onyx/SearchResults';
+import { useOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -61,6 +63,7 @@ function ChatListItem<TItem extends ListItem>({
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID ?? '-1'}), [item.reportID]);
+
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -81,6 +84,8 @@ function ChatListItem<TItem extends ListItem>({
     const personalDetails: Record<string, SearchPersonalDetails | null> = {
         [from.accountID]: from,
     }
+
+    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem.reportID}`, {allowStaleData: true});
 
     return (
         <BaseListItem
@@ -109,6 +114,7 @@ function ChatListItem<TItem extends ListItem>({
                 <PureReportActionItem
                     action={reportActionItem}
                     onPress={() => onSelectRow(item)}
+                    // report={{reportID : reportActionItem.reportID} as OnyxTypes.Report}
                     report={undefined}
                     reportActions={[]}
                     parentReportAction={undefined}
@@ -118,6 +124,9 @@ function ChatListItem<TItem extends ListItem>({
                     index={item.index ?? 0}
                     isFirstVisibleReportAction={false}
                     personalDetails={personalDetails}
+                    contextValueOverride={contextValue}
+                    attachmentContextValueOverride={attachmentContextValue}
+                    mentionReportContextValueOverride={mentionReportContextValue}
                 />
 
                 // <MentionReportContext.Provider value={mentionReportContextValue}>

@@ -28,7 +28,7 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuContext, ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -81,7 +81,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
+import { SearchPersonalDetails, SearchReport } from '@src/types/onyx/SearchResults';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -241,6 +241,21 @@ type PureReportActionItemProps = {
 
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
+
+    /**  The context value containing the report and action data, along with the show context menu props */
+    contextValueOverride?: ShowContextMenuContextProps & {
+        report?: OnyxTypes.Report;
+        action?: OnyxTypes.ReportAction;
+    };
+
+    attachmentContextValueOverride?: {
+        reportID?: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+    }
+
+    mentionReportContextValueOverride?: {
+        currentReportID: string;
+    }
 };
 
 /**
@@ -294,6 +309,9 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
+    contextValueOverride,
+    attachmentContextValueOverride,
+    mentionReportContextValueOverride,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -505,10 +523,10 @@ function PureReportActionItem({
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
 
-    const contextValue = useMemo(
+    const contextValue = contextValueOverride ? contextValueOverride : useMemo(
         () => ({
             anchor: popoverAnchorRef.current,
-            report: {...report, reportID: report?.reportID ?? ''},
+            report: { ...report, reportID: report?.reportID ?? '' },
             reportNameValuePairs,
             action,
             transactionThreadReport,
@@ -518,9 +536,9 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
+    const attachmentContextValue = attachmentContextValueOverride ? attachmentContextValueOverride : useMemo(() => ({ reportID, type: CONST.ATTACHMENT_TYPE.REPORT }), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+    const mentionReportContextValue = mentionReportContextValueOverride ? mentionReportContextValueOverride : useMemo(() => ({ currentReportID: report?.reportID ?? '-1' }), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
@@ -1219,6 +1237,9 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.reimbursementDeQueuedActionMessage === nextProps.reimbursementDeQueuedActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
-        prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
+        prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage &&
+        prevProps.contextValueOverride === nextProps.contextValueOverride &&
+        prevProps.attachmentContextValueOverride === nextProps.attachmentContextValueOverride &&
+        prevProps.mentionReportContexValueOverride === nextProps.mentionReportContexValueOverride
     );
 });
