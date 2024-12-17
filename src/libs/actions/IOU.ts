@@ -8,7 +8,6 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
-    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
     CreateWorkspaceParams,
@@ -22,7 +21,6 @@ import type {
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
-    ShareTrackedExpenseParams as ShareTrackedExpenseApiParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -126,8 +124,6 @@ type CategorizeTrackedExpenseTransactionParams = {
     tag?: string;
     billable?: boolean;
     receipt?: Receipt;
-    waypoints?: string;
-    customUnitRateID?: string;
 };
 type CategorizeTrackedExpensePolicyParams = {
     policyID: string;
@@ -286,6 +282,32 @@ type BuildOnyxDataForMoneyRequestParams = {
     existingTransactionThreadReportID?: string;
     policyParams?: RequestMoneyPolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
+};
+
+type DistanceRequestTransactionParams = {
+    comment: string;
+    created: string;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    amount: number;
+    currency: string;
+    merchant: string;
+    billable?: boolean;
+    validWaypoints: WaypointCollection;
+    customUnitRateID?: string;
+    splitShares?: SplitShares;
+};
+type CreateDistanceRequestInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participants: Participant[];
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transactionParams: DistanceRequestTransactionParams;
+    policyParams?: RequestMoneyPolicyParams;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -599,31 +621,7 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  * Set custom unit rateID for the transaction draft
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
-    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        comment: {
-            customUnit: {
-                customUnitRateID,
-                ...(!isFakeP2PRate && {defaultP2PRate: null}),
-            },
-        },
-    });
-}
-
-/**
- * Revert custom unit of the draft transaction to the original transaction's value
- */
-function resetDraftTransactionsCustomUnit(transactionID: string) {
-    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (!originalTransaction) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        comment: {
-            customUnit: originalTransaction.comment?.customUnit ?? {},
-        },
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
 }
 
 /** Set the distance rate of a new  transaction */
@@ -3348,6 +3346,7 @@ type UpdateMoneyRequestDistanceParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -3359,6 +3358,7 @@ function updateMoneyRequestDistance({
     policy = {} as OnyxTypes.Policy,
     policyTagList = {},
     policyCategories = {},
+    transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints: sanitizeRecentWaypoints(waypoints),
@@ -3380,6 +3380,39 @@ function updateMoneyRequestDistance({
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
         value: recentServerValidatedWaypoints,
     });
+
+    if (transactionBackup) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+        // We need to include all keys of the optimisticData's waypoints in the failureData for onyx merge to properly reset
+        // waypoint keys that do not exist in the failureData's waypoints. For instance, if the optimisticData waypoints had
+        // three keys and the failureData waypoint had only 2 keys then the third key that doesn't exist in the failureData
+        // waypoints should be explicitly reset otherwise onyx merge will leave it intact.
+        const allWaypointKeys = [...new Set([...Object.keys(transactionBackup.comment?.waypoints ?? {}), ...Object.keys(transaction?.comment?.waypoints ?? {})])];
+        const onyxWaypoints = allWaypointKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.comment?.waypoints?.[key] ? {...transactionBackup.comment?.waypoints?.[key]} : null;
+            return acc;
+        }, {});
+        const allModifiedWaypointsKeys = [...new Set([...Object.keys(waypoints ?? {}), ...Object.keys(transaction?.modifiedWaypoints ?? {})])];
+        const onyxModifiedWaypoints = allModifiedWaypointsKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.modifiedWaypoints?.[key] ? {...transactionBackup.modifiedWaypoints?.[key]} : null;
+            return acc;
+        }, {});
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    waypoints: onyxWaypoints,
+                    customUnit: {
+                        quantity: transactionBackup?.comment?.customUnit?.quantity,
+                    },
+                },
+                modifiedWaypoints: onyxModifiedWaypoints,
+                routes: null,
+            },
+        });
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
@@ -3613,8 +3646,8 @@ function categorizeTrackedExpense(trackedExpenseParams: CategorizeTrackedExpense
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
-
-    const parameters: CategorizeTrackedExpenseApiParams = {
+    const parameters = {
+        onyxData,
         ...reportInformation,
         ...policyParams,
         ...transactionParams,
@@ -3657,8 +3690,6 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
-    waypoints?: string,
-    customUnitRateID?: string,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3682,7 +3713,7 @@ function shareTrackedExpense(
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    const parameters: ShareTrackedExpenseApiParams = {
+    const parameters = {
         policyID,
         transactionID,
         moneyRequestPreviewReportActionID,
@@ -3702,8 +3733,6 @@ function shareTrackedExpense(
         taxAmount,
         billable,
         receipt,
-        waypoints,
-        customUnitRateID,
         policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
         policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
         adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
@@ -3941,7 +3970,6 @@ function trackExpense(
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const {
         createdWorkspaceParams,
@@ -3996,7 +4024,7 @@ function trackExpense(
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
-            const transactionParams: CategorizeTrackedExpenseTransactionParams = {
+            const transactionParams = {
                 transactionID: transaction?.transactionID ?? '-1',
                 amount,
                 currency,
@@ -4009,14 +4037,12 @@ function trackExpense(
                 tag,
                 billable,
                 receipt: trackedReceipt,
-                waypoints: sanitizedWaypoints,
-                customUnitRateID,
             };
-            const policyParams: CategorizeTrackedExpensePolicyParams = {
+            const policyParams = {
                 policyID: chatReport?.policyID ?? '-1',
                 isDraftPolicy,
             };
-            const reportInformation: CategorizeTrackedExpenseReportInformation = {
+            const reportInformation = {
                 moneyRequestPreviewReportActionID: iouAction?.reportActionID ?? '-1',
                 moneyRequestReportID: iouReport?.reportID ?? '-1',
                 moneyRequestCreatedReportActionID: createdIOUReportActionID ?? '-1',
@@ -4026,7 +4052,7 @@ function trackExpense(
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID ?? '-1',
             };
-            const trackedExpenseParams: CategorizeTrackedExpenseParams = {
+            const trackedExpenseParams = {
                 onyxData,
                 reportInformation,
                 transactionParams,
@@ -4064,8 +4090,6 @@ function trackExpense(
                 taxAmount,
                 billable,
                 trackedReceipt,
-                sanitizedWaypoints,
-                customUnitRateID,
                 createdWorkspaceParams,
             );
             break;
@@ -4095,7 +4119,7 @@ function trackExpense(
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID: transactionThreadReportID ?? '-1',
                 createdReportActionIDForThread: createdReportActionIDForThread ?? '-1',
-                waypoints: sanitizedWaypoints,
+                waypoints: validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined,
                 customUnitRateID,
             };
             if (actionableWhisperReportActionIDParam) {
@@ -5349,30 +5373,20 @@ function setDraftSplitTransaction(transactionID: string, transactionChanges: Tra
 }
 
 /** Requests money based on a distance (e.g. mileage from a map) */
-function createDistanceRequest(
-    report: OnyxEntry<OnyxTypes.Report>,
-    participants: Participant[],
-    comment: string,
-    created: string,
-    category: string | undefined,
-    tag: string | undefined,
-    taxCode: string | undefined,
-    taxAmount: number | undefined,
-    amount: number,
-    currency: string,
-    merchant: string,
-    billable: boolean | undefined,
-    validWaypoints: WaypointCollection,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    customUnitRateID = '',
-    currentUserLogin = '',
-    currentUserAccountID = -1,
-    splitShares: SplitShares = {},
-    iouType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.SUBMIT,
-    existingTransaction: OnyxEntry<OnyxTypes.Transaction> | undefined = undefined,
-) {
+function createDistanceRequest(distanceRequestInformation: CreateDistanceRequestInformation) {
+    const {
+        report,
+        participants,
+        currentUserLogin = '',
+        currentUserAccountID = -1,
+        iouType = CONST.IOU.TYPE.SUBMIT,
+        existingTransaction,
+        transactionParams,
+        policyParams = {},
+    } = distanceRequestInformation;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
+
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReportOrDraftReport(report?.chatReportID) : report;
@@ -7136,6 +7150,7 @@ function canIOUBePaid(
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: SearchPolicy,
+    shouldCheckApprovedState = true,
 ) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? ReportUtils.getReportNameValuePairs(chatReport?.reportID);
@@ -7190,7 +7205,7 @@ function canIOUBePaid(
         reimbursableSpend !== 0 &&
         !isChatReportArchived &&
         !isAutoReimbursable &&
-        !shouldBeApproved &&
+        (!shouldBeApproved || !shouldCheckApprovedState) &&
         !isPayAtEndExpenseReport
     );
 }
@@ -8787,7 +8802,6 @@ export {
     replaceReceipt,
     requestMoney,
     resetSplitShares,
-    resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     sendInvoice,
     sendMoneyElsewhere,
