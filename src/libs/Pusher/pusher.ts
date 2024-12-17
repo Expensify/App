@@ -74,8 +74,8 @@ let pusherSocketID = '';
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
-let resolveInitPromise: (value?: unknown) => void;
-let initPromise = new Promise((resolve) => {
+let resolveInitPromise: () => void;
+let initPromise = new Promise<void>((resolve) => {
     resolveInitPromise = resolve;
 });
 
@@ -93,7 +93,7 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * @returns resolves when Pusher has connected
  */
 function init(args: Args, params?: unknown): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         if (socket) {
             resolveInitPromise();
             resolve();
