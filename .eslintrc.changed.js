@@ -21,6 +21,12 @@ module.exports = {
     },
     overrides: [
         {
+            files: ['src/libs/ReportUtils.ts', 'src/libs/actions/IOU.ts', 'src/libs/actions/Report.ts', 'src/libs/actions/Task.ts'],
+            rules: {
+                'rulesdir/no-default-id-values': 'off',
+            },
+        },
+        {
             files: ['**/libs/**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-syntax': [
@@ -34,7 +40,7 @@ module.exports = {
                         message: 'Namespace imports are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
                     },
                 ],
-            },
-        },
+        }
+    }
     ],
 };
