@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -106,12 +107,14 @@ function IOURequestStepTime({
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
-                <InputWrapper
-                    InputComponent={TimeModalPicker}
-                    inputID={INPUT_IDS.START_TIME}
-                    label={translate('iou.startTime')}
-                    defaultValue={currentDateAttributes?.start}
-                />
+                <View style={[styles.mt2, styles.mhn5]}>
+                    <InputWrapper
+                        InputComponent={TimeModalPicker}
+                        inputID={INPUT_IDS.START_TIME}
+                        label={translate('iou.startTime')}
+                        defaultValue={currentDateAttributes?.start}
+                    />
+                </View>
                 <InputWrapper
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.END_DATE}
@@ -120,6 +123,14 @@ function IOURequestStepTime({
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
+                <View style={[styles.mt2, styles.mhn5]}>
+                    <InputWrapper
+                        InputComponent={TimeModalPicker}
+                        inputID={INPUT_IDS.END_TIME}
+                        label={translate('iou.endTime')}
+                        defaultValue={currentDateAttributes?.end}
+                    />
+                </View>
                 <InputWrapper
                     InputComponent={TimeModalPicker}
                     inputID={INPUT_IDS.END_TIME}

@@ -68,6 +68,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                         <TimePicker
                             defaultValue={value}
                             onSubmit={updateInput}
+                            shouldValidate={false}
                         />
                     </View>
                 </ScreenWrapper>
