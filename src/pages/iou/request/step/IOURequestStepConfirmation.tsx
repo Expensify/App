@@ -320,30 +320,34 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            IOU.createDistanceRequest(
+            IOU.createDistanceRequest({
                 report,
-                selectedParticipants,
-                trimmedComment,
-                transaction.created,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.amount,
-                transaction.currency,
-                transaction.merchant,
-                transaction.billable,
-                TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
-                policy,
-                policyTags,
-                policyCategories,
-                customUnitRateID,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                transaction.splitShares,
+                participants: selectedParticipants,
+                currentUserLogin: currentUserPersonalDetails.login,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
-                transaction,
-            );
+                existingTransaction: transaction,
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    comment: trimmedComment,
+                    created: transaction.created,
+                    currency: transaction.currency,
+                    merchant: transaction.merchant,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    customUnitRateID,
+                    splitShares: transaction.splitShares,
+                    validWaypoints: TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
+                    billable: transaction.billable,
+                },
+            });
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );

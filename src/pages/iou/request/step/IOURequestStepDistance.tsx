@@ -341,30 +341,25 @@ function IOURequestStepDistance({
                 }
 
                 playSound(SOUNDS.DONE);
-                IOU.createDistanceRequest(
+                IOU.createDistanceRequest({
                     report,
                     participants,
-                    '',
-                    transaction?.created ?? '',
-                    '',
-                    '',
-                    '',
-                    0,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    translate('iou.fieldPending'),
-                    !!policy?.defaultBillable,
-                    TransactionUtils.getValidWaypoints(waypoints, true),
-                    undefined,
-                    undefined,
-                    undefined,
-                    DistanceRequestUtils.getCustomUnitRateID(report.reportID),
-                    currentUserPersonalDetails.login ?? '',
-                    currentUserPersonalDetails.accountID,
-                    transaction?.splitShares,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     iouType,
-                    transaction,
-                );
+                    existingTransaction: transaction,
+                    transactionParams: {
+                        amount: 0,
+                        comment: '',
+                        created: transaction?.created ?? '',
+                        currency: transaction?.currency ?? 'USD',
+                        merchant: translate('iou.fieldPending'),
+                        billable: !!policy?.defaultBillable,
+                        validWaypoints: TransactionUtils.getValidWaypoints(waypoints, true),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                        splitShares: transaction?.splitShares,
+                    },
+                });
                 return;
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
