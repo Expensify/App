@@ -1,9 +1,10 @@
-import type {ValueOf} from 'type-fest';
+import type { ValueOf } from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
+import type { PolicyReportField } from './Policy';
+
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -142,7 +143,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The state number of the report */
         stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
-        /** The state that the report is currently in */
+        /** The status of the current report */
         statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
         /** Which user role is capable of posting messages on the report */
