@@ -1,9 +1,13 @@
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
+import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
@@ -17,15 +21,44 @@ type AdaptStateIfNecessaryArgs = {
     options: SplitNavigatorRouterOptions;
 };
 
+let isLoadingReportData = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
+});
+
+function isInvalidPolicyPage(route: NavigationPartialRoute) {
+    const hasRoutePolicyID = route?.params && 'policyID' in route.params;
+
+    if (!hasRoutePolicyID) {
+        return false;
+    }
+
+    const policyID = route?.params?.policyID as string;
+    const policy = PolicyUtils.getPolicy(policyID);
+
+    if (!policy) {
+        return false;
+    }
+
+    return !PolicyUtils.isPolicyAccessible(policy) && !isLoadingReportData;
+}
+
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
 
-    const lastRoute = state.routes.at(-1);
+    const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
+
+    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
+    if (isNarrowLayout && isInvalidPolicyPage(lastRoute)) {
+        return;
+    }
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
-    if (!isAtLeastOneInState(state, sidebarScreen) && !isNarrowLayout) {
+    if (!isAtLeastOneInState(state, sidebarScreen)) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
         let params = pick(lastRoute?.params, paramsFromRoute);
 

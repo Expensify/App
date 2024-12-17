@@ -26,15 +26,13 @@ import {
     getStateFromPath,
     getTopmostReportParams,
     isReportOpenInRHP,
-    isSplitNavigatorName,
     linkTo,
     closeRHPFlow as originalCloseRHPFlow,
     setNavigationActionToMicrotaskQueue,
 } from './helpers';
 import linkingConfig from './linkingConfig';
-import RELATIONS from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, SplitNavigatorName, State} from './types';
+import type {NavigationPartialRoute, NavigationStateRoute, RootStackParamList, State} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -50,18 +48,6 @@ let shouldPopAllStateOnUP = false;
  */
 function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
     shouldPopAllStateOnUP = shouldPopAllStateFlag;
-}
-
-/**
- * @private
- * Get the sidebar screen parameters from the split navigator passed as a param.
- */
-function getSidebarScreenParams(splitNavigatorRoute: NavigationStateRoute) {
-    if (splitNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        return splitNavigatorRoute.state?.routes?.at(0)?.params;
-    }
-
-    return undefined;
 }
 
 /**
@@ -308,25 +294,7 @@ function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
         return;
     }
 
-    const rootState = navigationRef.current?.getRootState();
-    const lastRoute = rootState?.routes.at(-1);
-
-    const canGoBack = navigationRef.current?.canGoBack();
-
-    if (!canGoBack && isSplitNavigatorName(lastRoute?.name) && lastRoute?.state?.routes?.length === 1) {
-        const name = RELATIONS.SPLIT_TO_SIDEBAR[lastRoute.name as SplitNavigatorName];
-        const params = getSidebarScreenParams(lastRoute);
-        navigationRef.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
-            payload: {
-                name,
-                params,
-            },
-        });
-        return;
-    }
-
-    if (!canGoBack) {
+    if (!navigationRef.current?.canGoBack()) {
         Log.hmmm('[Navigation] Unable to go back');
         return;
     }
@@ -521,6 +489,19 @@ function popToTop() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
+function removeScreenFromNavigationState(screen: string) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.name !== screen);
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -544,6 +525,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     popToTop,
+    removeScreenFromNavigationState,
 };
 
 export {navigationRef};
