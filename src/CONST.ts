@@ -6447,6 +6447,8 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
+
+    DEFAULT_POLICY_ID: '-1',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
