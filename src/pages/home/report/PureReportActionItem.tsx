@@ -296,7 +296,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -507,7 +507,7 @@ function PureReportActionItem({
     const contextValue = useMemo(
         () => ({
             anchor: popoverAnchorRef.current,
-            report: {...report, reportID: report?.reportID ?? ''},
+            report: {...report, reportID: report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`},
             reportNameValuePairs,
             action,
             transactionThreadReport,
@@ -519,7 +519,7 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
@@ -547,7 +547,7 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -555,7 +555,7 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -563,7 +563,7 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -654,11 +654,13 @@ function PureReportActionItem({
                 ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? '-1' : '-1';
+            const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID
+                ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? `${CONST.DEFAULT_NUMBER_ID}`
+                : `${CONST.DEFAULT_NUMBER_ID}`;
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? '' : reportID}
+                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? `${CONST.DEFAULT_NUMBER_ID}` : reportID}
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}
@@ -675,7 +677,7 @@ function PureReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.linkedReportID ?? '-1'}
+                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.linkedReportID ?? `${CONST.DEFAULT_NUMBER_ID}`}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
