@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -12,16 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials} from '@src/types/onyx';
 
-type EmailDeliveryFailurePageOnyxProps = {
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type EmailDeliveryFailurePageProps = EmailDeliveryFailurePageOnyxProps;
-
-function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) {
+function EmailDeliveryFailurePage() {
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -90,6 +82,4 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
 
 EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
-export default withOnyx<EmailDeliveryFailurePageProps, EmailDeliveryFailurePageOnyxProps>({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(EmailDeliveryFailurePage);
+export default EmailDeliveryFailurePage;
