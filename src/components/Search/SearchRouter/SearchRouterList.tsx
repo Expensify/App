@@ -344,7 +344,7 @@ function SearchRouterList(
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: CardUtils.getCardDescription(card.cardID, allCard),
+                    text: CardUtils.getCardDescription(card.cardID, allCards),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
