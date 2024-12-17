@@ -455,8 +455,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionAvatars,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
-        styles.pt3,
-        styles.pb2,
         styles.quickActionTooltipWrapper,
         renderQuickActionTooltip,
         quickAction?.action,
