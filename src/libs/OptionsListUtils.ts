@@ -1754,7 +1754,7 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
  * Personal details will be filtered out if they are part of the recent reports.
  * Additional configs can be applied.
  */
-function combinedOrderingOfReportsAndPersonalDetails(
+function combineOrderingOfReportsAndPersonalDetails(
     options: ReportAndPersonalDetailOptions,
     searchInputValue: string,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
@@ -1790,7 +1790,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         filterResult = filterOptions(options, searchInputValue, config);
     }
 
-    const orderedOptions = combinedOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
 
     return {
         ...filterResult,
@@ -1864,7 +1864,7 @@ export {
     getAttendeeOptions,
     getAlternateText,
     hasReportErrors,
-    combinedOrderingOfReportsAndPersonalDetails,
+    combineOrderingOfReportsAndPersonalDetails,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions};
