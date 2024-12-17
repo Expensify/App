@@ -853,7 +853,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                     </>
                                 )}
 
-                                {!shouldShowSkeleton && (
+                                {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
                                         onComposerFocus={onComposerFocus}
                                         onComposerBlur={onComposerBlur}
@@ -865,7 +865,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
-                                )}
+                                ) : null}
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
