@@ -4,7 +4,7 @@ const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/m
 const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
-const { wrapWithReanimatedMetroConfig, } = require('react-native-reanimated/metro-config');
+const {wrapWithReanimatedMetroConfig} = require('react-native-reanimated/metro-config');
 require('dotenv').config();
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
