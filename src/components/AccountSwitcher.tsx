@@ -40,7 +40,6 @@ function AccountSwitcher() {
     const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
-    console.log('test');
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
