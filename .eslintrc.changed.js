@@ -6,5 +6,6 @@ module.exports = {
     },
     rules: {
         'deprecation/deprecation': 'error',
+        'rulesdir/no-default-id-values': 'error',
     },
 };
