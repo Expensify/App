@@ -363,7 +363,9 @@ function IOURequestStepConfirmation({
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
                 splitParticipants = selectedParticipants.filter((participant) =>
-                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID : participant.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                    participantsWithAmount.includes(
+                        participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID : participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    ),
                 );
             }
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';

@@ -86,7 +86,7 @@ function IOURequestStepCategory({
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
 
     const fetchData = () => {
-        if ((policy && policyCategories) || !report?.policyID) {
+        if ((!!policy && !!policyCategories) || !report?.policyID) {
             return;
         }
 
