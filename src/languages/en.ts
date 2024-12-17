@@ -5456,28 +5456,6 @@ const translations = {
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
         },
     },
-<<<<<<< HEAD
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        quickActionButton: {
-            part1: 'Quick action!',
-            part2: ' Just a tap away',
-        },
-        workspaceChatCreate: {
-            part1: 'Submit your',
-            part2: ' expenses',
-            part3: ' here!',
-        },
-    },
-=======
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;

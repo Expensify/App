@@ -48,31 +48,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
-<<<<<<< HEAD
-
-=======
-    const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
 
     // Guides are assigned for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowToooltipOnThisReport = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
-<<<<<<< HEAD
-
-    const shouldShowGetStartedTooltip = shouldShowToooltipOnThisReport && isScreenFocused;
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR,
-        shouldShowGetStartedTooltip,
-    );
-=======
     const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
 
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
@@ -193,28 +176,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-<<<<<<< HEAD
-                shouldRender={shouldShowProductTrainingTooltip}
-                renderTooltipContent={renderProductTrainingTooltip}
-=======
                 shouldRender={isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && shouldShowToooltipOnThisReport}
                 renderTooltipContent={renderGBRTooltip}
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
-<<<<<<< HEAD
-                onHideTooltip={hideProductTrainingTooltip}
-                shiftVertical={variables.composerTooltipShiftVertical}
-                wrapperStyle={styles.quickActionTooltipWrapper}
-=======
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
                 onHideTooltip={User.dismissGBRTooltip}
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
             >
                 <View>
                     <Hoverable>

@@ -62,11 +62,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-<<<<<<< HEAD
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH);
-=======
     const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 

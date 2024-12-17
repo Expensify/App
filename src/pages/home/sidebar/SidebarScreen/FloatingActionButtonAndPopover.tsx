@@ -408,15 +408,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             },
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-<<<<<<< HEAD
-            renderTooltipContent: renderProductTrainingTooltip,
-            tooltipWrapperStyle: styles.quickActionTooltipWrapper,
-            onHideTooltip: hideProductTrainingTooltip,
-            shouldRenderTooltip: shouldShowProductTrainingTooltip,
-=======
             renderTooltipContent: renderQuickActionTooltip,
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
         };
 
         if (quickAction?.action) {
@@ -462,16 +455,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionAvatars,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
-<<<<<<< HEAD
-        styles.quickActionTooltipWrapper,
-        renderProductTrainingTooltip,
-        hideProductTrainingTooltip,
-=======
         styles.pt3,
         styles.pb2,
         styles.quickActionTooltipWrapper,
         renderQuickActionTooltip,
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
         quickAction?.action,
         quickAction?.isFirstQuickAction,
         policyChatForActivePolicy,

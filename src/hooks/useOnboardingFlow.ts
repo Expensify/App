@@ -78,14 +78,8 @@ function useOnboardingFlowRouter() {
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
-<<<<<<< HEAD
-        allBetasMetadata,
-        allBetas,
-=======
-        isPrivateDomain,
         allBetas,
         allBetasMetadata,
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

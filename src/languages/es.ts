@@ -5976,28 +5976,6 @@ const translations = {
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
         },
     },
-<<<<<<< HEAD
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: '¡Comienza',
-            part2: ' aquí!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-    },
-=======
->>>>>>> fdd9136 (Merge pull request #54260 from Expensify/revert-54064-and-53396)
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;
