@@ -39,7 +39,7 @@ Onyx.connect({
  */
 function startOnboardingFlow() {
     const currentRoute = navigationRef.getCurrentRoute();
-    const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootStackParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;

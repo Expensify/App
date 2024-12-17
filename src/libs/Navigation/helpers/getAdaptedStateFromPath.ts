@@ -16,9 +16,7 @@ import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
-type GetAdaptedStateReturnType = {
-    adaptedState: ReturnType<typeof getStateFromPath>;
-};
+type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
 type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
 
@@ -161,19 +159,17 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const reportsSplitNavigator = state.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
+    const isReportSplitNavigator = fullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
 
     // If policyID is defined, it should be passed to the reportNavigator params.
-    if (reportsSplitNavigator && policyID) {
+    if (isReportSplitNavigator && policyID) {
         const routes = [];
-        const reportNavigatorWithPolicyID = {...reportsSplitNavigator};
+        const reportNavigatorWithPolicyID = {...fullScreenRoute};
         reportNavigatorWithPolicyID.params = {...reportNavigatorWithPolicyID.params, policyID};
         routes.push(reportNavigatorWithPolicyID);
 
-        return {
-            adaptedState: getRoutesWithIndex(routes),
-        };
+        return getRoutesWithIndex(routes);
     }
 
     // If there is no full screen route in the root, we want to add it.
@@ -184,9 +180,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, policyID);
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                return {
-                    adaptedState: getRoutesWithIndex([matchingRootRoute, ...state.routes]),
-                };
+                return getRoutesWithIndex([matchingRootRoute, ...state.routes]);
             }
         }
 
@@ -199,20 +193,14 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return {
-                adaptedState: getRoutesWithIndex([defaultFullScreenRoute, adaptedOnboardingNavigator]),
-            };
+            return getRoutesWithIndex([defaultFullScreenRoute, adaptedOnboardingNavigator]);
         }
 
         // If not, add the default full screen route.
-        return {
-            adaptedState: getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]),
-        };
+        return getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]);
     }
 
-    return {
-        adaptedState: state,
-    };
+    return state;
 }
 
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
