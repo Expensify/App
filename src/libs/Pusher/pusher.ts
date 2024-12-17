@@ -70,7 +70,7 @@ Onyx.connect({
 });
 
 let socket: PusherWithAuthParams | null;
-let pusherSocketID = '';
+let pusherSocketID: string | undefined;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
@@ -132,7 +132,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         });
 
         socket?.connection.bind('connected', () => {
-            pusherSocketID = socket?.connection.socket_id ?? '';
+            pusherSocketID = socket?.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -414,7 +414,7 @@ function reconnect() {
     socket.connect();
 }
 
-function getPusherSocketID(): string {
+function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
