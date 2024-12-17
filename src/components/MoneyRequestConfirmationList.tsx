@@ -206,7 +206,7 @@ function MoneyRequestConfirmationList({
     const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     useEffect(() => {
-        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest || !transactionID || !policy?.id) {
+        if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
         }
 
@@ -302,7 +302,12 @@ function MoneyRequestConfirmationList({
             return true;
         }
 
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+        if (
+            !participant.isInvoiceRoom &&
+            !participant.isPolicyExpenseChat &&
+            !participant.isSelfDM &&
+            ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? CONST.DEFAULT_NUMBER_ID)
+        ) {
             return true;
         }
 
@@ -348,7 +353,7 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
 
         // If it's a split request among individuals, set the split shares
-        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -1);
+        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
@@ -375,7 +380,7 @@ function MoneyRequestConfirmationList({
         if (isDistanceRequest) {
             if (customUnitRateID) {
                 const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-                taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
+                taxCode = customUnitRate?.attributes?.taxRateExternalID;
                 taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
             }
         } else {
@@ -387,7 +392,7 @@ function MoneyRequestConfirmationList({
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
             const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
             const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-            IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
     }, [
         policy,
@@ -533,7 +538,7 @@ function MoneyRequestConfirmationList({
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -546,7 +551,7 @@ function MoneyRequestConfirmationList({
                     containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length}
                     contentWidth={formattedTotalAmount.length * 8}
                 />
@@ -736,7 +741,7 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (routeError || !transactionID) {
+            if (!!routeError || !transactionID) {
                 return;
             }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
