@@ -902,12 +902,6 @@ const CONST = {
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: `${EXPENSIFY_URL}/terms`,
-    PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
-    LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
-    WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
-    BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
@@ -952,7 +946,14 @@ const CONST = {
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
-
+    OLD_DOT_PUBLIC_URLS: {
+        TERMS_URL: `${EXPENSIFY_URL}/terms`,
+        PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
+        LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
+        ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
+        WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
+        BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
+    },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
@@ -1052,6 +1053,7 @@ const CONST = {
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
@@ -5980,6 +5982,7 @@ const CONST = {
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
     NEW_EXPENSIFY_PATH: '/New Expensify',
+    RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
     ENVIRONMENT_SUFFIX: {
         DEV: ' Dev',
@@ -6105,6 +6108,33 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+        },
+        SEARCH_USER_FRIENDLY_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
+            SORT_BY: 'sort-by',
+            SORT_ORDER: 'sort-order',
+            POLICY_ID: 'workspace',
+            DATE: 'date',
+            AMOUNT: 'amount',
+            EXPENSE_TYPE: 'expense-type',
+            CURRENCY: 'currency',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TAX_RATE: 'tax-rate',
+            CARD_ID: 'card',
+            REPORT_ID: 'reportid',
+            KEYWORD: 'keyword',
+            IN: 'in',
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
+            PAID: 'paid',
+            EXPORTED: 'exported',
+            POSTED: 'posted',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
@@ -6414,6 +6444,10 @@ const CONST = {
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         QUICK_ACTION_BUTTON: 'quickActionButton',
         WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
+        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
+        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
+        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
     },
 } as const;
 
