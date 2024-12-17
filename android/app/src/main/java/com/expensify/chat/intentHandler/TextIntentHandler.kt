@@ -3,17 +3,14 @@ package com.expensify.chat.intentHandler
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import com.expensify.chat.utils.FileUtils
 
 
 class TextIntentHandler(private val context: Context) : AbstractIntentHandler() {
     override fun handle(intent: Intent): Boolean {
-        Log.i("TextIntentHandler", intent.toString())
         super.clearTemporaryFiles(context)
         when(intent.action) {
             Intent.ACTION_SEND -> {
-                Log.i("TextIntentHandler", Intent.ACTION_SEND)
                 handleTextIntent(intent, context)
                 onCompleted()
                 return true
@@ -47,9 +44,6 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
 
     private fun handleTextFileIntent(intent: Intent, context: Context) {
         (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            Log.i("TextIntentHandler", "handleTextFileIntent uri: $fileUri")
-
-            // Update UI to reflect image being shared
             if (fileUri == null) {
                 return
             }
@@ -68,9 +62,6 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
 
     private fun handleTextPlainIntent(intent: Intent, context: Context) {
             var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
-            Log.i("TextIntentHandler", "handleTextPlainIntent content: $intentTextContent")
-
-
             if(intentTextContent != null) {
                 val shareFileObject = ShareFileObject(intentTextContent, intent.type)
 

@@ -100,7 +100,6 @@ object FileUtils {
             val imageFile: File = createTemporaryFile(uri, context)
             saveFileFromProviderUri(uri, imageFile, context)
             resultingPath = imageFile.absolutePath
-            Log.i(tag, "save image$resultingPath")
 
         } catch (ex: IOException) {
             Log.e(tag, "Couldn't save image from intent", ex)
