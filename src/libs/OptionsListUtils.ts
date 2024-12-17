@@ -1209,6 +1209,12 @@ function getValidOptions(
         return true;
     });
 
+    let workspaceChats: ReportUtils.OptionData[] = [];
+
+    if (shouldSeparateWorkspaceChat) {
+        workspaceChats = allReportOptions.filter((option) => option.isPolicyExpenseChat);
+    }
+
     const allPersonalDetailsOptions = includeP2P
         ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
         : [];
@@ -1319,11 +1325,9 @@ function getValidOptions(
     }
 
     const currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
-    let workspaceChats: ReportUtils.OptionData[] = [];
     let selfDMChat: ReportUtils.OptionData | undefined;
 
     if (shouldSeparateWorkspaceChat) {
-        workspaceChats = recentReportOptions.filter((option) => option.isPolicyExpenseChat);
         recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
     }
     if (shouldSeparateSelfDMChat) {
