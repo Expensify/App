@@ -17,6 +17,7 @@ module.exports = {
                 message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
             },
         ],
+        'rulesdir/no-default-id-values': 'error',
     },
     overrides: [
         {
