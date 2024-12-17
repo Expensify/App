@@ -95,7 +95,6 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
 function init(args: Args, params?: unknown): Promise<void> {
     return new Promise<void>((resolve) => {
         if (socket) {
-            resolveInitPromise();
             resolve();
             return;
         }
@@ -135,7 +134,6 @@ function init(args: Args, params?: unknown): Promise<void> {
         socket?.connection.bind('connected', () => {
             pusherSocketID = socket?.connection.socket_id ?? '';
             callSocketEventCallbacks('connected');
-            resolveInitPromise();
             resolve();
         });
 
@@ -146,7 +144,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         socket?.connection.bind('state_change', (states: States) => {
             callSocketEventCallbacks('state_change', states);
         });
-    });
+    }).then(resolveInitPromise);
 }
 
 /**
