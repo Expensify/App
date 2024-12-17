@@ -1,4 +1,5 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
