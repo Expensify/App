@@ -126,7 +126,7 @@ function IOURequestStepWaypoint({
         const quantityInt = parseInt(quantityValue, 10);
         const name = validOptions.find(({value}) => value === subrateValue)?.label ?? '';
 
-        if (quantityInt === filledSubrateCount) {
+        if (parsedIndex === filledSubrateCount) {
             Transaction.addSubrate(transaction, pageIndex, quantityInt, subrateValue, name);
         } else {
             Transaction.updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name);
