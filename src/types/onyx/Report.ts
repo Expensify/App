@@ -148,9 +148,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
-        /** Translation key of the last message in the report */
-        lastMessageTranslationKey?: string;
-
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 
