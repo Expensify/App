@@ -1778,6 +1778,34 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
     });
 }
 
+function filterSelfDMChat(report: ReportUtils.OptionData, searchTerms: string[]): ReportUtils.OptionData | undefined {
+    const isMatch = searchTerms.every((term) => {
+        const values: string[] = [];
+
+        if (report.text) {
+            values.push(report.text);
+        }
+        if (report.login) {
+            values.push(report.login);
+            values.push(report.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
+        }
+        if (report.isThread) {
+            if (report.alternateText) {
+                values.push(report.alternateText);
+            }
+        } else if (!!report.isChatRoom || !!report.isPolicyExpenseChat) {
+            if (report.subtitle) {
+                values.push(report.subtitle);
+            }
+        }
+
+        // Remove duplicate values and check if the term matches any value
+        return uniqFast(values).some((value) => value.includes(term));
+    });
+
+    return isMatch ? report : undefined;
+}
+
 function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
@@ -1797,12 +1825,15 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
+    const selfDMChat = options.selfDMChat ? filterSelfDMChat(options.selfDMChat, searchTerms) : undefined;
+
     return {
         personalDetails,
         recentReports,
         userToInvite,
         currentUserOption,
         workspaceChats,
+        selfDMChat,
     };
 }
 
@@ -1850,7 +1881,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         userToInvite: filterResult.userToInvite,
         currentUserOption: filterResult.currentUserOption,
         workspaceChats: filteredWorkspaceChats,
-        selfDMChat: options.selfDMChat,
+        selfDMChat: filterResult.selfDMChat,
     };
 }
 

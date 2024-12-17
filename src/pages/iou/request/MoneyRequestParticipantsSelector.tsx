@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -204,7 +205,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         }
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
+            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
             participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
@@ -341,6 +342,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         sections.forEach((section) => {
             length += section.data.length;
         });
+
         return length;
     }, [areOptionsInitialized, sections]);
 
