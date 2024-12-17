@@ -81,6 +81,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -164,7 +165,7 @@ type PureReportActionItemProps = {
     parentReport?: OnyxTypes.Report;
 
     /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
+    personalDetails?: OnyxTypes.PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
 
     /** Whether or not the user is blocked from concierge */
     blockedFromConcierge?: OnyxTypes.BlockedFromConcierge;
@@ -999,6 +1000,7 @@ function PureReportActionItem({
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
                         !ReportActionsUtils.isPendingRemove(action)
                     }
+                    personalDetails={personalDetails}
                 >
                     {content}
                 </ReportActionItemSingle>

@@ -28,10 +28,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import type * as OnyxTypes from '@src/types/onyx';
+import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
+import { Status } from '@src/types/onyx/PersonalDetails';
+import { AvatarSource } from '@libs/UserUtils';
+
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -57,6 +62,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** Personal details list */
+    personalDetails?: OnyxTypes.PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -77,12 +85,12 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    personalDetails,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
@@ -91,7 +99,14 @@ function ReportActionItemSingle({
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? -1] ?? {};
+    const {avatar, login} = personalDetails?.[actorAccountID ?? -1] ?? {};
+    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ actorAccountID:", actorAccountID)
+    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ personalDetails:", personalDetails)
+    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ avatar:", avatar)
+    const pendingFields = personalDetails && 'pendingFields' in personalDetails ? personalDetails.pendingFields : undefined;
+    const status = personalDetails && 'status' in personalDetails ? personalDetails.status : undefined;
+    const fallbackIcon = personalDetails && 'fallbackIcon' in personalDetails && personalDetails.fallbackIcon !== null ? personalDetails.fallbackIcon : undefined;
+
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -237,17 +252,18 @@ function ReportActionItemSingle({
                         type={icon.type}
                         name={icon.name}
                         avatarID={icon.id}
-                        fallbackIcon={fallbackIcon}
+                        fallbackIcon={fallbackIcon as AvatarSource}
                     />
                 </View>
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
-    const statusText = status?.text ?? '';
+    const hasEmojiStatus = !displayAllActors && status && 'emojiCode' in status && status?.emojiCode;
+    const statusClearAfter = status && 'clearAfter' in status ? (String(status?.clearAfter) ?? '') : '';
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
+    const statusText = status && 'text' in status ? String(status?.text) ?? '' : '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-
+    // const pendingFieldsAvatar = pendingFields && 'avatar' in pendingFields ? pendingFields?.avatar ?? undefined : undefined;
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -259,7 +275,7 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar as PendingAction | undefined}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (

@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
+import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -76,11 +77,18 @@ function ChatListItem<TItem extends ListItem>({
         styles.mh0,
         item.cursorStyle,
     ];
+
+    const personalDetails: Record<string, SearchPersonalDetails | null> = {
+        [from.accountID]: from,
+    }
+
     return (
         <BaseListItem
             item={item}
             pressableStyle={pressableStyle}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+            wrapperStyle={[
+                // styles.flexRow, 
+                styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
@@ -109,6 +117,7 @@ function ChatListItem<TItem extends ListItem>({
                     shouldDisplayNewMarker={false}
                     index={item.index ?? 0}
                     isFirstVisibleReportAction={false}
+                    personalDetails={personalDetails}
                 />
 
                 // <MentionReportContext.Provider value={mentionReportContextValue}>
