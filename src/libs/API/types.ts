@@ -441,9 +441,8 @@ const WRITE_COMMANDS = {
     UPDATE_INVOICE_COMPANY_WEBSITE: 'UpdateInvoiceCompanyWebsite',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
-    GET_VALIDATE_CODE_FOR_ACCOINT_MERGE: 'GetValidateCodeForAccountMerge',
+    GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',
     MERGE_WITH_VALIDATE_CODE: 'MergeWithValidateCode',
-    ACCEPT_MERGE_ACCOUNT_REQUEST: 'AcceptMergeAccountRequest',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -900,9 +899,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
 
     // Merge accounts API
-    [WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOINT_MERGE]: Parameters.GetValidateCodeForAccountMergeParams;
+    [WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE]: Parameters.GetValidateCodeForAccountMergeParams;
     [WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE]: Parameters.MergeWithValidateCodeParams;
-    [WRITE_COMMANDS.ACCEPT_MERGE_ACCOUNT_REQUEST]: Parameters.AcceptMergeAccountRequestParams;
 };
 
 const READ_COMMANDS = {

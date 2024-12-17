@@ -1283,6 +1283,13 @@ const translations = {
     },
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
+        accountDetails: {
+            accountToMergeInto: (email: string) => `Enter the account you want to merge into ${email}.`,
+            notReversibleConsent: 'I understand this is not reversible.',
+        },
+        requestValidationCodeForAccountMerge: {
+            genericError: '',
+        },
     },
     passwordPage: {
         changePassword: 'Change password',

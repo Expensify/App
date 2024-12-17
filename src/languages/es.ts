@@ -1282,6 +1282,9 @@ const translations = {
     },
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
+        requestValidationCodeForAccountMerge: {
+            genericError: '',
+        },
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
