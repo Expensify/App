@@ -399,14 +399,16 @@ describe('NetworkTests', () => {
     test('poor connection simulation', async () => {
         const logSpy = jest.spyOn(Log, 'info');
 
+        // Given an opened test tool menu
         render(<TestToolMenu />);
-
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
 
+        // When the connection simulation is turned on
         NetworkActions.setShouldSimulatePoorConnection(true, undefined);
         await waitForBatchedUpdates();
 
+        // Then the connection status change log should be displayed as well as Force offline/Simulate failing network requests toggles should be disabled
         expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
         expect(screen.getByAccessibilityHint('Force offline')).toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).toBeDisabled();
@@ -415,10 +417,14 @@ describe('NetworkTests', () => {
     test('connection changes tracking', async () => {
         const logSpy = jest.spyOn(Log, 'info');
 
+        // Given tracked connection changes started at least an hour ago
         Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: 5, startTime: dateSubtract(new Date(), {hours: 1}).getTime()}});
         await waitForBatchedUpdates();
+
+        // When the connection is changed one more time
         NetworkConnection.setOfflineStatus(true);
 
+        // Then the log with information about connection changes since the start time should be shown
         expect(logSpy).toHaveBeenCalledWith('[NetworkConnection] Connection has changed 6 time(s) for the last 1 hour(s). Poor connection simulation is turned off');
     });
 });
