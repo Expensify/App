@@ -32,11 +32,11 @@ import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 import type {PaymentData, SearchQueryJSON} from './types';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; isFocused: boolean};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, isFocused}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -58,11 +58,8 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const isFocused = useIsFocused();
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isFocused,
-    );
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     const {status, hash} = queryJSON;
 
@@ -289,6 +286,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         lastPaymentMethods,
     ]);
 
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isFocused && !isModalVisible && !!queryJSON && headerButtonsOptions.length === 0,
+    );
+
     if (shouldUseNarrowLayout) {
         if (selectionMode?.isEnabled) {
             return (
@@ -334,6 +336,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     }
 
     const onFiltersButtonPress = () => {
+        hideProductTrainingTooltip();
         const filterFormValues = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
         SearchActions.updateAdvancedFilters(filterFormValues);
 
@@ -362,11 +365,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         }}
-                        shouldUseOverlay
                         shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                         wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
-                        onHideTooltip={hideProductTrainingTooltip}
                     >
                         <Button
                             innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}

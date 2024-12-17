@@ -208,8 +208,6 @@ const RootStack = createResponsiveStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        // Since we don't cancel the tooltip in setModalVisibility, we need to do it here so it will be cancelled when a modal screen is shown.
-        TooltipManager.cancelPendingAndActiveTooltips();
         Modal.setModalVisibility(true);
     },
     blur: () => {

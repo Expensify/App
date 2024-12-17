@@ -340,9 +340,6 @@ type MenuItemBaseProps = {
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
-
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
 
@@ -458,7 +455,6 @@ function MenuItem(
         renderTooltipContent,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
     }: MenuItemProps,
@@ -596,8 +592,6 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
             >
                 <View>
                     <Hoverable>

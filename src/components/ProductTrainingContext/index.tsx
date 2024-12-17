@@ -39,6 +39,9 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
+    useEffect(() => {
+        console.log('activeTooltips', activeTooltips);
+    }, [activeTooltips]);
     const unregisterTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             setActiveTooltips((prev) => {
@@ -156,11 +159,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     useEffect(() => {
         if (shouldShow) {
             registerTooltip(tooltipName);
-            return () => {
-                unregisterTooltip(tooltipName);
-            };
         }
-        return () => {};
+        return () => {
+            unregisterTooltip(tooltipName);
+        };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
     const renderProductTrainingTooltip = useCallback(() => {
@@ -209,10 +211,13 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName]);
 
     const hideProductTrainingTooltip = useCallback(() => {
+        if (!shouldShowProductTrainingTooltip) {
+            return;
+        }
         const tooltip = TOOLTIPS[tooltipName];
         tooltip.onHideTooltip();
         unregisterTooltip(tooltipName);
-    }, [tooltipName, unregisterTooltip]);
+    }, [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip]);
 
     return {
         renderProductTrainingTooltip,

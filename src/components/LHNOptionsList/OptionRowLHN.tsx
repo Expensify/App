@@ -1,5 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -44,6 +44,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const StyleUtils = useStyleUtils();
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
@@ -54,12 +56,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
 
-    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
-        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+    const tooltipToRender = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return {tooltipToRender: tooltip, shouldShowTooltip: shouldUseNarrowLayout ? isScreenFocused : true};
-    }, [shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout]);
+    const isFocusedHookResult = useIsFocused();
+
+    const shouldShowTooltip = shouldUseNarrowLayout ? isScreenFocused && !isModalVisible && isFocusedHookResult : !isModalVisible && isFocusedHookResult;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
     const {translate} = useLocalize();
@@ -165,10 +166,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     horizontal: isActiveWorkspaceChat ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shouldUseOverlay
                 shiftHorizontal={isActiveWorkspaceChat ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
                 shiftVertical={isActiveWorkspaceChat ? 0 : variables.composerTooltipShiftVertical}
-                onHideTooltip={hideProductTrainingTooltip}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
             >
                 <View>
@@ -183,6 +182,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     event?.preventDefault();
                                     // Enable Composer to focus on clicking the same chat after opening the context menu.
                                     ReportActionComposeFocusManager.focus();
+                                    hideProductTrainingTooltip();
                                     onSelectRow(optionItem, popoverAnchor);
                                 }}
                                 onMouseDown={(event) => {

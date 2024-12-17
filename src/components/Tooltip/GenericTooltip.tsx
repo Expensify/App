@@ -34,7 +34,6 @@ function GenericTooltip({
     },
     shouldForceAnimate = false,
     shouldUseOverlay: shouldUseOverlayProp = false,
-    onHideTooltip = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -150,8 +149,7 @@ function GenericTooltip({
         }
         setShouldUseOverlay(false);
         hideTooltip();
-        onHideTooltip();
-    }, [shouldUseOverlay, onHideTooltip, hideTooltip]);
+    }, [shouldUseOverlay, hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {

@@ -98,6 +98,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (selectedTab === SCREENS.HOME) {
             return;
         }
+        hideProductTrainingTooltip();
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/${ROUTES.HOME}` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
     }, [activeWorkspaceID, selectedTab]);
@@ -153,10 +154,8 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
-                    shouldUseOverlay
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
-                    onHideTooltip={hideProductTrainingTooltip}
                 >
                     <PressableWithFeedback
                         onPress={navigateToChats}

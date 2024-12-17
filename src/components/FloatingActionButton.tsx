@@ -105,6 +105,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
     );
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        hideProductTrainingTooltip();
         // Drop focus to avoid blue focus ring.
         fabPressable.current?.blur();
         onPress(event);
@@ -117,11 +118,9 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shouldUseOverlay
             shiftHorizontal={isNarrowScreenOnWeb ? 0 : variables.fabTooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
-            onHideTooltip={hideProductTrainingTooltip}
         >
             <PressableWithoutFeedback
                 ref={(el) => {
