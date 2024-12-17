@@ -61,9 +61,9 @@ function DebugTransactionPage({
         [styles.mb5, styles.mh5, transaction, transactionID, translate],
     );
 
-    const DebugJSONTab = useCallback(() => <DebugJSON data={transaction ?? {}} />, []);
+    const DebugJSONTab = useCallback(() => <DebugJSON data={transaction ?? {}} />, [transaction]);
 
-    const DebugTransactionViolationsTab = useCallback(() => <DebugTransactionViolations transactionID={transactionID} />, []);
+    const DebugTransactionViolationsTab = useCallback(() => <DebugTransactionViolations transactionID={transactionID} />, [transactionID]);
 
     const routes = useMemo<DebugTabNavigatorRoutes>(
         () => [
