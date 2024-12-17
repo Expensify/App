@@ -46,7 +46,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const isActiveWorkspaceChat = ReportUtils.isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && activePolicyID === report?.policyID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
