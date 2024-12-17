@@ -82,7 +82,6 @@ function ConfirmationPage({
                         success
                         large
                         text={buttonText}
-                        testID="confirmation-button"
                         style={styles.mt6}
                         pressOnEnter
                         onPress={onButtonPress}
