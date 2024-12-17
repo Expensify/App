@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -25,11 +25,13 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as FormActions from '@userActions/FormActions';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import DISPLAY_NAME_FORM_INPUT_IDS from '@src/types/form/DisplayNameForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function ProfilePage() {
@@ -66,7 +68,13 @@ function ProfilePage() {
         {
             description: translate('displayNamePage.headerTitle'),
             title: currentUserPersonalDetails?.displayName ?? '',
-            pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            action: () => {
+                FormActions.setDraftValues(ONYXKEYS.FORMS.DISPLAY_NAME_FORM, {
+                    [DISPLAY_NAME_FORM_INPUT_IDS.FIRST_NAME]: currentUserPersonalDetails.firstName ?? '',
+                    [DISPLAY_NAME_FORM_INPUT_IDS.LAST_NAME]: currentUserPersonalDetails.lastName ?? '',
+                });
+                InteractionManager.runAfterInteractions(() => Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME));
+            },
         },
         {
             description: translate('contacts.contactMethod'),
@@ -201,7 +209,7 @@ function ProfilePage() {
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    onPress={() => detail.action?.() ?? Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
