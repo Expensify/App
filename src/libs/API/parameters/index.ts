@@ -347,10 +347,12 @@ export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectP
 export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCompanyNameParams';
 export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
+export type {default as ValidateUserAndGetAccessiblePoliciesParams} from './ValidateUserAndGetAccessiblePoliciesParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
 export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
+export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
