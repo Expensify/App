@@ -39,11 +39,3 @@ interface NodeRequire {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
     <T = any>(id: string): T;
 }
-
-// declare namespace NodeJS {
-//     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-//     interface ProcessEnv {
-//         readonly NODE_ENV: undefined;
-//         readonly AAA: string | undefined;
-//     }
-// }
