@@ -39,6 +39,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={NetSuiteAutoSyncPage.displayName}
+                offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}

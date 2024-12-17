@@ -1,20 +1,20 @@
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -24,8 +24,8 @@ import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTr
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
+import ModalContext from './Modal/ModalContext';
 import OfflineIndicator from './OfflineIndicator';
-import SafeAreaConsumer from './SafeAreaConsumer';
 import withNavigationFallback from './withNavigationFallback';
 
 type ScreenWrapperChildrenProps = {
@@ -96,7 +96,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<AuthScreensParamList>;
+    navigation?: PlatformStackNavigationProp<RootStackParamList> | PlatformStackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -105,7 +105,11 @@ type ScreenWrapperProps = {
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 };
 
-type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
+type ScreenWrapperStatusContextType = {
+    didScreenTransitionEnd: boolean;
+    isSafeAreaTopPaddingApplied: boolean;
+    isSafeAreaBottomPaddingApplied: boolean;
+};
 
 const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
 
@@ -141,28 +145,23 @@ function ScreenWrapper(
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
      */
-    const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const navigationFallback = useNavigation<PlatformStackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
+    // since Modals are drawn in separate native view hierarchy we should always add paddings
+    const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
-
-    const isKeyboardShownRef = useRef<boolean>(false);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
@@ -184,7 +183,7 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
@@ -214,7 +213,7 @@ function ScreenWrapper(
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
             ? navigation.addListener('beforeRemove', () => {
-                  if (!isKeyboardShownRef.current) {
+                  if (!Keyboard.isVisible()) {
                       return;
                   }
                   Keyboard.dismiss();
@@ -233,96 +232,92 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
+    const paddingStyle: StyleProp<ViewStyle> = {};
+
+    const isSafeAreaTopPaddingApplied = includePaddingTop;
+    if (includePaddingTop) {
+        paddingStyle.paddingTop = paddingTop;
+    }
+    if (includePaddingTop && ignoreInsetsConsumption) {
+        paddingStyle.paddingTop = unmodifiedPaddings.top;
+    }
+
+    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+    const isSafeAreaBottomPaddingApplied = includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator);
+    if (isSafeAreaBottomPaddingApplied) {
+        paddingStyle.paddingBottom = paddingBottom;
+    }
+    if (isSafeAreaBottomPaddingApplied && ignoreInsetsConsumption) {
+        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
+    }
+
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
-    const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
+    const contextValue = useMemo(
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied}),
+        [didScreenTransitionEnd, isSafeAreaBottomPaddingApplied, isSafeAreaTopPaddingApplied],
+    );
 
     return (
-        <SafeAreaConsumer>
-            {({
-                insets = {
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                },
-                paddingTop,
-                paddingBottom,
-                safeAreaPaddingBottomStyle,
-            }) => {
-                const paddingStyle: StyleProp<ViewStyle> = {};
-
-                if (includePaddingTop) {
-                    paddingStyle.paddingTop = paddingTop;
-                }
-
-                // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
-                    paddingStyle.paddingBottom = paddingBottom;
-                }
-
-                return (
-                    <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
-                        <View
-                            ref={ref}
-                            style={[styles.flex1, {minHeight}]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...panResponder.panHandlers}
-                            testID={testID}
+        <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
+            <View
+                ref={ref}
+                style={[styles.flex1, {minHeight}]}
+                // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
+                {...panResponder.panHandlers}
+                testID={testID}
+            >
+                <View
+                    fsClass="fs-unmask"
+                    style={[styles.flex1, paddingStyle, style]}
+                    // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
+                    {...keyboardDismissPanResponder.panHandlers}
+                >
+                    <KeyboardAvoidingView
+                        style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
+                        behavior={keyboardAvoidingViewBehavior}
+                        enabled={shouldEnableKeyboardAvoidingView}
+                    >
+                        <PickerAvoidingView
+                            style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
+                            enabled={shouldEnablePickerAvoiding}
                         >
-                            <View
-                                fsClass="fs-unmask"
-                                style={[styles.flex1, paddingStyle, style]}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...keyboardDismissPanResponder.panHandlers}
-                            >
-                                <KeyboardAvoidingView
-                                    style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
-                                    behavior={keyboardAvoidingViewBehavior}
-                                    enabled={shouldEnableKeyboardAvoidingView}
-                                >
-                                    <PickerAvoidingView
-                                        style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
-                                        enabled={shouldEnablePickerAvoiding}
-                                    >
-                                        <HeaderGap styles={headerGapStyles} />
-                                        {isDevelopment && <CustomDevMenu />}
-                                        <ScreenWrapperStatusContext.Provider value={contextValue}>
-                                            {
-                                                // If props.children is a function, call it to provide the insets to the children.
-                                                typeof children === 'function'
-                                                    ? children({
-                                                          insets,
-                                                          safeAreaPaddingBottomStyle,
-                                                          didScreenTransitionEnd,
-                                                      })
-                                                    : children
-                                            }
-                                            {isSmallScreenWidth && shouldShowOfflineIndicator && (
-                                                <>
-                                                    <OfflineIndicator style={offlineIndicatorStyle} />
-                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
-                                                    <ImportedStateIndicator />
-                                                </>
-                                            )}
-                                            {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
-                                                <>
-                                                    <OfflineIndicator
-                                                        containerStyles={[]}
-                                                        style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                                    />
-                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
-                                                    <ImportedStateIndicator />
-                                                </>
-                                            )}
-                                        </ScreenWrapperStatusContext.Provider>
-                                    </PickerAvoidingView>
-                                </KeyboardAvoidingView>
-                            </View>
-                        </View>
-                    </FocusTrapForScreens>
-                );
-            }}
-        </SafeAreaConsumer>
+                            <HeaderGap styles={headerGapStyles} />
+                            {isDevelopment && <CustomDevMenu />}
+                            <ScreenWrapperStatusContext.Provider value={contextValue}>
+                                {
+                                    // If props.children is a function, call it to provide the insets to the children.
+                                    typeof children === 'function'
+                                        ? children({
+                                              insets,
+                                              safeAreaPaddingBottomStyle,
+                                              didScreenTransitionEnd,
+                                          })
+                                        : children
+                                }
+                                {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                    <>
+                                        <OfflineIndicator style={offlineIndicatorStyle} />
+                                        {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                        <ImportedStateIndicator />
+                                    </>
+                                )}
+                                {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
+                                    <>
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                        />
+                                        {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                        <ImportedStateIndicator />
+                                    </>
+                                )}
+                            </ScreenWrapperStatusContext.Provider>
+                        </PickerAvoidingView>
+                    </KeyboardAvoidingView>
+                </View>
+            </View>
+        </FocusTrapForScreens>
     );
 }
 

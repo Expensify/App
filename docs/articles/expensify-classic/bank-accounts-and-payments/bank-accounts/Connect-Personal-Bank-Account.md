@@ -10,7 +10,7 @@ To connect a deposit-only account,
 
 1. Hover over **Settings**, then click **Account**.
 2. Click the **Payments** tab on the left.
-3. Click **Add Deposit-Only Bank Account**, then click **Connect to your bank**. 
+3. Click **Add Deposit-Only Bank Account**, then click **Connect to your bank**.
 4. Click **Continue**.
 5. Search for your bank account in the list of banks and follow the prompts to sign in to your bank account.
    - If your bank doesn’t appear, click the X in the right corner of the Plaid pop-up window, then click **Connect Manually**. You’ll then manually enter your account information and click **Save & Continue**. 
@@ -18,6 +18,10 @@ To connect a deposit-only account,
 7. Enter the name, address, and phone number associated with the account. Then click **Save & Continue**.
 
 You’ll now receive reimbursements for your expense reports and invoices directly to this bank account.
+
+{% include info.html %}
+If your organization has global reimbursement enabled and you want to add a bank account outside of the US, you can do so by following the steps above. However, after clicking on **Add Deposit-Only Bank Account**, look for a button that says **Switch Country**. This will allow you to add a deposit account from a supported country and receive reimbursements in your local currency.
+{% include end-info.html %}
 
 {% include faq-begin.md %}
 

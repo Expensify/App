@@ -1,8 +1,6 @@
-import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
+import type {ReactElement} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import useIsWindowHeightReducedByKeyboard from '@hooks/useIsWindowHeightReducedByKeyboard';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
@@ -11,9 +9,6 @@ type KeyboardStateContextValue = {
 
     /** Height of the keyboard in pixels */
     keyboardHeight: number;
-
-    /** Whether window height is smaller than usual due to the keyboard being open */
-    isWindowHeightReducedByKeyboard?: boolean;
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
@@ -23,7 +18,6 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue>({
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
-    const isWindowHeightReducedByKeyboard = useIsWindowHeightReducedByKeyboard();
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
@@ -43,33 +37,10 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         () => ({
             keyboardHeight,
             isKeyboardShown: keyboardHeight !== 0,
-            isWindowHeightReducedByKeyboard,
         }),
-        [keyboardHeight, isWindowHeightReducedByKeyboard],
+        [keyboardHeight],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
-}
-
-export default function withKeyboardState<TProps extends KeyboardStateContextValue, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof KeyboardStateContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithKeyboardState(props: Omit<TProps, keyof KeyboardStateContextValue>, ref: ForwardedRef<TRef>) {
-        return (
-            <KeyboardStateContext.Consumer>
-                {(keyboardStateProps) => (
-                    <WrappedComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...keyboardStateProps}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(props as TProps)}
-                        ref={ref}
-                    />
-                )}
-            </KeyboardStateContext.Consumer>
-        );
-    }
-    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
-    return forwardRef(WithKeyboardState);
 }
 
 export type {KeyboardStateContextValue};

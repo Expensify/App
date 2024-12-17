@@ -220,6 +220,8 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
         });
     }, []);
 
+    const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
+
     return (
         <>
             <View
@@ -305,10 +307,16 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
+                                            <AppleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                         <View>
-                                            <GoogleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
+                                            <GoogleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                     </View>
                                 </View>
