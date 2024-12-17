@@ -1,12 +1,11 @@
 import React, {useState} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
-import {KEYS_TO_PRESERVE, setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
+import {KEYS_TO_PRESERVE, setIsUsingImportedState} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
@@ -46,9 +45,8 @@ function applyStateInChunks(state: OnyxValues) {
     return promise;
 }
 
-export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
+export default function ImportOnyxState({setIsLoading, isLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -59,8 +57,6 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
         readOnyxFile(file.uri)
             .then((fileContent: string) => {
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
-                const currentUserSessionCopy = {...session};
-                setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
                 Onyx.clear(KEYS_TO_PRESERVE).then(() => {
                     applyStateInChunks(transformedState).then(() => {
@@ -71,7 +67,14 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .catch(() => {
                 setIsErrorModalVisible(true);
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
+
+        if (isLoading) {
+            setIsLoading(false);
+        }
     };
 
     return (
