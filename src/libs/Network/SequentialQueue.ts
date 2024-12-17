@@ -136,7 +136,7 @@ function process(): Promise<void> {
     return currentRequestPromise;
 }
 
-function flush() {
+function flush(shouldResetPromise = true) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
@@ -162,10 +162,12 @@ function flush() {
 
     isSequentialQueueRunning = true;
 
-    // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
-    isReadyPromise = new Promise((resolve) => {
-        resolveIsReadyPromise = resolve;
-    });
+    if (shouldResetPromise) {
+        // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
+        isReadyPromise = new Promise((resolve) => {
+            resolveIsReadyPromise = resolve;
+        });
+    }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
     const connection = Onyx.connect({
@@ -204,7 +206,7 @@ function unpause() {
     const numberOfPersistedRequests = getAllPersistedRequests().length || 0;
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
-    flush();
+    flush(false);
 }
 
 function isRunning(): boolean {
@@ -260,7 +262,7 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(flush);
+        isReadyPromise.then(() => flush());
         return;
     }
 
