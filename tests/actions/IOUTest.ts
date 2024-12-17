@@ -3307,6 +3307,7 @@ describe('actions/IOU', () => {
 
     describe('setMoneyRequestCategory', () => {
         it('should set the associated tax for the category based on the tax expense rules', async () => {
+            // Given a policy with tax expense rules associated with category
             const transactionID = '1';
             const category = 'Advertising';
             const policyID = '2';
@@ -3324,10 +3325,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+            // When setting the money request category
             IOU.setMoneyRequestCategory(transactionID, category, policyID);
 
             await waitForBatchedUpdates();
 
+            // Then the transaction tax rate and amount should be updated based on the expense rules
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
@@ -3342,6 +3345,7 @@ describe('actions/IOU', () => {
         });
 
         it('should not change the tax if there are no tax expense rules', async () => {
+            // Given a policy without tax expense rules
             const transactionID = '1';
             const category = 'Advertising';
             const policyID = '2';
@@ -3359,10 +3363,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+            // When setting the money request category
             IOU.setMoneyRequestCategory(transactionID, category, policyID);
 
             await waitForBatchedUpdates();
 
+            // Then the transaction tax rate and amount shouldn't be updated
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
@@ -3377,6 +3383,7 @@ describe('actions/IOU', () => {
         });
 
         it('should clear the tax when the policyID is empty', async () => {
+            // Given a transaction with a tax
             const transactionID = '1';
             const taxCode = 'id_TAX_EXEMPT';
             const taxAmount = 0;
@@ -3385,9 +3392,12 @@ describe('actions/IOU', () => {
                 taxAmount,
                 amount: 100,
             });
+
+            // When setting the money request category without a policyID
             IOU.setMoneyRequestCategory(transactionID, '');
             await waitForBatchedUpdates();
 
+            // Then the transaction tax should be cleared
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
@@ -3404,6 +3414,7 @@ describe('actions/IOU', () => {
 
     describe('updateMoneyRequestCategory', () => {
         it('should update the tax when there are tax expense rules', async () => {
+            // Given a policy with tax expense rules associated with category
             const transactionID = '1';
             const policyID = '2';
             const category = 'Advertising';
@@ -3421,10 +3432,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+            // When updating a money request category
             IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
 
             await waitForBatchedUpdates();
 
+            // Then the transaction tax rate and amount should be updated based on the expense rules
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3439,6 +3452,7 @@ describe('actions/IOU', () => {
         });
 
         it('should not update the tax when there are no tax expense rules', async () => {
+            // Given a policy without tax expense rules
             const transactionID = '1';
             const policyID = '2';
             const category = 'Advertising';
@@ -3450,10 +3464,12 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+            // When updating the money request category
             IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
 
             await waitForBatchedUpdates();
 
+            // Then the transaction tax rate and amount shouldn't be updated
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3470,6 +3486,7 @@ describe('actions/IOU', () => {
 
     describe('setDraftSplitTransaction', () => {
         it('should set the associated tax for the category based on the tax expense rules', async () => {
+            // Given a policy with tax expense rules associated with category
             const transactionID = '1';
             const category = 'Advertising';
             const policyID = '2';
@@ -3487,10 +3504,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+            // When setting a category of a draft split transaction
             IOU.setDraftSplitTransaction(transactionID, {category}, fakePolicy);
 
             await waitForBatchedUpdates();
 
+            // Then the transaction tax rate and amount should be updated based on the expense rules
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
@@ -3506,6 +3525,7 @@ describe('actions/IOU', () => {
 
         describe('should not change the tax', () => {
             it('if there is no tax expense rules', async () => {
+                // Given a policy without tax expense rules
                 const transactionID = '1';
                 const category = 'Advertising';
                 const policyID = '2';
@@ -3523,10 +3543,12 @@ describe('actions/IOU', () => {
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+                // When setting a category of a draft split transaction
                 IOU.setDraftSplitTransaction(transactionID, {category}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
+                // Then the transaction tax rate and amount shouldn't be updated
                 await new Promise<void>((resolve) => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
@@ -3541,6 +3563,7 @@ describe('actions/IOU', () => {
             });
 
             it('if we are not updating category', async () => {
+                // Given a policy with tax expense rules associated with category
                 const transactionID = '1';
                 const category = 'Advertising';
                 const policyID = '2';
@@ -3553,10 +3576,12 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {amount: 100});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
+                // When setting a draft split transaction without category update
                 IOU.setDraftSplitTransaction(transactionID, {}, fakePolicy);
 
                 await waitForBatchedUpdates();
 
+                // Then the transaction tax rate and amount shouldn't be updated
                 await new Promise<void>((resolve) => {
                     const connection = Onyx.connect({
                         key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
