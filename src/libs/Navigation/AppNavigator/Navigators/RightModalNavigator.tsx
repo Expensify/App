@@ -13,6 +13,7 @@ import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSid
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
@@ -53,6 +54,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         }
                         isExecutingRef.current = true;
                         navigation.goBack();
+                        setTimeout(() => {
+                            isExecutingRef.current = false;
+                        }, CONST.ANIMATED_TRANSITION);
                     }}
                 />
             )}
