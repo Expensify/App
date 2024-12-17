@@ -49,7 +49,7 @@ function ReportVirtualCardFraudPage({
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!prevIsLoading || formData?.isLoading) {
+        if (!prevIsLoading/* || formData?.isLoading */) {
             return;
         }
         if (!isEmptyObject(virtualCard?.errors)) {
@@ -110,6 +110,10 @@ function ReportVirtualCardFraudPage({
                     validateError={validateError}
                     clearError={() => {
                         console.log('clearError', virtualCard);
+                        if (!virtualCard) {
+                            return;
+                        }
+
                         Card.clearCardListErrors(virtualCard.cardID);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
