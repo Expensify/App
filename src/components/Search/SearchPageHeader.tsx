@@ -283,7 +283,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         isOffline,
-        activeWorkspaceID,
         selectedReports,
         styles.textWrap,
         lastPaymentMethods,
