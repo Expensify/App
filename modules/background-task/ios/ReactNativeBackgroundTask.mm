@@ -60,6 +60,8 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     
     NSLog(@"[ReactNativeBackgroundTask] Defining task: %@", taskName);
     
+    BOOL allSuccess = YES; 
+
     for (NSString *identifier in backgroundIdentifiers) {
         [[RNBackgroundTaskManager shared] setHandlerForIdentifier:identifier completion:^(BGTask * _Nonnull task) {
             NSLog(@"[ReactNativeBackgroundTask] Executing background task's handler");
@@ -79,11 +81,18 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
 
         if (success) {
             _taskExecutors[taskName] = taskExecutor;
-            resolve(@YES);
         } else {
-            reject(@"error", @"Failed to schedule initial background task", nil);
+            allSuccess = NO;
+            break;  
         }
     }
+
+    if (allSuccess) {
+        resolve(@YES);
+    } else {
+        reject(@"error", @"Failed to schedule initial background task", nil);
+    }
+
         
     _taskExecutors[taskName] = taskExecutor;
 }
