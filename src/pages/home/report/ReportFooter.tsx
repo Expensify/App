@@ -179,7 +179,7 @@ function ReportFooter({
             return;
         }
         setDidHideComposerInput(true);
-    }, [shouldShowComposeInput]);
+    }, [shouldShowComposeInput, didHideComposerInput]);
 
     return (
         <>
