@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -270,6 +271,7 @@ function BaseReportActionContextMenu({
         },
         {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
     );
+    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
         showContextMenu(
