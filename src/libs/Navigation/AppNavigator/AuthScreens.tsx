@@ -407,7 +407,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, []);
 
     const clearStatus = () => {
-        User.clearCustomStatus();
         User.updateDraftCustomStatus({
             text: '',
             emojiCode: '',
@@ -419,7 +418,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         if (!currentUserPersonalDetails.status?.clearAfter) {
             return;
         }
-        if (currentUserPersonalDetails.status?.clearAfter > currentTime) {
+        if (new Date(currentUserPersonalDetails.status?.clearAfter).getTime() > new Date(currentTime).getTime()) {
             const subMilisecondsTime = new Date(currentUserPersonalDetails.status?.clearAfter).getTime() - new Date(currentTime).getTime();
             const timeoutID = setTimeout(() => {
                 clearStatus();
