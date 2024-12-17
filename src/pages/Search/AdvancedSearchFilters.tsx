@@ -437,7 +437,6 @@ function AdvancedSearchFilters() {
     }
 
     const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    console.log('%%%%%\n', 'queryString', queryString);
     const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildDefaultCannedSearchQuery()), [queryString]);
 
     const applyFiltersAndNavigate = () => {
