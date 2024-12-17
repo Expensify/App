@@ -177,14 +177,14 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? '-1'}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? '-1'}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? '-1'}`, {
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? '-1'}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
@@ -202,11 +202,11 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? '-1';
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const transactionID = transaction?.transactionID ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     useEffect(() => {
-        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
+        if ((customUnitRateID && customUnitRateID !== '0') || !isDistanceRequest) {
             return;
         }
 
@@ -296,7 +296,12 @@ function MoneyRequestConfirmationList({
             return true;
         }
 
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+        if (
+            !participant.isInvoiceRoom &&
+            !participant.isPolicyExpenseChat &&
+            !participant.isSelfDM &&
+            ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? CONST.DEFAULT_NUMBER_ID)
+        ) {
             return true;
         }
 
@@ -342,7 +347,7 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
 
         // If it's a split request among individuals, set the split shares
-        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -1);
+        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
@@ -522,7 +527,7 @@ function MoneyRequestConfirmationList({
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -535,7 +540,7 @@ function MoneyRequestConfirmationList({
                     containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length}
                     contentWidth={formattedTotalAmount.length * 8}
                 />
