@@ -8686,7 +8686,6 @@ function resolveDuplicates(params: TransactionMergeParams) {
     });
 
     const iouActionList = getIOUActionForTransactions(params.transactionIDList, params.reportID);
-    const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
         return message?.IOUTransactionID ?? '';
@@ -8697,10 +8696,13 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const reportActionIDList: string[] = [];
     const optimisticHoldTransactionActions: OnyxUpdate[] = [];
     const failureHoldTransactionActions: OnyxUpdate[] = [];
-    transactionThreadReportIDList.forEach((transactionThreadReportID) => {
+    iouActionList.forEach((action) => {
+        const transactionThreadReportID = action?.childReportID;
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID ?? '-1');
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action)
+            ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+            : CONST.DEFAULT_NUMBER_ID;
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
