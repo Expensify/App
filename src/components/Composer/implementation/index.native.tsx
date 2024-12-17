@@ -127,17 +127,6 @@ function Composer(
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
-    /* 
-    There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
-    Workaround for this issue is to maunally focus keyboard after it's acutally rendered.
-    */
-    useEffect(() => {
-        if (!autoFocus || Platform.OS !== 'android') {
-            return;
-        }
-        setTimeout(() => textInput.current?.focus(), 5);
-    }, [autoFocus]);
-
     return (
         <RNMarkdownTextInput
             id={CONST.COMPOSER.NATIVE_ID}
@@ -151,6 +140,10 @@ function Composer(
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
+            // /*
+            // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
+            // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
+            // */
             autoFocus={Platform.OS !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
