@@ -1,5 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -53,6 +55,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const policyID: string = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+    const isAccordionExpanded = useSharedValue(isImportMappingEnable);
 
     // We are storing translation keys in the local state for animation purposes.
     // Otherwise, the values change to undefined immediately after clicking, before the closing animation finishes,
@@ -92,28 +95,29 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 onToggle={(enabled) => {
                     const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
                     updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
+                    isAccordionExpanded.set(enabled);
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
-                subMenuItems={
-                    <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                        <MenuItemWithTopDescription
-                            title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
-                            description={translate('workspace.common.displayedAs')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                            brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
-                        />
-                        <Text
-                            style={[styles.textLabelSupporting, styles.ph5]}
-                            numberOfLines={2}
-                        >
-                            {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                        </Text>
-                    </OfflineWithFeedback>
-                }
             />
+            <Accordion isExpanded={isAccordionExpanded}>
+                <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                        description={translate('workspace.common.displayedAs')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
+                        brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
+                    />
+                    <Text
+                        style={[styles.textLabelSupporting, styles.ph5]}
+                        numberOfLines={2}
+                    >
+                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                    </Text>
+                </OfflineWithFeedback>
+            </Accordion>
         </ConnectionLayout>
     );
 }
