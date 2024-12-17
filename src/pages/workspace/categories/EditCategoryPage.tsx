@@ -49,8 +49,9 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             if (currentCategoryName !== newCategoryName) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
-            
-            Navigation.setNavigationActionToMicrotaskQueue(()=>{
+
+            // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(
                     isQuickSettingsFlow
                         ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
