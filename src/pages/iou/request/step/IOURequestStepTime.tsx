@@ -131,12 +131,6 @@ function IOURequestStepTime({
                         defaultValue={currentDateAttributes?.end}
                     />
                 </View>
-                <InputWrapper
-                    InputComponent={TimeModalPicker}
-                    inputID={INPUT_IDS.END_TIME}
-                    label={translate('iou.endTime')}
-                    defaultValue={currentDateAttributes?.end}
-                />
             </FormProvider>
         </StepScreenWrapper>
     );
