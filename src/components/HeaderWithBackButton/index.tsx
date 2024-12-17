@@ -10,7 +10,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -72,7 +71,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
@@ -155,7 +153,7 @@ function HeaderWithBackButton({
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (isKeyboardShown) {
+                                if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();
                                 }
                                 const topmostReportId = Navigation.getTopmostReportId();
