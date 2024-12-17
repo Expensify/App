@@ -1229,6 +1229,7 @@ const translations = {
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
+            simulatePoorConnection: 'Simulate poor internet connection',
             simulatFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
