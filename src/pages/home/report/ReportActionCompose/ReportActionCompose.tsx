@@ -146,7 +146,7 @@ function ReportActionCompose({
      */
     const [isFocused, setIsFocused] = useState(() => {
         const initialModalState = getModalState();
-        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;    
+        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [shouldHideEducationalTooltip, setShouldHideEducationalTooltip] = useState(false);
 
