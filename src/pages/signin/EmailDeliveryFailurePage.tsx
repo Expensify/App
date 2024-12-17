@@ -53,7 +53,7 @@ function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) 
                         <Text style={[styles.textStrong]}>{translate('emailDeliveryFailurePage.ensureYourEmailClient')}</Text>
                         {translate('emailDeliveryFailurePage.youCanFindDirections')}
                         <TextLink
-                            href="https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify/p1?new=1"
+                            href={CONST.SET_NOTIFICATION_LINK}
                             style={[styles.link]}
                         >
                             {translate('common.here')}
