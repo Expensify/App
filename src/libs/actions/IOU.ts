@@ -44,6 +44,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PerDiemRequestUtils from '@libs/PerDiemRequestUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -510,6 +511,21 @@ function initMoneyRequest(
         }
     }
 
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        comment.customUnit = {
+            attributes: {
+                dates: {
+                    start: DateUtils.getStartOfToday(),
+                    end: DateUtils.getStartOfToday(),
+                },
+            },
+        };
+        if (!isFromGlobalCreate) {
+            const customUnitID = PerDiemRequestUtils.getCustomUnitID(reportID);
+            comment.customUnit = {...comment.customUnit, customUnitID};
+        }
+    }
+
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
@@ -569,6 +585,10 @@ function setMoneyRequestCreated(transactionID: string, created: string, isDraft:
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
+function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {attributes: {dates: {start, end}}}}});
+}
+
 function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
     const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
@@ -622,6 +642,13 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
  */
 function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
+}
+
+/**
+ * Set custom unit ID for the transaction draft
+ */
+function setCustomUnitID(transactionID: string, customUnitID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID}}});
 }
 
 /** Set the distance rate of a new  transaction */
@@ -8807,6 +8834,7 @@ export {
     sendMoneyElsewhere,
     sendMoneyWithWallet,
     setCustomUnitRateID,
+    setCustomUnitID,
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,
@@ -8814,6 +8842,7 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestDistanceRate,

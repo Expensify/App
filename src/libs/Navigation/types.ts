@@ -1204,6 +1204,28 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
+        action: IOUAction;
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes | undefined;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        reportID: string;
+        backTo: Routes | undefined;
+        action: IOUAction;
+        pageIndex: string;
+        transactionID: string;
+    };
 };
 
 type NewTaskNavigatorParamList = {

@@ -205,6 +205,104 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
+function removeSubrate(transaction: OnyxEntry<Transaction>, currentIndex: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1);
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function updateSubrate(transaction: OnyxEntry<Transaction>, currentIndex: string, quantity: number, id: string, name: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index >= existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1, {quantity, id, name});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function addSubrate(transaction: OnyxEntry<Transaction>, currentIndex: string, quantity: number, id: string, name: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index !== existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.push({quantity, id, name});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
 function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
     let keyPrefix;
     switch (transactionState) {
@@ -541,6 +639,9 @@ export {
     createInitialWaypoints,
     saveWaypoint,
     removeWaypoint,
+    removeSubrate,
+    updateSubrate,
+    addSubrate,
     getRoute,
     updateWaypoints,
     clearError,

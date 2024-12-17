@@ -629,11 +629,11 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
-    if (!allPolicies || !policyID) {
+function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
+    if (!policies || !policyID) {
         return undefined;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /** Return active policies where current user is an admin */
@@ -646,6 +646,12 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
     const policy = getPolicy(policyID);
     return policy?.areInvoicesEnabled ?? false;
+}
+
+/** Whether the user can submit per diem expense from the workspace */
+function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    return !isEmptyObject(perDiemCustomUnit);
 }
 
 /** Whether the user can send invoice */
@@ -1190,6 +1196,7 @@ export {
     getActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     hasWorkspaceWithInvoices,
     hasDependentTags,

@@ -443,6 +443,14 @@ function getEndOfToday(): string {
 /**
  * returns {string} example: 2023-05-16 05:34:14
  */
+function getStartOfToday(): string {
+    const date = startOfDay(new Date());
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
 function getOneWeekFromNow(): string {
     const date = addDays(new Date(), 7);
     return format(date, 'yyyy-MM-dd HH:mm:ss');
@@ -866,6 +874,7 @@ const DateUtils = {
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
+    getStartOfToday,
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,

@@ -1930,4 +1930,5 @@ export type {
     ExpenseRule,
     NetSuiteConnectionConfig,
     MccGroup,
+    Subrate,
 };
