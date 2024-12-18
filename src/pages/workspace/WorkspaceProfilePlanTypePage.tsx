@@ -36,16 +36,14 @@ type WorkspacePlanTypeItem = {
 };
 function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     useEffect(() => {
-        if (policyID) {
-            OpenWorkspacePlanPage(policyID);
-        }
+        OpenWorkspacePlanPage(policyID);
     }, [policyID]);
 
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
