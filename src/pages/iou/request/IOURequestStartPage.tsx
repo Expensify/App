@@ -113,7 +113,10 @@ function IOURequestStartPage({
     const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
 
     const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT && canUsePerDiem && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        canUsePerDiem &&
+        ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
