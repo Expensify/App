@@ -687,6 +687,7 @@ function MoneyRequestConfirmationListFooter({
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
+                        numberOfLinesTitle={2}
                     />
                     <View style={styles.dividerLine} />
                     {subRateFields}
