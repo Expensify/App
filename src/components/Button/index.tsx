@@ -122,9 +122,6 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
-    /** Used to locate this button in ui tests */
-    testID?: string;
-
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
