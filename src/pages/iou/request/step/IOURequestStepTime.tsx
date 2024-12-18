@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
@@ -59,6 +60,20 @@ function IOURequestStepTime({
         Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
     };
 
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM>) => {
+        const errors = {};
+        const newStart = DateUtils.combineDateAndTime(value.startTime, value.startDate);
+        const newEnd = DateUtils.combineDateAndTime(value.endTime, value.endDate);
+
+        const isValid = DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd});
+
+        if (!isValid) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.END_TIME, translate('common.error.invalidTimeShouldBeFuture'));
+        }
+
+        return errors;
+    };
+
     const updateTime = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM>) => {
         const newStart = DateUtils.combineDateAndTime(value.startTime, value.startDate);
         const newEnd = DateUtils.combineDateAndTime(value.endTime, value.endDate);
@@ -95,6 +110,7 @@ function IOURequestStepTime({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM}
+                validate={validate}
                 onSubmit={updateTime}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

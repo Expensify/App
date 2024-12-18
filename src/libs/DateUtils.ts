@@ -668,6 +668,17 @@ const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeStrin
 };
 
 /**
+ * Checks if the time range input is valid.
+ * param {String} startTime: '2023-11-14 12:24:00'
+ * param {String} endTime: '2023-11-14 14:24:00'
+ * returns {Boolean}
+ */
+const isValidStartEndTimeRange = ({startTime, endTime}: {startTime: string; endTime: string}): boolean => {
+    // Check if the combinedDate is at least one minute later than the current date and time
+    return isAfter(new Date(endTime), new Date(startTime));
+};
+
+/**
  * Checks if the input date is in the future compared to the reference date.
  * param {Date} inputDate - The date to validate.
  * param {Date} referenceDate - The date to compare against.
@@ -893,6 +904,7 @@ const DateUtils = {
     formatWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    isValidStartEndTimeRange,
     formatToSupportedTimezone,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,
