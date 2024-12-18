@@ -362,87 +362,87 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         ];
     }, [translate, shouldRedirectToExpensifyClassic]);
 
-   const quickActionMenuItems = useMemo(() => {
-    // Define common properties in baseQuickAction
-    const baseQuickAction = {
-        label: translate('quickAction.header'),
-        labelStyle: [styles.pt3, styles.pb2],
-        isLabelHoverable: false,
-        floatRightAvatars: quickActionAvatars,
-        floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-        numberOfLinesDescription: 1,
-        tooltipAnchorAlignment: {
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        },
-        tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
-        tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-        renderTooltipContent: renderProductTrainingTooltip,
-        tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
-        onHideTooltip: hideProductTrainingTooltip,
-        shouldRenderTooltip: shouldShowProductTrainingTooltip,
-    };
+    const quickActionMenuItems = useMemo(() => {
+        // Define common properties in baseQuickAction
+        const baseQuickAction = {
+            label: translate('quickAction.header'),
+            labelStyle: [styles.pt3, styles.pb2],
+            isLabelHoverable: false,
+            floatRightAvatars: quickActionAvatars,
+            floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
+            numberOfLinesDescription: 1,
+            tooltipAnchorAlignment: {
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            },
+            tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
+            tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
+            renderTooltipContent: renderProductTrainingTooltip,
+            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
+            onHideTooltip: hideProductTrainingTooltip,
+            shouldRenderTooltip: shouldShowProductTrainingTooltip,
+        };
 
-    if (quickAction?.action) {
-        const iouType = getIouType(quickAction?.action);
-        if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
-            return [];
+        if (quickAction?.action) {
+            const iouType = getIouType(quickAction?.action);
+            if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
+            return [
+                {
+                    ...baseQuickAction,
+                    icon: getQuickActionIcon(quickAction?.action),
+                    text: quickActionTitle,
+                    description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                    onSelected: () =>
+                        interceptAnonymousUser(() =>
+                            QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption),
+                        ),
+                    shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                },
+            ];
         }
-        return [
-            {
-                ...baseQuickAction,
-                icon: getQuickActionIcon(quickAction?.action),
-                text: quickActionTitle,
-                description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                onSelected: () =>
-                    interceptAnonymousUser(() =>
-                        QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption),
-                    ),
-                shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-            },
-        ];
-    }
-    if (!isEmptyObject(policyChatForActivePolicy)) {
-        return [
-            {
-                ...baseQuickAction,
-                icon: Expensicons.ReceiptScan,
-                text: translate('quickAction.scanReceipt'),
-                description: ReportUtils.getReportName(policyChatForActivePolicy),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        selectOption(() => {
-                            const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
-                            IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
-                        }, true);
-                    }),
-                shouldShowSubscriptRightAvatar: true,
-            },
-        ];
-    }
+        if (!isEmptyObject(policyChatForActivePolicy)) {
+            return [
+                {
+                    ...baseQuickAction,
+                    icon: Expensicons.ReceiptScan,
+                    text: translate('quickAction.scanReceipt'),
+                    description: ReportUtils.getReportName(policyChatForActivePolicy),
+                    onSelected: () =>
+                        interceptAnonymousUser(() => {
+                            selectOption(() => {
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                            }, true);
+                        }),
+                    shouldShowSubscriptRightAvatar: true,
+                },
+            ];
+        }
 
-    return [];
-}, [
-    translate,
-    quickActionAvatars,
-    isValidReport,
-    styles.popoverMenuItem.paddingHorizontal,
-    styles.popoverMenuItem.paddingVertical,
-    styles.pt3,
-    styles.pb2,
-    styles.productTrainingTooltipWrapper,
-    renderProductTrainingTooltip,
-    hideProductTrainingTooltip,
-    quickAction?.action,
-    quickAction,
-    policyChatForActivePolicy,
-    quickActionTitle,
-    hideQABSubtitle,
-    quickActionReport,
-    shouldShowProductTrainingTooltip,
-    selectOption,
-    quickActionPolicy,
-]);
+        return [];
+    }, [
+        translate,
+        quickActionAvatars,
+        isValidReport,
+        styles.popoverMenuItem.paddingHorizontal,
+        styles.popoverMenuItem.paddingVertical,
+        styles.pt3,
+        styles.pb2,
+        styles.productTrainingTooltipWrapper,
+        renderProductTrainingTooltip,
+        hideProductTrainingTooltip,
+        quickAction?.action,
+        quickAction,
+        policyChatForActivePolicy,
+        quickActionTitle,
+        hideQABSubtitle,
+        quickActionReport,
+        shouldShowProductTrainingTooltip,
+        selectOption,
+        quickActionPolicy,
+    ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
