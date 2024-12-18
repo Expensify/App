@@ -8,7 +8,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -64,12 +63,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {isOffline} = useNetwork();
-    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle,
-    );
+    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
@@ -79,6 +73,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
+    const {isOffline} = useNetwork();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -161,7 +156,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             if (!isNarrow) {
                 return {
                     ...baseMenuItem,
-                    shouldRenderTooltip: index === 0 && shouldShowProductTrainingTooltip,
+                    shouldRenderTooltip: index === 0 && shouldShowSavedSearchRenameTooltip === true,
                     tooltipAnchorAlignment: {
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -169,26 +164,41 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                     tooltipShiftHorizontal: -32,
                     tooltipShiftVertical: 15,
                     tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                    onHideTooltip: hideProductTrainingTooltip,
-                    renderTooltipContent: renderProductTrainingTooltip,
+                    onHideTooltip: SearchActions.dismissSavedSearchRenameTooltip,
+                    renderTooltipContent: () => {
+                        return (
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <Expensicons.Lightbulb
+                                    width={16}
+                                    height={16}
+                                    fill={styles.colorGreenSuccess.color}
+                                />
+                                <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
+                            </View>
+                        );
+                    },
                 };
             }
+
             return baseMenuItem;
         },
         [
-            hash,
+            allCards,
             getOverflowMenu,
-            styles.alignItemsCenter,
-            styles.bgPaleGreen,
-            styles.mh4,
-            styles.pv2,
+            hash,
             personalDetails,
             reports,
+            shouldShowSavedSearchRenameTooltip,
+            styles.alignItemsCenter,
+            styles.bgPaleGreen,
+            styles.colorGreenSuccess.color,
+            styles.flexRow,
+            styles.mh4,
+            styles.ml1,
+            styles.pv2,
+            styles.quickActionTooltipSubtitle,
             taxRates,
-            allCards,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
-            renderProductTrainingTooltip,
+            translate,
         ],
     );
 
@@ -215,7 +225,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const savedSearchesMenuItems = useCallback(() => {
+    const savedSearchesMenuItems = useMemo(() => {
         if (!savedSearches) {
             return [];
         }
@@ -250,10 +260,11 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 activeItemIndex={activeItemIndex}
                 queryJSON={queryJSON}
                 title={title}
-                savedSearchesMenuItems={savedSearchesMenuItems()}
+                savedSearchesMenuItems={savedSearchesMenuItems}
             />
         );
     }
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
 
     return (
         <ScrollView
@@ -287,7 +298,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             {shouldShowSavedSearchesMenuItemTitle && (
                 <>
                     <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
-                    {renderSavedSearchesSection(savedSearchesMenuItems())}
+                    {renderSavedSearchesSection(savedSearchesMenuItems)}
                     <DeleteConfirmModal />
                 </>
             )}
