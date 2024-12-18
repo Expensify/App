@@ -86,8 +86,6 @@ function ChatListItem<TItem extends ListItem>({
         [from.accountID]: from,
     }
 
-    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem.reportID}`, {allowStaleData: true});
-
     return (
         <BaseListItem
             item={item}
@@ -115,7 +113,6 @@ function ChatListItem<TItem extends ListItem>({
                 <PureReportActionItem
                     action={reportActionItem}
                     onPress={() => onSelectRow(item)}
-                    // report={{reportID : reportActionItem.reportID} as OnyxTypes.Report}
                     report={undefined}
                     reportActions={[]}
                     parentReportAction={undefined}

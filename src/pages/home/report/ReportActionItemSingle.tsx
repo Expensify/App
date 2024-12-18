@@ -95,14 +95,12 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
+    // fallback to action?.accountID to handle search result chat item
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report) ?? action?.accountID;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login} = personalDetails?.[actorAccountID ?? -1] ?? {};
-    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ actorAccountID:", actorAccountID)
-    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ personalDetails:", personalDetails)
-    console.log("[wildebug] ~ file: ReportActionItemSingle.tsx:103 ~ avatar:", avatar)
     const pendingFields = personalDetails && 'pendingFields' in personalDetails ? personalDetails.pendingFields : undefined;
     const status = personalDetails && 'status' in personalDetails ? personalDetails.status : undefined;
     const fallbackIcon = personalDetails && 'fallbackIcon' in personalDetails && personalDetails.fallbackIcon !== null ? personalDetails.fallbackIcon : undefined;
