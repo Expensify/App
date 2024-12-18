@@ -202,6 +202,7 @@ describe('actions/Policy', () => {
                 ...createRandomReport(0),
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyName: fakePolicy.name,
             };
             const fakeReimbursementAccount = {errors: {}};
@@ -237,7 +238,7 @@ describe('actions/Policy', () => {
                         expect(report?.stateNum).toBe(fakeReport.stateNum);
                         expect(report?.statusNum).toBe(fakeReport.statusNum);
                         expect(report?.policyName).toBe(fakeReport.policyName);
-                        expect(report?.oldPolicyName).toBeUndefined();
+                        expect(report?.oldPolicyName).toBe(fakePolicy.name);
                         expect(report?.private_isArchived).toBeUndefined();
                         resolve();
                     },
