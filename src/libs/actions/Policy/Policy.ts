@@ -2568,7 +2568,9 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     }
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = oldPersonalPolicyID ? ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName) : undefined;
+    const movedReportAction = oldPersonalPolicyID
+        ? ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName)
+        : undefined;
     if (movedReportAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
