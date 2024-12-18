@@ -56,10 +56,6 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    // const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID;
-    const shouldFetchPendingUpdates = true;
-    lastUpdateID = 1234567890123;
-
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
             Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
@@ -71,7 +67,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
     };
 
     let updates: OnyxUpdatesFromServer;
-    if (shouldFetchPendingUpdates) {
+    if (hasPendingOnyxUpdates) {
         const isDataMissing = !lastUpdateID;
         logMissingOnyxDataInfo(isDataMissing);
         if (isDataMissing) {
