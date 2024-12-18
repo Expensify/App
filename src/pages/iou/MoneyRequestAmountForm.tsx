@@ -314,7 +314,7 @@ function MoneyRequestAmountForm(
                             addBankAccountRoute={bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
-                            policyID={policyID ?? '-1'}
+                            policyID={policyID}
                             style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             kycWallAnchorAlignment={{

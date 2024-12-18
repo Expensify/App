@@ -290,7 +290,11 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
+
+    if (!transactionID) {
+        return CONST.ERECEIPT_COLORS.YELLOW;
+    }
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
