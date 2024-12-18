@@ -78,6 +78,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
             type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
             lastUpdateID,
             shouldFetchPendingUpdates: true,
+            updates: [],
         };
     } else {
         const isDataMissing = !lastUpdateID || !onyxData || !previousUpdateID;

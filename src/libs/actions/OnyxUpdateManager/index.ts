@@ -89,16 +89,17 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
         return;
     }
 
-    if (isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
-        // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
-        // current authToken is probably invalid.
-        updateAuthTokenIfNecessary(onyxUpdatesFromServer);
+    // When there is no value or an invalid value, there's nothing to process, so let's return early.
+    if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
+        return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const updateParams = onyxUpdatesFromServer!;
-    const lastUpdateIDFromServer = updateParams.lastUpdateID;
-    const previousUpdateIDFromServer = updateParams.previousUpdateID;
+    // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
+    // current authToken is probably invalid.
+    updateAuthTokenIfNecessary(onyxUpdatesFromServer);
+
+    const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
+    const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
     // The OnyxUpdateManager can handle different types of re-fetch processes. Either there are pending updates,
@@ -107,7 +108,7 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     if (shouldFetchPendingUpdates) {
         // This flow handles the case where the server didn't send updates because the payload was too big.
         // We need to call the GetMissingOnyxUpdates query to fetch the missing updates up to the pendingLastUpdateID.
-        const pendingUpdateID = updateParams.lastUpdateID;
+        const pendingUpdateID = lastUpdateIDFromServer;
 
         console.debug(`[OnyxUpdateManager] Client is fetching pending updates from the server, from updates ${lastUpdateIDFromClient} to ${Number(previousUpdateIDFromServer)}`);
         Log.info('There are pending updates from the server, so fetching incremental updates', true, {
@@ -137,15 +138,10 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
         // This client already has the reliable updates mode enabled, but it's missing some updates and it needs to fetch those.
         // Therefore, we are calling the GetMissingOnyxUpdates query, to fetch the missing updates.
 
-        // When there is no value or an invalid value, there's nothing to process, so let's return early.
-        if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
-            return;
-        }
-
         const areDeferredUpdatesQueued = !DeferredOnyxUpdates.isEmpty();
 
         // Add the new update to the deferred updates
-        DeferredOnyxUpdates.enqueue(updateParams, {shouldPauseSequentialQueue: false});
+        DeferredOnyxUpdates.enqueue(onyxUpdatesFromServer, {shouldPauseSequentialQueue: false});
 
         // If there are deferred updates already, we don't need to fetch the missing updates again.
         if (areDeferredUpdatesQueued) {

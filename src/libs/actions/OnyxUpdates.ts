@@ -163,7 +163,7 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
 
-type ManualOnyxUpdateCheckIds = {
+type DoesClientNeedToBeUpdatedParams = {
     clientLastUpdateID?: number;
     previousUpdateID?: number;
 };
@@ -174,7 +174,7 @@ type ManualOnyxUpdateCheckIds = {
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  */
-function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: ManualOnyxUpdateCheckIds): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesClientNeedToBeUpdatedParams): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
@@ -197,4 +197,4 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: Manua
 
 // eslint-disable-next-line import/prefer-default-export
 export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};
-export type {ManualOnyxUpdateCheckIds};
+export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

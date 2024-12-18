@@ -913,7 +913,7 @@ function subscribeToUserEvents() {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushJSON.lastUpdateID || 0),
             updates: pushJSON.updates ?? [],
-            previousUpdateID: Number(pushJSON.previousUpdateID || 0),
+            previousUpdateID: Number(pushJSON.previousUpdateID ?? 0),
         };
         applyOnyxUpdatesReliably(updates);
     });
