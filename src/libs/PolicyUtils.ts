@@ -242,7 +242,13 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
-const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection<Policy>): boolean => {
+    if (!policyID) {
+        return false;
+    }
+
+    return Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+};
 
 /**
  * Checks if the current user is an owner (creator) of the policy.
