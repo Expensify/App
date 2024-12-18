@@ -67,9 +67,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const filteredPolicies = Object.values(allPolicies ?? {}).filter(PolicyUtils.isPaidGroupPolicy);
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const hasSignupQualifier = !!(onboardingValues && 'signupQualifier' in onboardingValues);
-
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
@@ -93,7 +90,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                    if (!onboardingPolicyID && !hasSignupQualifier && filteredPolicies.length === 0) {
+                    if (!onboardingPolicyID && filteredPolicies.length === 0) {
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
                         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                         Welcome.setOnboardingPolicyID(policyID);
