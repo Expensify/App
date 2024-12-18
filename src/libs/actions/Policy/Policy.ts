@@ -396,6 +396,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatarURL: policy?.avatarURL,
+                pendingAction: null,
             },
         },
     ];

@@ -10,6 +10,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import createRandomReport from '../utils/collections/reports';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
@@ -24,9 +25,11 @@ describe('actions/Policy', () => {
             keys: ONYXKEYS,
         });
     });
-
+    
+    let mockFetch: MockFetch;
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -187,6 +190,71 @@ describe('actions/Policy', () => {
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
+            });
+        });
+    });
+
+    describe('deleteWorkspace', () => {
+        it('should apply failure data when deleteWorkspace fails', async () => {
+            // Given a policy
+            const fakePolicy = createRandomPolicy(0);
+            const fakeReport = {
+                ...createRandomReport(0),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyName: fakePolicy.name,
+            };
+            const fakeReimbursementAccount = {errors: {}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
+
+            // When deleting a workspace fails
+            mockFetch?.fail?.();
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name);
+
+            await waitForBatchedUpdates();
+
+            // Then it should apply the correct failure data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingAction).toBeUndefined();
+                        expect(policy?.avatarURL).toBe(fakePolicy.avatarURL);
+                        resolve();
+                    },
+                });
+            });
+
+            // Unarchive the report
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.stateNum).toBe(fakeReport.stateNum);
+                        expect(report?.statusNum).toBe(fakeReport.statusNum);
+                        expect(report?.policyName).toBe(fakeReport.policyName);
+                        expect(report?.oldPolicyName).toBeUndefined();
+                        expect(report?.private_isArchived).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+
+            // Restore the reimbursement account errors
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    callback: (reimbursementAccount) => {
+                        Onyx.disconnect(connection);
+                        console.log(reimbursementAccount)
+                        expect(reimbursementAccount?.errors).not.toBeUndefined();
+                        resolve();
+                    },
+                });
             });
         });
     });
