@@ -456,12 +456,12 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init --progress` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails with a https-related error add this to your `~/.gitconfig` file:
+2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
+- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
-    [url "ssh://git@github.com/"]
-        insteadOf = https://github.com/
+    [url "https://github.com/"]
+        insteadOf = ssh://git@github.com/
     ```
 
 At this point, the default behavior of some `npm` scripts will change to target HybridApp:

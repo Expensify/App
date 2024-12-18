@@ -192,7 +192,9 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -478,6 +480,7 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
     },
@@ -647,6 +650,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -833,6 +840,10 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -1226,6 +1237,7 @@ const translations = {
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
+            simulatePoorConnection: 'Simulate poor internet connection',
             simulatFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
@@ -1753,6 +1765,11 @@ const translations = {
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
+        peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        joinAWorkspace: 'Join a workspace',
+        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Please make a selection to continue.',
         purpose: {
@@ -2767,6 +2784,10 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
+        },
+        workspaceList: {
+            joinNow: 'Join now',
+            askToJoin: 'Ask to join',
         },
         xero: {
             organization: 'Xero organization',
@@ -4548,6 +4569,7 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5101,7 +5123,7 @@ const translations = {
         tryAgain: 'Try again',
     },
     systemMessage: {
-        mergedWithCashTransaction: 'matched a receipt to this transaction.',
+        mergedWithCashTransaction: 'matched a receipt to this transaction',
     },
     subscription: {
         authenticatePaymentCard: 'Authenticate payment card',
@@ -5447,25 +5469,6 @@ const translations = {
             chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
-        },
-    },
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        quickActionButton: {
-            part1: 'Quick action!',
-            part2: ' Just a tap away',
-        },
-        workspaceChatCreate: {
-            part1: 'Submit your',
-            part2: ' expenses',
-            part3: ' here!',
         },
     },
 };
