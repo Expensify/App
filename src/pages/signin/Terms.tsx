@@ -22,7 +22,7 @@ function Terms() {
             {translate('termsOfUse.phrase1')}
             <TextLink
                 style={linkStyles}
-                href={CONST.TERMS_URL}
+                href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
             >
                 {' '}
                 {translate('termsOfUse.phrase2')}{' '}
@@ -30,7 +30,7 @@ function Terms() {
             {translate('termsOfUse.phrase3')}
             <TextLink
                 style={linkStyles}
-                href={CONST.PRIVACY_URL}
+                href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
             >
                 {' '}
                 {translate('termsOfUse.phrase4')}

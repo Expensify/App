@@ -11,7 +11,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -206,12 +206,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
-
-    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
-        isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
-    );
-
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
      * 1. on at least one group policy
@@ -237,6 +231,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy]);
+
+    const renderQuickActionTooltip = useCallback(
+        () => (
+            <Text>
+                <Text style={styles.quickActionTooltipTitle}>{translate('quickAction.tooltip.title')}</Text>
+                <Text style={styles.quickActionTooltipSubtitle}>{translate('quickAction.tooltip.subtitle')}</Text>
+            </Text>
+        ),
+        [styles.quickActionTooltipTitle, styles.quickActionTooltipSubtitle, translate],
+    );
 
     const quickActionTitle = useMemo(() => {
         if (isEmptyObject(quickActionReport)) {
@@ -277,14 +281,22 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
@@ -293,9 +305,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
+                break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), false);
+                break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), false);
                 break;
             default:
         }
@@ -394,6 +410,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         // Define common properties in baseQuickAction
         const baseQuickAction = {
             label: translate('quickAction.header'),
+            labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
             floatRightAvatars: quickActionAvatars,
             floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
@@ -404,10 +421,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             },
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            renderTooltipContent: renderProductTrainingTooltip,
+            renderTooltipContent: renderQuickActionTooltip,
             tooltipWrapperStyle: styles.quickActionTooltipWrapper,
-            onHideTooltip: hideProductTrainingTooltip,
-            shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
 
         if (quickAction?.action) {
@@ -423,6 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                    shouldRenderTooltip: quickAction.isFirstQuickAction,
                 },
             ];
         }
@@ -436,11 +452,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
-                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
+                    shouldRenderTooltip: false,
                 },
             ];
         }
@@ -451,18 +468,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionAvatars,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
+        styles.pt3,
+        styles.pb2,
         styles.quickActionTooltipWrapper,
-        renderProductTrainingTooltip,
-        hideProductTrainingTooltip,
+        renderQuickActionTooltip,
         quickAction?.action,
+        quickAction?.isFirstQuickAction,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
-        shouldShowProductTrainingTooltip,
         navigateToQuickAction,
         selectOption,
-        isValidReport,
         quickActionPolicy,
     ]);
 
@@ -478,12 +495,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
+                    ...expenseMenuItems,
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...expenseMenuItems,
                     ...(canSendInvoice
                         ? [
                               {
