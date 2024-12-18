@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 // eslint-disable-next-line import/no-cycle
-import CONST from '@src/CONST';
 import * as OnyxUpdateManagerUtils from '.';
 
 let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
