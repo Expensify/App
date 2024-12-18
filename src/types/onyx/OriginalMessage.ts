@@ -406,7 +406,7 @@ type OriginalMessageReimbursementDequeued = {
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
     /** ID of the old policy */
-    fromPolicyID: string;
+    fromPolicyID: string | undefined;
 
     /** ID of the new policy */
     toPolicyID: string;

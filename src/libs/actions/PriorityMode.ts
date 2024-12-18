@@ -114,7 +114,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
                 return;
             }
 

@@ -76,7 +76,8 @@ function Confirmation() {
     );
 
     const reportTransactionID = TransactionUtils.getTransactionID(report?.reportID ?? '');
-    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || reviewDuplicates?.duplicates.includes(reportTransactionID);
+    const doesTransactionIsDuplicate = reportTransactionID ? reviewDuplicates?.duplicates.includes(reportTransactionID) : false;
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || doesTransactionIsDuplicate;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =

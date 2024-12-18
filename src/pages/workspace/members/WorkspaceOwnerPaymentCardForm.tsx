@@ -30,7 +30,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const checkIfCanBeRendered = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -69,7 +69,6 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                 addressZip: values.addressZipCode,
                 currency: values.currency,
             };
-
             PolicyActions.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
         },
         [policyID],
