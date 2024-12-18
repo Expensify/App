@@ -1,5 +1,4 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import {format} from 'date-fns';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -253,7 +252,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
+        return initialReport?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString();
     });
 
     useEffect(() => {
