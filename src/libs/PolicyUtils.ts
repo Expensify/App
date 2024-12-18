@@ -197,7 +197,15 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
 }
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
-    return policy?.role ?? policy?.employeeList?.[currentUserLogin ?? '-1']?.role;
+    if (policy?.role) {
+        return policy.role;
+    }
+
+    if (!currentUserLogin) {
+        return;
+    }
+
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 /**
@@ -391,7 +399,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number): Policy[] {
-    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? -1) && isPaidGroupPolicy(policy));
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -400,7 +408,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = distanceUnit?.customUnitID ?? 0;
+    const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
@@ -538,7 +546,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
-    const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
@@ -557,8 +565,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseR
             return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
         }
 
-        if (!tagApprover && getTagApproverRule(policy ?? '-1', tag)?.approver) {
-            tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
+        if (!tagApprover && getTagApproverRule(policy, tag)?.approver) {
+            tagApprover = getTagApproverRule(policy, tag)?.approver;
         }
     }
 
@@ -709,7 +717,10 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     }
 
     const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
-    return pendingFields[key ?? '-1'];
+    if (!key) {
+        return;
+    }
+    return pendingFields[key];
 }
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
@@ -1078,7 +1089,7 @@ function getWorkspaceAccountID(policyID: string) {
     if (!policy) {
         return 0;
     }
-    return policy.workspaceAccountID ?? 0;
+    return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
 function hasVBBA(policyID: string) {
