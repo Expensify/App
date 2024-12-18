@@ -22,13 +22,7 @@ type AdaptStateIfNecessaryArgs = {
 };
 
 function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
-    const hasRoutePolicyID = route?.params && 'policyID' in route.params;
-
-    if (!hasRoutePolicyID) {
-        return undefined;
-    }
-
-    return route?.params?.policyID as string;
+    return (route?.params as Record<string, string> | undefined)?.policyID;
 }
 
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
