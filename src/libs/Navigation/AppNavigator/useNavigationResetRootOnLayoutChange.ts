@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -9,13 +10,14 @@ import navigationRef from '@libs/Navigation/navigationRef';
  */
 function useNavigationResetRootOnLayoutChange() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const prevShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
 
     useEffect(() => {
-        if (!navigationRef.isReady()) {
+        if (!navigationRef.isReady() || shouldUseNarrowLayout === prevShouldUseNarrowLayout) {
             return;
         }
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [shouldUseNarrowLayout]);
+    }, [prevShouldUseNarrowLayout, shouldUseNarrowLayout]);
 }
 
 export default useNavigationResetRootOnLayoutChange;
