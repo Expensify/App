@@ -3647,7 +3647,7 @@ function prepareOnboardingOptimisticData(
         type: 'task',
         task: task.type,
         taskReportID: currentTask.reportID,
-        // API expects a string, that's why policyID must default to a string
+        // API expects a string, that's why parentReportID must default to a string
         // eslint-disable-next-line rulesdir/no-default-id-values
         parentReportID: currentTask.parentReportID ?? '',
         parentReportActionID: taskReportAction.reportAction.reportActionID,
