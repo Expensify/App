@@ -5121,7 +5121,17 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
  * Builds an optimistic MOVED report action with a randomly generated reportActionID.
  * This action is used when we move reports across workspaces.
  */
-function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: string, newParentReportID: string, movedReportID: string, policyName: string): ReportAction {
+function buildOptimisticMovedReportAction(
+    fromPolicyID: string | undefined,
+    toPolicyID: string | undefined,
+    newParentReportID: string | undefined,
+    movedReportID: string | undefined,
+    policyName: string,
+): ReportAction | undefined {
+    if (!fromPolicyID || !toPolicyID || !newParentReportID || !movedReportID) {
+        return;
+    }
+
     const originalMessage = {
         fromPolicyID,
         toPolicyID,
