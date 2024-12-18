@@ -60,10 +60,10 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 
 function ExpensifyCardPage({
     route: {
-        params: {cardID = '', clearFraud},
+        params: {cardID = '', clearFraud = false},
     },
 }: ExpensifyCardPageProps) {
-    console.log('clearFraud', clearFraud);
+    console.log('clearFraud', clearFraud, typeof clearFraud);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);

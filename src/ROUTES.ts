@@ -168,7 +168,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_DOMAINCARD: {
         route: 'settings/wallet/card/:cardID?',
-        getRoute: (cardID: string, clearFraud?: boolean) => `settings/wallet/card/${cardID}${clearFraud ? '&clearFraud=true' : ''}` as const,
+        getRoute: (cardID: string, clearFraud?: boolean) => `settings/wallet/card/${cardID}${clearFraud ? '?clearFraud=true' : ''}` as const,
     },
     SETTINGS_DOMAINCARD_DETAIL: {
         route: 'settings/card/:cardID?',
