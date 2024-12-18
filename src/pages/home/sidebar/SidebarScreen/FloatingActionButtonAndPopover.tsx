@@ -36,6 +36,7 @@ import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -110,6 +111,27 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     }
 };
 
+const getIouType = (action: QuickActionName) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return CONST.IOU.TYPE.SUBMIT;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return CONST.IOU.TYPE.SPLIT;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return CONST.IOU.TYPE.TRACK;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return CONST.IOU.TYPE.PAY;
+        default:
+            return undefined;
+    }
+};
+
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -178,6 +200,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
+    const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
@@ -190,11 +213,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => ReportUtils.isGroupPolicy(policy?.type ?? ''));
-        if (groupPolicies.length === 0) {
-            return false;
-        }
-        return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every(
@@ -202,7 +221,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     );
 
     const quickActionAvatars = useMemo(() => {
-        if (quickActionReport) {
+        if (isValidReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
@@ -237,7 +256,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [quickAction, translate, quickActionAvatars, quickActionReport]);
 
     const hideQABSubtitle = useMemo(() => {
-        if (isEmptyObject(quickActionReport)) {
+        if (!isValidReport) {
             return true;
         }
         if (quickActionAvatars.length === 0) {
@@ -245,7 +264,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         }
         const displayName = personalDetails?.[quickActionAvatars.at(0)?.id ?? -1]?.firstName ?? '';
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
-    }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
+    }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -259,7 +278,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     );
 
     const navigateToQuickAction = useCallback(() => {
-        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '-1' : ReportUtils.generateReportID();
 
         switch (quickAction?.action) {
@@ -270,10 +288,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
-                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, false), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
@@ -288,7 +304,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 break;
             default:
         }
-    }, [quickAction, quickActionReport, reportNameValuePairs, selectOption]);
+    }, [isValidReport, quickAction?.action, quickAction?.targetAccountID, quickActionReport?.reportID, selectOption]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -454,6 +470,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         };
 
         if (quickAction?.action) {
+            const iouType = getIouType(quickAction?.action);
+            if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
             return [
                 {
                     ...baseQuickAction,
@@ -476,7 +496,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const isValidReport = !(isEmptyObject(policyChatForActivePolicy) || ReportUtils.isArchivedRoom(policyChatForActivePolicy, reportNameValuePairs));
                                 const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
                                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
@@ -503,8 +522,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionReport,
         navigateToQuickAction,
         selectOption,
-        reportNameValuePairs,
+        isValidReport,
+        quickActionPolicy,
     ]);
+
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     return (
         <View style={styles.flexGrow1}>
@@ -562,8 +585,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                                   text: translate('tour.takeATwoMinuteTour'),
                                   description: translate('tour.exploreExpensify'),
                                   onSelected: () => {
-                                      Welcome.setSelfTourViewed();
                                       Link.openExternalLink(navatticURL);
+                                      Welcome.setSelfTourViewed(Session.isAnonymousUser());
+                                      if (viewTourTaskReport) {
+                                          Task.completeTask(viewTourTaskReport);
+                                      }
                                   },
                               },
                           ]

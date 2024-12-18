@@ -36,9 +36,6 @@ type BaseModalProps = Partial<ModalProps> & {
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
-    /** Callback method fired when the user requests to submit the modal content. */
-    onSubmit?: () => void;
-
     /** Callback method fired when the modal is hidden */
     onModalHide?: () => void;
 
@@ -55,6 +52,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent?: boolean;
+
+    /** Whether the modal should go under the system navigation bar */
+    navigationBarTranslucent?: boolean;
 
     /** Whether the modal should avoid the keyboard */
     avoidKeyboard?: boolean;
