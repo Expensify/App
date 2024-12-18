@@ -135,7 +135,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
         /** cardID of selected card */
         cardID: string;
-        clearFraud?: boolean;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */

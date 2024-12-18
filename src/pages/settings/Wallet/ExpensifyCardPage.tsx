@@ -60,10 +60,9 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 
 function ExpensifyCardPage({
     route: {
-        params: {cardID = '', clearFraud = false},
+        params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
-    console.log('clearFraud', clearFraud, typeof clearFraud);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -92,14 +91,6 @@ function ExpensifyCardPage({
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
-
-    useEffect(() => {
-        if (!clearFraud) {
-            return;
-        }
-
-        Card.clearVirtualExpensifyCardFraudErrors();
-    }, [clearFraud]);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);

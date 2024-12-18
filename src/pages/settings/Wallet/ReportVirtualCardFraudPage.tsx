@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -39,6 +39,7 @@ function ReportVirtualCardFraudPage({
     const loginData = loginList?.[primaryLogin];
 
     const virtualCard = cardList?.[cardID];
+    const virtualCardRef = useRef(virtualCard);
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
     const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
@@ -49,15 +50,14 @@ function ReportVirtualCardFraudPage({
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!prevIsLoading/* || formData?.isLoading */) {
+        if (!prevIsLoading || formData?.isLoading) {
             return;
         }
         if (!isEmptyObject(virtualCard?.errors)) {
             return;
         }
 
-        console.log('navigate to card page');
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID, true));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
     }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
@@ -65,7 +65,6 @@ function ReportVirtualCardFraudPage({
             if (!virtualCard) {
                 return;
             }
-            console.log('handleValidateCodeEntered', virtualCard, validateCode);
             Card.reportVirtualExpensifyCardFraud(virtualCard, validateCode);
         },
         [virtualCard],
@@ -83,8 +82,8 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard) && !formData?.isLoading) {
-        console.log('notFoundPage');
+    // eslint-disable-next-line react-compiler/react-compiler
+    if (isEmptyObject(virtualCardRef.current)) {
         return <NotFoundPage />;
     }
 
@@ -109,12 +108,7 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
-                        console.log('clearError', virtualCard);
-                        if (!virtualCard) {
-                            return;
-                        }
-
-                        Card.clearCardListErrors(virtualCard.cardID);
+                        Card.clearCardListErrors(virtualCard?.cardID ?? 0);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
