@@ -32,7 +32,10 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? 0)})) {
+        if (
+            requestsToIgnoreLastUpdateID.includes(request.command) ||
+            !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
+        ) {
             return OnyxUpdates.apply(responseToApply);
         }
 
