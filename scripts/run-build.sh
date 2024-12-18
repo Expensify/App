@@ -44,7 +44,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
-    SCHEME="Expensify"
+    SCHEME="Expensify Dev"
     APP_ID="org.me.mobiexpensifyg"
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
