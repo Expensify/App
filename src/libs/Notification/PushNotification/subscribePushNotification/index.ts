@@ -66,7 +66,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         };
 
         return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) =>
-            applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: lastUpdateID}),
+            applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: true}),
         );
     }
 
@@ -94,9 +94,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) =>
-        applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: lastUpdateID}),
-    );
+    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {

@@ -18,7 +18,7 @@ type ApplyOnyxUpdatesReliablyOptions = FetchMissingUpdatesIds & {
  */
 export default function applyOnyxUpdatesReliably(
     updates: OnyxUpdatesFromServer,
-    {shouldRunSync = false, clientLastUpdateID, shouldFetchPendingUpdates: shouldFetchPendingUpdatesProp}: ApplyOnyxUpdatesReliablyOptions = {},
+    {shouldRunSync = false, clientLastUpdateID, shouldFetchPendingUpdates: shouldFetchPendingUpdatesProp = false}: ApplyOnyxUpdatesReliablyOptions = {},
 ) {
     const fetchMissingUpdates = (shouldFetchPendingUpdates = false) => {
         if (shouldRunSync) {
