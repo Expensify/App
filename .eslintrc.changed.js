@@ -10,7 +10,16 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['src/libs/ReportUtils.ts', 'src/libs/actions/IOU.ts', 'src/libs/actions/Report.ts', 'src/libs/actions/Task.ts', 'src/libs/OptionsListUtils.ts', 'src/libs/ReportActionsUtils.ts', 'src/libs/TransactionUtils/index.ts', 'src/pages/home/ReportScreen.tsx'],
+            files: [
+                'src/libs/ReportUtils.ts',
+                'src/libs/actions/IOU.ts',
+                'src/libs/actions/Report.ts',
+                'src/libs/actions/Task.ts',
+                'src/libs/OptionsListUtils.ts',
+                'src/libs/ReportActionsUtils.ts',
+                'src/libs/TransactionUtils/index.ts',
+                'src/pages/home/ReportScreen.tsx',
+            ],
             rules: {
                 'rulesdir/no-default-id-values': 'off',
             },
