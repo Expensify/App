@@ -546,7 +546,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         const tag = getTag(transaction);
         const category = getCategory(transaction);
         const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-        const tagApprover = getTagApproverRule(policy ?? '-1', tag)?.approver;
+        const tagApprover = getTagApproverRule(policy, tag)?.approver;
         if (categoryAppover) {
             categoryAppovers.push(categoryAppover);
         }
