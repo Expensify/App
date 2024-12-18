@@ -1,14 +1,12 @@
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions, StackRouter} from '@react-navigation/native';
+import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
-import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
@@ -43,7 +41,10 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - defaultCentralScreen to cover central pane.
     if (!isAtLeastOneInState(state, sidebarScreen)) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
-        let params = pick(lastRoute?.params, paramsFromRoute);
+        const copiedParams = pick(lastRoute?.params, paramsFromRoute);
+
+        // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
+        const params = isEmpty(copiedParams) ? undefined : copiedParams;
 
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
