@@ -8704,9 +8704,13 @@ function resolveDuplicates(params: TransactionMergeParams) {
     const optimisticHoldTransactionActions: OnyxUpdate[] = [];
     const failureHoldTransactionActions: OnyxUpdate[] = [];
     transactionThreadReportIDList.forEach((transactionThreadReportID) => {
+        if (!transactionThreadReportID) {
+            return;
+        }
+
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID ?? '-1');
+        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID);
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
