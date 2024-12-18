@@ -88,14 +88,14 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.TERMS_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
                         >
                             {translate('workspace.changeOwner.addPaymentCardTerms')}
                         </TextLink>{' '}
                         {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                         >
                             {translate('workspace.changeOwner.addPaymentCardPrivacy')}
                         </TextLink>{' '}

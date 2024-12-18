@@ -38,7 +38,7 @@ function RequestEarlyCancellationPage() {
         () => (
             <Text>
                 {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-                <TextLink href={CONST.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
+                <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
                 {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
             </Text>
         ),
