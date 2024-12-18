@@ -4074,11 +4074,7 @@ function getReportName(
     }
 
     if (isInvoiceReport(report)) {
-        if (!isInvoiceRoom(getReport(report?.chatReportID ?? ''))) {
-            return report?.reportName ?? getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
-        }
-
-        formattedName = getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = report?.reportName ?? getMoneyRequestReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
