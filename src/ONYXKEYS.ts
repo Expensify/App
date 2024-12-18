@@ -104,6 +104,12 @@ const ONYXKEYS = {
     /** Store the information of magic code */
     VALIDATE_ACTION_CODE: 'validate_action_code',
 
+    /** A list of policies that a user can join */
+    JOINABLE_POLICIES: 'joinablePolicies',
+
+    /** Flag to indicate if the joinablePolicies are loading */
+    JOINABLE_POLICIES_LOADING: 'joinablePoliciesLoading',
+
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
@@ -463,6 +469,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** The user's session that will be preserved when using imported state */
+    PRESERVED_USER_SESSION: 'preservedUserSession',
 
     /** Collection Keys */
     COLLECTION: {
@@ -913,6 +922,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
+    [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
+    [ONYXKEYS.JOINABLE_POLICIES_LOADING]: boolean;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
@@ -1030,6 +1041,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
