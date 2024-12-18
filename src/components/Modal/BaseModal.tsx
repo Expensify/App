@@ -1,8 +1,8 @@
-import {PortalHost} from '@gorhom/portal';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import ReactNativeModal, {ModalProps as ReactNativeModalProps} from 'react-native-modal';
-import {ValueOf} from 'type-fest';
+import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
+import ReactNativeModal from 'react-native-modal';
+import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -15,14 +15,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
 import BottomDockedModal from './ReactNativeModal/Modal';
-import ModalProps from './ReactNativeModal/types';
+import type ModalProps from './ReactNativeModal/types';
 import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
@@ -53,8 +52,6 @@ function BaseModal(
         fullscreen = true,
         animationIn,
         animationOut,
-        useNativeDriver: useNativeDriverProp,
-        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -70,7 +67,7 @@ function BaseModal(
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
         initialFocus = false,
-        swipeThreshold,
+        swipeThreshold = 150,
         swipeDirection,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -244,7 +241,6 @@ function BaseModal(
                 <ModalComponent
                     backdropTransitionInTiming={300}
                     panResponderThreshold={100}
-                    swipeThreshold={100}
                     onModalWillHide={() => {}}
                     scrollTo={null}
                     scrollOffset={0}

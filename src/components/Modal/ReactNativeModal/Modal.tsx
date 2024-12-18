@@ -63,8 +63,8 @@ function ReactNativeModal(incomingProps: ModalProps) {
 
     const getDeviceHeight = () => props.deviceHeight ?? deviceHeight;
     const getDeviceWidth = () => props.deviceWidth ?? deviceWidth;
-    const Yoffset = useSharedValue<number>(0);
-    const Xoffset = useSharedValue<number>(0);
+    const yOffset = useSharedValue<number>(0);
+    const xOffset = useSharedValue<number>(0);
 
     const buildPanResponder = useCallback(() => {
         setPanResponder(
@@ -80,11 +80,11 @@ function ReactNativeModal(incomingProps: ModalProps) {
                     pan,
                     deviceHeight,
                     deviceWidth,
-                    Xoffset,
-                    Yoffset,
+                    xOffset,
+                    yOffset,
                     props.swipeDirection,
                 ),
-                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan, Xoffset, Yoffset),
+                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan, xOffset, yOffset),
             }),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -196,7 +196,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
             animationOutTiming={animationOutTiming}
             isVisible={isVisibleState}
             style={[computedStyle]}
-            panPosition={isSwipeable ? {translateX: Xoffset, translateY: Yoffset} : undefined}
+            panPosition={isSwipeable ? {translateX: xOffset, translateY: yOffset} : undefined}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
             onOpenCallBack={() => {

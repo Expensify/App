@@ -145,8 +145,7 @@ type ModalProps = ViewProps & {
 
     /** Scrolls to the specified position within the modal */
     scrollTo?: ((e?: ScrollToEvent) => void) | null;
-    // void scrollTo(
-    // );
+
     /** Vertical offset for scrolling */
     scrollOffset?: number;
 
