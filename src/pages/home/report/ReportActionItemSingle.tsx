@@ -7,7 +7,6 @@ import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
@@ -24,19 +23,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
-import type {Icon, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import type * as OnyxTypes from '@src/types/onyx';
-import { SearchPersonalDetails } from '@src/types/onyx/SearchResults';
-import { Status } from '@src/types/onyx/PersonalDetails';
-import { AvatarSource } from '@libs/UserUtils';
-
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -64,7 +60,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     isHovered?: boolean;
 
     /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
+    personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -257,7 +253,7 @@ function ReportActionItemSingle({
         );
     };
     const hasEmojiStatus = !displayAllActors && status && 'emojiCode' in status && status?.emojiCode;
-    const statusClearAfter = status && 'clearAfter' in status ? (String(status?.clearAfter) ?? '') : '';
+    const statusClearAfter = status && 'clearAfter' in status ? String(status?.clearAfter) ?? '' : '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
     const statusText = status && 'text' in status ? String(status?.text) ?? '' : '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;

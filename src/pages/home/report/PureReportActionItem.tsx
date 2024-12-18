@@ -28,7 +28,8 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
-import {ShowContextMenuContext, ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import type {ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -66,6 +67,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -81,7 +83,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import { SearchPersonalDetails, SearchReport } from '@src/types/onyx/SearchResults';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -242,20 +243,22 @@ type PureReportActionItemProps = {
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
 
-    /**  The context value containing the report and action data, along with the show context menu props */
+    /** The context value containing the report and action data, along with the show context menu props */
     contextValueOverride?: ShowContextMenuContextProps & {
         report?: OnyxTypes.Report;
         action?: OnyxTypes.ReportAction;
     };
 
+    /** The context value containing the report ID and attachment type */
     attachmentContextValueOverride?: {
         reportID?: string;
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-    }
+    };
 
+    /** The context value containing the current report ID */
     mentionReportContextValueOverride?: {
         currentReportID: string;
-    }
+    };
 };
 
 /**
@@ -523,22 +526,27 @@ function PureReportActionItem({
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
 
-    const contextValue = contextValueOverride ? contextValueOverride : useMemo(
-        () => ({
-            anchor: popoverAnchorRef.current,
-            report: { ...report, reportID: report?.reportID ?? '' },
-            reportNameValuePairs,
-            action,
-            transactionThreadReport,
-            checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-            isDisabled: false,
-        }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
-    );
+    const contextValue = useMemo(() => {
+        return contextValueOverride
+            ? contextValueOverride
+            : {
+                  anchor: popoverAnchorRef.current,
+                  report: {...report, reportID: report?.reportID ?? ''},
+                  reportNameValuePairs,
+                  action,
+                  transactionThreadReport,
+                  checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                  isDisabled: false,
+              };
+    }, [contextValueOverride, report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs]);
 
-    const attachmentContextValue = attachmentContextValueOverride ? attachmentContextValueOverride : useMemo(() => ({ reportID, type: CONST.ATTACHMENT_TYPE.REPORT }), [reportID]);
+    const attachmentContextValue = useMemo(() => {
+        return attachmentContextValueOverride ? attachmentContextValueOverride : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    }, [attachmentContextValueOverride, reportID]);
 
-    const mentionReportContextValue = mentionReportContextValueOverride ? mentionReportContextValueOverride : useMemo(() => ({ currentReportID: report?.reportID ?? '-1' }), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => {
+        return mentionReportContextValueOverride ? mentionReportContextValueOverride : {currentReportID: report?.reportID ?? '-1'};
+    }, [mentionReportContextValueOverride, report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
