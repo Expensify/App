@@ -1,5 +1,5 @@
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import {handleOnyxUpdateGap} from './OnyxUpdateManager';
+import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
 import * as OnyxUpdates from './OnyxUpdates';
 
 type ApplyOnyxUpdatesReliablyOptions = {
@@ -19,7 +19,7 @@ type ApplyOnyxUpdatesReliablyOptions = {
 export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
     const fetchMissingUpdates = (shouldFetchPendingUpdates = false) => {
         if (shouldRunSync) {
-            handleOnyxUpdateGap({...updates, shouldFetchPendingUpdates}, clientLastUpdateID);
+            handleMissingOnyxUpdates({...updates, shouldFetchPendingUpdates}, clientLastUpdateID);
         } else {
             OnyxUpdates.saveUpdateInformation({...updates, shouldFetchPendingUpdates});
         }
