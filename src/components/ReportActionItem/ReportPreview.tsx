@@ -56,7 +56,7 @@ type ReportPreviewProps = {
     chatReportID: string;
 
     /** The active IOUReport, used for Onyx subscription */
-    iouReportID: string;
+    iouReportID: string | undefined;
 
     /** The report's policyID, used for Onyx subscription */
     policyID: string;
