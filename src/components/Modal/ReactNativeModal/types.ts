@@ -1,16 +1,27 @@
 import type {ReactNode} from 'react';
 import type {NativeSyntheticEvent, NativeTouchEvent, PanResponderGestureState, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 type Orientation = 'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
 type PresentationStyle = 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type OnOrientationChange = (orientation: NativeSyntheticEvent<any>) => void;
+type OrientationChangeEvent = {
+    orientation: 'portrait' | 'landscape';
+};
+
+type OnOrientationChange = (orientation: NativeSyntheticEvent<OrientationChangeEvent>) => void;
 
 type OnSwipeCompleteParams = {
     swipingDirection: Direction;
+};
+
+type ScrollToEvent = {
+    scrollViewTag?: number;
+    x?: number;
+    y?: number;
+    animated?: boolean;
 };
 
 type ModalProps = ViewProps & {
@@ -133,8 +144,7 @@ type ModalProps = ViewProps & {
     onBackButtonPress?: () => void;
 
     /** Scrolls to the specified position within the modal */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    scrollTo?: ((e?: any) => void) | null;
+    scrollTo?: ((e?: ScrollToEvent) => void) | null;
 
     /** Vertical offset for scrolling */
     scrollOffset?: number;
@@ -152,10 +162,21 @@ type ModalProps = ViewProps & {
     supportedOrientations?: Orientation[];
 };
 
+type ContainerProps = {
+    /** This function is called by open animation callback */
+    onOpenCallBack: () => void;
+
+    /** This function is called by close animation callback */
+    onCloseCallBack: () => void;
+
+    /** Position animated by pan gesture */
+    panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
+};
+
 type GestureResponderEvent = NativeSyntheticEvent<NativeTouchEvent>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnimationEvent = (...args: any[]) => void;
 
 export default ModalProps;
-export type {GestureResponderEvent, AnimationEvent, Direction, Orientation};
+export type {GestureResponderEvent, AnimationEvent, Direction, Orientation, ContainerProps};

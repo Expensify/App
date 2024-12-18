@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {EmitterSubscription, PanResponderInstance, StyleProp, ViewStyle} from 'react-native';
 import {Animated, BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import styles from './modal.style';
@@ -10,9 +11,9 @@ import type ModalProps from './types';
 import type {AnimationEvent, Direction} from './types';
 import {defaultProps} from './utils';
 
-type TransitionType = 'open' | 'close';
-
 function ReactNativeModal(incomingProps: ModalProps) {
+    const mergedProps = {...defaultProps, ...incomingProps};
+
     const {
         animationIn,
         animationOut,
@@ -34,11 +35,8 @@ function ReactNativeModal(incomingProps: ModalProps) {
         style,
         avoidKeyboard,
         ...props
-    }: ModalProps = {
-        ...defaultProps,
-        ...incomingProps,
-    };
-    const [showContent, setShowContent] = useState(isVisible);
+    } = mergedProps;
+
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -48,7 +46,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
     const [panResponder, setPanResponder] = useState<PanResponderInstance | null>(null);
     const [inSwipeClosingState, setInSwipeClosingState] = useState(false);
     const isSwipeable = !!props.swipeDirection;
-
+    const shouldHideChildren = props.hideModalContentWhileAnimating && isContainerOpen && isTransitioning;
     const currentSwipingDirectionRef = useRef<Direction | null>(null);
 
     const setCurrentSwipingDirection = (direction: Direction | null) => {
@@ -65,14 +63,28 @@ function ReactNativeModal(incomingProps: ModalProps) {
 
     const getDeviceHeight = () => props.deviceHeight ?? deviceHeight;
     const getDeviceWidth = () => props.deviceWidth ?? deviceWidth;
+    const yOffset = useSharedValue<number>(0);
+    const xOffset = useSharedValue<number>(0);
 
     const buildPanResponder = useCallback(() => {
         setPanResponder(
             PanResponder.create({
                 onMoveShouldSetPanResponder: onMoveShouldSetPanResponder(props, setAnimEvt, setCurrentSwipingDirection, pan),
                 onStartShouldSetPanResponder: (a, b) => onStartShouldSetPanResponder(props, setCurrentSwipingDirection)(a as EnhancedGestureEvent, b),
-                onPanResponderMove: onPanResponderMove(props, currentSwipingDirectionRef, setCurrentSwipingDirection, setAnimEvt, animEvt, pan, deviceHeight, deviceWidth),
-                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan),
+                onPanResponderMove: onPanResponderMove(
+                    props,
+                    currentSwipingDirectionRef,
+                    setCurrentSwipingDirection,
+                    setAnimEvt,
+                    animEvt,
+                    pan,
+                    deviceHeight,
+                    deviceWidth,
+                    xOffset,
+                    yOffset,
+                    props.swipeDirection,
+                ),
+                onPanResponderRelease: onPanResponderRelease(props, currentSwipingDirectionRef, setInSwipeClosingState, pan, xOffset, yOffset),
             }),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -99,19 +111,11 @@ function ReactNativeModal(incomingProps: ModalProps) {
         return false;
     };
 
-    const handleTransition = (type: TransitionType, onFinish: () => void) => {
+    const handleTransition = () => {
         const shouldAnimate = isVisible !== isContainerOpen;
 
         if (shouldAnimate && !isTransitioning) {
             setIsTransitioning(true);
-
-            setTimeout(() => {
-                setIsContainerOpen(isVisible);
-                setIsTransitioning(false);
-
-                onFinish();
-            }, 300);
-            // TODO: type === 'open' ? animationInTiming : animationOutTiming,
         }
     };
 
@@ -119,21 +123,12 @@ function ReactNativeModal(incomingProps: ModalProps) {
         if (isTransitioning) {
             return;
         }
-        if (isSwipeable) {
-            pan.setValue?.({x: 0, y: 0});
-        }
 
         if (props.onModalWillShow) {
             props.onModalWillShow();
         }
         setIsVisibleState(true);
-        handleTransition('open', () => {
-            if (!isVisible) {
-                setIsContainerOpen(false);
-            } else {
-                onModalShow();
-            }
-        });
+        handleTransition();
     };
 
     const close = () => {
@@ -150,14 +145,7 @@ function ReactNativeModal(incomingProps: ModalProps) {
         }
 
         setIsVisibleState(false);
-        handleTransition('close', () => {
-            if (isVisible) {
-                setIsContainerOpen(true);
-            } else {
-                setShowContent(false);
-                props.onModalHide?.();
-            }
-        });
+        handleTransition();
     };
 
     useEffect(() => {
@@ -200,17 +188,6 @@ function ReactNativeModal(incomingProps: ModalProps) {
 
     const computedStyle: Array<StyleProp<ViewStyle>> = [{margin: getDeviceWidth() * 0.05}, styles.content, style];
 
-    let panPosition: StyleProp<ViewStyle> = {};
-    if (isSwipeable && panResponder) {
-        if (useNativeDriver) {
-            panPosition = {
-                // transform: pan.getTranslateTransform(),
-            };
-        } else {
-            // panPosition = pan.getLayout();
-        }
-    }
-
     const containerView = (
         <Container
             animationIn={animationIn}
@@ -218,15 +195,24 @@ function ReactNativeModal(incomingProps: ModalProps) {
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             isVisible={isVisibleState}
-            style={[panPosition, computedStyle]}
+            style={[computedStyle]}
+            panPosition={isSwipeable ? {translateX: xOffset, translateY: yOffset} : undefined}
             pointerEvents="box-none"
             useNativeDriver={useNativeDriver}
+            onOpenCallBack={() => {
+                setIsContainerOpen(true);
+                setIsTransitioning(false);
+            }}
+            onCloseCallBack={() => {
+                setIsContainerOpen(false);
+                setIsTransitioning(false);
+            }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(isSwipeable && panResponder ? panResponder.panHandlers : {})}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...otherProps}
         >
-            {props.hideModalContentWhileAnimating && !showContent ? <View /> : children}
+            {shouldHideChildren ? <View /> : children}
         </Container>
     );
 

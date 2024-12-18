@@ -1,9 +1,34 @@
 import type {MutableRefObject} from 'react';
-import type {PanResponderGestureState} from 'react-native';
-import {Animated} from 'react-native';
+import type {Animated, PanResponderGestureState} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+import {withSpring} from 'react-native-reanimated';
 import {calcDistancePercentage, createAnimationEventForSwipe, getAccDistancePerDirection, getSwipingDirection, isSwipeDirectionAllowed, shouldPropagateSwipe} from './panHandlers';
 import type {AnimationEvent, Direction, GestureResponderEvent} from './types';
 import type ModalProps from './types';
+
+function handleSwipe(dx: number, dy: number, Xoffset: SharedValue<number>, Yoffset: SharedValue<number>, swipeDirection?: Direction | Direction[]) {
+    if (!swipeDirection) {
+        return;
+    }
+    const directions = Array.isArray(swipeDirection) ? swipeDirection : [swipeDirection];
+
+    if (directions.includes('right') && dx > 0) {
+        // eslint-disable-next-line no-param-reassign
+        Xoffset.value = dx;
+    }
+    if (directions.includes('left') && dx < 0) {
+        // eslint-disable-next-line no-param-reassign
+        Xoffset.value = dx;
+    }
+    if (directions.includes('up') && dy < 0) {
+        // eslint-disable-next-line no-param-reassign
+        Yoffset.value = dy;
+    }
+    if (directions.includes('down') && dy > 0) {
+        // eslint-disable-next-line no-param-reassign
+        Yoffset.value = dy;
+    }
+}
 
 type RemainingModalProps = Omit<
     ModalProps,
@@ -82,8 +107,12 @@ const onPanResponderMove = (
     pan: Animated.ValueXY,
     deviceHeight: number,
     deviceWidth: number,
+    xOffset: SharedValue<number>,
+    yOffset: SharedValue<number>,
+    swipeDirection?: Direction | Direction[],
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+        handleSwipe(gestureState.dx, gestureState.dy, xOffset, yOffset, swipeDirection);
         const currentSwipingDirection = currentSwipingDirectionRef.current;
         if (!currentSwipingDirection) {
             if (gestureState.dx === 0 && gestureState.dy === 0) {
@@ -128,6 +157,8 @@ const onPanResponderRelease = (
     currentSwipingDirectionRef: MutableRefObject<Direction | null>,
     setInSwipeClosingState: (val: boolean) => void,
     pan: Animated.ValueXY,
+    xOffset: SharedValue<number>,
+    yOffset: SharedValue<number>,
 ) => {
     return (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
         const currentSwipingDirection = currentSwipingDirectionRef.current;
@@ -141,6 +172,10 @@ const onPanResponderRelease = (
                     },
                     gestureState,
                 );
+                // eslint-disable-next-line no-param-reassign
+                xOffset.value = 0;
+                // eslint-disable-next-line no-param-reassign
+                yOffset.value = 0;
                 return;
             }
         }
@@ -149,11 +184,10 @@ const onPanResponderRelease = (
             props.onSwipeCancel(gestureState);
         }
 
-        Animated.spring(pan, {
-            toValue: {x: 0, y: 0},
-            bounciness: 0,
-            useNativeDriver: false,
-        }).start();
+        // eslint-disable-next-line no-param-reassign
+        xOffset.value = withSpring(0);
+        // eslint-disable-next-line no-param-reassign
+        yOffset.value = withSpring(0);
 
         if (props.scrollTo && props.scrollOffset !== undefined && props.scrollOffsetMax !== undefined) {
             if (props.scrollOffset > props.scrollOffsetMax) {

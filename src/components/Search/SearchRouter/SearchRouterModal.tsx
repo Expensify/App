@@ -27,6 +27,8 @@ function SearchRouterModal() {
             propagateSwipe
             shouldHandleNavigationBack={Browser.isMobileChrome()}
             onClose={closeSearchRouter}
+            swipeDirection="right"
+            swipeThreshold={100}
             onModalHide={() => setShouldHideInputCaret(isMobileSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
         >
