@@ -118,7 +118,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? '-1',
+                methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
@@ -156,7 +156,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? -1, policyID, previousPaymentMethod?.methodID ?? -1);
+            PaymentMethods.setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
     }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
