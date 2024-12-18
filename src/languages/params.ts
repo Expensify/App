@@ -593,6 +593,10 @@ type TripLengthTextParams = {
     days: number;
 };
 
+type FlightLayoverParams = {
+    layover: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -803,4 +807,5 @@ export type {
     FirstDayTextParams,
     LastDayTextParams,
     TripLengthTextParams,
+    FlightLayoverParams,
 };

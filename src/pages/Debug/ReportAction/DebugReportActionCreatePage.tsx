@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -51,6 +51,29 @@ function DebugReportActionCreatePage({
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
     const [error, setError] = useState<string>();
 
+    const createReportAction = useCallback(() => {
+        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [parsedReportAction.reportActionID]: parsedReportAction,
+        });
+        Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
+    }, [draftReportAction, reportID]);
+
+    const editJSON = useCallback(
+        (updatedJSON: string) => {
+            try {
+                DebugUtils.validateReportActionJSON(updatedJSON);
+                setError('');
+            } catch (e) {
+                const {cause, message} = e as SyntaxError;
+                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+            } finally {
+                setDraftReportAction(updatedJSON);
+            }
+        },
+        [translate],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -74,17 +97,7 @@ function DebugReportActionCreatePage({
                                 numberOfLines={18}
                                 multiline
                                 value={draftReportAction}
-                                onChangeText={(updatedJSON) => {
-                                    try {
-                                        DebugUtils.validateReportActionJSON(updatedJSON);
-                                        setError('');
-                                    } catch (e) {
-                                        const {cause, message} = e as SyntaxError;
-                                        setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-                                    } finally {
-                                        setDraftReportAction(updatedJSON);
-                                    }
-                                }}
+                                onChangeText={editJSON}
                                 textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
                             />
                         </View>
@@ -112,11 +125,7 @@ function DebugReportActionCreatePage({
                             success
                             text={translate('common.save')}
                             isDisabled={!draftReportAction || !!error}
-                            onPress={() => {
-                                const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
-                                Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[parsedReportAction.reportActionID]: parsedReportAction});
-                                Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-                            }}
+                            onPress={createReportAction}
                         />
                     </ScrollView>
                 </View>
