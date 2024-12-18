@@ -78,8 +78,6 @@ import * as Report from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import * as TransactionEdit from './TransactionEdit';
 
-console.log('test');
-
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
