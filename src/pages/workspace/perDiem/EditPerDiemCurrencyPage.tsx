@@ -53,8 +53,6 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
-                style={[styles.pb0]}
-                includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 testID={EditPerDiemCurrencyPage.displayName}
             >
