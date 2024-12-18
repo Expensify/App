@@ -8476,6 +8476,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     const reportTotal = expenseReport?.total ?? 0;
     const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? -1]).at(0) ?? '';
 
+    if (PolicyUtils.isSubmitAndClose(policy)) {
+        return approvalChain;
+    }
+
     // Get category/tag approver list
     const ruleApprovers = PolicyUtils.getRuleApprovers(policy, expenseReport);
 
