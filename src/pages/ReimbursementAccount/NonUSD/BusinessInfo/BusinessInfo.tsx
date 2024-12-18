@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Address from './substeps/Address';
+import AverageReimbursement from './substeps/AverageReimbursement';
 import BusinessType from './substeps/BusinessType';
 import Confirmation from './substeps/Confirmation';
 import ContactInformation from './substeps/ContactInformation';
@@ -37,6 +38,7 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [
     IncorporationLocation,
     BusinessType,
     PaymentVolume,
+    AverageReimbursement,
     Confirmation,
 ];
 
@@ -55,6 +57,7 @@ const INPUT_KEYS = {
     BUSINESS_CATEGORY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY,
     APPLICANT_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID,
     ANNUAL_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME,
+    TRADE_VOLUME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME,
     TAX_ID_EIN_NUMBER: INPUT_IDS.ADDITIONAL_DATA.CORPAY.TAX_ID_EIN_NUMBER,
 };
 
@@ -97,7 +100,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
                 fundDestinationCountries: onyxValues[INPUT_KEYS.STATE],
                 natureOfBusiness: onyxValues[INPUT_KEYS.BUSINESS_CATEGORY],
                 purposeOfTransactionId: CONST.NON_USD_BANK_ACCOUNT.PURPOSE_OF_TRANSACTION_ID,
-                tradeVolume: onyxValues[INPUT_KEYS.ANNUAL_VOLUME],
+                tradeVolume: onyxValues[INPUT_KEYS.TRADE_VOLUME],
                 taxIDEINNumber: onyxValues[INPUT_KEYS.TAX_ID_EIN_NUMBER],
             },
             bankAccountID,

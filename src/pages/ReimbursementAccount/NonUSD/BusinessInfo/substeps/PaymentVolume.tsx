@@ -10,7 +10,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -25,6 +24,9 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? '';
 
     const annualVolumeRangeListOptions = useMemo(() => {
         if (!corpayOnboardingFields?.picklists.AnnualVolumeRange) {
@@ -46,7 +48,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: true,
+        shouldSaveDraft: isEditing,
     });
 
     return (
@@ -62,12 +64,12 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={annualVolumeRangeListOptions}
-                description={translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: CONST.CURRENCY.USD})}
+                description={translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency})}
                 modalHeaderTitle={translate('businessInfoStep.selectAnnualPaymentVolume')}
                 searchInputTitle={translate('businessInfoStep.findAnnualPaymentVolume')}
                 inputID={ANNUAL_VOLUME}
                 shouldSaveDraft={!isEditing}
-                value={annualVolumeDefaultValue}
+                defaultValue={annualVolumeDefaultValue}
             />
         </FormProvider>
     );

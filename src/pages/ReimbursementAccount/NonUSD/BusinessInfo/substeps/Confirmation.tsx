@@ -29,6 +29,7 @@ const {
     FORMATION_INCORPORATION_COUNTRY_CODE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
+    TRADE_VOLUME,
     BUSINESS_CATEGORY,
 } = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -61,6 +62,10 @@ function Confirmation({onNext, onMove}: SubStepProps) {
     const businessType = useMemo(
         () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]),
         [corpayOnboardingFields?.picklists.ApplicantType, values],
+    );
+    const tradeVolumeRange = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], values[TRADE_VOLUME]),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange, values],
     );
 
     return (
@@ -149,6 +154,14 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(7);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('businessInfoStep.averageReimbursementAmount')}
+                        title={tradeVolumeRange}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(8);
                         }}
                     />
                     <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
