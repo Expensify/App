@@ -246,7 +246,6 @@ function Button(
         link = false,
         isContentCentered = false,
         isPressOnEnterActive,
-        testID,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
