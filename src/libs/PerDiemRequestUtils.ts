@@ -1,3 +1,4 @@
+import {addDays, differenceInDays, differenceInMinutes, format, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -5,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -227,11 +227,37 @@ function getSubratesForDisplay(subrate: Subrate | undefined) {
     return `${subrate.name}, Qty: ${subrate.quantity}`;
 }
 
+/**
+ * param {string} dateTimeString
+ * returns {string} example: 2023-05-16 11:10 PM
+ */
+function formatDateTimeTo12Hour(dateTimeString: string): string {
+    if (!dateTimeString) {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'hh:mm a, yyyy-MM-dd');
+}
+
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${DateUtils.formatDateTimeTo12Hour(customUnitRateDate.start)} - ${DateUtils.formatDateTimeTo12Hour(customUnitRateDate.end)}`;
+    return `${formatDateTimeTo12Hour(customUnitRateDate.start)} - ${formatDateTimeTo12Hour(customUnitRateDate.end)}`;
+}
+
+function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
+    const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    const startDate = new Date(customUnitRateDate.start);
+    const endDate = new Date(customUnitRateDate.end);
+    const firstDayDiff = differenceInMinutes(startOfDay(addDays(startDate, 1)), startDate);
+    const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
+    const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
+    return {
+        firstDay: firstDayDiff === 1440 ? undefined : (firstDayDiff / 60).toFixed(2),
+        tripDays: firstDayDiff === 1440 ? tripDaysDiff + 1 : tripDaysDiff,
+        lastDay: lastDayDiff === 0 ? undefined : (lastDayDiff / 60).toFixed(2),
+    };
 }
 
 export type {Destination};
 
-export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay};
+export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay, getTimeDifferenceIntervals};

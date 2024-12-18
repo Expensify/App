@@ -28,8 +28,10 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -566,6 +568,40 @@ function MoneyRequestConfirmationListFooter({
         />
     ));
 
+    const {firstDay, tripDays, lastDay} = PerDiemRequestUtils.getTimeDifferenceIntervals(transaction);
+
+    const badgeElements = useMemo(() => {
+        const badges: React.JSX.Element[] = [];
+        if (firstDay) {
+            badges.push(
+                <Badge
+                    key="firstDay"
+                    icon={Expensicons.Stopwatch}
+                    text={`First day: ${firstDay} hours`}
+                />,
+            );
+        }
+        if (tripDays) {
+            badges.push(
+                <Badge
+                    key="tripDays"
+                    icon={Expensicons.CalendarSolid}
+                    text={`Trip: ${tripDays} full days`}
+                />,
+            );
+        }
+        if (lastDay) {
+            badges.push(
+                <Badge
+                    key="lastDay"
+                    icon={Expensicons.Stopwatch}
+                    text={`Last day: ${lastDay} hours`}
+                />,
+            );
+        }
+        return badges;
+    }, [firstDay, lastDay, tripDays]);
+
     const primaryFields: React.JSX.Element[] = [];
     const supplementaryFields: React.JSX.Element[] = [];
 
@@ -689,6 +725,7 @@ function MoneyRequestConfirmationListFooter({
                         interactive={!isReadOnly}
                         numberOfLinesTitle={2}
                     />
+                    {badgeElements}
                     <View style={styles.dividerLine} />
                     {subRateFields}
                     <View style={styles.dividerLine} />
