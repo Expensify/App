@@ -69,7 +69,7 @@ Many customers use Postman to help them build out their APIs. Below are some gui
 
 Find the ID by opening the expense report and clicking Details at the top right corner of the page. At the top of the menu, the ID is provided as the “Long ID.” 
 
-**Step 3: Export (generate) a "Report" as a CSV file**
+**Step 2: Export (generate) a "Report" as a CSV file**
 {% include info.html %} 
 For this you'll use the Documentation under [Report Exporter](https://integrations.expensify.com/Integration-Server/doc/#export). 
 {% include end-info.html %}
@@ -142,11 +142,11 @@ The template key will have the value like below:
 
 The template variable determines what information is saved in your CSV file. If you want more columns than merchant, amount, and transaction date, follow the syntax as defined in the export template format documentation.
 
-**Step 4: Save your generated file name**
+**Step 3: Save your generated file name**
 
-Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 3, so you should receive a random filename back from the API like "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
+Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 2, so you should receive a random filename back from the API like "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
 
-**Step 5: Download your exported report**
+**Step 4: Download your exported report**
 
 Set up another API call in almost the same way you did before. You don't need the template key in the Body anymore, so delete that and set the Body type to "none". Then modify your requestJobDescription to read like below, but with your own credentials and file name:
 
