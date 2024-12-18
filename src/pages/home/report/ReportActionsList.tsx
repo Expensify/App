@@ -438,7 +438,7 @@ function ReportActionsList({
                 if (!isNewMessageDisplayed()) {
                     setPendingBottomScroll(true);
                 } else {
-                    InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
+                    reportScrollManager.scrollToBottom();
                 }
             });
         },
