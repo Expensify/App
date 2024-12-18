@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,7 +11,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
@@ -22,6 +20,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import switchPolicyAfterInteractions from './switchPolicyAfterInteractions';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 
 type WorkspaceListItem = {
@@ -91,14 +90,7 @@ function WorkspaceSwitcherPage() {
             if (newPolicyID !== activeWorkspaceID) {
                 // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
                 // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
-                const platform = getPlatform();
-                if (platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID) {
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
-                    });
-                } else {
-                    Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
-                }
+                switchPolicyAfterInteractions(newPolicyID);
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID, isFocused],
