@@ -150,7 +150,7 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = value.accountID ?? -1;
+        currentAccountID = value.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
@@ -253,7 +253,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
+        return initialReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
     });
 
     useEffect(() => {
@@ -414,12 +414,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         });
     };
     useEffect(() => {
-        const currentTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
         if (!currentUserPersonalDetails.status?.clearAfter) {
             return;
         }
-        if (new Date(currentUserPersonalDetails.status?.clearAfter).getTime() > new Date(currentTime).getTime()) {
-            const subMilisecondsTime = new Date(currentUserPersonalDetails.status?.clearAfter).getTime() - new Date(currentTime).getTime();
+        const currentTime = new Date();
+        const clearAfterTime = new Date(currentUserPersonalDetails.status.clearAfter);
+        if (Number.isNaN(clearAfterTime.getTime())) {
+            return;
+        }
+        const subMilisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
+        if (subMilisecondsTime > 0) {
             const timeoutID = setTimeout(() => {
                 clearStatus();
             }, subMilisecondsTime);
