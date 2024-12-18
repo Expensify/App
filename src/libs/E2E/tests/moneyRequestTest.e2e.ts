@@ -5,11 +5,7 @@ import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import {tap, waitForElement, waitForEvent, waitForTextInputValue} from '@libs/E2E/interactions';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
-import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = (config: NativeConfig) => {
@@ -29,13 +25,9 @@ const test = (config: NativeConfig) => {
         console.debug('[E2E] Logged in, getting money request metrics and submitting them…');
 
         waitForEvent(CONST.TIMING.SIDEBAR_LOADED)
-            .then(() => {
-                console.debug(`[E2E] Sidebar loaded, navigating to submit expense…`);
-                Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE);
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
-                );
-            })
+            .then(() => tap('floating-action-button'))
+            .then(() => waitForElement('create-expense'))
+            .then(() => tap('create-expense'))
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE))
             .then((entry) => {
                 E2EClient.submitTestResults({
@@ -45,10 +37,10 @@ const test = (config: NativeConfig) => {
                     unit: 'ms',
                 });
             })
+            .then(() => waitForElement('manual'))
+            .then(() => tap('manual'))
             .then(() => E2EClient.sendNativeCommand(NativeCommands.makeClearCommand()))
-            .then(() => {
-                tap('button_2');
-            })
+            .then(() => tap('button_2'))
             .then(() => waitForTextInputValue('2', 'moneyRequestAmountInput'))
             .then(() => tap('next-button'))
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))

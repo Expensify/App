@@ -30,9 +30,12 @@ type TabSelectorItemProps = {
 
     /** Whether this tab is active */
     isActive?: boolean;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
-function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
+function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false, testID}: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
@@ -46,6 +49,7 @@ function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor 
             onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.BUTTON}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
         >
             <TabIcon
                 icon={icon}

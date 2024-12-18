@@ -24,6 +24,7 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 type IconAndTitle = {
     icon: IconAsset;
     title: string;
+    testID?: string;
 };
 
 function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
@@ -39,7 +40,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
         case CONST.DEBUG.TRANSACTION_VIOLATIONS:
             return {icon: Expensicons.Exclamation, title: translate('debug.violations')};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
             return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan')};
         case CONST.TAB.NEW_CHAT:
@@ -75,7 +76,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title} = getIconAndTitle(route.name, translate);
+                    const {icon, title, testID} = getIconAndTitle(route.name, translate);
 
                     const onPress = () => {
                         if (isActive) {
@@ -108,6 +109,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             inactiveOpacity={inactiveOpacity}
                             backgroundColor={backgroundColor}
                             isActive={isActive}
+                            testID={testID}
                         />
                     );
                 })}
