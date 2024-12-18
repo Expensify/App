@@ -325,6 +325,10 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
+            if (!item?.accountID) {
+                return;
+            }
+
             Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
         [report, backTo],

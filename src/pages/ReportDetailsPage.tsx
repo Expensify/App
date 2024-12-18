@@ -141,7 +141,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
-    const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
+    const chatRoomSubtitle = useMemo(() => {
+        const subtitle = ReportUtils.getChatRoomSubtitle(report);
+
+        if (subtitle) {
+            return subtitle;
+        }
+
+        return '';
+    }, [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
