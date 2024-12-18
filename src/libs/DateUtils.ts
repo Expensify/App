@@ -13,6 +13,7 @@ import {
     formatDistance,
     getDate,
     getDay,
+    intervalToDuration,
     isAfter,
     isBefore,
     isSameDay,
@@ -36,6 +37,7 @@ import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardMap} from '@src/TIMEZONES';
@@ -798,8 +800,8 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
 /**
  * Returns a formatted date of departure.
  * Dates are formatted as follows:
- * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
- * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ * 1. When the date refers to the current year: Departs on Sunday, Mar 17 at 8:00.
+ * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(date: Date): string {
     const {translateLocal} = Localize;
@@ -807,6 +809,45 @@ function getFormattedTransportDate(date: Date): string {
         return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
     }
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+}
+
+/**
+ * Returns a formatted flight date and hour.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
+ */
+function getFormattedTransportDateAndHour(date: Date): {date: string; hour: string} {
+    if (isThisYear(date)) {
+        return {
+            date: format(date, 'EEEE, MMM d'),
+            hour: format(date, 'h:mm a'),
+        };
+    }
+    return {
+        date: format(date, 'EEEE, MMM d, yyyy'),
+        hour: format(date, 'h:mm a'),
+    };
+}
+
+/**
+ * Returns a formatted layover duration in format "2h 30m".
+ */
+function getFormattedDurationBetweenDates(translate: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+    const {days, hours, minutes} = intervalToDuration({start, end});
+
+    if (days && days > 0) {
+        return;
+    }
+
+    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
+}
+
+function getFormattedDuration(translate: LocaleContextProps['translate'], durationInSeconds: number): string {
+    const hours = Math.floor(durationInSeconds / 3600);
+    const minutes = Math.floor((durationInSeconds % 3600) / 60);
+
+    return `${hours ? `${hours}${translate('common.hourAbbreviation')} ` : ''}${minutes}${translate('common.minuteAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -889,10 +930,13 @@ const DateUtils = {
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
+    getFormattedTransportDateAndHour,
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
+    getFormattedDurationBetweenDates,
+    getFormattedDuration,
 };
 
 export default DateUtils;
