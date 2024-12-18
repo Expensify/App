@@ -19,7 +19,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isDeletedAction} from './ReportActionsUtils';
 import {hasOnlyHeldExpenses, isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils, isClosedReport, isInvoiceReport, isMoneyRequestReport, isSettled} from './ReportUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant} from './TransactionUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -302,9 +302,10 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
+    const hasOnlyPendingTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
