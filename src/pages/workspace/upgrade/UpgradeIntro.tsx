@@ -86,6 +86,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 <Button
                     isLoading={loading}
                     text={translate('common.upgrade')}
+                    testID="upgrade-button"
                     success
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
