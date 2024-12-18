@@ -581,33 +581,12 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
-    const employeeAccountID = expenseReport?.ownerAccountID ?? -1;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    const defaultApprover = getDefaultApprover(policy);
-
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
     if (ruleApprovers.length > 0) {
         return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
-    
+
     return getManagerAccountID(policy, expenseReport);
-
-    // For policy using the optional or basic workflow, the manager is the policy default approver.
-    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
-    }
-
-    const employee = policy?.employeeList?.[employeeLogin];
-    if (!employee) {
-        return -1;
-    }
-
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
-}
-
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
 }
 
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
@@ -1272,7 +1251,6 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
-    getSubmitToEmail,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
