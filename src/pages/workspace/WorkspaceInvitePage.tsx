@@ -187,9 +187,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected
-            .map((item) => OptionsListUtils.formatMemberForList(item))
-            .filter((item, index, array) => item?.login && index === array.findIndex((i) => i.login === item.login));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => OptionsListUtils.formatMemberForList(item));
 
         sectionsArr.push({
             title: translate('common.contacts'),
