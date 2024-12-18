@@ -1,6 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {useEffect} from 'react';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,15 +11,14 @@ import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigat
  */
 function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<ParamListBase>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const prevShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
 
     useEffect(() => {
-        if (!navigationRef.isReady() || shouldUseNarrowLayout === prevShouldUseNarrowLayout) {
+        if (!navigationRef.isReady()) {
             return;
         }
         navigation.reset(navigation.getState());
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [shouldUseNarrowLayout, prevShouldUseNarrowLayout]);
+    }, [shouldUseNarrowLayout]);
 }
 
 export default useNavigationResetOnLayoutChange;
