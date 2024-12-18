@@ -4575,7 +4575,9 @@ const translations = {
         groupedExpenses: 'grouped expenses',
         cannedSearches: {
             allExpenses: 'All expenses',
-            expensesWaitingOnYou: 'Expenses waiting on you',
+            draftExpenses: 'Draft expenses',
+            expensesToApprove: 'Expenses to approve',
+            expensesToPay: 'Expenses to pay',
         },
         bulkActions: {
             approve: 'Approve',

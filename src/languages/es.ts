@@ -4633,7 +4633,9 @@ const translations = {
         filtersHeader: 'Filtros',
         cannedSearches: {
             allExpenses: 'Todos los gastos',
-            expensesWaitingOnYou: 'Gastos pendientes de tu aprobación',
+            draftExpenses: 'Borrador de gastos',
+            expensesToApprove: 'Gastos por aprobar',
+            expensesToPay: 'Gastos por pagar',
         },
         filters: {
             date: {

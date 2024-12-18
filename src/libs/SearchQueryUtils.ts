@@ -622,11 +622,13 @@ function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
     to,
+    from,
     policyID,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
     to?: string;
+    from?: string;
     policyID?: string;
 } = {}): {queryString: SearchQueryString; queryJSON: SearchQueryJSON | undefined} {
     let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
@@ -635,6 +637,9 @@ function buildCannedSearchQuery({
     }
     if (to) {
         queryString = `${queryString} to:${to} `;
+    }
+    if (from) {
+        queryString = `${queryString} from:${from} `;
     }
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
@@ -656,10 +661,21 @@ function buildDefaultCannedSearchQuery(): SearchQueryString {
  */
 function getCannedSearchesItems(policyID?: string, currentUserLogin?: string): CannedSearchItem[] {
     const allExpensesQuery = buildCannedSearchQuery({policyID});
-    const wainingOnYouQuery = buildCannedSearchQuery({
+    const draftExpenses = buildCannedSearchQuery({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
+        from: currentUserLogin,
+        policyID,
+    });
+    const expensesToApprove = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
         to: currentUserLogin,
+        policyID,
+    });
+    const expensesToPay = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED],
         policyID,
     });
 
@@ -671,10 +687,22 @@ function getCannedSearchesItems(policyID?: string, currentUserLogin?: string): C
             hash: allExpensesQuery.queryJSON?.hash,
         },
         {
-            titleTranslationPath: 'search.cannedSearches.expensesWaitingOnYou',
+            titleTranslationPath: 'search.cannedSearches.draftExpenses',
             icon: Expensicons.Hourglass,
-            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: wainingOnYouQuery.queryString}),
-            hash: wainingOnYouQuery.queryJSON?.hash,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: draftExpenses.queryString}),
+            hash: draftExpenses.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.expensesToApprove',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: expensesToApprove.queryString}),
+            hash: expensesToApprove.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.expensesToPay',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: expensesToPay.queryString}),
+            hash: expensesToPay.queryJSON?.hash,
         },
     ];
 }
