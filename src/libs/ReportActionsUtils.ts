@@ -348,7 +348,7 @@ function isInviteOrRemovedAction(
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
-function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     const {childType, childVisibleActionCount = 0, childReportID} = reportAction ?? {};
     return childType === CONST.REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
@@ -789,12 +789,15 @@ function getLastVisibleAction(reportID: string, canUserPerformWriteAction?: bool
     return sortedReportActions.at(0);
 }
 
-function formatLastMessageText(lastMessageText: string) {
+function formatLastMessageText(lastMessageText: string | undefined) {
     const trimmedMessage = String(lastMessageText).trim();
 
     // Add support for inline code containing only space characters
     // The message will appear as a blank space in the LHN
-    if ((trimmedMessage === '' && lastMessageText.length > 0) || (trimmedMessage === '?\u2026' && lastMessageText.length > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)) {
+    if (
+        (trimmedMessage === '' && (lastMessageText?.length ?? 0) > 0) ||
+        (trimmedMessage === '?\u2026' && (lastMessageText?.length ?? 0) > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)
+    ) {
         return ' ';
     }
 
