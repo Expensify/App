@@ -1878,7 +1878,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? '',
+            value: activePolicyID,
         });
     }
 

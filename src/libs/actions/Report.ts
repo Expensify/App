@@ -459,7 +459,7 @@ function unsubscribeFromReportChannel(reportID: string) {
 /**
  * Remove our pusher subscriptions to listen for someone leaving a report.
  */
-function unsubscribeFromLeavingRoomReportChannel(reportID: string) {
+function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
     if (!reportID) {
         return;
     }
@@ -1329,7 +1329,11 @@ function expandURLPreview(reportID: string, reportActionID: string) {
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker = false) {
+    if (!reportID) {
+        return;
+    }
+
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [

@@ -57,7 +57,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const backTo = route.params.backTo;
 
@@ -267,7 +267,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID));
         },
         [report.reportID],
     );
@@ -325,7 +325,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1, backTo));
+            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
         [report, backTo],
     );
