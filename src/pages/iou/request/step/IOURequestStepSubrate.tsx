@@ -50,10 +50,10 @@ type CommentSubrate = {
     name: string;
 };
 
-function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[], currentIndex: number) {
+function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[], currentSubrateID?: string) {
     const filledSubRatesIDs = new Set(filledSubRates.map(({id}) => id));
     return subRates
-        .filter(({id}, index) => currentIndex === index || !filledSubRatesIDs.has(id))
+        .filter(({id}) => currentSubrateID === id || !filledSubRatesIDs.has(id))
         .map(({id, name}) => ({
             value: id,
             label: name,
@@ -90,7 +90,7 @@ function IOURequestStepWaypoint({
     const shouldShowThreeDotsButton = filledSubrateCount > 1 && !isEmptyObject(currentSubrate);
     const shouldDisableEditor = isFocused && (Number.isNaN(parsedIndex) || parsedIndex < 0 || parsedIndex >= totalSubrateCount || parsedIndex > filledSubrateCount);
 
-    const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, parsedIndex);
+    const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
 
     const goBack = () => {
         if (backTo) {
