@@ -250,7 +250,6 @@ describe('actions/Policy', () => {
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     callback: (reimbursementAccount) => {
                         Onyx.disconnect(connection);
-                        console.log(reimbursementAccount);
                         expect(reimbursementAccount?.errors).not.toBeUndefined();
                         resolve();
                     },
