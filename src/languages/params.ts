@@ -585,6 +585,10 @@ type EditDestinationSubtitleParams = {
     destination: string;
 };
 
+type FlightLayoverParams = {
+    layover: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -793,4 +797,5 @@ export type {
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
+    FlightLayoverParams,
 };
