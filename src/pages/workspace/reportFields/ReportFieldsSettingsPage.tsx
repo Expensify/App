@@ -113,7 +113,7 @@ function ReportFieldsSettingsPage({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             title={WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField)}
-                            description={translate('common.date')}
+                            description={isDateFieldType ? translate('common.date') : translate('common.initialValue')}
                             shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
                             interactive={!isDateFieldType && !hasAccountingConnections}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
