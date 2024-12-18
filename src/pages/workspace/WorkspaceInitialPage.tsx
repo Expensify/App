@@ -201,10 +201,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             icon: Expensicons.InvoiceGeneric,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.INVOICES,
-            badgeText: `${CurrencyUtils.getCurrencySymbol(currencyCode)}${CurrencyUtils.convertToFrontendAmountAsString(
-                policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0,
-                currencyCode,
-            )}`,
+            badgeText: CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, currencyCode),
         });
     }
 
