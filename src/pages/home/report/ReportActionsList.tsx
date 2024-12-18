@@ -422,31 +422,32 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            InteractionManager.runAfterInteractions(() => {
-                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-                // they are now in the list.
-                if (!isFromCurrentUser) {
+            // InteractionManager.runAfterInteractions(() => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || scrollingVerticalOffset.current === 0) {
+                return;
+            }
+            if (!hasNewestReportActionRef.current) {
+                if (isInNarrowPaneModal) {
                     return;
                 }
-                if (!hasNewestReportActionRef.current) {
-                    if (isInNarrowPaneModal) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                    return;
-                }
-                if (!isNewMessageDisplayed()) {
-                    setPendingBottomScroll(true);
-                } else {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                return;
+            }
+            if (!isNewMessageDisplayed()) {
+                setPendingBottomScroll(true);
+            } else {
+                InteractionManager.runAfterInteractions(() => {
                     reportScrollManager.scrollToBottom();
-                }
-            });
+                });
+            }
         },
         [isInNarrowPaneModal, reportScrollManager, report.reportID, isNewMessageDisplayed],
     );
 
     useEffect(() => {
-        if (!pendingBottomScroll) {
+        if (!pendingBottomScroll || scrollingVerticalOffset.current === 0) {
             return;
         }
 
