@@ -21,6 +21,7 @@ import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
 import * as Policy from '@userActions/Policy/Policy';
 import {generatePolicyID} from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
@@ -54,6 +55,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+
+    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -89,7 +92,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 Welcome.setOnboardingErrorMessage('');
-
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     if (!onboardingPolicyID && !hasSignupQualifier && filteredPolicies.length === 0) {
                         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', generatePolicyID(), choice);
@@ -123,7 +125,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={25}
+                            progressBarPercentage={isPrivateDomain ? 60 : 20}
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>

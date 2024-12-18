@@ -579,8 +579,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {
@@ -589,6 +591,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

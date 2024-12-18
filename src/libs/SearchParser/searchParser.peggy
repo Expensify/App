@@ -98,30 +98,30 @@ standardFilter
 
 key "key"
   = @(
-      "date"
-      / "amount"
-      / "merchant"
-      / "description"
-      / "reportID"
-      / "keyword"
-      / "in"
-      / "currency"
-      / "tag"
-      / "category"
-      / "to"
-      / "taxRate"
-      / "cardID"
-      / "from"
-      / "expenseType"
-      / "submitted"
-      / "approved"
-      / "paid"
-      / "exported"
-      / "posted"
+      date
+      / amount
+      / merchant
+      / description
+      / reportID
+      / keyword
+      / in
+      / currency
+      / tag
+      / category
+      / to
+      / taxRate
+      / cardID
+      / from
+      / expenseType
+      / submitted
+      / approved
+      / paid
+      / exported
+      / posted
     )
 
 defaultKey "default key"
-  = @("type" / "status" / "sortBy" / "sortOrder" / "policyID")
+  = @(type / status / sortBy / sortOrder / policyID)
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
