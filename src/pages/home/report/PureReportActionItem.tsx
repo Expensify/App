@@ -1240,6 +1240,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage &&
         prevProps.contextValueOverride === nextProps.contextValueOverride &&
         prevProps.attachmentContextValueOverride === nextProps.attachmentContextValueOverride &&
-        prevProps.mentionReportContexValueOverride === nextProps.mentionReportContexValueOverride
+        prevProps.mentionReportContextValueOverride === nextProps.mentionReportContextValueOverride
     );
 });
