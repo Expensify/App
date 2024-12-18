@@ -61,10 +61,7 @@ const test = (config: NativeConfig) => {
                 });
             })
             .then(() => waitForElement('+66 65 490 0617'))
-            .then(() => {
-                Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
-                tap('+66 65 490 0617');
-            })
+            .then(() => tap('+66 65 490 0617'))
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE))
             .then((entry) => {
                 E2EClient.submitTestResults({

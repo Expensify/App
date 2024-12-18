@@ -136,6 +136,7 @@ function IOURequestStepParticipants({
             transactionID,
             selectedReportID.current || reportID,
         );
+        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
         if (isCategorizing) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
         } else {
