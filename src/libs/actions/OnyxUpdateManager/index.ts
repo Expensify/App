@@ -63,22 +63,14 @@ function finalizeUpdatesAndResumeQueue() {
     DeferredOnyxUpdates.clear();
 }
 
-type FetchMissingUpdatesIds = {
-    clientLastUpdateID?: number;
-    shouldFetchPendingUpdates?: boolean;
-};
-
 /**
  *
  * @param onyxUpdatesFromServer
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  * @returns
  */
-function handleOnyxUpdateGap(
-    onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>,
-    {clientLastUpdateID, shouldFetchPendingUpdates: shouldFetchPendingUpdatesProp}: FetchMissingUpdatesIds = {},
-) {
-    const shouldFetchPendingUpdates = shouldFetchPendingUpdatesProp ?? onyxUpdatesFromServer?.shouldFetchPendingUpdates;
+function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number) {
+    const shouldFetchPendingUpdates = onyxUpdatesFromServer?.shouldFetchPendingUpdates ?? false;
 
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
@@ -111,8 +103,8 @@ function handleOnyxUpdateGap(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const updateParams = onyxUpdatesFromServer!;
     const lastUpdateIDFromServer = updateParams.lastUpdateID;
-    const previousUpdateIDFromServer = updateParams.previousUpdateID;
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
+    const previousUpdateIDFromServer = shouldFetchPendingUpdates ? lastUpdateIDFromClient : updateParams.previousUpdateID;
 
     // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
     // we need to perform one of the 2 possible cases:
@@ -195,4 +187,3 @@ export default () => {
 };
 
 export {handleOnyxUpdateGap, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
-export type {FetchMissingUpdatesIds};

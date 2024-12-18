@@ -29,6 +29,12 @@ type OnyxUpdatesFromServer = {
     /** Last update ID from server */
     lastUpdateID: number | string;
 
+    /** Previous update ID from server */
+    previousUpdateID?: number | string;
+
+    /** Whether the client should fetch pending updates from the server */
+    shouldFetchPendingUpdates?: boolean;
+
     /** Request data sent to the server */
     request?: Request;
 
@@ -37,19 +43,7 @@ type OnyxUpdatesFromServer = {
 
     /** Collection of onyx updates */
     updates?: OnyxUpdateEvent[];
-} & (
-    | {
-          /** Whether the client should fetch pending updates from the server */
-          shouldFetchPendingUpdates?: false;
-
-          /** Previous update ID from server */
-          previousUpdateID: number | string;
-      }
-    | {
-          /** Whether the client should fetch pending updates from the server */
-          shouldFetchPendingUpdates: true;
-      }
-);
+};
 
 /**
  * Helper function to determine if onyx update received from server is valid

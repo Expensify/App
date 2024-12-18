@@ -1,9 +1,9 @@
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import type {FetchMissingUpdatesIds} from './OnyxUpdateManager';
 import {handleOnyxUpdateGap} from './OnyxUpdateManager';
 import * as OnyxUpdates from './OnyxUpdates';
 
-type ApplyOnyxUpdatesReliablyOptions = FetchMissingUpdatesIds & {
+type ApplyOnyxUpdatesReliablyOptions = {
+    clientLastUpdateID?: number;
     shouldRunSync?: boolean;
 };
 
@@ -16,13 +16,10 @@ type ApplyOnyxUpdatesReliablyOptions = FetchMissingUpdatesIds & {
  * @param shouldRunSync
  * @returns
  */
-export default function applyOnyxUpdatesReliably(
-    updates: OnyxUpdatesFromServer,
-    {shouldRunSync = false, clientLastUpdateID, shouldFetchPendingUpdates: shouldFetchPendingUpdatesProp = false}: ApplyOnyxUpdatesReliablyOptions = {},
-) {
+export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
     const fetchMissingUpdates = (shouldFetchPendingUpdates = false) => {
         if (shouldRunSync) {
-            handleOnyxUpdateGap(updates, {clientLastUpdateID, shouldFetchPendingUpdates});
+            handleOnyxUpdateGap({...updates, shouldFetchPendingUpdates}, clientLastUpdateID);
         } else {
             OnyxUpdates.saveUpdateInformation({...updates, shouldFetchPendingUpdates});
         }
@@ -30,9 +27,8 @@ export default function applyOnyxUpdatesReliably(
 
     // If a pendingLastUpdateID is was provided, it means that the backend didn't send updates because the payload was too big.
     // In this case, we need to fetch the missing updates up to the pendingLastUpdateID.
-    const shouldFetchPendingUpdates = shouldFetchPendingUpdatesProp && updates == null;
-    if (shouldFetchPendingUpdatesProp) {
-        return fetchMissingUpdates(shouldFetchPendingUpdates);
+    if (updates.shouldFetchPendingUpdates) {
+        return fetchMissingUpdates(true);
     }
 
     const previousUpdateID = Number(updates.previousUpdateID) || 0;

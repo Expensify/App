@@ -56,37 +56,52 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID;
+    // const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID;
+    const shouldFetchPendingUpdates = true;
+    lastUpdateID = 1234567890123;
+
+    const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
+        if (isDataMissing) {
+            Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+            return false;
+        }
+
+        Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+        return true;
+    };
+
+    let updates: OnyxUpdatesFromServer;
     if (shouldFetchPendingUpdates) {
-        const updates: OnyxUpdatesFromServer = {
+        const isDataMissing = !lastUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
+
+        updates = {
             type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
             lastUpdateID,
             shouldFetchPendingUpdates: true,
         };
+    } else {
+        const isDataMissing = !lastUpdateID || !onyxData || !previousUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
 
-        return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) =>
-            applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient, shouldFetchPendingUpdates: true}),
-        );
+        updates = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            previousUpdateID,
+            updates: [
+                {
+                    eventType: '', // This is only needed for Pusher events
+                    data: onyxData,
+                },
+            ],
+        };
     }
-
-    const isDataMissing = !onyxData || !previousUpdateID || !lastUpdateID;
-    if (isDataMissing) {
-        Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-        return Promise.resolve();
-    }
-
-    Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-    const updates: OnyxUpdatesFromServer = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: '', // This is only needed for Pusher events
-                data: onyxData,
-            },
-        ],
-    };
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
