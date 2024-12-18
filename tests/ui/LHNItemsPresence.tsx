@@ -126,11 +126,11 @@ describe('SidebarLinksData', () => {
 
     describe('Report that should be included in the LHN', () => {
         it('should display the current active report', async () => {
-            // When the SidebarLinks are rendered without a specified report ID.
+            // Given the SidebarLinks are rendered without a specified report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport();
 
-            // And the Onyx state is initialized with a report.
+            // When the Onyx state is initialized with a report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -149,14 +149,14 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display draft report', async () => {
-            // When SidebarLinks are rendered initially.
+            // Given SidebarLinks are rendered initially.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const draftReport = {
                 ...createReport(false, [1, 2], 0),
                 writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
             };
 
-            // And Onyx state is initialized with a draft report.
+            // When Onyx state is initialized with a draft report.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
             });
@@ -174,11 +174,11 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display pinned report', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(false);
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -198,10 +198,10 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the report with violations', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             const report: Report = {
                 ...createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
@@ -233,14 +233,14 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the report awaiting user action', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(false),
                 hasOutstandingChildRequest: true,
             };
 
-            // And the report is initialized in Onyx.
+            // When the report is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -253,7 +253,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the archived report in the default mode', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
@@ -272,7 +272,7 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // And the user is in the default mode
+            // When the user is in the default mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
 
@@ -281,11 +281,11 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the selfDM report by default', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(true, undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.SELF_DM, undefined);
 
-            // And the selfDM is initialized in Onyx
+            // When the selfDM is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -295,7 +295,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should display the unread report in the focus mode with the bold text', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
@@ -309,7 +309,7 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // And the user is in focus mode
+            // When the user is in focus mode
             await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
 
             // Then the report should appear in the sidebar because it's unread
@@ -333,11 +333,11 @@ describe('SidebarLinksData', () => {
 
     describe('Report that should NOT be included in the LHN', () => {
         it('should not display report with no participants', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([]);
 
-            // And a report with no participants is initialized in Onyx.
+            // When a report with no participants is initialized in Onyx.
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -347,11 +347,11 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display empty chat', async () => {
-            // When the SidebarLinks are rendered.
+            // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = LHNTestUtils.getFakeReport([1, 2], 0);
 
-            // And a report with no messages is initialized in Onyx
+            // When a report with no messages is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -361,7 +361,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report marked as hidden', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(),
@@ -372,7 +372,7 @@ describe('SidebarLinksData', () => {
                 },
             };
 
-            // And a report with notification preference set as hidden is initialized in Onyx
+            // When a report with notification preference set as hidden is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -382,11 +382,11 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report has empty notification preference', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report = createReport(false, [2]);
 
-            // And a report with empty notification preference is initialized in Onyx
+            // When a report with empty notification preference is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -396,7 +396,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report the user cannot access due to policy restrictions', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(),
@@ -404,7 +404,7 @@ describe('SidebarLinksData', () => {
                 lastMessageText: 'fake last message',
             };
 
-            // And a default room is initialized in Onyx
+            // When a default room is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -417,7 +417,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the single transaction thread', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
             const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
@@ -439,7 +439,7 @@ describe('SidebarLinksData', () => {
             const transactionThreadReport = ReportUtils.buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
-            // And a single transaction thread is initialized in Onyx
+            // When a single transaction thread is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
             });
@@ -455,7 +455,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the report with parent message is pending removal', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const parentReport = createReport();
             const report = createReport();
@@ -479,7 +479,7 @@ describe('SidebarLinksData', () => {
             report.parentReportID = parentReport.reportID;
             report.parentReportActionID = parentReportAction.reportActionID;
 
-            // And a report with parent message is pending removal is initialized in Onyx
+            // When a report with parent message is pending removal is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
@@ -493,7 +493,7 @@ describe('SidebarLinksData', () => {
         });
 
         it('should not display the read report in the focus mode', async () => {
-            // When the SidebarLinks are rendered
+            // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const report: Report = {
                 ...createReport(),
@@ -501,7 +501,7 @@ describe('SidebarLinksData', () => {
                 lastActorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            // And a read report that isn't empty is initialized in Onyx
+            // When a read report that isn't empty is initialized in Onyx
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
