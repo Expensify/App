@@ -102,7 +102,7 @@ function IOURequestStartPage({
 
     const perDiemCustomUnits = PolicyUtils.getActivePolicies(allPolicies, session?.email)
         .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: PolicyUtils.getPerDiemCustomUnit(mappedPolicy)}))
-        .filter(({customUnit}) => !isEmptyObject(customUnit));
+        .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
 
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
 
@@ -110,7 +110,7 @@ function IOURequestStartPage({
 
     const currentPolicyPerDiemUnit = PolicyUtils.getPerDiemCustomUnit(policy);
 
-    const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit);
+    const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
 
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && canUsePerDiem && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));

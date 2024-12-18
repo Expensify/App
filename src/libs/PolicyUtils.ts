@@ -651,7 +651,7 @@ function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    return !isEmptyObject(perDiemCustomUnit);
+    return !isEmptyObject(perDiemCustomUnit) && !!perDiemCustomUnit?.enabled;
 }
 
 /** Whether the user can send invoice */
