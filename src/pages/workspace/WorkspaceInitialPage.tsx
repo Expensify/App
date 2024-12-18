@@ -390,11 +390,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         };
     }, [policy]);
 
+    const shouldShowBottomTab = !shouldShowNotFoundPage;
+
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom
-            bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} /> : null}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -404,14 +406,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => {
-                        if (route.params?.backTo) {
-                            Navigation.goBack(ROUTES.HOME);
-                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
-                        } else {
-                            Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-                        }
-                    }}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />

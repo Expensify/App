@@ -103,8 +103,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
         if (!NativeModules.HybridAppModule && !isOnboardingCompleted && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
-            return adaptedState;
+            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
@@ -122,8 +121,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         }
 
         // Otherwise we want to redirect the user to the last visited path.
-        const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
-        return adaptedState;
+        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

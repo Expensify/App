@@ -17,6 +17,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -164,6 +165,14 @@ function AccessOrNotFoundWrapper({
         }
         setIsPolicyFeatureEnabled(isFeatureEnabled);
     }, [pendingField, isOffline, isFeatureEnabled]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (isLoadingReportData || !isPolicyNotAccessible) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.INITIAL);
+    }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

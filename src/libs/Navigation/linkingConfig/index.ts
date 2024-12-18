@@ -7,12 +7,7 @@ import config from './config';
 import prefixes from './prefixes';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    getStateFromPath: (...args) => {
-        const {adaptedState} = getAdaptedStateFromPath(...args);
-
-        // ResultState | undefined is the type this function expect.
-        return adaptedState;
-    },
+    getStateFromPath: getAdaptedStateFromPath,
     getPathFromState: customGetPathFromState,
     prefixes,
     config,

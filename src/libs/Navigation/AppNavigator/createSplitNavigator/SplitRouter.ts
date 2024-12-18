@@ -1,9 +1,13 @@
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
+import Onyx from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getParamsFromRoute} from '@libs/Navigation/helpers';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
@@ -17,26 +21,29 @@ type AdaptStateIfNecessaryArgs = {
     options: SplitNavigatorRouterOptions;
 };
 
+function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
+    return (route?.params as Record<string, string> | undefined)?.policyID;
+}
+
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
 
-    const lastRoute = state.routes.at(-1);
+    const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
+    const routePolicyID = getRoutePolicyID(lastRoute);
+
+    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
+    if (isNarrowLayout && !!routePolicyID) {
+        if (PolicyUtils.shouldDisplayPolicyNotFoundPage(routePolicyID)) {
+            return;
+        }
+    }
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
-    if (!isAtLeastOneInState(state, sidebarScreen) && !isNarrowLayout) {
+    if (!isAtLeastOneInState(state, sidebarScreen)) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
         let params = pick(lastRoute?.params, paramsFromRoute);
-
-        // On a wide screen the backTo param has to be passed to the sidebar screen (SCREENS.WORKSPACE.INITIAL), because the back action is performed from this page
-        if (lastRoute?.name === SCREENS.WORKSPACE.PROFILE) {
-            const hasRouteBackToParam = lastRoute?.params && 'backTo' in lastRoute.params;
-
-            if (hasRouteBackToParam) {
-                params = {...params, backTo: lastRoute.params.backTo};
-            }
-        }
 
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment

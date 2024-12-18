@@ -1514,6 +1514,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
 
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
+            // The path given as initialRouteName does not have route params.
+            // initialRouteName is not defined in this split navigator because in this case the initial route requires a policyID defined in its route params.
             screens: {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
