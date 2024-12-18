@@ -416,7 +416,7 @@ function MoneyRequestConfirmationList({
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
+        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.submitExpense');
             if (iouAmount !== 0) {
                 text = translate('iou.submitAmount', {amount: formattedAmount});
@@ -431,7 +431,20 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, policy, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
+    }, [
+        isTypeInvoice,
+        isTypeTrackExpense,
+        isTypeSplit,
+        iouAmount,
+        receiptPath,
+        isTypeRequest,
+        isDistanceRequestWithPendingRoute,
+        isPerDiemRequest,
+        iouType,
+        policy,
+        translate,
+        formattedAmount,
+    ]);
 
     const onSplitShareChange = useCallback(
         (accountID: number, value: number) => {
