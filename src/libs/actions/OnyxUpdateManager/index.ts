@@ -6,6 +6,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as App from '@userActions/App';
 import updateSessionAuthTokens from '@userActions/Session/updateSessionAuthTokens';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Session} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -27,10 +28,10 @@ import * as DeferredOnyxUpdates from './utils/DeferredOnyxUpdates';
 // The circular dependency happens because this file calls API.GetMissingOnyxUpdates() which uses the SaveResponseInOnyx.js file (as a middleware).
 // Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
-let lastUpdateIDAppliedToClient = 0;
+let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
 });
 
 let isLoadingApp = false;
@@ -100,7 +101,7 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
 
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
     const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
 
     // The OnyxUpdateManager can handle different types of re-fetch processes. Either there are pending updates,
     // that we need to fetch manually or we detected gaps in the previously fetched updates.
