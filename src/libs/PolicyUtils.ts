@@ -197,11 +197,17 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
 }
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
-    if (!policy || !currentUserLogin) {
-        return;
+    if (policy?.role) {
+        return policy.role;
     }
 
-    return policy?.role ?? policy?.employeeList?.[currentUserLogin]?.role;
+    let userLogin = currentUserLogin;
+
+    if (!userLogin) {
+        userLogin = '';
+    }
+
+    return policy?.employeeList?.[userLogin]?.role;
 }
 
 /**
