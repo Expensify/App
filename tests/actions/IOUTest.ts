@@ -9,6 +9,7 @@ import * as PolicyActions from '@src/libs/actions/Policy/Policy';
 import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
+import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import * as Localize from '@src/libs/Localize';
 import * as NumberUtils from '@src/libs/NumberUtils';
@@ -21,6 +22,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as InvoiceData from '../data/Invoice';
+import type {InvoiceTestData} from '../data/Invoice';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -3301,6 +3304,35 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('sendInvoice', () => {
+        it('creates a new invoice chat when one has been converted from individual to business', async () => {
+            // Mock API.write for this test
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // Given a convertedInvoiceReport is stored in Onyx
+            const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
+
+            // And data for when a new invoice is sent to a user
+            const currentUserAccountID = 32;
+            const companyName = 'b1-53019';
+            const companyWebsite = 'https://www.53019.com';
+
+            // When the user sends a new invoice to an individual
+            IOU.sendInvoice(currentUserAccountID, transaction, undefined, undefined, policy, undefined, undefined, companyName, companyWebsite);
+
+            // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
+            expect(writeSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    invoiceRoomReportID: expect.not.stringMatching(convertedInvoiceChat.reportID) as string,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
         });
     });
 });

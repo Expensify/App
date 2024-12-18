@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
+import {convertedInvoiceChat} from '../data/Invoice';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1412,6 +1413,21 @@ describe('ReportUtils', () => {
                     includeSelfDM,
                 }),
             ).toBeTruthy();
+        });
+    });
+
+    describe('getInvoiceChatByParticipants', () => {
+        it('only returns an invoice chat if the receiver type matches', () => {
+            // Given an invoice chat that has been converted from an individual to policy receiver type
+            const reports: OnyxCollection<Report> = {
+                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
+            };
+
+            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
+            const invoiceChatReport = ReportUtils.getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
+
+            // Then no invoice chat should be returned because the receiver type does not match
+            expect(invoiceChatReport).toBeUndefined();
         });
     });
 });
