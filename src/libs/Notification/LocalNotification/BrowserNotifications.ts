@@ -99,7 +99,7 @@ export default {
         const isChatRoom = ReportUtils.isChatRoom(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => f.text).join() ?? '';
+        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
 
         // Specifically target the comment part of the message
         let plainTextMessage = '';
