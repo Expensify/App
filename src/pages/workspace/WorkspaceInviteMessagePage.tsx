@@ -109,7 +109,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         event?.preventDefault();
-        Link.openExternalLink(CONST.PRIVACY_URL);
+        Link.openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
@@ -155,7 +155,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                             style={[styles.mv2, styles.alignSelfStart]}
                         >
                             <View style={[styles.flexRow]}>
