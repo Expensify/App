@@ -360,6 +360,9 @@ function IOURequestStepConfirmation({
     const createTransaction = useCallback(
         (selectedParticipants: Participant[], locationPermissionGranted = false) => {
             setIsConfirmed(true);
+            if (isPerDiemRequest) {
+                return;
+            }
             let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
@@ -527,24 +530,25 @@ function IOURequestStepConfirmation({
             requestMoney(selectedParticipants, trimmedComment);
         },
         [
-            transaction,
-            report,
+            isPerDiemRequest,
             iouType,
-            receiptFile,
+            transaction,
             isDistanceRequest,
+            isMovingTransactionFromTrackExpense,
+            receiptFile,
+            isCategorizingTrackExpense,
+            isSharingTrackExpense,
             requestMoney,
+            createDistanceRequest,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            trackExpense,
-            createDistanceRequest,
-            isSharingTrackExpense,
-            isCategorizingTrackExpense,
-            isMovingTransactionFromTrackExpense,
+            report,
+            transactionTaxCode,
+            transactionTaxAmount,
             policy,
             policyTags,
             policyCategories,
-            transactionTaxAmount,
-            transactionTaxCode,
+            trackExpense,
         ],
     );
 
