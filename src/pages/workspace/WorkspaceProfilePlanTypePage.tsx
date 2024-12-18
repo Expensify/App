@@ -36,14 +36,16 @@ type WorkspacePlanTypeItem = {
 };
 function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     useEffect(() => {
-        OpenWorkspacePlanPage(policyID);
+        if (policyID) {
+            OpenWorkspacePlanPage(policyID);
+        }
     }, [policyID]);
 
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
@@ -78,7 +80,7 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
             return;
         }
 
-        if (policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
+        if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
         }
     };
