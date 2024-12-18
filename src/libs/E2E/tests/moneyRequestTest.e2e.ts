@@ -50,10 +50,7 @@ const test = (config: NativeConfig) => {
                 tap('button_2');
             })
             .then(() => waitForTextInputValue('2', 'moneyRequestAmountInput'))
-            .then(() => {
-                Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
-                tap('next-button');
-            })
+            .then(() => tap('next-button'))
             .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))
             .then((entry) => {
                 E2EClient.submitTestResults({
