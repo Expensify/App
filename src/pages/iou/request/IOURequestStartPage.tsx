@@ -203,7 +203,7 @@ function IOURequestStartPage({
                                                 ) : (
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
-                                                        explictPolicyID={perDiemCustomUnits.at(0)?.policyID}
+                                                        explictPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
