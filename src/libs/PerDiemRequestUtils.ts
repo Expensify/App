@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -226,6 +227,11 @@ function getSubratesForDisplay(subrate: Subrate | undefined) {
     return `${subrate.name}, Qty: ${subrate.quantity}`;
 }
 
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>) {
+    const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    return `${DateUtils.formatDateTimeTo12Hour(customUnitRateDate.start)} - ${DateUtils.formatDateTimeTo12Hour(customUnitRateDate.end)}`;
+}
+
 export type {Destination};
 
-export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay};
+export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay};

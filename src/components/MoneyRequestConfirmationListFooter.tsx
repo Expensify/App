@@ -678,6 +678,17 @@ function MoneyRequestConfirmationListFooter({
                         interactive={!isReadOnly}
                     />
                     <View style={styles.dividerLine} />
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!isReadOnly}
+                        title={PerDiemRequestUtils.getTimeForDisplay(transaction)}
+                        description={translate('iou.time')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                    />
+                    <View style={styles.dividerLine} />
                     {subRateFields}
                     <View style={styles.dividerLine} />
                 </>

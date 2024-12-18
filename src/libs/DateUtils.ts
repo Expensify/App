@@ -891,6 +891,7 @@ const DateUtils = {
     extractDate,
     getStatusUntilDate,
     extractTime12Hour,
+    formatDateTimeTo12Hour,
     get12HourTimeObjectFromDate,
     getLocalizedTimePeriodDescription,
     combineDateAndTime,
