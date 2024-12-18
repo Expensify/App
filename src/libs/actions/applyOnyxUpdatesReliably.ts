@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
 import * as OnyxUpdates from './OnyxUpdates';
@@ -17,21 +18,22 @@ type ApplyOnyxUpdatesReliablyOptions = {
  * @returns
  */
 export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
-    const fetchMissingUpdates = (shouldFetchPendingUpdates = false) => {
+    const fetchMissingUpdates = () => {
         if (shouldRunSync) {
-            handleMissingOnyxUpdates({...updates, shouldFetchPendingUpdates}, clientLastUpdateID);
+            handleMissingOnyxUpdates(updates, clientLastUpdateID);
         } else {
-            OnyxUpdates.saveUpdateInformation({...updates, shouldFetchPendingUpdates});
+            OnyxUpdates.saveUpdateInformation(updates);
         }
     };
 
     // If a pendingLastUpdateID is was provided, it means that the backend didn't send updates because the payload was too big.
     // In this case, we need to fetch the missing updates up to the pendingLastUpdateID.
     if (updates.shouldFetchPendingUpdates) {
-        return fetchMissingUpdates(true);
+        fetchMissingUpdates();
+        return;
     }
 
-    const previousUpdateID = Number(updates.previousUpdateID) || 0;
+    const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
     if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
         OnyxUpdates.apply(updates);
         return;

@@ -71,8 +71,6 @@ function finalizeUpdatesAndResumeQueue() {
  * @returns
  */
 function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number) {
-    const shouldFetchPendingUpdates = onyxUpdatesFromServer?.shouldFetchPendingUpdates ?? false;
-
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
     // we'll only have them overriten by the openApp response. So let's skip it and return.
@@ -99,6 +97,7 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     // current authToken is probably invalid.
     updateAuthTokenIfNecessary(onyxUpdatesFromServer);
 
+    const shouldFetchPendingUpdates = onyxUpdatesFromServer?.shouldFetchPendingUpdates ?? false;
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
     const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
