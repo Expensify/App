@@ -503,7 +503,6 @@ function ReportPreview({
                             images={lastThreeReceipts}
                             total={allTransactions.length}
                             size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                            onPress={openReportFromPreview}
                         />
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
                             <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
