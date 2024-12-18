@@ -2533,7 +2533,7 @@ function getTrackExpenseInformation(
     if (!filename) {
         filename = existingTransaction?.filename;
     }
-    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isDistanceRequest = existingTransaction && TransactionUtils.isDistanceRequest(existingTransaction);
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
