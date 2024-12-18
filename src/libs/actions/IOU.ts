@@ -7901,8 +7901,12 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
 
+    if (!invoiceReport?.reportID) {
+        return;
+    }
+
     let params: PayInvoiceParams = {
-        reportID: invoiceReport?.reportID ?? '',
+        reportID: invoiceReport.reportID,
         reportActionID,
         paymentMethodType,
         payAsBusiness,
