@@ -58,7 +58,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        shouldSaveDraft: true,
+        shouldSaveDraft: isEditing,
     });
 
     return (
@@ -79,7 +79,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
                 searchInputTitle={translate('businessInfoStep.findIncorporationType')}
                 inputID={APPLICANT_TYPE_ID}
                 shouldSaveDraft={!isEditing}
-                value={incorporationTypeDefaultValue}
+                defaultValue={incorporationTypeDefaultValue}
             />
             <InputWrapper
                 InputComponent={PushRowWithModal}
@@ -89,7 +89,7 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
                 searchInputTitle={translate('businessInfoStep.findBusinessCategory')}
                 inputID={BUSINESS_CATEGORY}
                 shouldSaveDraft={!isEditing}
-                value={businessCategoryDefaultValue}
+                defaultValue={businessCategoryDefaultValue}
             />
         </FormProvider>
     );

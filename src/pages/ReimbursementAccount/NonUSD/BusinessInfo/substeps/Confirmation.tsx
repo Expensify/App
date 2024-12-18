@@ -157,11 +157,11 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         }}
                     />
                     <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.tradeVolumeRange')}
+                        description={translate('businessInfoStep.averageReimbursementAmount')}
                         title={tradeVolumeRange}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(7);
+                            onMove(8);
                         }}
                     />
                     <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
