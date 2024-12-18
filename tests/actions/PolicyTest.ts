@@ -7,10 +7,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import createRandomReport from '../utils/collections/reports';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
@@ -25,7 +25,7 @@ describe('actions/Policy', () => {
             keys: ONYXKEYS,
         });
     });
-    
+
     let mockFetch: MockFetch;
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
@@ -250,7 +250,7 @@ describe('actions/Policy', () => {
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     callback: (reimbursementAccount) => {
                         Onyx.disconnect(connection);
-                        console.log(reimbursementAccount)
+                        console.log(reimbursementAccount);
                         expect(reimbursementAccount?.errors).not.toBeUndefined();
                         resolve();
                     },
