@@ -201,13 +201,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
         return policy.role;
     }
 
-    let userLogin = currentUserLogin;
-
-    if (!userLogin) {
-        userLogin = '';
-    }
-
-    return policy?.employeeList?.[userLogin]?.role;
+    return currentUserLogin ? policy?.employeeList?.[currentUserLogin]?.role : undefined;
 }
 
 /**
