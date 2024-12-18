@@ -63,7 +63,7 @@ function RoomInvitePage({
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !ReportUtils.isHiddenParticipant(participant.notificationPreference))
+            .filter(([, participant]) => participant && !ReportUtils.isHiddenForCurrentUser(participant.notificationPreference))
             .map(([accountID]) => Number(accountID));
         return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
             PhoneNumber.addSMSDomainIfPhoneNumber(participant),

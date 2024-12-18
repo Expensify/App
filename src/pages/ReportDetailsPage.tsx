@@ -288,7 +288,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         roomDescription = translate('newRoomPage.roomName');
     }
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenParticipant(report);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenForCurrentUser(report);
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 

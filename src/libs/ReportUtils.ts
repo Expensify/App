@@ -1416,14 +1416,14 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
  * For all intents and purposes a report that has no notificationPreference at all should be considered "hidden".
  * We will remove the 'hidden' field entirely once the backend changes for https://github.com/Expensify/Expensify/issues/450891 are done.
  */
-function isHiddenParticipant(notificationPreference: string | null | undefined): boolean;
-function isHiddenParticipant(report: OnyxEntry<Report>): boolean;
-function isHiddenParticipant(reportOrPreference: OnyxEntry<Report> | string | null | undefined): boolean {
+function isHiddenForCurrentUser(notificationPreference: string | null | undefined): boolean;
+function isHiddenForCurrentUser(report: OnyxEntry<Report>): boolean;
+function isHiddenForCurrentUser(reportOrPreference: OnyxEntry<Report> | string | null | undefined): boolean {
     if (typeof reportOrPreference === 'object' && reportOrPreference !== null) {
         const notificationPreference = getReportNotificationPreference(reportOrPreference);
-        return isHiddenParticipant(notificationPreference);
+        return isHiddenForCurrentUser(notificationPreference);
     }
-    if (reportOrPreference === undefined || reportOrPreference == null) {
+    if (reportOrPreference === undefined || reportOrPreference === null || reportOrPreference === '') {
         return true;
     }
     return reportOrPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -1440,7 +1440,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): OnyxEntry<Report> {
     const filteredReports = reports.filter((report) => {
-        const shouldKeep = !isChatThread(report) || !isHiddenParticipant(report);
+        const shouldKeep = !isChatThread(report) || !isHiddenForCurrentUser(report);
         return shouldKeep && !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime);
     });
     return lodashMaxBy(filteredReports, (a) => new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '').valueOf());
@@ -2247,7 +2247,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
                 return false;
             }
 
-            if (shouldExcludeHidden && isHiddenParticipant(reportParticipants[accountID]?.notificationPreference)) {
+            if (shouldExcludeHidden && isHiddenForCurrentUser(reportParticipants[accountID]?.notificationPreference)) {
                 return false;
             }
 
@@ -8133,7 +8133,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
     }
 
     // If the notification preference of the chat is not hidden that means we have already joined the chat
-    if (!isHiddenParticipant(report)) {
+    if (!isHiddenForCurrentUser(report)) {
         return false;
     }
 
@@ -8167,7 +8167,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (isHiddenParticipant(report)) {
+    if (isHiddenForCurrentUser(report)) {
         return false;
     }
 
@@ -8849,7 +8849,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
-    isHiddenParticipant,
+    isHiddenForCurrentUser,
 };
 
 export type {

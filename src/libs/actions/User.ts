@@ -796,7 +796,7 @@ const isChannelMuted = (reportId: string) =>
                 Onyx.disconnect(connection);
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
-                resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenParticipant(notificationPreference));
+                resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });

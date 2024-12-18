@@ -767,7 +767,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
-        .filter(([, reportParticipant]) => reportParticipant && !ReportUtils.isHiddenParticipant(reportParticipant.notificationPreference))
+        .filter(([, reportParticipant]) => reportParticipant && !ReportUtils.isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
     const option = createOption(
@@ -1787,7 +1787,7 @@ function getEmptyOptions(): Options {
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
     const notificationPreference = report.notificationPreference ?? ReportUtils.getReportNotificationPreference(report);
-    return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !ReportUtils.isHiddenParticipant(notificationPreference);
+    return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !ReportUtils.isHiddenForCurrentUser(notificationPreference);
 }
 
 export {

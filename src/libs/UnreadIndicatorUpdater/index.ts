@@ -40,7 +40,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
              * Furthermore, muted reports may or may not appear in the LHN depending on priority mode,
              * but they should not be considered in the unread indicator count.
              */
-            !ReportUtils.isHiddenParticipant(notificationPreference) &&
+            !ReportUtils.isHiddenForCurrentUser(notificationPreference) &&
             notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
         );
     });

@@ -252,7 +252,7 @@ function createTaskAndNavigate(
         },
     );
 
-    const shouldUpdateNotificationPreference = !isEmptyObject(parentReport) && ReportUtils.isHiddenParticipant(parentReport);
+    const shouldUpdateNotificationPreference = !isEmptyObject(parentReport) && ReportUtils.isHiddenForCurrentUser(parentReport);
     if (shouldUpdateNotificationPreference) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

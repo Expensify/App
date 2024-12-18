@@ -115,7 +115,7 @@ function getOrderedReportIDs(
         }
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const isHidden = ReportUtils.isHiddenParticipant(report);
+        const isHidden = ReportUtils.isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
