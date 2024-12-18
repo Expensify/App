@@ -48,7 +48,7 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     });
 }
 
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates}: ReportActionPushNotificationData): Promise<void> {
+function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -56,12 +56,11 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID && !!previousUpdateID;
+    const shouldFetchPendingUpdates = hasPendingOnyxUpdates && !!lastUpdateID;
     if (shouldFetchPendingUpdates) {
         const updates: OnyxUpdatesFromServer = {
             type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
             lastUpdateID,
-            previousUpdateID,
             shouldFetchPendingUpdates: true,
         };
 
