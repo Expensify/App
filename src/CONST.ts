@@ -620,6 +620,7 @@ const CONST = {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 10,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
+        PURPOSE_OF_TRANSACTION_ID: 8,
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -628,6 +629,15 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
+        },
+        BUSINESS_INFO_STEP: {
+            PICKLIST: {
+                ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
+                APPLICANT_TYPE: 'ApplicantType',
+                NATURE_OF_BUSINESS: 'NatureOfBusiness',
+                PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
+                TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+            },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUBSTEP: {
@@ -664,6 +674,7 @@ const CONST = {
                 HANG_TIGHT: 4,
             },
         },
+        BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
