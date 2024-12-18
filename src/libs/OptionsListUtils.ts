@@ -214,6 +214,15 @@ Onyx.connect({
     callback: (val) => (allPolicies = val),
 });
 
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
@@ -254,7 +263,7 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const report = ReportUtils.getReport(reportID);
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
             // The report is only visible if it is the last action not deleted that
