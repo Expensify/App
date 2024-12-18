@@ -589,6 +589,8 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseR
     if (ruleApprovers.length > 0) {
         return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
+    
+    return getManagerAccountID(policy, expenseReport);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
