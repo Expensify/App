@@ -19,6 +19,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             // eslint-disable-next-line react-compiler/react-compiler
             left.set(0);
             width.set(0);
+            height.set(withTiming(2, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
             opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
 
             left.set(

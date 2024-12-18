@@ -70,7 +70,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldDisplaySearch}
                         onSwitchWorkspace={() => (isSwitchingWorkspace.current = true)}
                     />
-                    <LoadingBar shouldShow={isLoadingReportData ?? false} />
+                    {/* <LoadingBar shouldShow={isLoadingReportData ?? false} /> */}
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
                     </View>
