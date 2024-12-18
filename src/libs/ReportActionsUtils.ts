@@ -16,6 +16,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -1725,8 +1726,8 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const newRole = originalMessage?.newValue ?? '';
-    const oldRole = originalMessage?.oldValue ?? '';
+    const newRole = typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '';
+    const oldRole = typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : '';
     return Localize.translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -1734,6 +1735,170 @@ function isPolicyChangeLogDeleteMemberMessage(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
+}
+
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? Localize.translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
+    return message;
+}
+
+function getWorkspaceCurrencyUpdateMessage(action: ReportAction) {
+    const {oldCurrency, newCurrency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
+    const message = oldCurrency && newCurrency ? Localize.translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency}) : getReportActionText(action);
+    return message;
+}
+
+type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
+
+const getAutoReportingFrequencyDisplayNames = (): AutoReportingFrequencyDisplayNames => ({
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translateLocal('workflowsPage.frequencies.monthly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translateLocal('workflowsPage.frequencies.daily'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translateLocal('workflowsPage.frequencies.weekly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translateLocal('workflowsPage.frequencies.twiceAMonth'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translateLocal('workflowsPage.frequencies.byTrip'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translateLocal('workflowsPage.frequencies.manually'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: Localize.translateLocal('workflowsPage.frequencies.instant'),
+});
+
+function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
+    const {oldFrequency, newFrequency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY>) ?? {};
+
+    if (!oldFrequency || !newFrequency) {
+        return getReportActionText(action);
+    }
+
+    const frequencyDisplayNames = getAutoReportingFrequencyDisplayNames();
+    const oldFrequencyTranslation = frequencyDisplayNames[oldFrequency]?.toLowerCase();
+    const newFrequencyTranslation = frequencyDisplayNames[newFrequency]?.toLowerCase();
+
+    if (!oldFrequencyTranslation || !newFrequencyTranslation) {
+        return getReportActionText(action);
+    }
+
+    return Localize.translateLocal('workspaceActions.updatedWorkspaceFrequencyAction', {
+        oldFrequency: oldFrequencyTranslation,
+        newFrequency: newFrequencyTranslation,
+    });
+}
+
+function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
+    const {categoryName, oldValue, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
+        return Localize.translateLocal('workspaceActions.addCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
+        return Localize.translateLocal('workspaceActions.deleteCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        return Localize.translateLocal('workspaceActions.updateCategory', {
+            oldValue: !!oldValue,
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
+        return Localize.translateLocal('workspaceActions.setCategoryName', {
+            oldName,
+            newName,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
+    const {newValue, oldValue, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD>) ?? {};
+
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE &&
+        CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES] &&
+        CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES]
+    ) {
+        return Localize.translateLocal('workspaceActions.updateApprovalMode', {
+            oldValue: CONST.POLICY.APPROVAL_MODE_VALUES[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
+            newValue: CONST.POLICY.APPROVAL_MODE_VALUES[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_VALUES],
+            fieldName: updatedField,
+        });
+    }
+
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return Localize.translateLocal('workspaceActions.preventSelfApproval', {
+            oldValue,
+            newValue,
+        });
+    }
+
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAge', {
+            oldValue,
+            newValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
+
+    if (typeof oldMaxExpenseAmountNoReceipt === 'number' && typeof newMaxExpenseAmountNoReceipt === 'number') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
+            oldValue: CurrencyUtils.convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
+            newValue: CurrencyUtils.convertToDisplayString(newMaxExpenseAmountNoReceipt, currency),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpenseAmountMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmount, newMaxExpenseAmount, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
+
+    if (typeof oldMaxExpenseAmount === 'number' && typeof newMaxExpenseAmount === 'number') {
+        return Localize.translateLocal('workspaceActions.updateMaxExpenseAmount', {
+            oldValue: CurrencyUtils.convertToDisplayString(oldMaxExpenseAmount, currency),
+            newValue: CurrencyUtils.convertToDisplayString(newMaxExpenseAmount, currency),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultBillableMessage(action: ReportAction): string {
+    const {oldDefaultBillable, newDefaultBillable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE>) ?? {};
+
+    if (typeof oldDefaultBillable === 'string' && typeof newDefaultBillable === 'string') {
+        return Localize.translateLocal('workspaceActions.updateDefaultBillable', {
+            oldValue: oldDefaultBillable,
+            newValue: newDefaultBillable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
+    const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
+
+    if (typeof value === 'boolean') {
+        return Localize.translateLocal('workspaceActions.updateDefaultTitleEnforced', {
+            value,
+        });
+    }
+
+    return getReportActionText(action);
 }
 
 function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -1975,6 +2140,15 @@ export {
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
     wasActionCreatedWhileOffline,
+    getWorkspaceCategoryUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
+    getWorkspaceNameUpdatedMessage,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
 };
 
 export type {LastVisibleMessage};

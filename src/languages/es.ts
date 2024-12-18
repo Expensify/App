@@ -165,6 +165,13 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyPreventSelfApprovalParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdateRoleParams,
@@ -1505,6 +1512,7 @@ const translations = {
         },
         frequencyDescription: 'Elige la frecuencia de presentación automática de gastos, o preséntalos manualmente',
         frequencies: {
+            instant: 'Instante',
             weekly: 'Semanal',
             monthly: 'Mensual',
             twiceAMonth: 'Dos veces al mes',
@@ -4516,6 +4524,19 @@ const translations = {
         },
     },
     workspaceActions: {
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `agregó la categoría "${categoryName}"`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `Renombró la categoría "${oldName}" a "${newName}".`,
+        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+            `actualizó "Evitar la autoaprobación" de "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}"`,
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto requerido sin recibo de ${oldValue} a ${newValue}`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `cambió el monto máximo de gasto para violaciones de ${oldValue} a ${newValue}`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Antigüedad Máxima de Gastos (días)" de "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}" a "${newValue}"`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `actualizó "Refacturar gastos a clientes" de "${oldValue}" a "${newValue}"`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Aplicar título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
@@ -4531,6 +4552,11 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada de ${oldCurrency} a ${newCurrency}`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+            `actualizó la frecuencia de generación automática de informes de "${oldFrequency}" a "${newFrequency}"`,
+        updatedWorkspaceCorporatePlan: 'mejoró este espacio de trabajo al plan Controlar',
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `Actualizó el Modo de Aprobación de "${oldValue}" a "${newValue}".`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

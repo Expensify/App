@@ -286,6 +286,20 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
+type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
+
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+
+type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
+
+type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithValueParam = {value: boolean};
+
+type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
@@ -788,4 +802,11 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
 };

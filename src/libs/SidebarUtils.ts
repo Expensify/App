@@ -462,7 +462,30 @@ function getOptionData({
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
             result.alternateText = `${lastActorDisplayName} ${ReportActionsUtils.getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
-            result.alternateText = ReportUtils.getWorkspaceNameUpdatedMessage(lastAction);
+            result.alternateText = ReportActionsUtils.getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
+            result.alternateText = ReportActionsUtils.getWorkspaceCurrencyUpdateMessage(lastAction);
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
+            result.alternateText = ReportActionsUtils.getWorkspaceFrequencyUpdateMessage(lastAction);
+        } else if (ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
+            result.alternateText = Localize.translateLocal('workspaceActions.updatedWorkspaceCorporatePlan');
+        } else if (
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
+            ReportActionsUtils.isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
+        ) {
+            result.alternateText = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
+            result.alternateText = ReportActionsUtils.getWorkspaceUpdateFieldMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogDefaultBillableMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
+            result.alternateText = ReportActionsUtils.getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (ReportActionsUtils.isCardIssuedAction(lastAction)) {
