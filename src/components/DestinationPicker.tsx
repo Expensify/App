@@ -16,7 +16,7 @@ import type {ListItem} from './SelectionList/types';
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
-    onSubmit: (item: ListItem) => void;
+    onSubmit: (item: ListItem & {currency: string}) => void;
 };
 
 function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
@@ -38,6 +38,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             {
                 rateID: selectedRate?.customUnitRateID ?? '',
                 name: selectedRate?.name ?? '',
+                currency: selectedRate?.currency ?? CONST.CURRENCY.USD,
                 isSelected: true,
             },
         ];

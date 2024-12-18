@@ -130,6 +130,9 @@ type TransactionCustomUnit = {
 
         /** Custom unit name */
         name: string;
+
+        /** Custom unit rate */
+        rate?: number;
     }>;
 };
 

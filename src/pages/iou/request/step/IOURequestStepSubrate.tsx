@@ -23,7 +23,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Transaction from '@userActions/Transaction';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -124,12 +124,14 @@ function IOURequestStepWaypoint({
         const quantityValue = String(values[`quantity${pageIndex}`] ?? '');
         const subrateValue = String(values[`subrate${pageIndex}`] ?? '');
         const quantityInt = parseInt(quantityValue, 10);
-        const name = validOptions.find(({value}) => value === subrateValue)?.label ?? '';
+        const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateValue);
+        const name = selectedSubrate?.name ?? '';
+        const rate = selectedSubrate?.rate ?? 0;
 
         if (parsedIndex === filledSubrateCount) {
-            Transaction.addSubrate(transaction, pageIndex, quantityInt, subrateValue, name);
+            IOU.addSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
         } else {
-            Transaction.updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name);
+            IOU.updateSubrate(transaction, pageIndex, quantityInt, subrateValue, name, rate);
         }
 
         if (backTo) {
@@ -140,7 +142,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteSubrateAndHideModal = () => {
-        Transaction.removeSubrate(transaction, pageIndex);
+        IOU.removeSubrate(transaction, pageIndex);
         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         goBack();

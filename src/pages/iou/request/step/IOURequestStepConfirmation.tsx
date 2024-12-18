@@ -76,6 +76,7 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = TransactionUtils.getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
 
     const receiptFilename = transaction?.filename;
@@ -658,6 +659,7 @@ function IOURequestStepConfirmation({
                     iouMerchant={transaction?.merchant}
                     iouCreated={transaction?.created}
                     isDistanceRequest={isDistanceRequest}
+                    isPerDiemRequest={isPerDiemRequest}
                     shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                     action={action}
                     payeePersonalDetails={payeePersonalDetails}

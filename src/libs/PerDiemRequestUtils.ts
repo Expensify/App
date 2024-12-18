@@ -1,10 +1,10 @@
 import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {Report, Transaction} from '@src/types/onyx';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import * as Localize from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -27,24 +27,31 @@ function getCustomUnitID(reportID: string) {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    let category: string | undefined;
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
         const perDiemUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
         if (perDiemUnit) {
             customUnitID = perDiemUnit.customUnitID;
+            category = perDiemUnit.defaultCategory;
         }
     }
-    return customUnitID;
+    return {customUnitID, category};
 }
 
+type ModifiedOptionTree = OptionTree & {
+    currency: string;
+};
+
 type DestinationTreeSection = SectionBase & {
-    data: OptionTree[];
+    data: ModifiedOptionTree[];
     indexOffset?: number;
 };
 
 type Destination = {
     name: string;
     rateID: string;
+    currency: string;
     isSelected?: boolean;
 };
 
@@ -56,8 +63,8 @@ type Destination = {
  * @param options[].name - a name of an option
  * @param options[].rateID - a rateID of an option
  */
-function getDestinationOptionTree(options: Destination[]): OptionTree[] {
-    const optionCollection = new Map<string, OptionTree>();
+function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
+    const optionCollection = new Map<string, ModifiedOptionTree>();
     Object.values(options).forEach((option) => {
         if (optionCollection.has(option.rateID)) {
             return;
@@ -70,6 +77,7 @@ function getDestinationOptionTree(options: Destination[]): OptionTree[] {
             tooltipText: option.name,
             isDisabled: false,
             isSelected: !!option.isSelected,
+            currency: option.currency,
         });
     });
 
@@ -92,7 +100,11 @@ function getDestinationListSections({
     recentlyUsedDestinations?: string[];
     maxRecentReportsToShow?: number;
 }): DestinationTreeSection[] {
-    const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({name: rate.name ?? '', rateID: rate.customUnitRateID ?? ''}));
+    const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({
+        name: rate.name ?? '',
+        rateID: rate.customUnitRateID ?? '',
+        currency: rate.currency ?? CONST.CURRENCY.USD,
+    }));
     const destinationSections: DestinationTreeSection[] = [];
 
     if (searchValue) {
@@ -173,6 +185,47 @@ function getDestinationListSections({
     return destinationSections;
 }
 
+function getDestinationForDisplay(customUnit: CustomUnit | undefined, transaction: OnyxEntry<Transaction>) {
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID ?? '';
+    const selectedDestination = customUnit?.rates?.[customUnitRateID];
+    return selectedDestination?.name ?? '';
+}
+
+function getSubratesFields(customUnit: CustomUnit | undefined, transaction: OnyxEntry<Transaction>) {
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID ?? '';
+    const selectedDestination = customUnit?.rates?.[customUnitRateID];
+    const countSubrates = selectedDestination?.subRates?.length ?? 0;
+    const currentSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    if (currentSubrates.length === countSubrates) {
+        return currentSubrates;
+    }
+    return [...currentSubrates, undefined];
+}
+
+type Subrate = {
+    /** Key of the sub rate */
+    key?: string;
+
+    /** ID of the custom unit sub rate */
+    id: string;
+
+    /** Custom unit amount */
+    quantity: number;
+
+    /** Custom unit name */
+    name: string;
+
+    /** Custom unit rate */
+    rate?: number;
+};
+
+function getSubratesForDisplay(subrate: Subrate | undefined) {
+    if (!subrate) {
+        return undefined;
+    }
+    return `${subrate.name}, Qty: ${subrate.quantity}`;
+}
+
 export type {Destination};
 
-export {getCustomUnitID, getDestinationListSections};
+export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay};

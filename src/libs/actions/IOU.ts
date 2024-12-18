@@ -498,6 +498,7 @@ function initMoneyRequest(
     }
 
     const comment: Comment = {};
+    let requestCategory: string | null = null;
 
     // Add initial empty waypoints when starting a distance expense
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
@@ -521,8 +522,9 @@ function initMoneyRequest(
             },
         };
         if (!isFromGlobalCreate) {
-            const customUnitID = PerDiemRequestUtils.getCustomUnitID(reportID);
+            const {customUnitID, category} = PerDiemRequestUtils.getCustomUnitID(reportID);
             comment.customUnit = {...comment.customUnit, customUnitID};
+            requestCategory = category ?? null;
         }
     }
 
@@ -534,6 +536,7 @@ function initMoneyRequest(
         comment,
         created,
         currency,
+        category: requestCategory,
         iouRequestType: newIouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -649,6 +652,108 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
  */
 function setCustomUnitID(transactionID: string, customUnitID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID}}});
+}
+
+function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1);
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index >= existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1, {quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function clearSubrates(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
+}
+
+function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index !== existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.push({quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
 /** Set the distance rate of a new  transaction */
@@ -8835,6 +8940,10 @@ export {
     sendMoneyWithWallet,
     setCustomUnitRateID,
     setCustomUnitID,
+    removeSubrate,
+    addSubrate,
+    updateSubrate,
+    clearSubrates,
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,

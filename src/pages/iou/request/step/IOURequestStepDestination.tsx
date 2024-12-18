@@ -69,11 +69,17 @@ function IOURequestStepDestination({
         Navigation.goBack(backTo);
     };
 
-    const updateDestination = (destination: ListItem) => {
-        if (openedFromStartPage) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+    const updateDestination = (destination: ListItem & {currency: string}) => {
+        if (selectedDestination !== destination.keyForList) {
+            if (openedFromStartPage) {
+                IOU.setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                IOU.setCustomUnitID(transactionID, customUnit?.customUnitID ?? '');
+                IOU.setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+            }
+            IOU.setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+            IOU.setMoneyRequestCurrency(transactionID, destination.currency);
+            IOU.clearSubrates(transactionID);
         }
-        IOU.setCustomUnitRateID(transactionID, destination.keyForList ?? '');
 
         if (backTo) {
             navigateBack();
