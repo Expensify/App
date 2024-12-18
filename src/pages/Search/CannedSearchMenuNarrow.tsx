@@ -92,7 +92,7 @@ function CannedSearchMenuNarrow({cannedMenuItems, activeItemIndex, queryJSON, ti
             const isSelected = title ? false : index === activeItemIndex;
 
             return {
-                text: item.title,
+                text: translate(item.titleTranslationPath),
                 onSelected: singleExecution(() => {
                     SearchActions.clearAllFilters();
                     Navigation.navigate(item.route);
@@ -124,7 +124,7 @@ function CannedSearchMenuNarrow({cannedMenuItems, activeItemIndex, queryJSON, ti
         }
 
         return items;
-    }, [cannedMenuItems, title, activeItemIndex, singleExecution, theme, closeMenu, currentSavedSearch]);
+    }, [cannedMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, closeMenu]);
 
     const {menuIcon, menuTitle} = useMemo(() => {
         if (title) {

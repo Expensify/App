@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -92,18 +92,9 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const typeMenuItems: SearchTypeMenuItem[] = getTypeMenuItems(hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports());
+    const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => getTypeMenuItems(hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports()), [session?.email]);
 
     const activeItemIndex = typeMenuItems.findIndex((item) => item.type === queryJSON.type);
-    const onPress = useCallback(
-        (route: Route) =>
-            singleExecution(() => {
-                onTypeChange?.();
-                SearchActions.clearAllFilters();
-                Navigation.navigate(route);
-            }),
-        [onTypeChange, singleExecution],
-    );
 
     return (
         <ScrollView
@@ -116,6 +107,11 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
                 const isActive = index === activeItemIndex;
                 const isFirstItem = index === 0;
                 const isLastItem = index === typeMenuItems.length - 1;
+                const onPress = singleExecution(() => {
+                    onTypeChange?.();
+                    SearchActions.clearAllFilters();
+                    Navigation.navigate(item.getRoute(queryJSON.policyID));
+                });
 
                 return (
                     <Button
@@ -128,9 +124,7 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
                             scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
                         }}
                         text={translate(item.titleTranslationPath)}
-                        onPress={() => {
-                            onPress(item.getRoute(queryJSON.policyID));
-                        }}
+                        onPress={onPress}
                         icon={item.icon}
                         iconFill={isActive ? theme.success : undefined}
                         iconHoverFill={theme.success}
