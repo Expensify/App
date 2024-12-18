@@ -33,8 +33,8 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type IconAsset from '@src/types/utils/IconAsset';
+import CannedSearchMenuNarrow from './CannedSearchMenuNarrow';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
-import CannedSearchMenuNarrow from './SearchTypeMenuNarrow';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;

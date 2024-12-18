@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -16,6 +16,7 @@ import {hasWorkspaceWithInvoices} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -29,11 +30,56 @@ type SearchTypeBarProps = {
 };
 
 type SearchTypeMenuItem = {
-    title: string;
+    titleTranslationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
     getRoute: (policyID?: string) => Route;
 };
+
+function getTypeMenuItems(shouldAddInvoices: boolean) {
+    const typeMenuItems: SearchTypeMenuItem[] = [
+        {
+            titleTranslationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            getRoute: (policyID?: string) => {
+                const query = SearchQueryUtils.buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
+            },
+        },
+        {
+            titleTranslationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            getRoute: (policyID?: string) => {
+                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
+            },
+        },
+    ];
+
+    if (shouldAddInvoices) {
+        typeMenuItems.push({
+            titleTranslationPath: 'workspace.common.invoices',
+            type: CONST.SEARCH.DATA_TYPES.INVOICE,
+            icon: Expensicons.InvoiceGeneric,
+            getRoute: (policyID?: string) => {
+                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
+            },
+        });
+    }
+    typeMenuItems.push({
+        titleTranslationPath: 'travel.trips',
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        icon: Expensicons.Suitcase,
+        getRoute: (policyID?: string) => {
+            const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
+        },
+    });
+    return typeMenuItems;
+}
 
 function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
     const {singleExecution} = useSingleExecution();
@@ -46,49 +92,18 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const typeMenuItems: SearchTypeMenuItem[] = [
-        {
-            title: translate('common.expenses'),
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
-            },
-        },
-        {
-            title: translate('common.chats'),
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
-            },
-        },
-    ];
-
-    if (hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports()) {
-        typeMenuItems.push({
-            title: translate('workspace.common.invoices'),
-            type: CONST.SEARCH.DATA_TYPES.INVOICE,
-            icon: Expensicons.InvoiceGeneric,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
-            },
-        });
-    }
-    typeMenuItems.push({
-        title: translate('travel.trips'),
-        type: CONST.SEARCH.DATA_TYPES.TRIP,
-        icon: Expensicons.Suitcase,
-        getRoute: (policyID?: string) => {
-            const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: query.queryString});
-        },
-    });
+    const typeMenuItems: SearchTypeMenuItem[] = getTypeMenuItems(hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports());
 
     const activeItemIndex = typeMenuItems.findIndex((item) => item.type === queryJSON.type);
+    const onPress = useCallback(
+        (route: Route) =>
+            singleExecution(() => {
+                onTypeChange?.();
+                SearchActions.clearAllFilters();
+                Navigation.navigate(route);
+            }),
+        [onTypeChange, singleExecution],
+    );
 
     return (
         <ScrollView
@@ -101,15 +116,10 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
                 const isActive = index === activeItemIndex;
                 const isFirstItem = index === 0;
                 const isLastItem = index === typeMenuItems.length - 1;
-                const onPress = singleExecution(() => {
-                    onTypeChange?.();
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(item.getRoute(queryJSON.policyID));
-                });
 
                 return (
                     <Button
-                        key={item.title}
+                        key={translate(item.titleTranslationPath)}
                         onLayout={(e) => {
                             if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
                                 return;
@@ -117,8 +127,10 @@ function SearchTypeBar({queryJSON, onTypeChange}: SearchTypeBarProps) {
                             isScrolledRef.current = true;
                             scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
                         }}
-                        text={item.title}
-                        onPress={onPress}
+                        text={translate(item.titleTranslationPath)}
+                        onPress={() => {
+                            onPress(item.getRoute(queryJSON.policyID));
+                        }}
                         icon={item.icon}
                         iconFill={isActive ? theme.success : undefined}
                         iconHoverFill={theme.success}

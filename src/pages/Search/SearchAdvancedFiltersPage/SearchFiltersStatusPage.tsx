@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 const expenseOptions: Array<{status: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
@@ -115,7 +114,7 @@ const chatOptions: Array<{status: ChatSearchStatus; icon: IconAsset; text: Trans
     },
 ];
 
-function getOptions(type: SearchDataTypes) {
+function getOptions(type: string) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return invoiceOptions;
@@ -135,7 +134,7 @@ function SearchFiltersStatusPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const statusList = getOptions(currentType as SearchDataTypes);
+    const statusList = getOptions(currentType);
     const initiallySelectedItems = useMemo(() => {
         if (typeof searchAdvancedFiltersForm?.status === 'string') {
             const statusName = translate(getStatusTranslationKey(searchAdvancedFiltersForm?.status as SingleSearchStatus));

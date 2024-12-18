@@ -538,7 +538,7 @@ function isSearchResultsEmpty(searchResults: SearchResults) {
 }
 
 /**
- * Returns the corresponding translation key for expense type
+ * Returns the corresponding translation key for status
  */
 function getStatusTranslationKey(status: SingleSearchStatus): TranslationPaths {
     // eslint-disable-next-line default-case
