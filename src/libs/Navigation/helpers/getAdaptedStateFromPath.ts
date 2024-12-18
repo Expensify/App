@@ -161,6 +161,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
     const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const isReportSplitNavigator = fullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+    const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     // If policyID is defined, it should be passed to the reportNavigator params.
     if (isReportSplitNavigator && policyID) {
@@ -172,15 +173,26 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         return getRoutesWithIndex(routes);
     }
 
+    if (isWorkspaceSplitNavigator) {
+        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
+        return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
+    }
+
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
         const focusedRoute = findFocusedRoute(state);
 
         if (focusedRoute) {
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, policyID);
+
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                return getRoutesWithIndex([matchingRootRoute, ...state.routes]);
+                const routes = [matchingRootRoute, ...state.routes];
+                if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
+                    routes.unshift(settingsSplitRoute);
+                }
+                return getRoutesWithIndex(routes);
             }
         }
 
