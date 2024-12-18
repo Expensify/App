@@ -390,7 +390,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        userAccountID = value?.accountID ?? -1;
+        userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -2080,7 +2080,7 @@ function getSendInvoiceInformation(
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '-1';
     const receiverParticipant = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
-    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : -1;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -2845,7 +2845,7 @@ function getUpdateMoneyRequestParams(
     } else {
         updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReport,
-            updatedReportAction.actorAccountID ?? -1,
+            updatedReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
             diff,
             TransactionUtils.getCurrency(transaction),
             false,
@@ -4414,7 +4414,7 @@ function createSplitsAndOnyxData(
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
-        const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
+        const splitAmount = splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
         const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
@@ -5015,7 +5015,7 @@ function startSplitBill({
             return;
         }
 
-        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? -1];
+        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -5206,7 +5206,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             // In case this is still the optimistic accountID saved in the splits array, return early as we cannot know
             // if there is an existing chat between the split creator and this participant
             // Instead, we will rely on Auth generating the report IDs and the user won't see any optimistic chats or reports created
-            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = allPersonalDetails[participant?.accountID ?? -1];
+            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             if (!participantPersonalDetails || participantPersonalDetails.isOptimisticPersonalDetail) {
                 splits.push({
                     email: participant.email,
@@ -5233,7 +5233,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID ?? '-1', participant.policyID ?? '-1', sessionAccountID, splitAmount, currency ?? '')
-                : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? -1, splitAmount, oneOnOneChatReport?.reportID ?? '-1', currency ?? '');
+                : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID ?? '-1', currency ?? '');
         } else if (isPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -5664,7 +5664,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     } else {
         updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReport,
-            reportAction.actorAccountID ?? -1,
+            reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
             TransactionUtils.getAmount(transaction, false),
             currency,
             true,
@@ -5680,7 +5680,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
 
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? -1).login ?? '',
+        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
         amount: CurrencyUtils.convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
     });
 
@@ -6611,8 +6611,8 @@ function getReportFromHoldRequestsOnyxData(
               newParentReportActionID,
           )
         : ReportUtils.buildOptimisticIOUReport(
-              iouReport?.ownerAccountID ?? -1,
-              iouReport?.managerID ?? -1,
+              iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+              iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
               holdAmount,
               chatReport.reportID,
               iouReport?.currency ?? '',
@@ -7128,7 +7128,7 @@ function canApproveIOU(
         return false;
     }
 
-    const managerID = iouReport?.managerID ?? -1;
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === userAccountID;
     const isOpenExpenseReport = ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
@@ -7814,7 +7814,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         {
             iouReportID: expenseReport.reportID,
             chatReportID: chatReport.reportID,
-            managerAccountID: expenseReport.managerID ?? -1,
+            managerAccountID: expenseReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
             reportActionID: optimisticReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
@@ -7869,7 +7869,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
 
-    const recipient = {accountID: iouReport?.ownerAccountID ?? -1};
+    const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -7881,7 +7881,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 }
 
 function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
-    const recipient = {accountID: invoiceReport?.ownerAccountID ?? -1};
+    const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
         successData,
