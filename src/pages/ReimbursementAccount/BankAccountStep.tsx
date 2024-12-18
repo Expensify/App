@@ -211,7 +211,7 @@ function BankAccountStep({
                         </View>
                     </Section>
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                             style={[styles.flexRow, styles.alignItemsCenter]}
