@@ -10,30 +10,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps;
+type TaxIDEINNumberProps = SubStepProps;
 
-const {COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const STEP_FIELDS = [COMPANY_NAME];
+const {TAX_ID_EIN_NUMBER} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
 
-function Name({onNext, onMove, isEditing}: NameProps) {
+function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[TAX_ID_EIN_NUMBER] ?? reimbursementAccountDraft?.[TAX_ID_EIN_NUMBER] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
-                errors.companyName = translate('bankAccount.error.companyName');
-            }
-
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    }, []);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -47,18 +40,18 @@ function Name({onNext, onMove, isEditing}: NameProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.whatsTheBusinessName')}
+            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={COMPANY_NAME}
-            inputLabel={translate('businessInfoStep.legalBusinessName')}
-            inputMode={CONST.INPUT_MODE.TEXT}
+            inputId={TAX_ID_EIN_NUMBER}
+            inputLabel={translate('businessInfoStep.taxIDEIN')}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />
     );
 }
 
-Name.displayName = 'Name';
+TaxIDEINNumber.displayName = 'TaxIDEINNumber';
 
-export default Name;
+export default TaxIDEINNumber;

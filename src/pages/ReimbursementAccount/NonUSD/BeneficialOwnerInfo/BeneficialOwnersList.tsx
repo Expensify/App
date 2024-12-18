@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -14,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
@@ -23,27 +21,16 @@ type BeneficialOwnersListProps = {
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
 
-    /** Method called when user presses on ownership chart push row */
-    handleOwnershipChartEdit: () => void;
-
     /** List of owner keys */
     ownerKeys: string[];
 };
 
-const {ENTITY_CHART} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-
-function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, handleOwnershipChartEdit}: BeneficialOwnersListProps) {
+function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: BeneficialOwnersListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const ownershipChartValue = reimbursementAccount?.achData?.additionalData?.corpay?.[ENTITY_CHART] ?? reimbursementAccountDraft?.[ENTITY_CHART] ?? [];
-
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
 
     const owners =
         reimbursementAccountDraft &&
@@ -86,15 +73,6 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit, h
                             <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                             {owners}
                         </View>
-                    )}
-                    {currency === CONST.CURRENCY.AUD && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.certified')}
-                            title={ownershipChartValue.map((file) => file.name).join(', ') || ''}
-                            shouldShowRightIcon
-                            onPress={handleOwnershipChartEdit}
-                            style={[areThereOwners ? styles.mt8 : styles.mt0]}
-                        />
                     )}
                     <View style={styles.mtAuto}>
                         <Button
