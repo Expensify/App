@@ -725,7 +725,7 @@ function MoneyRequestConfirmationListFooter({
                         interactive={!isReadOnly}
                         numberOfLinesTitle={2}
                     />
-                    {badgeElements}
+                    <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh3, styles.flexWrap, styles.pt1]}>{badgeElements}</View>
                     <View style={styles.dividerLine} />
                     {subRateFields}
                     <View style={styles.dividerLine} />
