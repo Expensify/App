@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SearchTypeBar from '@components/Search/SearchTypeBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,6 +77,12 @@ function SearchPageBottomTab() {
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        queryJSON?.hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildDefaultCannedSearchQuery()}));
 
@@ -95,7 +102,7 @@ function SearchPageBottomTab() {
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !isCannedQuery;
 
     return (
         <ScreenWrapper
@@ -117,6 +124,7 @@ function SearchPageBottomTab() {
                         <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
                             <CannedSearchMenu
                                 queryJSON={queryJSON}
+                                cannedMenuItems={cannedSearchQueries}
                                 searchName={searchName}
                             />
                             <SearchTypeBar
@@ -130,6 +138,7 @@ function SearchPageBottomTab() {
                         <CannedSearchMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
+                            cannedMenuItems={cannedSearchQueries}
                         />
                     )}
                 </>

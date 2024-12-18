@@ -2,8 +2,11 @@ import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
+import type {CannedSearchItem} from '@pages/Search/CannedSearchMenu';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -639,7 +642,7 @@ function buildCannedSearchQuery({
 }
 
 /**
- * Returns properly built QueryString for a default canned query.
+ * Returns properly built QueryString for a default canned query which is 'type:expense status:all' query named 'All expenses'.
  */
 function buildDefaultCannedSearchQuery(): SearchQueryString {
     const queryString = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} status:${CONST.SEARCH.STATUS.EXPENSE.ALL}`;
@@ -649,14 +652,42 @@ function buildDefaultCannedSearchQuery(): SearchQueryString {
 }
 
 /**
+ * Returns list of canned search queries.
+ */
+function getCannedSearchesItems(policyID?: string, currentUserLogin?: string): CannedSearchItem[] {
+    const allExpensesQuery = buildCannedSearchQuery({policyID});
+    const wainingOnYouQuery = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+        to: currentUserLogin,
+        policyID,
+    });
+
+    return [
+        {
+            titleTranslationPath: 'search.cannedSearches.allExpenses',
+            icon: Expensicons.Receipt,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: allExpensesQuery.queryString}),
+            hash: allExpensesQuery.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.expensesWaitingOnYou',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: wainingOnYouQuery.queryString}),
+            hash: wainingOnYouQuery.queryJSON?.hash,
+        },
+    ];
+}
+
+/**
  * Returns whether a given search query is a Canned query.
  *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip status:all" is a canned query.
+ * Canned queries are predefined queries, that represent most common use cases that user would want to search through.
+ * They are staticly defined and built by getCannedSearchesItems function
+ * For example: "type:expense status:draft from:[signed-in-user]@domain.com" is a "Draft expenses" canned query.
  */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters;
+function isCannedSearchQuery(currentQueryHash: number | undefined, cannedQueryHashes: number[]) {
+    return cannedQueryHashes.some((hash) => hash === currentQueryHash);
 }
 
 /**
@@ -739,4 +770,5 @@ export {
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
+    getCannedSearchesItems,
 };

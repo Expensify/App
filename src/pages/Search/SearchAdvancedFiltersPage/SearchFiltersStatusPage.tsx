@@ -12,105 +12,87 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getStatusTranslationKey} from '@libs/SearchUIUtils';
 import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-const expenseOptions: Array<{status: ExpenseSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+const expenseOptions: Array<{status: ExpenseSearchStatus; icon: IconAsset}> = [
     {
         status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         icon: Expensicons.All,
-        text: 'common.all',
     },
     {
         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
         icon: Expensicons.Pencil,
-        text: 'common.drafts',
     },
     {
         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         icon: Expensicons.Hourglass,
-        text: 'common.outstanding',
     },
     {
         status: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
         icon: Expensicons.ThumbsUp,
-        text: 'iou.approved',
     },
     {
         status: CONST.SEARCH.STATUS.EXPENSE.PAID,
         icon: Expensicons.MoneyBag,
-        text: 'iou.settledExpensify',
     },
 ];
 
-const invoiceOptions: Array<{status: InvoiceSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+const invoiceOptions: Array<{status: InvoiceSearchStatus; icon: IconAsset}> = [
     {
         status: CONST.SEARCH.STATUS.INVOICE.ALL,
         icon: Expensicons.All,
-        text: 'common.all',
     },
     {
         status: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING,
         icon: Expensicons.Hourglass,
-        text: 'common.outstanding',
     },
     {
         status: CONST.SEARCH.STATUS.INVOICE.PAID,
         icon: Expensicons.MoneyBag,
-        text: 'iou.settledExpensify',
     },
 ];
 
-const tripOptions: Array<{status: TripSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+const tripOptions: Array<{status: TripSearchStatus; icon: IconAsset}> = [
     {
         status: CONST.SEARCH.STATUS.TRIP.ALL,
         icon: Expensicons.All,
-        text: 'common.all',
     },
     {
         status: CONST.SEARCH.STATUS.TRIP.CURRENT,
         icon: Expensicons.Calendar,
-        text: 'search.filters.current',
     },
     {
         status: CONST.SEARCH.STATUS.TRIP.PAST,
         icon: Expensicons.History,
-        text: 'search.filters.past',
     },
 ];
 
-const chatOptions: Array<{status: ChatSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+const chatOptions: Array<{status: ChatSearchStatus; icon: IconAsset}> = [
     {
         status: CONST.SEARCH.STATUS.CHAT.ALL,
         icon: Expensicons.All,
-        text: 'common.all',
     },
     {
         status: CONST.SEARCH.STATUS.CHAT.UNREAD,
         icon: Expensicons.ChatBubbleUnread,
-        text: 'common.unread',
     },
     {
         status: CONST.SEARCH.STATUS.CHAT.SENT,
         icon: Expensicons.Send,
-        text: 'common.sent',
     },
     {
         status: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
         icon: Expensicons.Document,
-        text: 'common.attachments',
     },
     {
         status: CONST.SEARCH.STATUS.CHAT.LINKS,
         icon: Expensicons.Paperclip,
-        text: 'common.links',
     },
     {
         status: CONST.SEARCH.STATUS.CHAT.PINNED,
         icon: Expensicons.Pin,
-        text: 'search.filters.pinned',
     },
 ];
 
@@ -148,7 +130,7 @@ function SearchFiltersStatusPage() {
 
     const statusItems = useMemo(() => {
         return statusList.map((statusItem) => {
-            const statusName = translate(statusItem.text);
+            const statusName = translate(getStatusTranslationKey(statusItem.status));
             return {name: statusName, value: statusItem.status};
         });
     }, [statusList, translate]);

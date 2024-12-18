@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
@@ -13,7 +13,6 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,6 +27,7 @@ import * as SearchUIUtils from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -46,16 +46,17 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 type CannedSearchMenuProps = {
     queryJSON: SearchQueryJSON;
     searchName?: string;
+    cannedMenuItems: CannedSearchItem[];
 };
 
 type CannedSearchItem = {
-    title: string;
+    titleTranslationPath: TranslationPaths;
     icon: IconAsset;
     route: Route;
     hash: number | undefined;
 };
 
-function CannedSearchMenu({queryJSON, searchName}: CannedSearchMenuProps) {
+function CannedSearchMenu({queryJSON, searchName, cannedMenuItems}: CannedSearchMenuProps) {
     const {hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -71,33 +72,8 @@ function CannedSearchMenu({queryJSON, searchName}: CannedSearchMenuProps) {
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
 
     const personalDetails = usePersonalDetails();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const cannedMenuItems: CannedSearchItem[] = useMemo(() => {
-        const allExpensesQuery = SearchQueryUtils.buildCannedSearchQuery({policyID: queryJSON.policyID});
-        const wainingOnYouQuery = SearchQueryUtils.buildCannedSearchQuery({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.APPROVED],
-            to: currentUserPersonalDetails.login,
-            policyID: queryJSON.policyID,
-        });
-
-        return [
-            {
-                title: translate('search.cannedSearches.allExpenses'),
-                icon: Expensicons.Receipt,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: allExpensesQuery.queryString}),
-                hash: allExpensesQuery.queryJSON?.hash,
-            },
-            {
-                title: translate('search.cannedSearches.expensesWaitingOnYou'),
-                icon: Expensicons.Hourglass,
-                route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: wainingOnYouQuery.queryString}),
-                hash: wainingOnYouQuery.queryJSON?.hash,
-            },
-        ];
-    }, [currentUserPersonalDetails.login, queryJSON.policyID, translate]);
 
     const getOverflowMenu = useCallback(
         (itemName: string, itemHash: number, itemQuery: string) => SearchUIUtils.getOverflowMenu(itemName, itemHash, itemQuery, showDeleteModal),
@@ -244,10 +220,10 @@ function CannedSearchMenu({queryJSON, searchName}: CannedSearchMenuProps) {
 
                     return (
                         <MenuItem
-                            key={item.title}
+                            key={item.titleTranslationPath}
                             disabled={false}
                             interactive
-                            title={item.title}
+                            title={translate(item.titleTranslationPath)}
                             icon={item.icon}
                             iconWidth={variables.iconSizeNormal}
                             iconHeight={variables.iconSizeNormal}

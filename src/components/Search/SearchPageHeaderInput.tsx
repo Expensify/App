@@ -12,6 +12,7 @@ import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryLis
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
@@ -71,9 +72,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {type, inputQuery: originalInputQuery} = queryJSON;
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const {type, inputQuery: originalInputQuery, hash, policyID} = queryJSON;
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
     const queryText = SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
 

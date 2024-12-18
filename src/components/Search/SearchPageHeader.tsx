@@ -12,6 +12,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,6 +56,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -64,7 +66,12 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         isFocused,
     );
 
-    const {status, hash} = queryJSON;
+    const {status, hash, policyID} = queryJSON;
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -145,15 +152,15 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
                     for (const item of items) {
-                        const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+                        const reportPolicyID = item.policyID;
+                        const lastPolicyPaymentMethod = reportPolicyID ? lastPaymentMethods?.[reportPolicyID] : null;
 
                         if (!lastPolicyPaymentMethod) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
                             return;
                         }
 
-                        const hasVBBA = PolicyUtils.hasVBBA(policyID);
+                        const hasVBBA = PolicyUtils.hasVBBA(reportPolicyID);
 
                         if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasVBBA) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
@@ -339,8 +346,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
-
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
 
     return (
         <>

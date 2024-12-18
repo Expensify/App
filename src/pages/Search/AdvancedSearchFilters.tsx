@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SingleSearchStatus} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -394,6 +395,7 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
@@ -438,6 +440,11 @@ function AdvancedSearchFilters() {
 
     const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
     const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildDefaultCannedSearchQuery()), [queryString]);
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        queryJSON?.hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -528,7 +535,7 @@ function AdvancedSearchFilters() {
                 .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
-    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && !isCannedQuery;
 
     return (
         <>
