@@ -45,15 +45,6 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
         let params = pick(lastRoute?.params, paramsFromRoute);
 
-        // On a wide screen the backTo param has to be passed to the sidebar screen (SCREENS.WORKSPACE.INITIAL), because the back action is performed from this page
-        if (lastRoute?.name === SCREENS.WORKSPACE.PROFILE) {
-            const hasRouteBackToParam = lastRoute?.params && 'backTo' in lastRoute.params;
-
-            if (hasRouteBackToParam) {
-                params = {...params, backTo: lastRoute.params.backTo};
-            }
-        }
-
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
         state.stale = true; // eslint-disable-line
