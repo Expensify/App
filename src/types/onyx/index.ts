@@ -112,6 +112,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -236,6 +237,7 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
+    WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
