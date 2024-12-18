@@ -3901,7 +3901,7 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return Localize.translateLocal('iou.unheldExpense');
     }
-    if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
+    if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction) || ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
