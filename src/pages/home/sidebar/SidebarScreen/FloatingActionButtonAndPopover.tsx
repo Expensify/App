@@ -111,6 +111,27 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     }
 };
 
+const getIouType = (action: QuickActionName) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return CONST.IOU.TYPE.SUBMIT;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return CONST.IOU.TYPE.SPLIT;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return CONST.IOU.TYPE.TRACK;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return CONST.IOU.TYPE.PAY;
+        default:
+            return undefined;
+    }
+};
+
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -166,7 +187,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [hasSeenTrackTraining] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -177,7 +197,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel, canUseCombinedTrackSubmit} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport, reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -261,14 +281,22 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, undefined, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, undefined, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, undefined, true), false);
@@ -277,9 +305,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 selectOption(() => Task.startOutCreateTaskQuickAction(isValidReport ? quickActionReportID : '', quickAction.targetAccountID ?? -1), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
+                break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), false);
+                break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, undefined, true), false);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), false);
                 break;
             default:
         }
@@ -351,66 +383,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         }
     };
 
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading, isCreateMenuActive]);
-
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
-        if (canUseCombinedTrackSubmit) {
-            return [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                    text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                    onSelected: () =>
-                        interceptAnonymousUser(() => {
-                            if (shouldRedirectToExpensifyClassic) {
-                                setModalVisible(true);
-                                return;
-                            }
-                            IOU.startMoneyRequest(
-                                CONST.IOU.TYPE.CREATE,
-                                // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                // for all of the routes in the creation flow.
-                                ReportUtils.generateReportID(),
-                            );
-                        }),
-                },
-            ];
-        }
-
         return [
-            ...(selfDMReportID
-                ? [
-                      {
-                          icon: getIconForAction(CONST.IOU.TYPE.TRACK),
-                          text: translate('iou.trackExpense'),
-                          shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                          onSelected: () => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
-                              interceptAnonymousUser(() => {
-                                  IOU.startMoneyRequest(
-                                      CONST.IOU.TYPE.TRACK,
-                                      // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                      // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                      ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                  );
-                              });
-                              if (!hasSeenTrackTraining && !isOffline) {
-                                  setTimeout(() => {
-                                      Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
-                                  }, CONST.ANIMATED_TRANSITION);
-                              }
-                          },
-                      },
-                  ]
-                : []),
             {
-                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
-                text: translate('iou.submitExpense'),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
@@ -418,9 +395,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             setModalVisible(true);
                             return;
                         }
-
                         IOU.startMoneyRequest(
-                            CONST.IOU.TYPE.SUBMIT,
+                            CONST.IOU.TYPE.CREATE,
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             ReportUtils.generateReportID(),
@@ -428,12 +404,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     }),
             },
         ];
-    }, [canUseCombinedTrackSubmit, translate, selfDMReportID, hasSeenTrackTraining, isOffline, shouldRedirectToExpensifyClassic]);
+    }, [translate, shouldRedirectToExpensifyClassic]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
         const baseQuickAction = {
             label: translate('quickAction.header'),
+            labelStyle: [styles.pt3, styles.pb2],
             isLabelHoverable: false,
             floatRightAvatars: quickActionAvatars,
             floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
@@ -449,6 +426,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         };
 
         if (quickAction?.action) {
+            const iouType = getIouType(quickAction?.action);
+            if (!!iouType && !ReportUtils.canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
             return [
                 {
                     ...baseQuickAction,
@@ -471,8 +452,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                     onSelected: () =>
                         interceptAnonymousUser(() => {
                             selectOption(() => {
-                                const quickActionReportID = isValidReport ? policyChatForActivePolicy?.reportID ?? '-1' : ReportUtils.generateReportID();
-                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID ?? '-1', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || ReportUtils.generateReportID();
+                                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
@@ -487,6 +468,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionAvatars,
         styles.popoverMenuItem.paddingHorizontal,
         styles.popoverMenuItem.paddingVertical,
+        styles.pt3,
+        styles.pb2,
         styles.quickActionTooltipWrapper,
         renderQuickActionTooltip,
         quickAction?.action,
@@ -497,7 +480,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         quickActionReport,
         navigateToQuickAction,
         selectOption,
-        isValidReport,
+        quickActionPolicy,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
@@ -512,12 +495,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
+                    ...expenseMenuItems,
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...expenseMenuItems,
                     ...(canSendInvoice
                         ? [
                               {
