@@ -209,7 +209,7 @@ function ProfilePage() {
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => detail.action?.() ?? Navigation.navigate(detail.pageRoute)}
+                                    onPress={() => (detail.action ? detail.action() : Navigation.navigate(detail.pageRoute))}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                 />
                             ))}
