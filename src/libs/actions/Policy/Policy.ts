@@ -196,7 +196,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
-        sessionAccountID = val?.accountID ?? -1;
+        sessionAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -258,8 +258,8 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
  * Returns a primary invoice workspace for the user
  */
 function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID ?? '-1')) {
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     }
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
@@ -1864,7 +1864,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? '',
+            value: activePolicyID,
         });
     }
 
@@ -2517,12 +2517,12 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview?.reportActionID ?? '-1']: null},
+        value: reportPreview?.reportActionID ? {[reportPreview.reportActionID]: null} : {},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview?.reportActionID ?? '-1']: reportPreview},
+        value: reportPreview?.reportActionID ? {[reportPreview.reportActionID]: null} : {},
     });
 
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
