@@ -23,7 +23,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink>
         </Text>
     );
 }
