@@ -3491,10 +3491,8 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return ReportActionsUtils.isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.trackExpense') : Localize.translateLocal('iou.expense');
     }
 
-    const numberOfScanningReceipts = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction) ? 1 : 0;
-
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
-        return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
+        return Localize.translateLocal('iou.receiptScanning', {count: 1});
     }
 
     if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
@@ -3562,7 +3560,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
@@ -3584,7 +3582,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
