@@ -82,8 +82,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    if (isEmptyObject(virtualCardRef.current)) {
+    if (isEmptyObject(virtualCardRef?.current)) {
         return <NotFoundPage />;
     }
 
