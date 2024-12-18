@@ -108,7 +108,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 if (!canEditPolicyDescription) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
+                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
                             }}
                             style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -133,7 +133,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     return;
                                 }
                                 const activeRoute = Navigation.getActiveRoute();
-                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
+                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                             }}
                             style={[styles.renderHTML, canEditReportDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -162,10 +162,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             onPress={() => {
                                 const activeRoute = Navigation.getActiveRoute();
                                 if (canEditReportDescription) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', activeRoute));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
