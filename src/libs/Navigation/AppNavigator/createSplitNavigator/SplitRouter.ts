@@ -21,38 +21,27 @@ type AdaptStateIfNecessaryArgs = {
     options: SplitNavigatorRouterOptions;
 };
 
-let isLoadingReportData = true;
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
-});
-
-function isInvalidPolicyPage(route: NavigationPartialRoute) {
+function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
     const hasRoutePolicyID = route?.params && 'policyID' in route.params;
 
     if (!hasRoutePolicyID) {
-        return false;
+        return undefined;
     }
 
-    const policyID = route?.params?.policyID as string;
-    const policy = PolicyUtils.getPolicy(policyID);
-
-    if (!policy) {
-        return false;
-    }
-
-    return !PolicyUtils.isPolicyAccessible(policy) && !isLoadingReportData;
+    return route?.params?.policyID as string;
 }
 
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
 
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
+    const routePolicyID = getRoutePolicyID(lastRoute);
 
     // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
-    if (isNarrowLayout && isInvalidPolicyPage(lastRoute)) {
-        return;
+    if (isNarrowLayout && !!routePolicyID) {
+        if (PolicyUtils.shouldDisplayPolicyNotFoundPage(routePolicyID)) {
+            return;
+        }
     }
 
     // If the screen is wide, there should be at least two screens inside:
