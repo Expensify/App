@@ -69,7 +69,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         const ownerFields = [FIRST_NAME, LAST_NAME, OWNERSHIP_PERCENTAGE, DOB, SSN_LAST_4, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
         const owners = ownerKeys.map((ownerKey) =>
             ownerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
+                acc[`${PREFIX}_${ownerKey}_${fieldName}`] = reimbursementAccountDraft ? reimbursementAccountDraft?.[`${PREFIX}_${ownerKey}_${fieldName}`] : undefined;
                 return acc;
             }, {} as Record<string, string | FileObject[] | undefined>),
         );
