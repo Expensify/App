@@ -3543,8 +3543,8 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    const allTransactions = TransactionUtils.getAllReportTransactions(report.reportID);
-    const transactionsWithReceipts = allTransactions.filter(TransactionUtils.hasReceipt);
+    const allReportTransactions = TransactionUtils.getAllReportTransactions(report.reportID);
+    const transactionsWithReceipts = allReportTransactions.filter(TransactionUtils.hasReceipt);
     const numberOfScanningReceipts = transactionsWithReceipts.filter(TransactionUtils.isReceiptBeingScanned).length;
 
     if (isEmptyObject(report) || !report?.reportID) {

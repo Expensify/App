@@ -85,9 +85,6 @@ function MoneyRequestPreviewContent({
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
-
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
@@ -269,7 +266,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning', {count: numberOfScanningReceipts});
+            return translate('iou.receiptScanning', {count: 1});
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
