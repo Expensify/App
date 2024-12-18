@@ -537,7 +537,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
     const categoryAppovers: string[] = [];
     const tagApprovers: string[] = [];
-    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID ?? '-1');
+    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
 
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.
