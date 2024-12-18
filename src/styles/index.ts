@@ -1748,7 +1748,7 @@ const styles = (theme: ThemeColors) =>
 
         emojisWithTextFontSizeAligned: {
             fontSize: variables.fontSizeEmojisWithinText,
-            marginBottom: -7,
+            lineHeight: 24,
         },
 
         emojisFontFamily: {
