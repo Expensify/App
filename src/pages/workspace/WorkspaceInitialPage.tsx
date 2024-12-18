@@ -390,10 +390,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     }, [policy]);
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper testID={WorkspaceInitialPage.displayName}>
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.resetToHome}
