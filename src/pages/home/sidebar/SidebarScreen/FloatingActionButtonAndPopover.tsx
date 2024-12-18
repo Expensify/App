@@ -433,7 +433,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.productTrainingTooltipWrapper,
         renderProductTrainingTooltip,
         hideProductTrainingTooltip,
-        quickAction?.action,
         quickAction,
         policyChatForActivePolicy,
         quickActionTitle,
