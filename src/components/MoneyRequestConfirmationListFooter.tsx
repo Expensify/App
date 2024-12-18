@@ -577,7 +577,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="firstDay"
                     icon={Expensicons.Stopwatch}
-                    text={`First day: ${firstDay} hours`}
+                    text={translate('iou.firstDayText', {hours: firstDay})}
                 />,
             );
         }
@@ -586,7 +586,7 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="tripDays"
                     icon={Expensicons.CalendarSolid}
-                    text={`Trip: ${tripDays} full days`}
+                    text={translate('iou.tripLengthText', {days: tripDays})}
                 />,
             );
         }
@@ -595,12 +595,12 @@ function MoneyRequestConfirmationListFooter({
                 <Badge
                     key="lastDay"
                     icon={Expensicons.Stopwatch}
-                    text={`Last day: ${lastDay} hours`}
+                    text={translate('iou.lastDayText', {hours: lastDay})}
                 />,
             );
         }
         return badges;
-    }, [firstDay, lastDay, tripDays]);
+    }, [firstDay, lastDay, translate, tripDays]);
 
     const primaryFields: React.JSX.Element[] = [];
     const supplementaryFields: React.JSX.Element[] = [];
