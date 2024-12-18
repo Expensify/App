@@ -64,7 +64,6 @@ import * as PriorityModeActions from './actions/PriorityMode';
 import * as store from './actions/ReimbursementAccount/store';
 import * as ReportHelperActions from './actions/Report';
 import * as SessionUtils from './actions/Session';
-import {getCategoryApproverRule} from './CategoryUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -8471,31 +8470,6 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
     return Object.values(reportActions).some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
-function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
-    const categoryAppovers: string[] = [];
-    const tagApprovers: string[] = [];
-    const allReportTransactions = TransactionUtils.getAllSortedTransactions(expenseReport?.reportID ?? '-1');
-
-    // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
-    // Category approvers are prioritized, then tag approvers.
-    for (let i = 0; i < allReportTransactions.length; i++) {
-        const transaction = allReportTransactions.at(i);
-        const tag = TransactionUtils.getTag(transaction);
-        const category = TransactionUtils.getCategory(transaction);
-        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-        const tagApprover = PolicyUtils.getTagApproverRule(policy?.id ?? '-1', tag)?.approver;
-        if (categoryAppover) {
-            categoryAppovers.push(categoryAppover);
-        }
-
-        if (tagApprover) {
-            tagApprovers.push(tagApprover);
-        }
-    }
-
-    return [...categoryAppovers, ...tagApprovers];
-}
-
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
@@ -8503,7 +8477,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? -1]).at(0) ?? '';
 
     // Get category/tag approver list
-    const ruleApprovers = getRuleApprovers(policy, expenseReport);
+    const ruleApprovers = PolicyUtils.getRuleApprovers(policy, expenseReport);
 
     // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
     ruleApprovers.forEach((ruleApprover) => {
@@ -8514,7 +8488,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         fullApprovalChain.push(ruleApprover);
     });
 
-    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, expenseReport, true);
+    let nextApproverEmail = PolicyUtils.getManagerAccountEmail(policy, expenseReport);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
