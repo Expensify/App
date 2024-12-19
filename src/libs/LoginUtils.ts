@@ -1,5 +1,6 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -75,4 +76,19 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};
+function fetchSAMLUrl(body: FormData): Promise<Response | void> {
+    return fetch(CONFIG.EXPENSIFY.SAML_URL, {
+        method: CONST.NETWORK.METHOD.POST,
+        body,
+        credentials: 'omit',
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('An error occurred while logging in. Please try again');
+            }
+            return response.json() as Promise<Response>;
+        })
+        .then((response) => response);
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, fetchSAMLUrl};
