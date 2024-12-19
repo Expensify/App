@@ -22,6 +22,8 @@ type MapViewProps = {
     onMapReady?: () => void;
     // Whether the map is interactable or not
     interactive?: boolean;
+
+    distance?: number;
 };
 
 type DirectionProps = {

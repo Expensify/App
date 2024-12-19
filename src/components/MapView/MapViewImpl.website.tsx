@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import * as UserLocation from '@userActions/UserLocation';
@@ -42,6 +43,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
+            distance,
         },
         ref,
     ) => {
@@ -232,6 +234,20 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
             };
         }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
 
+        const distanceSymbolCoorinate = useMemo(() => {
+            const length = directionCoordinates?.length;
+            // If the array is empty, return undefined
+            if (!length) {
+                return undefined;
+            }
+
+            // Find the index of the middle element
+            const middleIndex = Math.floor(length / 2);
+
+            // Return the middle element
+            return directionCoordinates.at(middleIndex);
+        }, [directionCoordinates]);
+
         return !isOffline && !!accessToken && !!initialViewState ? (
             <View
                 style={style}
@@ -255,6 +271,22 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                             latitude={currentPosition?.latitude ?? 0}
                         >
                             <View style={styles.currentPositionDot} />
+                        </Marker>
+                    )}
+                    {!!distanceSymbolCoorinate && !!distance && (
+                        <Marker
+                            key="distance"
+                            longitude={distanceSymbolCoorinate.at(0) ?? 0}
+                            latitude={distanceSymbolCoorinate.at(1) ?? 0}
+                        >
+                            <View style={{marginRight: 100}}>
+                                <View
+                                    style={{backgroundColor: '#60d184', paddingHorizontal: 10, paddingVertical: 4, color: 'white', borderRadius: 12, fontWeight: 'bold', textAlign: 'center'}}
+                                >
+                                    <View style={{fontSize: 16}}> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)}</View>
+                                    <View style={{fontSize: 12}}> {DistanceRequestUtils.getDistanceForDisplayLabel(distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}</View>
+                                </View>
+                            </View>
                         </Marker>
                     )}
                     {waypoints?.map(({coordinate, markerComponent, id}) => {

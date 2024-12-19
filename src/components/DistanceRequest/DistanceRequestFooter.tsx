@@ -114,6 +114,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
+                    distance={TransactionUtils.getDistanceInMeters(transaction, 'km')}
                 />
             </View>
         </>
