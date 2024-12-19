@@ -39,14 +39,14 @@ The three options for the date your report will export with are:
 ## Accounting Method
 
 This dictates when reimbursable expenses will export, according to your preferred accounting method:
-- Accrual: Out of pocket expenses will export immediately when the report is final approved
-- Cash: Out of pocket expenses will export when paid via Expensify or marked as Reimbursed
+- Accrual: Out-of-pocket expenses will export immediately when the report is final approved
+- Cash: Out-of-pocket expenses will export when paid via Expensify or marked as Reimbursed
 
 ## Export Settings for Reimbursable Expenses 
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
 
-**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding workspace. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
+**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and are mapped to the subsidiary associated with the corresponding workspace. Each report is posted as payable to the vendor associated with the employee who submitted it. You can also set an approval level in NetSuite for vendor bills.
 
 **Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this workspace. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
 
@@ -63,7 +63,7 @@ This dictates when reimbursable expenses will export, according to your preferre
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-**Expense Reports:** To use the expense report option for your corporate card expenses, you will need to set up your default corporate cards in NetSuite. 
+**Expense Reports:** To use the expense report option for your corporate card expenses, you must set up your default corporate cards in NetSuite. 
 
 To use a default corporate card for non-reimbursable expenses, you must select the correct card on the employee records (for individual accounts) or the subsidiary record (If you use a non-one world account, the default is found in your accounting preferences).
 
@@ -227,6 +227,8 @@ From there, you should see the values for the Custom Lists under the Tag or Repo
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
+
 Let’s review the different advanced settings and how they interact with the integration.
 
 ## Auto Sync
@@ -262,6 +264,10 @@ The available options are:
 ## Automatically Create Employees/Vendors
 
 With this feature enabled, Expensify will automatically create a new employee or vendor (if one doesn’t already exist) from the report submitter's email in NetSuite. 
+
+## Export Foreign Currency Amount
+
+Using this feature allows you to send the original amount of the expense rather than the converted total when exporting to NetSuite. This option is available if you are exporting reimbursable expenses as Expense Reports.
 
 ## Cross-Subsidiary Customers/Projects 
 
@@ -383,6 +389,8 @@ If your tax groups are importing into Expensify but not exporting to NetSuite, c
 When using multi-currency features with NetSuite, remember these points:
 
 **Matching Currencies:** The currency set for a vendor or employee record must match the currency chosen for the subsidiary in your Expensify configuration. This alignment is crucial for proper handling.
+
+**Foreign Currency Conversion:** If you create expenses in one currency and then convert them to another currency within Expensify before exporting, you can include both the original and converted amounts in the exported expense reports. This option, called "Export foreign currency amount," can be found in the Advanced tab of your configuration. Note that Expensify sends only the amounts; the actual currency conversion is performed in NetSuite.
 
 **Bank Account Currency:** When synchronizing bill payments, make sure your bank account's currency matches the subsidiary's currency. Failure to do so will result in an "Invalid Account" error. This alignment is necessary to prevent issues during payment processing.
 
