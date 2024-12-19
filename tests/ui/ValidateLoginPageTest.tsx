@@ -3,7 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
-import {PublicScreensParamList} from '@libs/Navigation/types';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.website';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ describe('ValidateLoginPage', () => {
 
         renderPage({accountID: '1', validateCode: 'ABCDEF', exitTo: 'concierge'});
 
-        expect(screen.queryByTestId('validate-code-not-found')).not.toBeNull();
+        expect(screen.getByTestId('validate-code-not-found')).not.toBeNull();
     });
 
     it('Should not show ValidateCodeModal when signed in and there is an exitTo param', async () => {
