@@ -17,7 +17,11 @@ If you’re seeking help with Expensify's API, do not share your partnerUserSecr
 
 **Is there a rate limit?** 
 
-Yes, the rate limit is currently 50 requests per minute. If you exceed this limit, you'll receive an error message.
+To keep our platform stable and handle high traffic, Expensify limits how many API requests you can send:
+- Up to 5 requests every 10 seconds
+- Up to 20 requests every 60 seconds
+
+Sending more requests than allowed may result in an error with status code `429`.
 
 **What is a Policy ID?** 
 
