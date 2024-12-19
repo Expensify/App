@@ -200,7 +200,12 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
     if (policy?.role) {
         return policy.role;
     }
-    return currentUserLogin ? policy?.employeeList?.[currentUserLogin]?.role : undefined;
+
+    if (!currentUserLogin) {
+        return;
+    }
+
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 /**
@@ -394,7 +399,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | SearchPolicy): boolean {
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number): Policy[] {
-    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID) && isPaidGroupPolicy(policy));
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -403,7 +408,7 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = distanceUnit?.customUnitID;
+    const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && !!customUnitID && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
 
@@ -712,7 +717,10 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     }
 
     const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
-    return key ? pendingFields[key] : undefined;
+    if (!key) {
+        return;
+    }
+    return pendingFields[key];
 }
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
@@ -1124,6 +1132,17 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Localize.translateLocal('workspace.type.control');
+        case CONST.POLICY.TYPE.TEAM:
+            return Localize.translateLocal('workspace.type.collect');
+        default:
+            return Localize.translateLocal('workspace.type.free');
+    }
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
@@ -1257,6 +1276,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };

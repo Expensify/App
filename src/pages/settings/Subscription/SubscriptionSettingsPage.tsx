@@ -49,6 +49,7 @@ function SubscriptionSettingsPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}
+                shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -45,8 +45,12 @@ function DebugTransactionViolationPage({
     const deleteTransactionViolation = useCallback(() => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
-        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
         Navigation.goBack();
+        // We need to wait for navigation animations to finish before deleting a violation,
+        // otherwise the user will see a not found page briefly.
+        InteractionManager.runAfterInteractions(() => {
+            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        });
     }, [index, transactionID, transactionViolations]);
 
     if (!transactionViolation) {

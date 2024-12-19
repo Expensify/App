@@ -569,6 +569,11 @@ type CurrencyCodeParams = {
     currencyCode: string;
 };
 
+type WorkspaceLockedPlanTypeParams = {
+    count: number;
+    annualSubscriptionEndDate: string;
+};
+
 type CompanyNameParams = {
     companyName: string;
 };
@@ -579,6 +584,10 @@ type CustomUnitRateParams = {
 
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
+};
+
+type FlightLayoverParams = {
+    layover: string;
 };
 
 export type {
@@ -785,7 +794,9 @@ export type {
     WorkspaceMemberList,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
+    WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    FlightLayoverParams,
 };
