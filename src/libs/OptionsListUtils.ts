@@ -796,7 +796,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
-        .filter(([, reportParticipant]) => reportParticipant && reportParticipant.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+        .filter(([, reportParticipant]) => reportParticipant && !ReportUtils.isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
 
     const option = createOption(
@@ -1966,6 +1966,9 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 
     let {recentReports: filteredReports, personalDetails: filteredPersonalDetails, workspaceChats: filteredWorkspaceChats} = filterResult;
 
+    // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
+    filteredPersonalDetails = filteredPersonalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
+
     if (typeof config?.maxRecentReportsToShow === 'number') {
         filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
         filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
@@ -2013,7 +2016,7 @@ function getEmptyOptions(): Options {
 
 function shouldUseBoldText(report: ReportUtils.OptionData): boolean {
     const notificationPreference = report.notificationPreference ?? ReportUtils.getReportNotificationPreference(report);
-    return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !ReportUtils.isHiddenForCurrentUser(notificationPreference);
 }
 
 export {
