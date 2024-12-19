@@ -1,8 +1,11 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
@@ -76,7 +79,7 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
-function fetchSAMLUrl(body: FormData): Promise<Response | void> {
+function postSAMLLogin(body: FormData): Promise<Response | void> {
     return fetch(CONFIG.EXPENSIFY.SAML_URL, {
         method: CONST.NETWORK.METHOD.POST,
         body,
@@ -91,4 +94,13 @@ function fetchSAMLUrl(body: FormData): Promise<Response | void> {
         .then((response) => response);
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, fetchSAMLUrl};
+function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
+    if (cleanSignInData) {
+        Session.clearSignInData();
+    }
+
+    Session.setAccountError(errorMessage);
+    Navigation.goBack(ROUTES.HOME);
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError};
