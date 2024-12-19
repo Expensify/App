@@ -1076,6 +1076,11 @@ const styles = (theme: ThemeColors) =>
             height: CONST.DESKTOP_HEADER_PADDING,
         },
 
+        searchHeaderGap: {
+            zIndex: variables.searchTopBarZIndex + 1,
+            backgroundColor: theme.appBG,
+        },
+
         reportOptions: {
             marginLeft: 8,
         },
@@ -3710,7 +3715,7 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             position: 'absolute',
-            zIndex: 9,
+            zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
 
