@@ -1365,6 +1365,15 @@ const ROUTES = {
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
+    TRAVEL_TRIP_SUMMARY: {
+        route: 'r/:reportID/trip/:transactionID',
+        getRoute: (reportID: string, transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo),
+    },
+    TRAVEL_TRIP_DETAILS: {
+        route: 'r/:reportID/trip/:transactionID/:reservationIndex',
+        getRoute: (reportID: string, transactionID: string, reservationIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
+    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
