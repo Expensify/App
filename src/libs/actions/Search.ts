@@ -6,7 +6,7 @@ import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -208,6 +208,15 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
+function openSearchFiltersCardPage() {
+    const optimisticData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, value: null}];
+
+    const successData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, value: null}];
+
+    const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, value: null}];
+    API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
+}
+
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
     const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -334,7 +343,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs = ['']}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
@@ -406,4 +415,5 @@ export {
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
+    openSearchFiltersCardPage,
 };
