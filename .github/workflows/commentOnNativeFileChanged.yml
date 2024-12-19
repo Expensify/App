@@ -1,0 +1,28 @@
+name: Comment on native files changed
+
+on:
+  pull_request:
+    branches: 
+      - 'main'
+    paths:
+      - '**.kt'
+      - '**.java'
+      - '**.swift'
+      - '**.mm'
+      - '**.h'
+
+
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+
+jobs:
+  commentOnNativeFilesChanged:
+    name: Create comment
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Comment
+        run: |
+          gh pr comment ${{ env.PULL_REQUEST_NUMBER }} --body \
+          ":warning: This PR changes native code. It may cause problems in Hybrid App. Please notify people working on it to review those changes. :warning:"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
