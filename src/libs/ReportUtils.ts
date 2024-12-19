@@ -2833,7 +2833,7 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    if (hasMissingInvoiceBankAccount(optionOrReport.reportID)) {
+    if (hasMissingInvoiceBankAccount(optionOrReport.reportID) && !isSettled(optionOrReport.reportID)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
         };
@@ -2841,7 +2841,11 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (isInvoiceRoom(optionOrReport)) {
         const reportAction = Object.values(reportActions).find(
-            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && action.childReportID && hasMissingInvoiceBankAccount(action.childReportID),
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+                action.childReportID &&
+                hasMissingInvoiceBankAccount(action.childReportID) &&
+                !isSettled(action.childReportID),
         );
 
         return reportAction
