@@ -581,6 +581,10 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
+type FlightLayoverParams = {
+    layover: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -788,4 +792,5 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    FlightLayoverParams,
 };
