@@ -233,6 +233,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we create corpay bank account */
     isCreateCorpayBankAccount?: boolean;
 
+    /** Whether we are saving the company data via the API */
+    isSavingCorpayOnboardingCompanyFields?: boolean;
+
     /** Where the request is successful */
     isSuccess?: boolean;
 

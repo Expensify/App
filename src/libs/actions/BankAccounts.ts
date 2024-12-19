@@ -441,10 +441,46 @@ function getCorpayOnboardingFields(country: Country | '') {
 }
 
 function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingCompanyDetails, bankAccountID: number) {
-    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, {
+    const formattedParams = {
         inputs: JSON.stringify(parameters),
         bankAccountID,
-    });
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingCompanyFields: false,
+                    isSuccess: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, formattedParams, onyxData);
 }
 
 function clearReimbursementAccount() {
@@ -453,6 +489,10 @@ function clearReimbursementAccount() {
 
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
+}
+
+function clearReimbursementAccountSaveCorpayOnboardingCompanyDetails() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingCompanyFields: null});
 }
 
 /**
@@ -685,6 +725,7 @@ export {
     clearReimbursementAccountBankCreation,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
+    clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
 };
 
 export type {BusinessAddress, PersonalAddress};

@@ -105,8 +105,23 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
             },
             bankAccountID,
         );
-        onSubmit();
-    }, [bankAccountID, currency, onSubmit, onyxValues]);
+    }, [bankAccountID, currency, onyxValues]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            onSubmit();
+            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+        }
+
+        return () => {
+            BankAccounts.clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
+        };
+    }, [reimbursementAccount, onSubmit]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
@@ -135,6 +150,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                screenIndex={screenIndex}
             />
         </InteractiveStepWrapper>
     );
