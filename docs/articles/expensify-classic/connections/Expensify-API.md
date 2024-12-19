@@ -11,46 +11,46 @@ To begin, review our [Integration Server Manual](https://integrations.expensify.
 
 We've compiled answers to some frequently asked questions to help you get started.
 
-**Should I give your support team my API credentials when I need help?**
+## Should I give your support team my API credentials when I need help?
  
 If you’re seeking help with Expensify's API, do not share your partnerUserSecret. If you do, immediately rotate your credentials on [this page](https://www.expensify.com/tools/integrations/).
 
-**Is there a rate limit?** 
+## Is there a rate limit?
 
 Yes, the rate limit is currently 50 requests per minute. If you exceed this limit, you'll receive an error message.
 
-**What is a Policy ID?** 
+## What is a Policy ID?
 
 This is also known as a Workspace ID. To find your Policy/Workspace ID, 
 Hover over Settings and click Workspaces. 
 Click the name of the Workspace. 
 Copy the ID number from the URL. For example, if the URL is https://www.expensify.com/policy?param={"policyID":"0810E551A5F2A9C2”}, then your workspace ID is 0810E551A5F2A9C2.
 
-**Can I use the parent type `file` to export workspace/policy data?**
+## Can I use the parent type `file` to export workspace/policy data?
 
 No. The parent type `file` can only be used to export expense and report data — not policy information. To export policy data (e.g., categories, tags), you must use the `get` type with `inputSettings.type` set to `policy`.
 
-**Can I use the API to create Domain Groups?**
+## Can I use the API to create Domain Groups?
  
 No, you cannot create domain groups. You can only assign users to them.
 
-**I’m exporting expense IDs `${expense.transactionID}` but when I open my CSV in Excel, it’s changing all the IDs and making them look the same. How can I prevent this?**
+## I’m exporting expense IDs `${expense.transactionID}` but when I open my CSV in Excel, it’s changing all the IDs and making them look the same. How can I prevent this?
  
 Try prepending a non-numeric character like a quote to force Excel to interpret the value as a string and not a number (i.e., `'${expense.transactionID}`).  
 
-**How can we export the person who will approve a report while the reports are still processing?** 
+## How can we export the person who will approve a report while the reports are still processing?
 
 Use the field ${report.managerEmail}.
 
-**Why won’t my boolean field return any data?** 
+## Why won’t my boolean field return any data?
 
 Boolean fields won't output values without a string. For example, instead of using `${expense.billable}`, use `${expense.billable?string("Yes", "No")}`. This will display "Yes" if the expense is billable and "No" if it is not.
 
-**Can I export the reports for just one user?** 
+## Can I export the reports for just one user?
 
 Not in a quick convenient way, as you would need to include the user in your template. The simplest approach is to export data for all users and then apply a filter in your preferred spreadsheet program.
 
-**Can I create expenses on behalf of users?** 
+## Can I create expenses on behalf of users?
 
 Yes. However, to access the Expense Creator API on behalf of employees, Expensify needs to verify the following setup:
 
@@ -59,11 +59,11 @@ Verify you have internal authorization to add data to other accounts within your
 
 If you need this access, contact concierge@expensify.com and reference this help page. 
 
-## Using Postman
+# Using Postman
 
 Many customers use Postman to help them build out their APIs. Below are some guides contributed by our customers. Please note, in all cases, you will need to first generate your authentication credentials, the steps for which can be found [here](https://integrations.expensify.com/Integration-Server/doc/#introduction) and have them ready:
 
-### Download expenses from a report as a CSV file
+## Download expenses from a report as a CSV file
 
 **Step 1: Get the ID of a report you want to export in Expensify**
 
@@ -166,7 +166,7 @@ Click Go and you should see the CSV in the response body.
 
 *Thank you to our customer Frederico Pettinella who originally wrote and shared this guide.*
 
-### Use Advanced Employee Updater API with Postman
+## Use Advanced Employee Updater API with Postman
 
 1. Create a new request.
 2. Select POST as the method.
