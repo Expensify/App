@@ -30,8 +30,8 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps & {
-        report: OnyxTypes.Report;
-        action: OnyxTypes.ReportAction;
+        report?: OnyxTypes.Report;
+        action?: OnyxTypes.ReportAction;
     };
 
     /** Report action belonging to the report's parent */
