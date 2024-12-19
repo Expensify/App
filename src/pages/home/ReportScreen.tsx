@@ -391,7 +391,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         !isCurrentReportLoadedFromOnyx ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (deleteTransactionNavigateBackUrl && ReportUtils.getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
-        isLoading;
+        ((!ReportUtils.isUserCreatedPolicyRoom(report) || !reportMetadata.isOptimisticReport) && isLoading);
 
     const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
 
