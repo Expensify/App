@@ -128,12 +128,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+                    path: ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.EMPLOYEES]: {
                     path: ROUTES.ONBOARDING_EMPLOYEES.route,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.ACCOUNTING]: {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACES]: {
+                    path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
             },
@@ -356,6 +364,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.ADDRESS]: {
                             path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                        },
+                        [SCREENS.WORKSPACE.PLAN]: {
+                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
@@ -1150,11 +1161,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
-                [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
@@ -1342,6 +1348,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
+                        [SCREENS.TRAVEL.TRIP_DETAILS]: {
+                            path: ROUTES.TRAVEL_TRIP_DETAILS.route,
+                            parse: {
+                                reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

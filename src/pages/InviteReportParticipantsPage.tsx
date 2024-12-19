@@ -70,7 +70,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(
-        () => OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
+        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
         [debouncedSearchTerm, defaultOptions, excludedUsers],
     );
 
@@ -222,7 +222,6 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}

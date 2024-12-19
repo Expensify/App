@@ -716,6 +716,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile/address',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
     },
+    WORKSPACE_PROFILE_PLAN: {
+        route: 'settings/workspaces/:policyID/profile/plan',
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/plan` as const, backTo),
+    },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
@@ -979,9 +983,9 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName',
-        getRoute: (policyID: string, featureName: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
+        route: 'settings/workspaces/:policyID/upgrade/:featureName?',
+        getRoute: (policyID: string, featureName?: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID/downgrade/',
@@ -1162,16 +1166,16 @@ const ROUTES = {
     },
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
         route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
         route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
         route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
@@ -1365,6 +1369,15 @@ const ROUTES = {
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: 'travel/terms',
     TRACK_TRAINING_MODAL: 'track-training',
+    TRAVEL_TRIP_SUMMARY: {
+        route: 'r/:reportID/trip/:transactionID',
+        getRoute: (reportID: string, transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo),
+    },
+    TRAVEL_TRIP_DETAILS: {
+        route: 'r/:reportID/trip/:transactionID/:reservationIndex',
+        getRoute: (reportID: string, transactionID: string, reservationIndex: number, backTo?: string) =>
+            getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo),
+    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
@@ -1372,6 +1385,10 @@ const ROUTES = {
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+    },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        route: 'onboarding/private-domain',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
@@ -1385,10 +1402,14 @@ const ROUTES = {
         route: 'onboarding/purpose',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
+    ONBOARDING_WORKSPACES: {
+        route: 'onboarding/join-workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    WORKSPACE_CONFIRMATION: 'workspace/confirmation',
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
+
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>

@@ -246,7 +246,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID: string;
-        featureName: string;
+        featureName?: string;
         backTo?: Routes;
         categoryId?: string;
     };
@@ -1206,10 +1206,6 @@ type MoneyRequestNavigatorParamList = {
     };
 };
 
-type WorkspaceConfirmationNavigatorParamList = {
-    [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: undefined;
-};
-
 type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.ROOT]: {
         backTo?: Routes;
@@ -1386,7 +1382,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: NavigatorScreenParams<WorkspaceConfirmationNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
@@ -1412,6 +1407,17 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRIP_SUMMARY]: {
+        reportID: string;
+        transactionID: string;
+        backTo?: string;
+    };
+    [SCREENS.TRAVEL.TRIP_DETAILS]: {
+        reportID: string;
+        transactionID: string;
+        reservationIndex: number;
+        backTo?: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {
@@ -1520,6 +1526,12 @@ type OnboardingModalNavigatorParamList = {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACES]: {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {
@@ -1776,6 +1788,5 @@ export type {
     RestrictedActionParamList,
     MissingPersonalDetailsParamList,
     DebugParamList,
-    WorkspaceConfirmationNavigatorParamList,
     MigratedUserModalNavigatorParamList,
 };
