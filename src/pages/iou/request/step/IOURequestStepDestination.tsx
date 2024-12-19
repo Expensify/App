@@ -135,7 +135,7 @@ function IOURequestStepDestination({
                                         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy?.id ?? '-1'));
                                     });
                                 }}
-                                text={translate('workspace.categories.editCategories')}
+                                text={translate('workspace.perDiem.editPerDiemRates')}
                                 pressOnEnter
                             />
                         </FixedFooter>
