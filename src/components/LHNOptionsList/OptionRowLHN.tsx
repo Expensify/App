@@ -47,7 +47,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,

@@ -1040,7 +1040,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(reportID: string): boolean {
+function isCurrentUserSubmitter(reportID: string | undefined): boolean {
     if (!allReports) {
         return false;
     }
