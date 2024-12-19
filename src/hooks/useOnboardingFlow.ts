@@ -1,10 +1,10 @@
 import {useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import * as Session from '@userActions/Session';
 import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,8 +26,7 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {

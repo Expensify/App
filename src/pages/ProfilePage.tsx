@@ -158,7 +158,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue);
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
