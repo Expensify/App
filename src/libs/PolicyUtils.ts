@@ -197,8 +197,15 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
 }
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
-    const currentUserRole = currentUserLogin ? policy?.employeeList?.[currentUserLogin]?.role : undefined;
-    return policy?.role ?? currentUserRole;
+    if (policy?.role) {
+        return policy.role;
+    }
+
+    if (!currentUserLogin) {
+        return;
+    }
+
+    return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
 /**
@@ -710,7 +717,10 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     }
 
     const key = Object.keys(pendingFields).find((setting) => settings.includes(setting));
-    return key ? pendingFields[key] : undefined;
+    if (!key) {
+        return;
+    }
+    return pendingFields[key];
 }
 
 function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
@@ -1122,6 +1132,17 @@ function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
 
+function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Localize.translateLocal('workspace.type.control');
+        case CONST.POLICY.TYPE.TEAM:
+            return Localize.translateLocal('workspace.type.collect');
+        default:
+            return Localize.translateLocal('workspace.type.free');
+    }
+}
+
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
 }
@@ -1255,6 +1276,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getActivePolicy,
+    getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
 };

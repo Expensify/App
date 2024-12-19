@@ -33,7 +33,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -82,7 +81,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const parentReportID = report?.parentReportID ?? '-1';
     const policyID = report?.policyID ?? '-1';
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -188,7 +186,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
@@ -699,10 +697,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
-                        iconRight={Expensicons.NewWindow}
-                        shouldShowRightIcon
                         onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}

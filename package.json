@@ -1,28 +1,30 @@
 {
   "name": "new.expensify",
-  "version": "9.0.77-0",
+  "version": "9.0.77-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {
+    "i-standalone": "STANDALONE_NEW_DOT=true npm i",
+    "install-standalone": "STANDALONE_NEW_DOT=true npm install",
     "configure-mapbox": "./scripts/setup-mapbox-sdk-walkthrough.sh",
     "setupNewDotWebForEmulators": "./scripts/setup-newdot-web-emulators.sh",
     "startAndroidEmulator": "./scripts/start-android.sh",
     "postinstall": "./scripts/postInstall.sh",
     "clean": "./scripts/clean.sh",
-    "clean-standalone": "./scripts/clean.sh --new-dot",
+    "clean-standalone": "STANDALONE_NEW_DOT=true ./scripts/clean.sh",
     "android": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android",
-    "android-standalone": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --android --new-dot",
+    "android-standalone": "./scripts/set-pusher-suffix.sh && STANDALONE_NEW_DOT=true ./scripts/run-build.sh --android",
     "ios": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --ios",
-    "ios-standalone": "./scripts/set-pusher-suffix.sh && ./scripts/run-build.sh --ios --new-dot",
+    "ios-standalone": "./scripts/set-pusher-suffix.sh && STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ios",
     "pod-install": "./scripts/pod-install.sh",
-    "pod-install-standalone": "./scripts/pod-install.sh --new-dot",
+    "pod-install-standalone": "STANDALONE_NEW_DOT=true ./scripts/pod-install.sh",
     "ipad": "concurrently \"./scripts/run-build.sh --ipad\"",
-    "ipad-standalone": "concurrently \"./scripts/run-build.sh --ipad --new-dot\"",
+    "ipad-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad\"",
     "ipad-sm": "concurrently \"./scripts/run-build.sh --ipad-sm\"",
-    "ipad-sm-standalone": "concurrently \"./scripts/run-build.sh --ipad-sm --new-dot\"",
+    "ipad-sm-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad-sm\"",
     "start": "npx react-native start",
     "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "ts-node web/proxy.ts",
@@ -42,7 +44,7 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
-    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\")",
+    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\" \":!modules/**\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
@@ -74,7 +76,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.207",
+    "@expensify/react-native-live-markdown": "0.1.209",
     "@expo/metro-runtime": "~3.2.3",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
@@ -109,6 +111,7 @@
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
+    "contacts-nitro-module": "./modules/ContactsNitroModule",
     "core-js": "^3.32.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -159,6 +162,7 @@
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "2.0.86",
+    "react-native-nitro-modules": "^0.18.1",
     "react-native-pager-view": "6.5.1",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
@@ -374,17 +378,7 @@
       ]
     }
   },
-  "electronmon": {
-    "patterns": [
-      "!src/**",
-      "!ios/**",
-      "!android/**",
-      "!tests/**",
-      "*.test.*"
-    ]
-  },
-  "engines": {
-    "node": "20.18.0",
-    "npm": "10.8.2"
-  }
+  "workspaces": [
+    "modules/ContactsNitroModule"
+  ]
 }

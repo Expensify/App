@@ -1,0 +1,17 @@
+{
+  "cxxNamespace": ["contacts"],
+  "ios": {
+    "iosModuleName": "ContactsModule"
+  },
+  "android": {
+    "androidNamespace": ["contacts"],
+    "androidCxxLibName": "ContactsModule"
+  },
+  "autolinking": {
+    "ContactsModule": {
+      "swift": "HybridContactsModule",
+      "kotlin": "HybridContactsModule"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
