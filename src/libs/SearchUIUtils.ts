@@ -264,7 +264,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.hasError || report.hasError) {
+    if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -374,7 +374,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 action: getAction(data, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
