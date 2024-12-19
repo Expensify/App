@@ -1072,7 +1072,11 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
-function getWorkspaceAccountID(policyID: string) {
+function getWorkspaceAccountID(policyID?: string) {
+    if (!policyID) {
+        return 0;
+    }
+
     const policy = getPolicy(policyID);
 
     if (!policy) {

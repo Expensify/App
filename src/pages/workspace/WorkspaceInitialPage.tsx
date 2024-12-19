@@ -86,7 +86,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -94,7 +94,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
@@ -104,7 +104,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id ?? '-1')?.reportID ?? '-1';
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
@@ -385,7 +385,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '-1',
+            id: policy.id,
         };
     }, [policy]);
 

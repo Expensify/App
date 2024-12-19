@@ -6757,7 +6757,11 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number, policyID?: string): OnyxEntry<Report> {
+    if (!policyID) {
+        return undefined;
+    }
+
     return Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
         // If the report has been deleted, then skip it
         if (!report) {
