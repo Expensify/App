@@ -21,6 +21,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -615,7 +616,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.isMoneyRequestAction(newIOUAction) ? ReportActionsUtils.getOriginalMessage(newIOUAction)?.IOUTransactionID : '0').toBe(
+                                    expect(ReportActionsUtils.isMoneyRequestAction(newIOUAction) ? ReportActionsUtils.getOriginalMessage(newIOUAction)?.IOUTransactionID : undefined).toBe(
                                         newTransaction?.transactionID,
                                     );
 
@@ -664,7 +665,7 @@ describe('actions/IOU', () => {
             let iouReportID: string | undefined;
             let createdAction: OnyxEntry<OnyxTypes.ReportAction>;
             let iouAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
-            let transactionID: string;
+            let transactionID: string | undefined;
             let transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadAction: OnyxEntry<OnyxTypes.ReportAction>;
             mockFetch?.pause?.();
@@ -778,7 +779,7 @@ describe('actions/IOU', () => {
                                         // There should be one transaction
                                         expect(Object.values(allTransactions ?? {}).length).toBe(1);
                                         const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                                        transactionID = transaction?.transactionID ?? '-1';
+                                        transactionID = transaction?.transactionID;
 
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
@@ -856,7 +857,9 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '-1', iouAction ?? null);
+                                if (iouReportID) {
+                                    ReportActions.clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null);
+                                }
                                 resolve();
                             }),
                     )
@@ -937,8 +940,12 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                Report.deleteReport(chatReportID ?? '-1');
-                                Report.deleteReport(transactionThreadReport?.reportID ?? '-1');
+                                if (chatReportID) {
+                                    Report.deleteReport(chatReportID);
+                                }
+                                if (transactionThreadReport?.reportID) {
+                                    Report.deleteReport(transactionThreadReport?.reportID);
+                                }
                                 resolve();
                             }),
                     )
@@ -1107,7 +1114,7 @@ describe('actions/IOU', () => {
                         [carlosCreatedAction.reportActionID]: carlosCreatedAction,
                     },
                 ],
-                (item) => item[carlosCreatedAction.reportActionID].reportID ?? '-1',
+                (item) => item[carlosCreatedAction.reportActionID].reportID,
             );
 
             const julesActionsCollectionDataSet = toCollectionDataSet(
@@ -1118,7 +1125,7 @@ describe('actions/IOU', () => {
                         [julesExistingIOUAction.reportActionID]: julesExistingIOUAction,
                     },
                 ],
-                (item) => item[julesCreatedAction.reportActionID].reportID ?? '-1',
+                (item) => item[julesCreatedAction.reportActionID].reportID,
             );
 
             const julesCreatedActionsCollectionDataSet = toCollectionDataSet(
@@ -1128,7 +1135,7 @@ describe('actions/IOU', () => {
                         [julesChatCreatedAction.reportActionID]: julesChatCreatedAction,
                     },
                 ],
-                (item) => item[julesChatCreatedAction.reportActionID].reportID ?? '-1',
+                (item) => item[julesChatCreatedAction.reportActionID].reportID,
             );
 
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
@@ -1907,6 +1914,96 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('a workspace chat with a cancelled payment', () => {
+        const amount = 10000;
+        const comment = '💸💸💸💸';
+        const merchant = 'NASDAQ';
+
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it("has an iouReportID of the cancelled payment's expense report", () => {
+            let expenseReport: OnyxEntry<OnyxTypes.Report>;
+            let chatReport: OnyxEntry<OnyxTypes.Report>;
+
+            // Given a signed in account, which owns a workspace, and has a policy expense chat
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            return waitForBatchedUpdates()
+                .then(() => {
+                    // Which owns a workspace
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                        },
+                    }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        // When an IOU expense is submitted to that policy expense chat
+                        IOU.requestMoney({
+                            report: chatReport,
+                            participantParams: {
+                                payeeEmail: RORY_EMAIL,
+                                payeeAccountID: RORY_ACCOUNT_ID,
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                            },
+                            transactionParams: {
+                                amount,
+                                attendees: [],
+                                currency: CONST.CURRENCY.USD,
+                                created: '',
+                                merchant,
+                                comment,
+                            },
+                        });
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    // And given an expense report has now been created which holds the IOU
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                        },
+                    }),
+                )
+                .then(() => {
+                    // When the expense report is paid elsewhere (but really, any payment option would work)
+                    if (chatReport && expenseReport) {
+                        IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    if (chatReport && expenseReport) {
+                        // And when the payment is cancelled
+                        IOU.cancelPayment(expenseReport, chatReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(() =>
+                    TestHelper.getOnyxData({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            const chatReportData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`];
+                            // Then the policy expense chat report has the iouReportID of the IOU expense report
+                            expect(chatReportData?.iouReportID).toBe(expenseReport?.reportID);
+                        },
+                    }),
+                );
+        });
+    });
+
     describe('deleteMoneyRequest', () => {
         const amount = 10000;
         const comment = 'Send me money please';
@@ -1917,7 +2014,7 @@ describe('actions/IOU', () => {
         let thread: OptimisticChatReport;
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        let IOU_REPORT_ID: string;
+        let IOU_REPORT_ID: string | undefined;
         let reportActionID;
         const REPORT_ACTION: OnyxEntry<OnyxTypes.ReportAction> = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -1999,7 +2096,7 @@ describe('actions/IOU', () => {
             expect(iouReport?.chatReportID).toBe(chatReport?.reportID);
 
             // Storing IOU Report ID for further reference
-            IOU_REPORT_ID = chatReport?.iouReportID ?? '-1';
+            IOU_REPORT_ID = chatReport?.iouReportID;
 
             await waitForBatchedUpdates();
 
@@ -2179,12 +2276,14 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added to the IOU report
-            Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            if (IOU_REPORT_ID) {
+                Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            }
             await waitForBatchedUpdates();
 
             // Then verify that the comment is correctly added
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2196,7 +2295,7 @@ describe('actions/IOU', () => {
             expect(Object.values(reportActions ?? {}).length).toBe(3);
 
             // Then check the loading state of our action
-            const resultActionAfterUpdate = reportActions?.[reportActionID];
+            const resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
             // When we attempt to delete an expense from the IOU report
@@ -2478,7 +2577,7 @@ describe('actions/IOU', () => {
 
             // Then comment details should match the expected report action
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
 
@@ -2486,7 +2585,7 @@ describe('actions/IOU', () => {
 
             // Then the report should have 2 actions
             expect(Object.values(reportActions ?? {}).length).toBe(2);
-            const resultActionAfter = reportActions?.[reportActionID];
+            const resultActionAfter = reportActionID ? reportActions?.[reportActionID] : undefined;
             expect(resultActionAfter?.pendingAction).toBeUndefined();
 
             mockFetch?.pause?.();
@@ -2591,7 +2690,7 @@ describe('actions/IOU', () => {
             });
 
             let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2602,7 +2701,7 @@ describe('actions/IOU', () => {
             // Verify there are three actions (created + addcomment) and our optimistic comment has been removed
             expect(Object.values(reportActions ?? {}).length).toBe(2);
 
-            let resultActionAfterUpdate = reportActions?.[reportActionID];
+            let resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
 
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
@@ -2619,11 +2718,13 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            if (IOU_REPORT_ID) {
+                Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            }
             await waitForBatchedUpdates();
 
             resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '-1';
+            reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2634,7 +2735,7 @@ describe('actions/IOU', () => {
             // Verify there are three actions (created + iou + addcomment) and our optimistic comment has been removed
             expect(Object.values(reportActions ?? {}).length).toBe(3);
 
-            resultActionAfterUpdate = reportActions?.[reportActionID];
+            resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
 
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
@@ -2725,7 +2826,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '-1', iouReport?.reportID ?? '-1');
+            const ioupreview = chatReport?.reportID && iouReport?.reportID ? ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
             expect(ioupreview).toBeTruthy();
             expect(ReportActionsUtils.getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
 
@@ -2767,7 +2868,9 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            if (IOU_REPORT_ID) {
+                Report.addComment(IOU_REPORT_ID, 'Testing a comment');
+            }
             await waitForBatchedUpdates();
 
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
@@ -2868,8 +2971,10 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Then we expect to navigate to the iou report
-
-            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            expect(IOU_REPORT_ID).not.toBeUndefined();
+            if (IOU_REPORT_ID) {
+                expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            }
         });
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
@@ -2879,7 +2984,11 @@ describe('actions/IOU', () => {
                 navigateToAfterDelete = IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report
-            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '-1'));
+            expect(chatReport?.reportID).not.toBeUndefined();
+
+            if (chatReport?.reportID) {
+                expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
+            }
         });
     });
 
@@ -3211,6 +3320,34 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('sendInvoice', () => {
+        it('should not clear transaction pending action when send invoice fails', async () => {
+            // Given a send invoice request
+            mockFetch?.pause?.();
+            IOU.sendInvoice(1, createRandomTransaction(1));
+
+            // When the request fails
+            mockFetch?.fail?.();
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the pending action of the optimistic transaction shouldn't be cleared
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const transaction = Object.values(transactions).at(0);
+                        expect(transaction?.errors).not.toBeUndefined();
+                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });
