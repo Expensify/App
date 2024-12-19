@@ -11,6 +11,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import {getLoginsByAccountIDs} from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -66,8 +67,8 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
-function getNextApproverDisplayName(report: OnyxEntry<Report>) {
-    const approverAccountID = getNextApproverAccountID(report);
+function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
     return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
 }
@@ -80,7 +81,7 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>) {
  * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
+function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, isUnapprove?: boolean): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
@@ -90,7 +91,9 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
     const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    const nextApproverDisplayName = getNextApproverDisplayName(report);
+    const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
+    const approverAccountID = getNextApproverAccountID(report, isUnapprove);
+    const approvers = getLoginsByAccountIDs([approverAccountID ?? -1]);
 
     const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
@@ -209,6 +212,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: nextApproverDisplayName,
                         type: 'strong',
+                        clickToCopyText: approvers.at(0),
                     },
                     {
                         text: ' to ',
