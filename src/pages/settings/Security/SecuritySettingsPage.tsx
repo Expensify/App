@@ -303,7 +303,7 @@ function SecuritySettingsPage() {
                                             icon={Expensicons.UserPlus}
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                             shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />
                                     )}
                                     {hasDelegators && (
