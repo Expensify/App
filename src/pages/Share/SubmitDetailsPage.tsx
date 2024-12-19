@@ -20,7 +20,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -36,12 +35,12 @@ function SubmitDetailsPage({
     const {translate} = useLocalize();
     const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onyxReport?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, onyxReport)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, onyxReport)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -49,9 +48,6 @@ function SubmitDetailsPage({
     useEffect(() => {
         IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportID, policy]);
-
-    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
-    const report = onyxReport ?? optimisticReport;
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
     const participants = selectedParticipants.map((participant) =>
@@ -68,7 +64,6 @@ function SubmitDetailsPage({
         if (!transaction) {
             return;
         }
-
         IOU.requestMoney({
             report,
             participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -103,20 +98,16 @@ function SubmitDetailsPage({
 
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCANREADY;
-        // I guess we don't need to check the amount, it is checked in IOURequestStepConfirmation to deduce whether it is a scan or normal request, so here we only need locationPermissionGranted, btw we should still finishRequestAndNavigate even if locationPermissionGranted is false, just without coordinates, just like with error
         if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {
-                    // I guess we don't need it, IOURequestStepConfirmation doesn't
-                    // Report.openReport(report.reportID, '', [unknownUserDetails?.login ?? ''], optimisticReport, undefined, undefined, undefined, undefined);
                     finishRequestAndNavigate(participant, receipt, {
                         lat: successData.coords.latitude,
                         long: successData.coords.longitude,
                     });
                 },
                 (errorData) => {
-                    Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                    // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                    Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
                     finishRequestAndNavigate(participant, receipt);
                 },
                 {
@@ -124,8 +115,8 @@ function SubmitDetailsPage({
                     timeout: CONST.GPS.TIMEOUT,
                 },
             );
+            return;
         }
-        // If the GPS localization is prohibited the money can still be requested, it just won't include the GPS coordinates
         finishRequestAndNavigate(participant, receipt);
     };
 

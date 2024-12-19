@@ -17,7 +17,7 @@ function ShareTab() {
                 if (accountID && !reportID && participant) {
                     saveUnknownUserDetails(participant);
                 }
-                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${reportID ?? accountID}`));
+                Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(`${!reportID ? accountID : reportID}`));
             }}
             action="create"
         />
