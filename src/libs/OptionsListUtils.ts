@@ -1321,12 +1321,6 @@ function getValidOptions(
 
     if (includeRecentReports) {
         for (const reportOption of allReportOptions) {
-            /**
-             * By default, generated options does not have the chat preview line enabled.
-             * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
-             */
-            reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
-
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
                 continue;
@@ -1362,17 +1356,14 @@ function getValidOptions(
                 continue;
             }
 
-            reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
-            reportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
-
-            if (action === CONST.IOU.ACTION.CATEGORIZE) {
-                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportOption.policyID}`];
-                if (reportPolicy?.areCategoriesEnabled) {
-                    recentReportOptions.push(reportOption);
-                }
-            } else {
-                recentReportOptions.push(reportOption);
-            }
+            /**
+             * By default, generated options does not have the chat preview line enabled.
+             * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
+             */
+            const alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
+            const isSelected = isReportSelected(reportOption, selectedOptions);
+            const isBold = shouldBoldTitleByDefault || shouldUseBoldText(reportOption);
+            let lastIOUCreationDate;
 
             // Add a field to sort the recent reports by the time of last IOU request for create actions
             if (preferRecentExpenseReports) {
@@ -1385,9 +1376,26 @@ function getValidOptions(
                     const iouReportActions = allSortedReportActions[iouReportID] ?? [];
                     const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                     if (lastIOUAction) {
-                        reportOption.lastIOUCreationDate = lastIOUAction.lastModified;
+                        lastIOUCreationDate = lastIOUAction.lastModified;
                     }
                 }
+            }
+
+            const newReportOption = {
+                ...reportOption,
+                alternateText,
+                isSelected,
+                isBold,
+                lastIOUCreationDate,
+            };
+
+            if (action === CONST.IOU.ACTION.CATEGORIZE) {
+                const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newReportOption.policyID}`];
+                if (reportPolicy?.areCategoriesEnabled) {
+                    recentReportOptions.push(newReportOption);
+                }
+            } else {
+                recentReportOptions.push(newReportOption);
             }
         }
     } else if (recentAttendees && recentAttendees?.length > 0) {
