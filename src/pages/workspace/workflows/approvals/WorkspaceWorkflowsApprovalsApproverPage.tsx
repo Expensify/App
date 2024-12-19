@@ -76,6 +76,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
+    const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
@@ -86,6 +87,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     const email = employee.email;
 
                     if (!email) {
+                        return null;
+                    }
+
+                    if (policy?.preventSelfApproval && membersEmail?.includes(email)) {
                         return null;
                     }
 
@@ -138,7 +143,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 shouldShow: true,
             },
         ];
-    }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
+    }, [
+        approversFromWorkflow,
+        isDefault,
+        approverIndex,
+        debouncedSearchTerm,
+        defaultApprover,
+        personalDetails,
+        employeeList,
+        selectedApproverEmail,
+        membersEmail,
+        policy?.preventSelfApproval,
+        translate,
+    ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections.at(0)?.data.length;
 
@@ -229,10 +246,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}

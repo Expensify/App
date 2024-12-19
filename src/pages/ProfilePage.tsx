@@ -124,7 +124,7 @@ function ProfilePage({route}: ProfilePageProps) {
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
     }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -158,7 +158,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue);
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
