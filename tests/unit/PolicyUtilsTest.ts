@@ -1,10 +1,24 @@
 import * as PolicyUtils from '@libs/PolicyUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
+import createRandomPolicy from '../utils/collections/policies';
 
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
 
 describe('PolicyUtils', () => {
+    describe('getActivePolicies', () => {
+        it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
+                2,
+            );
+            expect(PolicyUtils.getActivePolicies(policies, undefined)).toHaveLength(1);
+        });
+    });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
             const rate = PolicyUtils.getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
