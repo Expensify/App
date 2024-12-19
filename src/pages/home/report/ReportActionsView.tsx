@@ -93,6 +93,7 @@ function ReportActionsView({
             ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, ReportUtils.canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? -1}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -116,7 +117,7 @@ function ReportActionsView({
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
-        if (!shouldFetchReport(report)) {
+        if (!shouldFetchReport(report, reportMetadata)) {
             return;
         }
 
