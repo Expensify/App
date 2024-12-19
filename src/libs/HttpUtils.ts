@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
@@ -151,6 +152,94 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
 }
 
 /**
+ * Returns the filename replacing special characters with underscore
+ */
+function cleanFileName(fileName: string): string {
+    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
+}
+
+type ReadFileAsync = (path: string, fileName: string, fileType?: string) => Promise<File | void>;
+
+/**
+ * Reads a locally uploaded file
+ * @param path - the blob url of the locally uploaded file
+ * @param fileName - name of the file to read
+ */
+const readFileAsync: ReadFileAsync = (path, fileName, fileType = '') =>
+    new Promise((resolve) => {
+        if (!path) {
+            resolve();
+            return;
+        }
+        fetch(path)
+            .then((res) => {
+                // For some reason, fetch is "Unable to read uploaded file"
+                // on Android even though the blob is returned, so we'll ignore
+                // in that case
+                if (!res.ok && Platform.OS !== 'android') {
+                    throw Error(res.statusText);
+                }
+                res.blob()
+                    .then((blob) => {
+                        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                        // In this case, let us fallback on fileType provided by the caller of this function.
+                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
+                        file.source = path;
+                        // For some reason, the File object on iOS does not have a uri property
+                        // so images aren't uploaded correctly to the backend
+                        file.uri = path;
+                        resolve(file);
+                    })
+                    .catch((e) => {
+                        console.debug('[FileUtils] Could not read uploaded file', e);
+                        resolve();
+                    });
+            })
+            .catch((e) => {
+                console.debug('[FileUtils] Could not read uploaded file', e);
+                resolve();
+            });
+    });
+
+function processFormData(data: Record<string, unknown>, shouldRecreateReceipt = false): Promise<FormData> {
+    const formData = new FormData();
+    let promiseChain = Promise.resolve();
+
+    Object.keys(data).forEach((key) => {
+        promiseChain = promiseChain.then(() => {
+            if (typeof data[key] === 'undefined') {
+                return Promise.resolve();
+            }
+
+            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT && shouldRecreateReceipt) {
+                const {uri: path = '', source} = data[key] as File;
+
+                console.debug('[dev] data[key]:', data[key]);
+                console.debug('[dev] path', path);
+                console.debug('[dev] source', source);
+
+                return readFileAsync(source, path)
+                    .then((file) => {
+                        console.debug('[dev] file', file);
+                        if (file) {
+                            formData.append(key, file);
+                        }
+                    })
+                    .catch(() => {
+                        console.debug('[dev] Error reading photo');
+                    });
+            }
+
+            formData.append(key, data[key] as string | Blob);
+
+            return Promise.resolve();
+        });
+    });
+
+    return promiseChain.then(() => formData);
+}
+
+/**
  * Makes XHR request
  * @param command the name of the API command
  * @param data parameters for the API command
@@ -158,18 +247,21 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param shouldUseSecure should we use the secure server
  */
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-        if (typeof data[key] === 'undefined') {
-            return;
+    if (command === 'RequestMoney') {
+        console.debug('[dev] data:', data);
+    }
+
+    return processFormData(data).then((formData) => {
+        if (command === 'RequestMoney') {
+            console.debug('[dev] formData:', formData);
+            console.debug("[dev] formData.getAll('receipt'):", formData.getAll('receipt'));
         }
-        formData.append(key, data[key] as string | Blob);
+
+        const url = ApiUtils.getCommandURL({shouldUseSecure, command});
+
+        const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
     });
-
-    const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-
-    const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
-    return processHTTPRequest(url, type, formData, abortSignalController?.signal);
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
