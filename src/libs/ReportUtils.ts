@@ -8541,6 +8541,51 @@ function hasInvoiceReports() {
     return reports.some((report) => isInvoiceReport(report));
 }
 
+function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
+    if (!report?.participants) {
+        return true;
+    }
+
+    if (isThread(report) && report.chatType && report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+        return true;
+    }
+
+    if (isThread(report) && report.type === CONST.REPORT.TYPE.EXPENSE) {
+        return true;
+    }
+
+    const participantAccountIDs = new Set(Object.keys(report.participants));
+    if (participantAccountIDs.size > 2) {
+        return false;
+    }
+
+    if (participantsContext) {
+        // by email participants
+        let teamInChat = false;
+        let userInChat = false;
+        for (const participantAccountID of participantAccountIDs) {
+            const id = Number(participantAccountID);
+            const contextAccountData = participantsContext[id];
+
+            if (contextAccountData) {
+                const login = contextAccountData.login ?? '';
+
+                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) || login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
+                    teamInChat = true;
+                } else {
+                    userInChat = true;
+                }
+            }
+        }
+        // exclude teamOnly chat
+        if (teamInChat && userInChat) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function getReportMetadata(reportID?: string) {
     return allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 }
@@ -8738,6 +8783,7 @@ export {
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,
     isConciergeChatReport,
+    shouldUnmaskChat,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
