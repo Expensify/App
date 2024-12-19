@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,9 +8,11 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
+import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -83,6 +85,7 @@ function parseAndLogRoute(state: NavigationState) {
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
+    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
@@ -90,6 +93,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
 
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
@@ -103,7 +108,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
         if (!NativeModules.HybridAppModule && !isOnboardingCompleted && authenticated && !shouldShowRequire2FAModal) {
-            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
+            const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
             return adaptedState;
         }
 
@@ -130,16 +135,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     }, []);
 
     // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(
-        () => ({
-            ...DefaultTheme,
+    const navigationTheme = useMemo(() => {
+        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+
+        return {
+            ...defaultNavigationTheme,
             colors: {
-                ...DefaultTheme.colors,
+                ...defaultNavigationTheme.colors,
                 background: theme.appBG,
             },
-        }),
-        [theme],
-    );
+        };
+    }, [theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

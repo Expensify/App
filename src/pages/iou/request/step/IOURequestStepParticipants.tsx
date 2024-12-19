@@ -64,6 +64,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const shouldDisplayTrackExpenseButton = !!selfDMReportID && iouType === CONST.IOU.TYPE.CREATE;
 
     const receiptFilename = transaction?.filename;
@@ -151,7 +152,7 @@ function IOURequestStepParticipants({
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
         IOU.setCustomUnitRateID(transactionID, rateID);
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
     };
@@ -171,7 +172,6 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             {!!skipConfirmation && (
                 <FormHelpMessage

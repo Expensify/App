@@ -1,6 +1,5 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +11,7 @@ import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DebugReportActionPreview from './DebugReportActionPreview';
 
-type DebugReportActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
+type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
 
 function DebugReportActionPage({
     route: {
@@ -61,11 +61,15 @@ function DebugReportActionPage({
                                     formType={CONST.DEBUG.FORMS.REPORT_ACTION}
                                     data={reportAction}
                                     onSave={(data) => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
                                     }}
                                     onDelete={() => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                                         Navigation.goBack();
+                                        // We need to wait for navigation animations to finish before deleting an action,
+                                        // otherwise the user will see a not found page briefly.
+                                        InteractionManager.runAfterInteractions(() => {
+                                            Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                                        });
                                     }}
                                     validate={DebugUtils.validateReportActionDraftProperty}
                                 >

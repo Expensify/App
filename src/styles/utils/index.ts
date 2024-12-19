@@ -25,6 +25,7 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -327,7 +328,22 @@ type SafeAreaPadding = {
 /**
  * Takes safe area insets and returns padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = getPlatform() === CONST.PLATFORM.IOS ? variables.safeInsertPercentage : 1): SafeAreaPadding {
+function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+    const platform = getPlatform();
+    let insetsPercentage = insetsPercentageProp;
+    if (insetsPercentage == null) {
+        switch (platform) {
+            case CONST.PLATFORM.IOS:
+                insetsPercentage = variables.iosSafeAreaInsetsPercentage;
+                break;
+            case CONST.PLATFORM.ANDROID:
+                insetsPercentage = variables.androidSafeAreaInsetsPercentage;
+                break;
+            default:
+                insetsPercentage = 1;
+        }
+    }
+
     return {
         paddingTop: insets?.top ?? 0,
         paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
@@ -340,7 +356,7 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentage: number = getP
  * Takes safe area insets and returns margin to use for a View
  */
 function getSafeAreaMargins(insets?: EdgeInsets): ViewStyle {
-    return {marginBottom: (insets?.bottom ?? 0) * variables.safeInsertPercentage};
+    return {marginBottom: (insets?.bottom ?? 0) * variables.iosSafeAreaInsetsPercentage};
 }
 
 function getZoomSizingStyle(
@@ -917,9 +933,16 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     if (windowHeight) {
         // dimensions of content above the emoji picker list
         const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        const maxHeight = windowHeight - dimensions;
         return {
             ...style,
-            maxHeight: windowHeight - dimensions,
+            maxHeight,
+            /**
+             * On native platforms, `maxHeight` doesn't work as expected, so we manually
+             * enforce the height by returning the smaller of the element's height or the
+             * `maxHeight`, ensuring it doesn't exceed the maximum allowed.
+             */
+            height: Math.min(style.height, maxHeight),
         };
     }
     return style;
@@ -1190,6 +1213,7 @@ const staticStyleUtils = {
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
+    getSafeAreaInsets,
     getSafeAreaMargins,
     getSafeAreaPadding,
     getSignInWordmarkWidthStyle,

@@ -111,6 +111,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
@@ -120,11 +121,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, transactionViolations, onlyShowPayElsewhere),
-        [moneyRequestReport, chatReport, policy, transaction, transactionViolations],
+        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        [moneyRequestReport, chatReport, policy, transaction],
     );
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
 
@@ -136,10 +136,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(
-        () => IOU.canApproveIOU(moneyRequestReport, policy, transactionViolations) && !hasOnlyPendingTransactions,
-        [moneyRequestReport, policy, hasOnlyPendingTransactions, transactionViolations],
-    );
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -174,11 +171,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -365,6 +362,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
+                            shouldUseSuccessStyle={!hasHeldExpenses}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -430,6 +428,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
                             <SettlementButton
+                                shouldUseSuccessStyle={!hasHeldExpenses}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
@@ -498,7 +497,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
 
             <ConfirmModal
@@ -506,7 +504,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
-                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
+                onModalHide={() => ReportUtils.navigateBackOnDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

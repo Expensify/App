@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -22,6 +21,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
@@ -51,7 +51,7 @@ function CodesStep({backTo}: CodesStepProps) {
 
     const isUserValidated = user?.validated;
     const contactMethod = account?.primaryLogin ?? '';
-    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH>>();
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
@@ -175,24 +175,24 @@ function CodesStep({backTo}: CodesStepProps) {
                         }}
                     />
                 </FixedFooter>
-                <ValidateCodeActionModal
-                    title={translate('contacts.validateAccount')}
-                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
-                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                    isVisible={isValidateModalVisible}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                    sendValidateCode={() => User.requestValidateCodeAction()}
-                    handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
-                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                    clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                    onModalHide={() => {}}
-                    onClose={() => {
-                        setIsValidateModalVisible(false);
-                        TwoFactorAuthActions.quitAndNavigateBack(backTo);
-                    }}
-                />
             </ScrollView>
+            <ValidateCodeActionModal
+                title={translate('contacts.validateAccount')}
+                descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+                isVisible={isValidateModalVisible}
+                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validatePendingAction={loginData?.pendingFields?.validateCodeSent}
+                sendValidateCode={() => User.requestValidateCodeAction()}
+                handleSubmitForm={(validateCode) => User.validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
+                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                clearError={() => User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                onModalHide={() => {}}
+                onClose={() => {
+                    setIsValidateModalVisible(false);
+                    TwoFactorAuthActions.quitAndNavigateBack(backTo);
+                }}
+            />
         </StepWrapper>
     );
 }

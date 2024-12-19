@@ -22,6 +22,7 @@ function TransactionListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    isLoading,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -85,7 +86,7 @@ function TransactionListItem<TItem extends ListItem>({
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
                 shouldShowTransactionCheckbox={false}
-                isLoading={transactionItem.isActionLoading}
+                isLoading={isLoading ?? transactionItem.isActionLoading}
             />
         </BaseListItem>
     );
