@@ -98,7 +98,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                     <View>
@@ -111,7 +110,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
