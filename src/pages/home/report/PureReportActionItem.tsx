@@ -527,25 +527,25 @@ function PureReportActionItem({
     );
 
     const contextValue = useMemo(() => {
-        return contextValueOverride
-            ? contextValueOverride
-            : {
-                  anchor: popoverAnchorRef.current,
-                  report: {...report, reportID: report?.reportID ?? ''},
-                  reportNameValuePairs,
-                  action,
-                  transactionThreadReport,
-                  checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-                  isDisabled: false,
-              };
+        return (
+            contextValueOverride ?? {
+                anchor: popoverAnchorRef.current,
+                report: {...report, reportID: report?.reportID ?? ''},
+                reportNameValuePairs,
+                action,
+                transactionThreadReport,
+                checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                isDisabled: false,
+            }
+        );
     }, [contextValueOverride, report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs]);
 
     const attachmentContextValue = useMemo(() => {
-        return attachmentContextValueOverride ? attachmentContextValueOverride : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+        return attachmentContextValueOverride ?? {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
     }, [attachmentContextValueOverride, reportID]);
 
     const mentionReportContextValue = useMemo(() => {
-        return mentionReportContextValueOverride ? mentionReportContextValueOverride : {currentReportID: report?.reportID ?? '-1'};
+        return mentionReportContextValueOverride ?? {currentReportID: report?.reportID ?? '-1'};
     }, [mentionReportContextValueOverride, report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
