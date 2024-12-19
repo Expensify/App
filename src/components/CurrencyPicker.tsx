@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,9 @@ type CurrencyPickerProps = {
     /** Current value of the selected item */
     value?: string;
 
+    /** Custom content to display in the header */
+    headerContent?: ReactNode;
+
     /** Callback when the list item is selected */
     onInputChange?: (value: string, key?: string) => void;
 
@@ -22,7 +26,7 @@ type CurrencyPickerProps = {
     errorText?: string;
 };
 
-function CurrencyPicker({value, errorText, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({value, errorText, headerContent, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -66,6 +70,7 @@ function CurrencyPicker({value, errorText, onInputChange = () => {}}: CurrencyPi
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />
+                    {!!headerContent && headerContent}
                     <CurrencySelectionList
                         initiallySelectedCurrencyCode={value}
                         onSelect={updateInput}

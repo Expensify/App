@@ -2010,6 +2010,7 @@ const translations = {
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
         howDoWeProtectYourData: 'How do we protect your data?',
+        currencyHeader: "What's your bank account's currency?",
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',

@@ -2032,6 +2032,7 @@ const translations = {
         bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
         accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
         howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',

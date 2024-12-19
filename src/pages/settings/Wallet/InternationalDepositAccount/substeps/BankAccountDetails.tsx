@@ -49,6 +49,8 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
         [fieldsMap, translate],
     );
 
+    const currencyHeaderContent = <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.currencyHeader')}</Text>;
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
@@ -65,6 +67,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                     <CurrencyPicker
                         value={formValues.bankCurrency}
                         onInputChange={onCurrencySelected}
+                        headerContent={currencyHeaderContent}
                     />
                 </View>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (
