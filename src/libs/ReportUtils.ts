@@ -8834,6 +8834,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
+    getReport,
 };
 
 export type {
