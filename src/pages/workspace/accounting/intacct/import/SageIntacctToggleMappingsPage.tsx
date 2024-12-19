@@ -109,13 +109,14 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
                         brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
+                        hintText={translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
                     />
-                    <Text
-                        style={[styles.textLabelSupporting, styles.ph5]}
-                        numberOfLines={2}
-                    >
-                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                    </Text>
+                    {/* <Text */}
+                    {/*     style={[styles.textLabelSupporting, styles.ph5]} */}
+                    {/*     numberOfLines={2} */}
+                    {/* > */}
+                    {/*     {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined} */}
+                    {/* </Text> */}
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>
