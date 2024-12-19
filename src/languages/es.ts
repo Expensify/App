@@ -4524,6 +4524,7 @@ const translations = {
         description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         scheduleSetupCall: 'Concertar una llamada',
+        scheduleADemo: 'Schedule a demo',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
