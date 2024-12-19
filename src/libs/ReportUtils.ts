@@ -8472,20 +8472,41 @@ function isExported(reportActions: OnyxEntry<ReportActions>) {
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
+    const fullApprovalChain: string[] = [];
     const reportTotal = expenseReport?.total ?? 0;
+    const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? -1]).at(0) ?? '';
 
-    // If the policy is not on advanced approval mode, we should not use the approval chain even if it exists.
-    if (!PolicyUtils.isControlOnAdvancedApprovalMode(policy)) {
+    if (PolicyUtils.isSubmitAndClose(policy)) {
         return approvalChain;
     }
 
-    let nextApproverEmail = PolicyUtils.getSubmitToEmail(policy, expenseReport);
+    // Get category/tag approver list
+    const ruleApprovers = PolicyUtils.getRuleApprovers(policy, expenseReport);
+
+    // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
+    ruleApprovers.forEach((ruleApprover) => {
+        // Don't push submiiter to approve as a rule approver
+        if (fullApprovalChain.includes(ruleApprover) || ruleApprover === submitterEmail) {
+            return;
+        }
+        fullApprovalChain.push(ruleApprover);
+    });
+
+    let nextApproverEmail = PolicyUtils.getManagerAccountEmail(policy, expenseReport);
 
     while (nextApproverEmail && !approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
         nextApproverEmail = PolicyUtils.getForwardsToAccount(policy, nextApproverEmail, reportTotal);
     }
-    return approvalChain;
+
+    approvalChain.forEach((approver) => {
+        if (fullApprovalChain.includes(approver)) {
+            return;
+        }
+
+        fullApprovalChain.push(approver);
+    });
+    return fullApprovalChain;
 }
 
 /**
