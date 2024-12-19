@@ -363,7 +363,7 @@ function BaseVideoPlayer({
             bindFunctions();
         }
         return () => {
-            if (!originalParent || !('appendChild' in originalParent)) {
+            if (!originalParent || !('appendChild' in originalParent) || isFullScreenRef.current) {
                 return;
             }
             originalParent.appendChild(sharedElement as HTMLDivElement);
