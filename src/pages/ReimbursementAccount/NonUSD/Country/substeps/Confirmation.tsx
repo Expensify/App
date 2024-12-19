@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-const {BANK_CURRENCY, DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {BANK_CURRENCY, DESTINATION_COUNTRY, COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 function Confirmation({onNext}: SubStepProps) {
     const {translate} = useLocalize();
@@ -36,7 +36,7 @@ function Confirmation({onNext}: SubStepProps) {
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
@@ -68,7 +68,7 @@ function Confirmation({onNext}: SubStepProps) {
 
         FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: currencyMappedToCountry, [BANK_CURRENCY]: currency});
         setSelectedCountry(currencyMappedToCountry);
-    }, [countryDefaultValue, currency, currencyMappedToCountry]);
+    }, [countryDefaultValue, currency, currencyMappedToCountry, reimbursementAccountDraft]);
 
     return (
         <SafeAreaConsumer>
@@ -110,7 +110,7 @@ function Confirmation({onNext}: SubStepProps) {
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
-                            inputID={BANK_CURRENCY}
+                            inputID={COUNTRY}
                             shouldSaveDraft
                         />
                     </FormProvider>

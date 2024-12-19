@@ -60,6 +60,7 @@ const INPUT_IDS = {
         ADDRESS_ZIP_CODE: 'addressZipCode',
         DESTINATION_COUNTRY: 'destinationCountry',
         BANK_CURRENCY: 'bankCurrency',
+        COUNTRY: 'country',
         CORPAY: {
             ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
             SWIFT_CODE: 'swiftCode',
@@ -197,6 +198,9 @@ type ReimbursementAccountProps = {
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY]: Country | '';
+
+    /** Country of the bank */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 
     /** Currency of the reimbursement account */
     [INPUT_IDS.ADDITIONAL_DATA.BANK_CURRENCY]: string;
