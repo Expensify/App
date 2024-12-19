@@ -2,7 +2,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type ReportActionItemMessageHeaderSenderProps = {
     /** Text to display */
-    fragmentText: string;
+    fragmentText: string | undefined;
 
     /** Users accountID */
     accountID: number;

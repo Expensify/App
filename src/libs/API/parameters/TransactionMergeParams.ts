@@ -1,6 +1,6 @@
 type TransactionMergeParams = {
-    transactionID: string;
-    transactionIDList: string[];
+    transactionID: string | undefined;
+    transactionIDList: Array<string | undefined>;
     created: string;
     merchant: string;
     amount: number;
@@ -11,7 +11,7 @@ type TransactionMergeParams = {
     reimbursable: boolean;
     tag: string;
     receiptID: number;
-    reportID: string;
+    reportID: string | undefined;
 };
 
 export default TransactionMergeParams;

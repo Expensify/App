@@ -15,18 +15,24 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as Localize from '@libs/Localize';
 import * as NumberUtils from '@libs/NumberUtils';
-import {getCleanedTagName, getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-// eslint-disable-next-line import/no-cycle
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    getCleanedTagName,
+    getDistanceRateCustomUnitRate,
+    getPolicy,
+    getTaxByID,
+    isInstantSubmitEnabled,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    isPolicyAdmin,
+} from '@libs/PolicyUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isOpenExpenseReport, isProcessingReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -77,7 +83,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserEmail = val?.email ?? '';
-        currentUserAccountID = val?.accountID ?? -1;
+        currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -579,7 +585,7 @@ function getCategory(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the cardID from the transaction.
  */
 function getCardID(transaction: Transaction): number {
-    return transaction?.cardID ?? -1;
+    return transaction?.cardID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
 /**
@@ -702,7 +708,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given tranactionID.
  */
-function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
@@ -722,7 +728,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID: string): boolean {
+function hasBrokenConnectionViolation(transactionID: string | undefined): boolean {
     const violations = getTransactionViolations(transactionID, allTransactionViolations);
     return !!violations?.find(
         (violation) =>
@@ -734,11 +740,8 @@ function hasBrokenConnectionViolation(transactionID: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
-    return (
-        hasBrokenConnectionViolation(transactionID) &&
-        (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
-    );
+function shouldShowBrokenConnectionViolation(transactionID: string | undefined, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy>): boolean {
+    return hasBrokenConnectionViolation(transactionID) && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
 }
 
 /**
@@ -869,7 +872,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if transaction is on hold for the given transactionID
  */
-function isOnHoldByTransactionID(transactionID: string): boolean {
+function isOnHoldByTransactionID(transactionID: string | undefined | null): boolean {
     if (!transactionID) {
         return false;
     }
@@ -964,7 +967,7 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+        return customUnitRate?.attributes?.taxRateExternalID;
     }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -1017,7 +1020,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-function getTransaction(transactionID: string): OnyxEntry<Transaction> {
+function getTransaction(transactionID: string | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
@@ -1032,11 +1035,11 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
-function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
+function removeSettledAndApprovedTransactions(transactionIDs: Array<string | undefined>) {
     return transactionIDs.filter(
         (transactionID) =>
-            !ReportUtils.isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
-            !ReportUtils.isReportApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
+            !isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
+            !isReportApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
     );
 }
 
@@ -1058,7 +1061,11 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
  * 6. It returns the 'keep' and 'change' objects.
  */
 
-function compareDuplicateTransactionFields(reviewingTransactionID: string, reportID: string, selectedTransactionID?: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+function compareDuplicateTransactionFields(
+    reviewingTransactionID: string | undefined,
+    reportID: string | undefined,
+    selectedTransactionID?: string,
+): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => getTransaction(item));
@@ -1128,7 +1135,7 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const policy = PolicyUtils.getPolicy(report?.policyID);
+            const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));
             if (fieldName === 'description') {
@@ -1148,7 +1155,7 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
             } else if (fieldName === 'taxCode') {
                 const differentValues = getDifferentValues(transactions, keys);
                 const validTaxes = differentValues?.filter((taxID) => {
-                    const tax = PolicyUtils.getTaxByID(policy, (taxID as string) ?? '');
+                    const tax = getTaxByID(policy, (taxID as string) ?? '');
                     return tax?.name && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 });
 
@@ -1159,7 +1166,7 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
-                const policyCategories = getPolicyCategoriesData(report?.policyID ?? '-1');
+                const policyCategories = getPolicyCategoriesData(report?.policyID);
                 const availableCategories = Object.values(policyCategories)
                     .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map((e) => e.name);
@@ -1170,8 +1177,8 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
-                const policyTags = getPolicyTagsData(report?.policyID ?? '-1');
-                const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+                const policyTags = getPolicyTagsData(report?.policyID);
+                const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
                 if (isMultiLevelTags) {
                     if (areAllFieldsEqualForKey || !policy?.areTagsEnabled) {
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
@@ -1201,10 +1208,10 @@ function compareDuplicateTransactionFields(reviewingTransactionID: string, repor
     return {keep, change};
 }
 
-function getTransactionID(threadReportID: string): string {
+function getTransactionID(threadReportID: string | undefined): string | undefined {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`];
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const IOUTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     return IOUTransactionID;
 }
@@ -1225,11 +1232,11 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
-        reportID: originalTransaction?.reportID ?? '',
-        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        reportID: originalTransaction?.reportID,
+        receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionID: reviewDuplicates?.transactionID,
         transactionIDList: removeSettledAndApprovedTransactions(reviewDuplicates?.duplicates ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,

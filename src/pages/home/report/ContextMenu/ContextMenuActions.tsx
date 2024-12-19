@@ -41,7 +41,10 @@ function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
 }
 
 /** Sets the HTML string to Clipboard */
-function setClipboardMessage(content: string) {
+function setClipboardMessage(content: string | undefined) {
+    if (!content) {
+        return;
+    }
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(Parser.htmlToMarkdown(content));
     } else {
@@ -193,11 +196,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                         // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
                     });
-                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID);
+                    Report.navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                 });
                 return;
             }
-            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID);
+            Report.navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
         },
         getDescription: () => {},
     },
@@ -208,7 +211,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
-            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '-1';
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             Report.markCommentAsUnread(originalReportID, reportAction?.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -239,7 +242,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
-                const childReportID = reportAction?.childReportID ?? '-1';
+                const childReportID = reportAction?.childReportID;
+                if (!childReportID) {
+                    return;
+                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
@@ -324,13 +330,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
+                    Report.toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID, childReportNotificationPreference);
+            Report.toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },

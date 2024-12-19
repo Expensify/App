@@ -5,7 +5,7 @@ import type {Comment} from './Transaction';
  */
 type ReviewDuplicates = {
     /** Transactions ids which are duplicates of selected transcation */
-    duplicates: string[];
+    duplicates: Array<string | undefined>;
 
     /** ID of transaction we want to keep */
     transactionID: string;
