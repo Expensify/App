@@ -46,7 +46,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         customUnitRateID: string;
 
         /** Whether this rate is currently enabled */
-        enabled: boolean;
+        enabled?: boolean;
 
         /** Error messages to show in UI */
         errors?: OnyxCommon.Errors;
