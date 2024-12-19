@@ -56,7 +56,7 @@ operator "operator"
   / "<" { return "lt"; }
 
 quotedString "quote"
-  = start:[^ ,"\t\n\r]* "\"" inner:[^"\r\n]* "\"" end:[^ ,\t\n\r]* {
+  = start:[^ ,"”“\t\n\r]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r]* {
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
