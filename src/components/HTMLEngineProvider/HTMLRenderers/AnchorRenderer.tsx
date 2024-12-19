@@ -33,6 +33,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
+    const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
+
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
     if (!HTMLEngineUtils.isChildOfComment(tnode)) {
@@ -41,7 +43,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
             <Text
-                style={styles.link}
+                style={[styles.link, isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined}]}
                 onPress={() => Link.openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >

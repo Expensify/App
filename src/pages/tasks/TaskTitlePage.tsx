@@ -17,9 +17,11 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import variables from '@styles/variables';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +42,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
             if (!title) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
+            } else if (title.length > CONST.DESCRIPTION_LIMIT) {
                 ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
@@ -104,7 +106,8 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
+                                // defaultValue={report?.reportName ?? ''}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
@@ -114,6 +117,10 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                     }
                                     inputRef.current = element;
                                 }}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                shouldSubmitForm
+                                isMarkdownEnabled
                             />
                         </View>
                     </FormProvider>
