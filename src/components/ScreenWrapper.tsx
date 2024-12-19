@@ -159,9 +159,7 @@ function ScreenWrapper(
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
-
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
 
