@@ -161,7 +161,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 submitButtonText={translate('common.confirm')}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline={false}
-                isSubmitDisabled={isSubmitting}
+                isLoading={isSubmitting}
                 shouldHideFixErrorsAlert
             >
                 <InputWrapper
