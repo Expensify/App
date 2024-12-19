@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -34,7 +33,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
@@ -47,7 +46,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const canEditReportDescription = ReportUtils.canEditReportDescription(report, policy);
-    const {canUseCombinedTrackSubmit} = usePermissions();
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
             item !== CONST.IOU.TYPE.INVOICE,
@@ -56,7 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .map(
             (item, index) =>
                 `${index === filteredOptions.length - 1 && index > 0 ? `${translate('common.or')} ` : ''}${translate(
-                    canUseCombinedTrackSubmit && item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
+                    item === 'submit' ? `reportActionsView.create` : `reportActionsView.iouTypes.${item}`,
                 )}`,
         )
         .join(', ');
@@ -110,7 +108,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 if (!canEditPolicyDescription) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1'));
+                                Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
                             }}
                             style={[styles.renderHTML, canEditPolicyDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -135,7 +133,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     return;
                                 }
                                 const activeRoute = Navigation.getActiveRoute();
-                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
+                                Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                             }}
                             style={[styles.renderHTML, canEditReportDescription ? styles.cursorPointer : styles.cursorText]}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
@@ -164,10 +162,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             onPress={() => {
                                 const activeRoute = Navigation.getActiveRoute();
                                 if (canEditReportDescription) {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? '-1', activeRoute));
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1', activeRoute));
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), activeRoute));
                             }}
                             style={styles.renderHTML}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
