@@ -3890,7 +3890,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => TransactionEdit.removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+
     Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : activeReportID);
+
+    const trackReport = Navigation.getPreviousTrackReport(linkedTrackedExpenseReportAction?.childReportID);
+    if (trackReport?.key) {
+        Navigation.isNavigationReady().then(() => Navigation.removeScreenByKey(trackReport.key));
+    }
+
     if (activeReportID) {
         Report.notifyNewAction(activeReportID, payeeAccountID);
     }
