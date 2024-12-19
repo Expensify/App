@@ -290,7 +290,11 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
+
+    if (!transactionID) {
+        return CONST.ERECEIPT_COLORS.YELLOW;
+    }
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -1295,6 +1299,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // which also includes the top padding and bottom border
             height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
+    },
+
+    /*
+     * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
+     */
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+        if (!!width && !!extraSpace) {
+            return {marginRight: -extraSpace, width: width + extraSpace};
+        }
+        return {width};
     },
 
     /*
