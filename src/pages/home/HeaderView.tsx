@@ -40,6 +40,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import LoadingBar from '@components/LoadingBar';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -75,6 +76,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -312,6 +314,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
             </View>
             {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
             {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
+            {shouldUseNarrowLayout && <LoadingBar shouldShow={isLoadingReportData ?? false} />}
         </View>
     );
 }
