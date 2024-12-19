@@ -37,6 +37,7 @@ type FormWrapperProps = ChildrenProps &
         /** Callback to submit the form */
         onSubmit: () => void;
 
+        /** Whether the form is loading */
         isLoading?: boolean;
     };
 
