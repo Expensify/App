@@ -27,6 +27,8 @@ const SCREENS = {
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
+        TRIP_SUMMARY: 'Travel_TripSummary',
+        TRIP_DETAILS: 'Travel_TripDetails',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
@@ -503,6 +505,7 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
+        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
