@@ -81,7 +81,7 @@ const darkTheme = {
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
     tooltipHighlightBG: colors.green100,
-    tooltipHighlightText: colors.green500,
+    tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     trialBannerBackgroundColor: colors.green700,
