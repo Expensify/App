@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -72,7 +73,9 @@ function IOURequestStepDescription({
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    const currentDescriptionInMarkdown = Parser.htmlToMarkdown(
+        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '',
+    );
 
     /**
      * @returns - An object containing the errors for each inputID
@@ -102,7 +105,7 @@ function IOURequestStepDescription({
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
-        if (newComment === currentDescription) {
+        if (newComment === currentDescriptionInMarkdown) {
             navigateBack();
             return;
         }
@@ -154,7 +157,7 @@ function IOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescription}
+                        defaultValue={currentDescriptionInMarkdown}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
