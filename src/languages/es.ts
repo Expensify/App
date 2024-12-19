@@ -60,6 +60,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
@@ -68,6 +69,7 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
+    FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
@@ -192,6 +194,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
@@ -472,8 +475,12 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
+        address: 'Dirección',
+        hourAbbreviation: 'h',
+        minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
+        validate: 'Validar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -490,6 +497,13 @@ const translations = {
         please: 'Por favor,',
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
+    },
+    contact: {
+        importContacts: 'Importar contactos',
+        importContactsTitle: 'Importa tus contactos',
+        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
+        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
+        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -642,6 +656,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        tooltip: {
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -831,6 +849,10 @@ const translations = {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        tooltip: {
+            title: '¡Acción rápida! ',
+            subtitle: 'A un click.',
+        },
     },
     iou: {
         amount: 'Importe',
@@ -1228,6 +1250,7 @@ const translations = {
             testingPreferences: 'Preferencias para Tests',
             useStagingServer: 'Usar servidor “staging”',
             forceOffline: 'Forzar desconexión',
+            simulatePoorConnection: 'Simular una conexión a internet deficiente',
             simulatFailingNetworkRequests: 'Simular fallos en solicitudes de red',
             authenticationStatus: 'Estado de autenticación',
             deviceCredentials: 'Credenciales del dispositivo',
@@ -1848,7 +1871,10 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar mensajes SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
     },
     welcomeSignUpForm: {
         join: 'Unirse',
@@ -2466,9 +2492,50 @@ const translations = {
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
         flight: 'Vuelo',
+        flightDetails: {
+            passenger: 'Pasajero',
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Tienes una <strong>escala de ${layover}</strong> antes de este vuelo</muted-text-label>`,
+            takeOff: 'Despegue',
+            landing: 'Aterrizaje',
+            seat: 'Asiento',
+            class: 'Clase de cabina',
+            recordLocator: 'Localizador de la reserva',
+        },
         hotel: 'Hotel',
+        hotelDetails: {
+            guest: 'Cliente',
+            checkIn: 'Entrada',
+            checkOut: 'Salida',
+            roomType: 'Tipo de habitación',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            confirmation: 'Número de confirmación',
+        },
         car: 'Auto',
+        carDetails: {
+            rentalCar: 'Coche de alquiler',
+            pickUp: 'Recogida',
+            dropOff: 'Devolución',
+            driver: 'Conductor',
+            carType: 'Tipo de coche',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            confirmation: 'Número de confirmación',
+        },
+        train: 'Tren',
+        trainDetails: {
+            passenger: 'Pasajero',
+            departs: 'Sale',
+            arrives: 'Llega',
+            coachNumber: 'Número de vagón',
+            seat: 'Asiento',
+            fareDetails: 'Detalles de la tarifa',
+            confirmation: 'Número de confirmación',
+        },
         viewTrip: 'Ver viaje',
+        modifyTrip: 'Modificar viaje',
+        tripSupport: 'Soporte de Viaje',
+        tripDetails: 'Detalles del viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
         trips: 'Viajes',
@@ -2571,6 +2638,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
@@ -2596,6 +2664,9 @@ const translations = {
                 existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
             },
             importPerDiemRates: 'Importar tasas de per diem',
+            editPerDiemRate: 'Editar la tasa de per diem',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar este destino lo modificará para todas las subtasas per diem de ${destination}.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar esta moneda la modificará para todas las subtasas per diem de ${destination}.`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
@@ -4268,6 +4339,25 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'Para equipos que buscan automatizar sus procesos.',
+                },
+                corporate: {
+                    label: 'Recolectar',
+                    description: 'Para organizaciones con requisitos avanzados.',
+                },
+            },
+            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
+            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `Tienes un compromiso anual de 1 miembro activo en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+            }),
+            subscriptions: 'Suscripciones',
+        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4348,6 +4438,19 @@ const translations = {
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
                 gotIt: 'Entendido, gracias.',
+            },
+            commonFeatures: {
+                title: 'Mejorar al plan Controlar',
+                note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
+                benefits: {
+                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    learnMore: 'Más información',
+                    pricing: 'sobre nuestros planes y precios.',
+                    benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
             },
         },
         restrictedAction: {
@@ -4607,6 +4710,7 @@ const translations = {
             },
         },
         saveSearch: 'Guardar búsqueda',
+        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -5977,44 +6081,6 @@ const translations = {
             chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
             scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
-        },
-    },
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: '¡Comienza',
-            part2: ' aquí!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Personaliza tu búsqueda',
-            part2: ' aquí!',
-        },
-        bottomNavInboxTooltip: {
-            part1: 'Tu lista de tareas',
-            part2: '\n🟢 = listo para ti',
-            part3: ' 🔴 = necesita revisión',
-        },
-        workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
-        },
-        globalCreateTooltip: {
-            part1: 'Crea gastos',
-            part2: ', comienza a chatear,',
-            part3: '\ny mucho más!',
         },
     },
 };
