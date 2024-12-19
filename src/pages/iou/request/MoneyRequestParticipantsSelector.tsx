@@ -1,14 +1,10 @@
 import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
-import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,7 +14,6 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -26,16 +21,11 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import contactImport from '@libs/ContactImport';
-import type {ContactImportResult} from '@libs/ContactImport/types';
-import {getContactPermission} from '@libs/ContactPermission';
-import getContacts from '@libs/ContactUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import saveLastRoute from '@libs/saveLastRoute';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
@@ -43,7 +33,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -80,9 +69,6 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [softPermissionModalVisible, setSoftPermissionModalVisible] = useState(false);
-    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const showImportContacts = !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -97,8 +83,6 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [contacts, setContacts] = useState<Array<OptionsListUtils.SearchOption<PersonalDetails>>>([]);
-    const [textInputAutoFocus, setTextInputAutoFocus] = useState(softPermissionModalVisible);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -124,7 +108,7 @@ function MoneyRequestParticipantsSelector({
         const optionList = OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
-                personalDetails: options.personalDetails.concat(contacts),
+                personalDetails: options.personalDetails,
             },
             {
                 betas,
@@ -148,7 +132,7 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, contacts, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -172,16 +156,6 @@ function MoneyRequestParticipantsSelector({
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
 
-    const inputHelperText = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
-                !!chatOptions?.userToInvite,
-                debouncedSearchTerm.trim(),
-                participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
-            ),
-        [chatOptions.personalDetails, chatOptions.recentReports, chatOptions?.userToInvite, cleanSearchTerm, debouncedSearchTerm, participants],
-    );
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -229,10 +203,12 @@ function MoneyRequestParticipantsSelector({
             });
         }
 
-        let headerMessage = '';
-        if (!showImportContacts) {
-            headerMessage = inputHelperText;
-        }
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
+            !!chatOptions?.userToInvite,
+            debouncedSearchTerm.trim(),
+            participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+        );
 
         return [newSections, headerMessage];
     }, [
@@ -245,27 +221,8 @@ function MoneyRequestParticipantsSelector({
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        showImportContacts,
-        inputHelperText,
+        cleanSearchTerm,
     ]);
-
-    const handleContactImport = useCallback(() => {
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, []);
-
-    useEffect(() => {
-        setSoftPermissionModalVisible(true);
-        getContactPermission().then((status) => {
-            setContactPermissionState(status);
-            if (status !== RESULTS.BLOCKED && status !== RESULTS.UNAVAILABLE) {
-                setSoftPermissionModalVisible(true);
-            }
-        });
-    }, []);
 
     /**
      * Adds a single participant to the expense
@@ -273,10 +230,10 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = useCallback(
-        (option: Participant & OptionsListUtils.Option) => {
+        (option: Participant) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
@@ -386,57 +343,21 @@ function MoneyRequestParticipantsSelector({
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
-    const goToSettings = useCallback(() => {
-        Linking.openSettings();
-        // In the case of ios, the App reloads when we update contact permission from settings
-        // we are saving last route so we can navigate to it after app reload
-        saveLastRoute();
-    }, []);
-
     const headerContent = useMemo(() => {
-        const importContacts =
-            showImportContacts && inputHelperText ? (
-                <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>
-                        {`${translate('common.noResultsFound')}. `}
-                        <Text
-                            style={[styles.textLabel, styles.minHeight5, styles.link]}
-                            onPress={goToSettings}
-                        >
-                            {translate('contact.importContactsTitle')}
-                        </Text>{' '}
-                        {translate('contact.importContactsExplanation')}
-                    </Text>
-                </View>
-            ) : null;
+        if (!shouldDisplayTrackExpenseButton) {
+            return;
+        }
 
         // We only display the track expense button if the user is coming from the combined submit/track flow.
-        const expenseButton = shouldDisplayTrackExpenseButton ? (
+        return (
             <MenuItem
                 title={translate('iou.justTrackIt')}
                 shouldShowRightIcon
                 icon={Expensicons.Coins}
                 onPress={onTrackExpensePress}
             />
-        ) : null;
-
-        return (
-            <>
-                {importContacts}
-                {expenseButton}
-            </>
         );
-    }, [showImportContacts, inputHelperText, shouldDisplayTrackExpenseButton, translate, onTrackExpensePress, styles, goToSettings]);
-
-    const handleSoftPermissionDeny = useCallback(() => {
-        setSoftPermissionModalVisible(false);
-    }, []);
-
-    const handleSoftPermissionGrant = useCallback(() => {
-        setSoftPermissionModalVisible(false);
-        InteractionManager.runAfterInteractions(handleContactImport);
-        setTextInputAutoFocus(true);
-    }, [handleContactImport]);
+    }, [shouldDisplayTrackExpenseButton, translate, onTrackExpensePress]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -511,58 +432,27 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const listFooterComponent = useMemo(() => {
-        if (!showImportContacts) {
-            return null;
-        }
-        return (
-            <MenuItem
-                title={translate('contact.importContacts')}
-                icon={Expensicons.UserPlus}
-                onPress={goToSettings}
-                shouldShowRightIcon
-                style={styles.mb3}
-            />
-        );
-    }, [goToSettings, showImportContacts, styles.mb3, translate]);
-
-    const EmptySelectionListContentWithPermission = useMemo(() => {
-        return <EmptySelectionListContent contentType={iouType} />;
-    }, [iouType]);
-
     return (
-        <>
-            {softPermissionModalVisible && (
-                <ContactPermissionModal
-                    startPermissionFlow={softPermissionModalVisible}
-                    resetPermissionFlow={handleSoftPermissionDeny}
-                    onGrant={handleSoftPermissionGrant}
-                    onDeny={handleSoftPermissionDeny}
-                />
-            )}
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                ListItem={InviteMemberListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={onSelectRow}
-                shouldSingleExecuteRowSelect
-                headerContent={headerContent}
-                footerContent={footerContent}
-                listEmptyContent={EmptySelectionListContentWithPermission}
-                listFooterContent={listFooterComponent}
-                headerMessage={header}
-                showLoadingPlaceholder={showLoadingPlaceholder}
-                canSelectMultiple={isIOUSplit && isAllowedToSplit}
-                isLoadingNewOptions={!!isSearchingForReports}
-                shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={textInputAutoFocus}
-            />
-        </>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            ListItem={InviteMemberListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={onSelectRow}
+            shouldSingleExecuteRowSelect
+            headerContent={headerContent}
+            footerContent={footerContent}
+            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            headerMessage={header}
+            showLoadingPlaceholder={showLoadingPlaceholder}
+            canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
+        />
     );
 }
 
