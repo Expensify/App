@@ -3454,7 +3454,7 @@ describe('actions/IOU', () => {
                         expect(transaction?.taxCode).toBe('');
                         expect(transaction?.taxAmount).toBeUndefined();
                         resolve();
-                    }
+                    },
                 });
             });
         });
