@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo} from 'react';
+import React, {memo, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -25,6 +25,8 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
+import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -75,6 +77,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -101,6 +104,14 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
+    const policyID = report?.policyID;
+    useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+        getAssignedSupportData(policyID);
+    }, [policyID]);
+
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
@@ -113,6 +124,19 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         }
         return true;
     };
+
+    const shouldShowGuideBooking = !!account && report?.reportID.toString() === account?.adminsRoomReportID?.toString() && !!account?.guideDetails?.calendarLink;
+
+    const guideBookingButton = (
+        <Button
+            success
+            text={translate('getAssistancePage.scheduleADemo')}
+            onPress={() => {
+                openExternalLink(account?.guideDetails?.calendarLink ?? '');
+            }}
+            icon={Expensicons.CalendarSolid}
+        />
+    );
 
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
@@ -287,6 +311,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                                {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                 {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
@@ -312,6 +337,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
             </View>
             {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
             {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
+            {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{guideBookingButton}</View>}
         </View>
     );
 }
