@@ -3,7 +3,7 @@ import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
-import {Platform, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -144,7 +145,7 @@ function Composer(
             // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
             // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
             // */
-            autoFocus={Platform.OS !== 'android' ? autoFocus : false}
+            autoFocus={getPlatform() !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
