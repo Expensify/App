@@ -8476,10 +8476,10 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
 }
 
 /** Get report policy id of IOU request */
-function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string {
+function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string | undefined {
     // Workspace sender will exist for invoices
     const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
-    return workspaceSender?.policyID ?? report?.policyID ?? '-1';
+    return workspaceSender?.policyID ?? report?.policyID;
 }
 
 function getIOUActionForTransactions(transactionIDList: string[], iouReportID: string): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
