@@ -1,12 +1,13 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchTypeBar from '@components/Search/SearchTypeBar';
 import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,8 +20,8 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import CannedSearchMenu from './CannedSearchMenu';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
-import SearchTypeMenu from './SearchTypeMenu';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -76,8 +77,14 @@ function SearchPageBottomTab() {
     const isActiveCentralPaneRoute = activeCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     const queryJSON = isActiveCentralPaneRoute ? parsedQuery : undefined;
     const policyID = isActiveCentralPaneRoute ? policyIDFromSearchQuery : undefined;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        queryJSON?.hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildDefaultCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -95,7 +102,7 @@ function SearchPageBottomTab() {
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !isCannedQuery;
 
     return (
         <ScreenWrapper
@@ -115,21 +122,23 @@ function SearchPageBottomTab() {
                     </View>
                     {shouldUseNarrowLayout ? (
                         <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                            <SearchTypeMenu
+                            <CannedSearchMenu
                                 queryJSON={queryJSON}
+                                cannedMenuItems={cannedSearchQueries}
                                 searchName={searchName}
                             />
-                            <SearchStatusBar
+                            <SearchTypeBar
                                 queryJSON={queryJSON}
-                                onStatusChange={() => {
+                                onTypeChange={() => {
                                     topBarOffset.set(withTiming(variables.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                                 }}
                             />
                         </Animated.View>
                     ) : (
-                        <SearchTypeMenu
+                        <CannedSearchMenu
                             queryJSON={queryJSON}
                             searchName={searchName}
+                            cannedMenuItems={cannedSearchQueries}
                         />
                     )}
                 </>

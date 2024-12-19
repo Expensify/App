@@ -4721,6 +4721,12 @@ const translations = {
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
+        cannedSearches: {
+            allExpenses: 'Todos los gastos',
+            draftExpenses: 'Borrador de gastos',
+            expensesToApprove: 'Gastos por aprobar',
+            expensesToPay: 'Gastos por pagar',
+        },
         filters: {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
