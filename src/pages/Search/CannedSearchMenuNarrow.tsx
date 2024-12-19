@@ -30,7 +30,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchTypeMenuItem} from './SearchTypeMenu';
+import type {CannedSearchItem} from './CannedSearchMenu';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -39,22 +39,22 @@ type SavedSearchMenuItem = MenuItemWithLink & {
     styles: Array<ViewStyle | TextStyle>;
 };
 
-type SearchTypeMenuNarrowProps = {
-    typeMenuItems: SearchTypeMenuItem[];
+type CannedSearchMenuNarrowProps = {
+    cannedMenuItems: CannedSearchItem[];
     activeItemIndex: number;
     queryJSON: SearchQueryJSON;
     title?: string;
     savedSearchesMenuItems: SavedSearchMenuItem[];
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
+function CannedSearchMenuNarrow({cannedMenuItems, activeItemIndex, queryJSON, title, savedSearchesMenuItems}: CannedSearchMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {hash, policyID} = queryJSON;
+    const {hash} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -79,14 +79,14 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
-        const items = typeMenuItems.map((item, index) => {
+        const items = cannedMenuItems.map((item, index) => {
             const isSelected = title ? false : index === activeItemIndex;
 
             return {
-                text: item.title,
+                text: translate(item.titleTranslationPath),
                 onSelected: singleExecution(() => {
                     SearchActions.clearAllFilters();
-                    Navigation.navigate(item.getRoute(policyID));
+                    Navigation.navigate(item.route);
                 }),
                 isSelected,
                 icon: item.icon,
@@ -115,7 +115,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         }
 
         return items;
-    }, [typeMenuItems, title, activeItemIndex, singleExecution, theme, policyID, closeMenu, currentSavedSearch]);
+    }, [cannedMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, closeMenu]);
 
     const {menuIcon, menuTitle} = useMemo(() => {
         if (title) {
@@ -220,6 +220,6 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     );
 }
 
-SearchTypeMenuNarrow.displayName = 'SearchTypeMenuNarrow';
+CannedSearchMenuNarrow.displayName = 'CannedSearchMenuNarrow';
 
-export default SearchTypeMenuNarrow;
+export default CannedSearchMenuNarrow;

@@ -9,8 +9,9 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchFilterKey, SingleSearchStatus} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,11 @@ import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const baseFilterConfig = {
+    status: {
+        getTitle: getStatusDisplayTitle,
+        description: 'search.filters.status' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+    },
     date: {
         getTitle: getFilterDisplayTitle,
         description: 'common.date' as const,
@@ -140,10 +146,11 @@ const baseFilterConfig = {
  * typeFiltersKeys is stored as an object keyed by the different search types.
  * Each value is then an array of arrays where each inner array is a separate section in the UI.
  */
-const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
+const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -166,6 +173,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
@@ -187,6 +195,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
+            CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
@@ -206,7 +215,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
@@ -334,6 +343,16 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return result.join(', ');
 }
 
+function getStatusDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
+    const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS];
+    if (!filterValue) {
+        return undefined;
+    }
+    return Array.isArray(filterValue)
+        ? filterValue.map((status) => translate(SearchUIUtils.getStatusTranslationKey(status as SingleSearchStatus))).join(', ')
+        : translate(SearchUIUtils.getStatusTranslationKey(filterValue as SingleSearchStatus));
+}
+
 function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextProps['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
     return filterValue
@@ -376,6 +395,7 @@ function AdvancedSearchFilters() {
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
@@ -419,7 +439,12 @@ function AdvancedSearchFilters() {
     }
 
     const queryString = useMemo(() => SearchQueryUtils.buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
-    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildCannedSearchQuery()), [queryString]);
+    const queryJSON = useMemo(() => SearchQueryUtils.buildSearchQueryJSON(queryString || SearchQueryUtils.buildDefaultCannedSearchQuery()), [queryString]);
+    const cannedSearchQueries = useMemo(() => SearchQueryUtils.getCannedSearchesItems(policyID, currentUserPersonalDetails.login), [currentUserPersonalDetails.login, policyID]);
+    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(
+        queryJSON?.hash,
+        cannedSearchQueries.map((query) => query.hash ?? -1),
+    );
 
     const applyFiltersAndNavigate = () => {
         SearchActions.clearAllFilters();
@@ -471,6 +496,8 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
                         if (!shouldDisplayCategoryFilter) {
                             return;
@@ -513,7 +540,7 @@ function AdvancedSearchFilters() {
                 .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
-    const displaySearchButton = queryJSON && !SearchQueryUtils.isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && !isCannedQuery;
 
     return (
         <>

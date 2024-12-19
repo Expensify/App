@@ -4663,6 +4663,12 @@ const translations = {
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
         groupedExpenses: 'grouped expenses',
+        cannedSearches: {
+            allExpenses: 'All expenses',
+            draftExpenses: 'Draft expenses',
+            expensesToApprove: 'Expenses to approve',
+            expensesToPay: 'Expenses to pay',
+        },
         bulkActions: {
             approve: 'Approve',
             pay: 'Pay',

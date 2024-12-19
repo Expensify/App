@@ -43,6 +43,7 @@ const ROUTES = {
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',

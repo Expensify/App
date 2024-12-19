@@ -2,8 +2,11 @@ import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
+import type {CannedSearchItem} from '@pages/Search/CannedSearchMenu';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -335,9 +338,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
-    if (status) {
-        const sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    if (status && status?.length !== 0) {
+        if (typeof status === 'string') {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizeSearchValue(status)}`);
+        } else {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${status.map(sanitizeSearchValue).join(',')}`);
+        }
     }
 
     if (policyID) {
@@ -500,7 +506,7 @@ function buildFilterFormValuesFromQuery(
         ) ?? [];
 
     if (typeKey === statusKey) {
-        filtersForm[FILTER_KEYS.STATUS] = Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status;
+        filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
     } else {
         filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
     }
@@ -610,35 +616,106 @@ function buildUserReadableQueryString(
 }
 
 /**
- * Returns properly built QueryString for a canned query, with the optional policyID.
+ * Returns properly built QueryString for a canned query, used to build more complex canned queries.
  */
 function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
+    to,
+    from,
     policyID,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
+    to?: string;
+    from?: string;
     policyID?: string;
-} = {}): SearchQueryString {
-    const queryString = policyID
-        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
-        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+} = {}): {queryString: SearchQueryString; queryJSON: SearchQueryJSON | undefined} {
+    let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+    if (policyID) {
+        queryString = `${queryString} policyID:${policyID}`;
+    }
+    if (to) {
+        queryString = `${queryString} to:${to} `;
+    }
+    if (from) {
+        queryString = `${queryString} from:${from} `;
+    }
+    // Parse the query to fill all default query fields with values
+    const normalizedQueryJSON = buildSearchQueryJSON(queryString);
+    return {queryString: buildSearchQueryString(normalizedQueryJSON), queryJSON: normalizedQueryJSON};
+}
 
+/**
+ * Returns properly built QueryString for a default canned query which is 'type:expense status:all' query named 'All expenses'.
+ */
+function buildDefaultCannedSearchQuery(): SearchQueryString {
+    const queryString = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} status:${CONST.SEARCH.STATUS.EXPENSE.ALL}`;
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
 /**
+ * Returns list of canned search queries.
+ */
+function getCannedSearchesItems(policyID?: string, currentUserLogin?: string): CannedSearchItem[] {
+    const allExpensesQuery = buildCannedSearchQuery({policyID});
+    const draftExpenses = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
+        from: currentUserLogin,
+        policyID,
+    });
+    const expensesToApprove = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        to: currentUserLogin,
+        policyID,
+    });
+    const expensesToPay = buildCannedSearchQuery({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+        policyID,
+    });
+
+    return [
+        {
+            titleTranslationPath: 'search.cannedSearches.allExpenses',
+            icon: Expensicons.Receipt,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: allExpensesQuery.queryString}),
+            hash: allExpensesQuery.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.draftExpenses',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: draftExpenses.queryString}),
+            hash: draftExpenses.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.expensesToApprove',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: expensesToApprove.queryString}),
+            hash: expensesToApprove.queryJSON?.hash,
+        },
+        {
+            titleTranslationPath: 'search.cannedSearches.expensesToPay',
+            icon: Expensicons.Hourglass,
+            route: ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: expensesToPay.queryString}),
+            hash: expensesToPay.queryJSON?.hash,
+        },
+    ];
+}
+
+/**
  * Returns whether a given search query is a Canned query.
  *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip status:all" is a canned query.
+ * Canned queries are predefined queries, that represent most common use cases that user would want to search through.
+ * They are staticly defined and built by getCannedSearchesItems function
+ * For example: "type:expense status:draft from:[signed-in-user]@domain.com" is a "Draft expenses" canned query.
  */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters;
+function isCannedSearchQuery(currentQueryHash: number | undefined, cannedQueryHashes: number[]) {
+    return cannedQueryHashes.some((hash) => hash === currentQueryHash);
 }
 
 /**
@@ -715,9 +792,11 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
+    buildDefaultCannedSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
+    getCannedSearchesItems,
 };
