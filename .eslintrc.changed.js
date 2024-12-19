@@ -20,6 +20,7 @@ module.exports = {
                 'src/libs/TransactionUtils/index.ts',
                 'src/pages/home/ReportScreen.tsx',
                 'src/pages/workspace/WorkspaceInitialPage.tsx',
+                'src/pages/home/report/PureReportActionItem.tsx',
             ],
             rules: {
                 'rulesdir/no-default-id-values': 'off',
