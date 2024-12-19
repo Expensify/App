@@ -420,6 +420,7 @@ function WorkspacesListPage() {
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
+                    shouldUseHeadlineHeader
                 />
                 {shouldShowLoadingIndicator ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
@@ -458,6 +459,7 @@ function WorkspacesListPage() {
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
+                    shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
                 </HeaderWithBackButton>
