@@ -11,7 +11,6 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -23,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -32,6 +32,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,19 +48,18 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
-
+    const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const session = useSession();
 
     // Guides are assigned for the MANAGE_TEAM onboarding action, except for emails that have a '+'.
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const shouldShowToooltipOnThisReport = isOnboardingGuideAssigned ? ReportUtils.isAdminRoom(report) : ReportUtils.isConciergeChatReport(report);
+    const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
 
-    const shouldShowGetStartedTooltip = shouldShowToooltipOnThisReport && isScreenFocused;
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR,
-        shouldShowGetStartedTooltip,
-    );
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
@@ -70,6 +70,30 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 setIsScreenFocused(false);
             };
         }, []),
+    );
+
+    const renderGBRTooltip = useCallback(
+        () => (
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
+                <Icon
+                    src={Expensicons.Lightbulb}
+                    fill={theme.tooltipHighlightText}
+                    medium
+                />
+                <Text style={styles.quickActionTooltipSubtitle}>{translate('sidebarScreen.tooltip')}</Text>
+            </View>
+        ),
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.gap1,
+            styles.quickActionTooltipSubtitle,
+            theme.tooltipHighlightText,
+            translate,
+        ],
     );
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -156,17 +180,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
-                renderTooltipContent={renderProductTrainingTooltip}
+                shouldRender={isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && shouldShowToooltipOnThisReport}
+                renderTooltipContent={renderGBRTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 shouldUseOverlay
                 shiftHorizontal={variables.gbrTooltipShiftHorizontal}
-                onHideTooltip={hideProductTrainingTooltip}
                 shiftVertical={variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.quickActionTooltipWrapper}
+                onHideTooltip={User.dismissGBRTooltip}
             >
                 <View>
                     <Hoverable>
