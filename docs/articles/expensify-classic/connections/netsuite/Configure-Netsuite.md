@@ -21,8 +21,6 @@ There are numerous options for exporting Expensify reports to NetSuite. Let's ex
 
 To access these settings, go to **Settings > Workspace > Group > Connections** and select the **Configure** button. 
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_06.png){:width="100%"}
-
 ## Subsidiary
 
 The subsidiary selection will only appear if you use NetSuite OneWorld and have multiple subsidiaries active. If you add a new subsidiary to NetSuite, sync the workspace connection, and the new subsidiary should appear in the dropdown list under **Settings > Workspaces > _[Workspace Name]_ > Connections**.
@@ -227,8 +225,6 @@ From there, you should see the values for the Custom Lists under the Tag or Repo
 
 # Step 3: Configure Advanced Settings
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
-
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
 
 Let’s review the different advanced settings and how they interact with the integration.
@@ -266,10 +262,6 @@ The available options are:
 ## Automatically Create Employees/Vendors
 
 With this feature enabled, Expensify will automatically create a new employee or vendor (if one doesn’t already exist) from the report submitter's email in NetSuite. 
-
-## Export Foreign Currency Amount
-
-Using this feature allows you to send the original amount of the expense rather than the converted total when exporting to NetSuite. This option is available if you are exporting reimbursable expenses as Expense Reports.
 
 ## Cross-Subsidiary Customers/Projects 
 
@@ -391,8 +383,6 @@ If your tax groups are importing into Expensify but not exporting to NetSuite, c
 When using multi-currency features with NetSuite, remember these points:
 
 **Matching Currencies:** The currency set for a vendor or employee record must match the currency chosen for the subsidiary in your Expensify configuration. This alignment is crucial for proper handling.
-
-**Foreign Currency Conversion:** If you create expenses in one currency and then convert them to another currency within Expensify before exporting, you can include both the original and converted amounts in the exported expense reports. This option, called "Export foreign currency amount," can be found in the Advanced tab of your configuration. Note that Expensify sends only the amounts; the actual currency conversion is performed in NetSuite.
 
 **Bank Account Currency:** When synchronizing bill payments, make sure your bank account's currency matches the subsidiary's currency. Failure to do so will result in an "Invalid Account" error. This alignment is necessary to prevent issues during payment processing.
 
