@@ -163,7 +163,7 @@ type MoneyRequestConfirmationListFooterProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction ID */
-    transactionID: string;
+    transactionID: string | undefined;
 
     /** The unit */
     unit: Unit | undefined;
@@ -295,7 +295,7 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.amount')}
                     interactive={!isReadOnly}
                     onPress={() => {
-                        if (isDistanceRequest) {
+                        if (isDistanceRequest || !transactionID) {
                             return;
                         }
 
@@ -326,6 +326,10 @@ function MoneyRequestConfirmationListFooter({
                             title={iouComment}
                             description={translate('common.description')}
                             onPress={() => {
+                                if (!transactionID) {
+                                    return;
+                                }
+
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                             }}
                             style={[styles.moneyRequestMenuItem]}
@@ -349,7 +353,13 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -366,7 +376,13 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
                     disabled={didConfirm}
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
@@ -384,6 +400,10 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     disabled={didConfirm}
@@ -408,6 +428,10 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
@@ -427,12 +451,16 @@ function MoneyRequestConfirmationListFooter({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() =>
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
                             CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                        )
-                    }
+                        );
+                    }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -454,9 +482,13 @@ function MoneyRequestConfirmationListFooter({
                         title={TransactionUtils.getTagForDisplay(transaction, index)}
                         description={name}
                         numberOfLinesTitle={2}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))
-                        }
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }}
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
@@ -476,7 +508,13 @@ function MoneyRequestConfirmationListFooter({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
@@ -493,7 +531,13 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
@@ -512,7 +556,13 @@ function MoneyRequestConfirmationListFooter({
                     }`}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
                     interactive
                     shouldRenderAsHTML
                 />
@@ -557,7 +607,13 @@ function MoneyRequestConfirmationListFooter({
             <View style={styles.moneyRequestImage}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID));
+                        }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
@@ -570,7 +626,13 @@ function MoneyRequestConfirmationListFooter({
                     </PressableWithoutFocus>
                 ) : (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID));
+                        }}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -625,7 +687,10 @@ function MoneyRequestConfirmationListFooter({
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()));
+                        if (!transaction?.transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={styles.moneyRequestMenuItem}
                     labelStyle={styles.mt2}
@@ -644,11 +709,15 @@ function MoneyRequestConfirmationListFooter({
                     ? receiptThumbnailContent
                     : shouldShowReceiptEmptyState && (
                           <ReceiptEmptyState
-                              onPress={() =>
+                              onPress={() => {
+                                  if (!transactionID) {
+                                      return;
+                                  }
+
                                   Navigation.navigate(
                                       ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                  )
-                              }
+                                  );
+                              }}
                           />
                       ))}
             {primaryFields}
