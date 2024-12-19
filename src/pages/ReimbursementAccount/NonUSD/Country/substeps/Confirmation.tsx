@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {BANK_CURRENCY, DESTINATION_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 function Confirmation({onNext}: SubStepProps) {
     const {translate} = useLocalize();
@@ -29,19 +29,23 @@ function Confirmation({onNext}: SubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccount?.achData?.additionalData?.[DESTINATION_COUNTRY] ?? reimbursementAccountDraft?.[DESTINATION_COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
 
     const handleSettingsPress = () => {
+        if (!policyID) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 
@@ -50,19 +54,19 @@ function Confirmation({onNext}: SubStepProps) {
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [COUNTRY]);
+        return ValidationUtils.getFieldRequiredErrors(values, [BANK_CURRENCY]);
     }, []);
 
     useEffect(() => {
         if (currency === CONST.CURRENCY.EUR) {
             if (countryDefaultValue !== '') {
-                FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: countryDefaultValue});
+                FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: countryDefaultValue});
                 setSelectedCountry(countryDefaultValue);
             }
             return;
         }
 
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
+        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[DESTINATION_COUNTRY]: currencyMappedToCountry, [BANK_CURRENCY]: currency});
         setSelectedCountry(currencyMappedToCountry);
     }, [countryDefaultValue, currency, currencyMappedToCountry]);
 
@@ -85,9 +89,8 @@ function Confirmation({onNext}: SubStepProps) {
                             style={[styles.label]}
                             onPress={handleSettingsPress}
                         >
-                            {translate('common.settings').toLowerCase()}
+                            {translate('common.settings').toLowerCase()}.
                         </TextLink>
-                        .
                     </Text>
                     <FormProvider
                         formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -107,7 +110,7 @@ function Confirmation({onNext}: SubStepProps) {
                             searchInputTitle={translate('countryStep.findCountry')}
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
-                            inputID={COUNTRY}
+                            inputID={BANK_CURRENCY}
                             shouldSaveDraft
                         />
                     </FormProvider>
