@@ -4,6 +4,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -15,6 +16,16 @@ function toLocaleDigitMock(dot: string): string {
 }
 
 describe('PolicyUtils', () => {
+    describe('getActivePolicies', () => {
+        it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
+                2,
+            );
+            expect(PolicyUtils.getActivePolicies(policies, undefined, false)).toHaveLength(1);
+        });
+    });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
             const rate = PolicyUtils.getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
@@ -114,7 +125,7 @@ describe('PolicyUtils', () => {
                     role: '',
                 },
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
             // The result should be an empty array since we have no active policies.
             expect(result.length).toBe(0);
         });
@@ -125,7 +136,7 @@ describe('PolicyUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: randomPolicy1,
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
             // The result should contain the mock paid policy, since it is our only active paid policy.
             expect(result).toContainEqual(randomPolicy1);
         });
@@ -138,7 +149,7 @@ describe('PolicyUtils', () => {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             };
-            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, true);
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
             // The result should be an empty array since there is only one policy which is pending deletion, so we have no active paid policies.
             expect(result).toEqual([]);
         });
