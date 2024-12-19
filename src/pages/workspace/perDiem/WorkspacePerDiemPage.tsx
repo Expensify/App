@@ -76,7 +76,7 @@ function getSubRatesData(customUnitRates: Rate[]) {
                     subRateName: subRate.name,
                     rate: subRate.rate,
                     currency: rate.currency ?? CONST.CURRENCY.USD,
-                    rateID: rate.customUnitRateID ?? '',
+                    rateID: rate.customUnitRateID,
                     subRateID: subRate.id,
                 });
             }
@@ -100,7 +100,7 @@ function generateSingleSubRateData(customUnitRates: Rate[], rateID: string, subR
         subRateName: selectedSubRate.name,
         rate: selectedSubRate.rate,
         currency: selectedRate.currency ?? CONST.CURRENCY.USD,
-        rateID: selectedRate.customUnitRateID ?? '',
+        rateID: selectedRate.customUnitRateID,
         subRateID: selectedSubRate.id,
     };
 }
