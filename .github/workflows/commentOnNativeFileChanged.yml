@@ -11,11 +11,18 @@ on:
       - '**.mm'
       - '**.h'
 
+
+env:
+  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+
 jobs:
   commentOnNativeFilesChanged:
     name: Create comment
-    run: |
-      gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} --body \
-      ":warning: This PR changes native code. It may cause problems in Hybrid App. Please notify people working on it to review those changes. :warning:"
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Comment
+        run: |
+          gh pr comment ${{ env.PULL_REQUEST_NUMBER }} --body \
+          ":warning: This PR changes native code. It may cause problems in Hybrid App. Please notify people working on it to review those changes. :warning:"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
