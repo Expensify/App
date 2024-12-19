@@ -472,7 +472,7 @@ function clearError(transactionID: string, transactionState: TransactionState = 
             break;
     }
 
-    Onyx.merge(`${keyPrefix}${transactionID}`, {errors: null, errorFields: {route: null}});
+    Onyx.merge(`${keyPrefix}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
 function markAsCash(transactionID: string, transactionThreadReportID: string) {
