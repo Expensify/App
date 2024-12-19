@@ -17,6 +17,7 @@ import type {
     RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
+    ResetSMSDeliveryFailureParams,
     SignInUserWithLinkParams,
     SignUpUserParams,
     UnlinkLoginParams,
@@ -1200,6 +1201,52 @@ function isUserOnPrivateDomain() {
     return false;
 }
 
+/**
+ * To reset SMS delivery failure
+ */
+function resetSMSDeliveryFailure(login: string) {
+    const params: ResetSMSDeliveryFailureParams = {login};
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                errors: null,
+                smsDeliveryFailureStatus: {
+                    isLoading: true,
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                smsDeliveryFailureStatus: {
+                    isLoading: false,
+                    isReset: true,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                smsDeliveryFailureStatus: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE, params, {optimisticData, successData, failureData});
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1239,4 +1286,5 @@ export {
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
+    resetSMSDeliveryFailure,
 };

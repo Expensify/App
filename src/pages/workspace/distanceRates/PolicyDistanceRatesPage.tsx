@@ -295,6 +295,7 @@ function PolicyDistanceRatesPage({
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.CarIce : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
