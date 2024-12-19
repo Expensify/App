@@ -8,7 +8,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import com.expensify.chat.bootsplash.BootSplash
-import com.expensify.chat.intentHandler.ImageIntentHandler
 import com.expensify.chat.intentHandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity

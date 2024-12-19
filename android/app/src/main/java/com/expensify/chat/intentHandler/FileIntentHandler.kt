@@ -3,16 +3,14 @@ package com.expensify.chat.intentHandler
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import com.expensify.chat.utils.FileUtils
 
-class ImageIntentHandler(private val context: Context) : AbstractIntentHandler() {
+class FileIntentHandler(private val context: Context) : AbstractIntentHandler() {
     override fun handle(intent: Intent): Boolean {
         super.clearTemporaryFiles(context)
         when(intent.action) {
              Intent.ACTION_SEND -> {
-                 Log.i("ImageIntentHandler", "Handle receive single image")
-                 handleSingleImageIntent(intent, context)
+                 handleSingleFileIntent(intent, context)
                  onCompleted()
                  return true
              }
@@ -20,16 +18,13 @@ class ImageIntentHandler(private val context: Context) : AbstractIntentHandler()
          return false
     }
 
-    private fun handleSingleImageIntent(intent: Intent, context: Context) {
-        (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { imageUri ->
-
-            Log.i("ImageIntentHandler", "handleSingleImageIntent$imageUri")
-            // Update UI to reflect image being shared
-            if (imageUri == null) {
+    private fun handleSingleFileIntent(intent: Intent, context: Context) {
+        (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
+            if (fileUri == null) {
                 return
             }
 
-            val resultingPath: String? = FileUtils.copyUriToStorage(imageUri, context)
+            val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
 
             if (resultingPath != null) {
                 val shareFileObject = ShareFileObject(resultingPath, intent.type)

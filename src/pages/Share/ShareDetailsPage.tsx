@@ -81,7 +81,7 @@ function ShareDetailsPage({
         }
         FileUtils.readFileAsync(
             currentAttachment.content,
-            currentAttachment.id,
+            FileUtils.getFileName(currentAttachment.content),
             (file) => {
                 if (!onyxReport && report.reportID) {
                     Report.openReport(
