@@ -17,6 +17,7 @@ type SearchQueryItem = ListItem & {
     searchQuery?: string;
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+    mapKey?: string;
 };
 
 type SearchQueryListItemProps = {

@@ -117,6 +117,8 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
+        onContentSizeChange,
+        listItemTitleStyles,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -494,8 +496,6 @@ function BaseSelectionList<TItem extends ListItem>(
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
@@ -508,7 +508,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
-                    showTooltip={showTooltip}
+                    showTooltip={shouldShowTooltips}
                     canSelectMultiple={canSelectMultiple}
                     onLongPressRow={onLongPressRow}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
@@ -525,6 +525,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     normalizedIndex={normalizedIndex}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
                     wrapperStyle={listItemWrapperStyle}
+                    titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                 />
@@ -802,6 +803,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         getItemLayout={getItemLayout}
                         onScroll={onScroll}
                         onScrollBeginDrag={onScrollBeginDrag}
+                        onContentSizeChange={onContentSizeChange}
                         keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                         extraData={focusedIndex}
                         // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash

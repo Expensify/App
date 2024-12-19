@@ -543,6 +543,16 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
+type WorkspaceMemberList = {
+    employeeCount: number;
+    policyOwner: string;
+};
+
 type FileLimitParams = {
     fileLimit: number;
 };
@@ -563,8 +573,16 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type CustomUnitRateParams = {
+    rate: number;
+};
+
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
+};
+
+type FlightLayoverParams = {
+    layover: string;
 };
 
 export type {
@@ -767,8 +785,12 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin,
+    WorkspaceMemberList,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     CompanyNameParams,
+    CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    FlightLayoverParams,
 };
