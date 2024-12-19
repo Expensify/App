@@ -598,6 +598,10 @@ type TripLengthTextParams = {
     days: number;
 };
 
+type EditDestinationSubtitleParams = {
+    destination: string;
+};
+
 type FlightLayoverParams = {
     layover: string;
 };
@@ -813,5 +817,6 @@ export type {
     FirstDayTextParams,
     LastDayTextParams,
     TripLengthTextParams,
+    EditDestinationSubtitleParams,
     FlightLayoverParams,
 };
