@@ -201,7 +201,7 @@ const readFileAsync: ReadFileAsync = (path, fileName, fileType = '') =>
             });
     });
 
-function processFormData(data: Record<string, unknown>, shouldRecreateReceipt = false): Promise<FormData> {
+function processFormData(data: Record<string, unknown>): Promise<FormData> {
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
@@ -211,7 +211,7 @@ function processFormData(data: Record<string, unknown>, shouldRecreateReceipt = 
                 return Promise.resolve();
             }
 
-            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT && shouldRecreateReceipt) {
+            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
                 const {uri: path = '', source} = data[key] as File;
 
                 console.debug('[dev] data[key]:', data[key]);
