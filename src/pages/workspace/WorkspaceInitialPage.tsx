@@ -455,7 +455,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         if (!currentUserPolicyExpenseChat?.reportID) {
                                             return;
                                         }
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP)
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID), CONST.NAVIGATION.TYPE.UP);
                                     }}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
