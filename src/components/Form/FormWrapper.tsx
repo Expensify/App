@@ -36,6 +36,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Callback to submit the form */
         onSubmit: () => void;
+
+        /** Whether the form is loading */
+        isLoading?: boolean;
     };
 
 function FormWrapper({
@@ -57,6 +60,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    isLoading = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -112,7 +116,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isDisabled={isSubmitDisabled}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                        isLoading={!!formState?.isLoading}
+                        isLoading={!!formState?.isLoading || isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
@@ -143,6 +147,7 @@ function FormWrapper({
             formState?.isLoading,
             shouldHideFixErrorsAlert,
             errorMessage,
+            isLoading,
             onSubmit,
             footerContent,
             onFixTheErrorsLinkPressed,
