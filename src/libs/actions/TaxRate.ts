@@ -290,7 +290,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
         .sort((a, b) => a.localeCompare(b))
         .at(0);
     const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
-    const customUnitID = distanceRateCustomUnit?.customUnitID ?? '-1';
+    const customUnitID = distanceRateCustomUnit?.customUnitID;
     const ratesToUpdate = Object.values(distanceRateCustomUnit?.rates ?? {}).filter(
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
     );
@@ -307,7 +307,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const failureRates: Record<string, NullishDeep<Rate>> = {};
 
     ratesToUpdate.forEach((rate) => {
-        const rateID = rate.customUnitRateID ?? '';
+        const rateID = rate.customUnitRateID;
         optimisticRates[rateID] = {
             attributes: {
                 taxRateExternalID: null,
@@ -343,11 +343,12 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: distanceRateCustomUnit && {
-                        [customUnitID]: {
-                            rates: optimisticRates,
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: optimisticRates,
+                            },
                         },
-                    },
                 },
             },
         ],
@@ -363,11 +364,12 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: distanceRateCustomUnit && {
-                        [customUnitID]: {
-                            rates: successRates,
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: successRates,
+                            },
                         },
-                    },
                 },
             },
         ],
@@ -387,11 +389,12 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
-                    customUnits: distanceRateCustomUnit && {
-                        [customUnitID]: {
-                            rates: failureRates,
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: failureRates,
+                            },
                         },
-                    },
                 },
             },
         ],
