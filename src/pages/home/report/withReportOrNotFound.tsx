@@ -5,6 +5,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {
@@ -66,8 +68,10 @@ export default function (
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
             const contentShown = React.useRef(false);
+            const wasReportAccessible = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
+            const canAccessReport = isReportLoaded && ReportUtils.canAccessReport(report, policies, betas);
 
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
@@ -83,6 +87,17 @@ export default function (
                 Report.openReport(props.route.params.reportID);
                 // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
+
+            // Track when we lose access to a previously accessible report
+            useEffect(() => {
+                if (canAccessReport) {
+                    wasReportAccessible.current = true;
+                } else if (wasReportAccessible.current && !canAccessReport && getIsNarrowLayout()) {
+                    // If we previously had access but lost it, reset to home on narrow layout devices
+                    // because only here we can be stuck on blank page or get infinite report skeleton
+                    Navigation.resetToHome();
+                }
+            }, [canAccessReport]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
