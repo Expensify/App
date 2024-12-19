@@ -7,7 +7,10 @@ NC='\033[0m'
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 
-if [[ "$IS_HYBRID_APP_REPO" == "true" && "$1" != "--new-dot" ]]; then
+# See if we should force standalone NewDot build
+NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
+
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     echo -e "${BLUE}Cleaning HybridApp project...${NC}"
     # Navigate to Mobile-Expensify repository, and clean
     cd Mobile-Expensify
