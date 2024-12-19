@@ -1,9 +1,16 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const CARLOS_EMAIL = 'cmartins@expensifail.com';
+const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -16,7 +23,7 @@ describe('PolicyUtils', () => {
                 (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
                 2,
             );
-            expect(PolicyUtils.getActivePolicies(policies, undefined)).toHaveLength(1);
+            expect(PolicyUtils.getActivePolicies(policies, undefined, false)).toHaveLength(1);
         });
     });
     describe('getRateDisplayValue', () => {
@@ -93,6 +100,58 @@ describe('PolicyUtils', () => {
                 const rate = PolicyUtils.getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
                 expect(rate).toEqual('0.1111');
             });
+        });
+    });
+    describe('getActivePolicies', () => {
+        beforeAll(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
+                },
+            });
+        });
+
+        beforeEach(() => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            return Onyx.clear().then(waitForBatchedUpdates);
+        });
+        it('should return empty array', () => {
+            // Given a user with a single archived paid policy.
+            const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: '',
+                },
+            };
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
+            // The result should be an empty array since we have no active policies.
+            expect(result.length).toBe(0);
+        });
+        it('should return array contains policy which has id = 1', () => {
+            // Given a user with only a paid policy.
+            const randomPolicy1 = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
+            const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: randomPolicy1,
+            };
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
+            // The result should contain the mock paid policy, since it is our only active paid policy.
+            expect(result).toContainEqual(randomPolicy1);
+        });
+        it('should return empty array', () => {
+            // Given a user with only one control workspace which is pending delete.
+            const policies = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+            const result = PolicyUtils.getActivePolicies(policies as OnyxCollection<Policy>, CARLOS_EMAIL, true);
+            // The result should be an empty array since there is only one policy which is pending deletion, so we have no active paid policies.
+            expect(result).toEqual([]);
         });
     });
 });
