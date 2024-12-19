@@ -547,4 +547,44 @@ describe('Unread Indicators', () => {
                 })
         );
     });
+
+    it('Move the new line indicator to the next message when the unread message is deleted', async () => {
+        let reportActions: OnyxEntry<ReportActions>;
+        const connection = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            callback: (val) => (reportActions = val),
+        });
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOption(0);
+
+        Report.addComment(REPORT_ID, 'Comment 1');
+
+        await waitForBatchedUpdates();
+
+        const firstNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+
+        if (firstNewReportAction) {
+            Report.markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
+
+            await waitForBatchedUpdates();
+
+            Report.addComment(REPORT_ID, 'Comment 2');
+
+            await waitForBatchedUpdates();
+
+            Report.deleteReportComment(REPORT_ID, firstNewReportAction);
+
+            await waitForBatchedUpdates();
+        }
+
+        const secondNewReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
+
+        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(1);
+        const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
+        expect(reportActionID).toBe(secondNewReportAction?.reportActionID);
+
+        Onyx.disconnect(connection);
+    });
 });
