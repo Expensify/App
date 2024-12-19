@@ -296,7 +296,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID = '', reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
             const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
             return `${baseRoute}${referrerParam}` as const;
@@ -698,7 +698,7 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID = '', backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
@@ -927,7 +927,7 @@ const ROUTES = {
     },
     WORKSPACE_MEMBERS: {
         route: 'settings/workspaces/:policyID/members',
-        getRoute: (policyID = '') => `settings/workspaces/${policyID}/members` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
     WORKSPACE_MEMBERS_IMPORT: {
         route: 'settings/workspaces/:policyID/members/import',
@@ -939,7 +939,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
-        getRoute: (policyID = '', newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
+        getRoute: (policyID: string, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
             let queryParams = '';
             if (newConnectionName) {
                 queryParams += `?newConnectionName=${newConnectionName}`;
@@ -976,7 +976,7 @@ const ROUTES = {
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
-        getRoute: (policyID = '') => `settings/workspaces/${policyID}/categories` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
     },
     WORKSPACE_CATEGORY_SETTINGS: {
         route: 'settings/workspaces/:policyID/category/:categoryName',
@@ -1041,7 +1041,7 @@ const ROUTES = {
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'settings/workspaces/:policyID/more-features',
-        getRoute: (policyID = '') => `settings/workspaces/${policyID}/more-features` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',

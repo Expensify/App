@@ -4535,7 +4535,7 @@ function buildOptimisticTaskCommentReportAction(
     taskTitle: string,
     taskAssigneeAccountID: number,
     text: string,
-    parentReportID: string,
+    parentReportID: string | undefined,
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
