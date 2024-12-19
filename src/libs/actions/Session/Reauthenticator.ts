@@ -10,11 +10,8 @@ let timer: NodeJS.Timeout;
 // the delay before requesting a reauthentication once activated
 // we think in that timing a "natural" reauthentication could happen (a session expired in the carousel is the only exception)
 // and we wish not to overlap and make a double reauthentication
-const TIMING_BEFORE_REAUTHENTICATION_MS = 5000; // 5s
-// the delay before requesting a reauthentication once activated
-// used in cases we know a "natural" reauthentification wont happen (example : in the carousel)
-// we can then reautheticate quicker as we will not be overlapping with any other reauthentication
-const TIMING_BEFORE_QUICK_REAUTHENTICATION_MS = 10; // 10ms
+const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
+
 
 // We subscribe to network's online/offline status
 Onyx.connect({
@@ -30,6 +27,9 @@ Onyx.connect({
         }
         setTimeout(() => {
             isOffline = !!network.shouldForceOffline || !!network.isOffline;
+            if (isOffline) {
+                console.log(`@51888 reauthenticator is Offline`);
+            }
         }, 500);
     },
 });
@@ -38,9 +38,20 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
+        if (value?.creationDate) {
+            console.log(
+                `@51888 reauthenticator new session received ${value?.authToken?.substring(0, 10)} creationDate ${new Date(
+                    value?.creationDate,
+                ).toISOString()} , active ${active}  isOffline? ${isOffline} currentActiveSession  ${currentActiveSession?.authToken?.substring(0, 10)} creationDate ${
+                    currentActiveSession?.creationDate ? new Date(currentActiveSession?.creationDate).toISOString() : ''
+                }`,
+            );
+        }
         if (!value || isSameSession(value) || !active) {
+            console.log(`@51888 reauthenticator new session received but not doing anything`);
             return;
         }
+        console.log(`@51888 reauthenticator new session received, deactivating`);
         deactivate();
     },
 });
@@ -50,6 +61,7 @@ function isSameSession(session: Session): boolean {
 }
 
 function deactivate() {
+    console.log(`@51888 reauthenticator deactivating`);
     active = false;
     currentActiveSession = {};
     clearInterval(timer);
@@ -61,20 +73,23 @@ function deactivate() {
  * @param session the current session
  * @returns
  */
-function activate(session: Session, useQuickMode: boolean) {
+function activate(session: Session) {
     if (!session || isSameSession(session) || isOffline) {
+        console.log(`@51888 reauthenticator activation requested but already active or offline`);
         return;
-    }
+    }    
+    console.log(`@51888 reauthenticator activating`);
     currentActiveSession = session;
     active = true;
     // no need to Timers.register()
-    timer = setTimeout(tryReauthenticate, useQuickMode ? TIMING_BEFORE_QUICK_REAUTHENTICATION_MS : TIMING_BEFORE_REAUTHENTICATION_MS);
+    timer = setTimeout(tryReauthenticate, TIMING_BEFORE_REAUTHENTICATION_MS);
 }
 
 function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
+    console.log(`@51888 reauthenticator reauthenticating at ${new Date().toISOString()}`);
     reauthenticate();
 }
 

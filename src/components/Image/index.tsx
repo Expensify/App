@@ -13,8 +13,10 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
-    // we just need to know this value once !!!!! @51888
-    const isUsedInCarousel = !!useContext(AttachmentCarouselPagerContext)?.pagerRef;
+
+    if (isAuthTokenRequired && session?.creationDate) {
+        console.log(`@51888 image initialized with session  ${session.authToken?.substring(0, 10)} creationDate ${new Date(session.creationDate).toISOString()} `);
+    }
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
@@ -64,13 +66,21 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                 // most likely a reauthentication happens
                 // but unless the calculated source is different from the previous, the image wont reload
                 if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
+                    console.log(
+                        `@51888 setting validSessionAge to accepted session ${session.authToken?.substring(0, 10)} creationDate ${new Date(
+                            session.creationDate,
+                        ).toISOString()}} received less than 60s ago or newer from 2H`,
+                    );
                     return session.creationDate;
                 }
+                console.log(`@51888 setting validSessionAge to unchanged`);
                 return previousSessionAge.current;
             }
             if (isExpiredSession(session.creationDate)) {
+                console.log(`@51888 setting validSessionAge to now as session is expired`);
                 return new Date().getTime();
             }
+            console.log(`@51888 setting validSessionAge to current session ${session.authToken?.substring(0, 10)} ${new Date(session.creationDate).toISOString()}`);
             return session.creationDate;
         }
         return undefined;
@@ -80,6 +90,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             return;
         }
         previousSessionAge.current = validSessionAge;
+        console.log(`@51888 useEffect setting previousSessionAge to ${validSessionAge ? new Date(validSessionAge).toISOString() : validSessionAge}`);
     });
 
     /**
@@ -96,6 +107,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
             const authToken = session?.encryptedAuthToken ?? null;
             if (isAuthTokenRequired && authToken) {
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
+                    console.log(`@51888 setting source with token and session ${session.authToken?.substring(0, 10)} creationDate ${new Date(session.creationDate).toISOString()} `);
                     // session valid
                     return {
                         ...propsSource,
@@ -104,8 +116,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
                         },
                     };
                 }
+                console.log(`@51888 source as spinner `);
                 if (session) {
-                    activateReauthenticator(session, isUsedInCarousel);
+                    activateReauthenticator(session);
                 }
                 return undefined;
             }
@@ -120,7 +133,11 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         if (!isAuthTokenRequired || source !== undefined) {
             return;
         }
-        forwardedProps?.waitForSession?.();
+        if (forwardedProps?.waitForSession) {
+            forwardedProps.waitForSession();
+            console.log(`@51888 forwardedProps.waitForSession() `);
+        }
+        //forwardedProps?.waitForSession?.();
     }, [source, isAuthTokenRequired, forwardedProps]);
 
     /**

@@ -55,6 +55,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //
     const attachmentSourceAttribute =
         htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
+    console.log(`@51888 htmlAttribs `, htmlAttribs);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified

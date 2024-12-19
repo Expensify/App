@@ -97,7 +97,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                     MainQueue.replay(request);
                     return data;
                 }
-
+                console.log(`@51888 middleware reauthentication has reauthenticate at ${new Date().toISOString()}`);                
                 return reauthenticate(request?.commandName)
                     .then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
@@ -134,6 +134,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             return data;
         })
         .catch((error) => {
+            console.log(`@51888 middleware reauthenttication failed reauthenticate`);
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
             if (isFromSequentialQueue) {
                 throw error;

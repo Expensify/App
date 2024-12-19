@@ -43,7 +43,7 @@ type LightboxProps = {
 function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-
+    console.log(`@51888 lightbox uri ${uri}`);
     /**
      * React hooks must be used in the render function of the component at top-level and unconditionally.
      * Therefore, in order to provide a default value for "isPagerScrolling" if the "AttachmentCarouselPagerContext" is not available,
@@ -235,6 +235,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                         setLightboxImageLoaded(true);
                                     }}
                                     waitForSession={() => {
+                                        console.log(`@51888 lightbox waitForSession`);
                                         // only active lightbox should call this function
                                         if (!isActive || isFallbackVisible || !isLightboxVisible || isLightboxImageLoaded) {
                                             return;
