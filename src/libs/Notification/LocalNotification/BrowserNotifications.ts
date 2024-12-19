@@ -6,6 +6,8 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound from '@libs/Sound';
+import {SOUNDS} from '@libs/Sound/BaseSound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
@@ -57,6 +59,11 @@ function push(
     canUseBrowserNotifications().then((canUseNotifications) => {
         if (!canUseNotifications) {
             return;
+        }
+
+        // Play notification sound if not silent
+        if (!silent) {
+            playSound(SOUNDS.RECEIVE);
         }
 
         // We cache these notifications so that we can clear them later
@@ -122,7 +129,7 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick, true);
+        push(title, body, icon, data, onClick, false);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
