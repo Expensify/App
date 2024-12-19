@@ -73,11 +73,12 @@ function setPlaidEvent(eventName: string | null) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true) {
+function openPersonalBankAccountSetupView(exitReportID?: string, isUserValidated = true, isInvoiceBankAccount = false) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
+        Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isInvoiceBankAccount});
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
         }
@@ -196,7 +197,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount) {
+function addPersonalBankAccount(account: PlaidBankAccount, isInvoiceBankAccount?: boolean) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -206,6 +207,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
+        isInvoiceBankAccount,
     };
 
     const onyxData: OnyxData = {

@@ -49,9 +49,9 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, personalBankAccount?.isInvoiceBankAccount);
         }
-    }, [plaidData, selectedPlaidAccountId]);
+    }, [personalBankAccount?.isInvoiceBankAccount, plaidData?.bankAccounts, selectedPlaidAccountId]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
