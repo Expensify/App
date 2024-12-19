@@ -8697,10 +8697,12 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const iouActionList = getIOUActionForTransactions(params.transactionIDList, params.reportID);
     const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
-    const orderedTransactionIDList = iouActionList.map((action) => {
-        const message = ReportActionsUtils.getOriginalMessage(action);
-        return message?.IOUTransactionID ?? '';
-    });
+    const orderedTransactionIDList = iouActionList
+        .map((action) => {
+            const message = ReportActionsUtils.getOriginalMessage(action);
+            return message?.IOUTransactionID;
+        })
+        .filter(Boolean) as string[];
 
     const optimisticHoldActions: OnyxUpdate[] = [];
     const failureHoldActions: OnyxUpdate[] = [];
