@@ -16,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
-import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -171,8 +170,6 @@ function ScreenWrapper(
         return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
     }, [route?.params]);
 
-    const initVisualViewport = Browser.isSafari() && window.visualViewport ? window.visualViewport.height : undefined;
-    const [isMaxHeightReady, setIsMaxHeightReady] = useState(!Browser.isSafari());
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
     });
@@ -195,26 +192,6 @@ function ScreenWrapper(
             onPanResponderGrant: Keyboard.dismiss,
         }),
     ).current;
-
-    useEffect(() => {
-        if (!Browser.isMobileSafari()) {
-            return;
-        }
-
-        const handleViewportResize = () => {
-            if (!window.visualViewport) {
-                return;
-            }
-
-            setIsMaxHeightReady(window.visualViewport.height === initVisualViewport);
-        };
-
-        const removeViewportResizeListener = addViewportResizeListener(handleViewportResize);
-
-        return () => {
-            removeViewportResizeListener();
-        };
-    }, [initVisualViewport]);
 
     useEffect(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
@@ -299,12 +276,7 @@ function ScreenWrapper(
                     {...keyboardDismissPanResponder.panHandlers}
                 >
                     <KeyboardAvoidingView
-                        style={[
-                            styles.w100,
-                            styles.h100,
-                            {maxHeight: isMaxHeightReady ? maxHeight : undefined},
-                            isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {},
-                        ]}
+                        style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
                     >
