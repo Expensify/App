@@ -13,7 +13,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
-    // we just need to know this value once !!!!! @51888
+    // we just need to know this value once !!!!! 51888
     const isUsedInCarousel = !!useContext(AttachmentCarouselPagerContext)?.pagerRef;
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
