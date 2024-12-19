@@ -13,4 +13,5 @@ export default {
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
+    SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
 } as const;
