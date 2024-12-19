@@ -73,7 +73,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
     const {type, inputQuery: originalInputQuery} = queryJSON;

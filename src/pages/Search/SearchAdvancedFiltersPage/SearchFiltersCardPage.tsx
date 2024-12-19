@@ -28,83 +28,97 @@ type CardFilterItem = Partial<OptionData> & {bankIcon?: BankIcon; lastFourPAN?: 
 
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
 
-function getReapeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
-    const repeatingBanks: string[] = [];
-    const banks: string[] = [];
-    const handleRepeatingBankNames = (bankName: string) => {
-        if (banks.includes(bankName) && !repeatingBanks.includes(bankName)) {
-            repeatingBanks.push(bankName);
-        } else {
-            banks.push(bankName);
+function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
+    const bankFrequency: Record<string, number> = {};
+    for (const key of workspaceCardFeedsKeys) {
+        // Example: "cards_18755165_Expensify Card" -> "Expensify Card"
+        const bankName = key.split('_').at(2);
+        if (bankName) {
+            bankFrequency[bankName] = (bankFrequency[bankName] || 0) + 1;
         }
-    };
-
-    workspaceCardFeedsKeys.forEach((cardFeedKey) => {
-        const bankName = cardFeedKey.split('_').at(2);
-        if (!bankName) {
-            return;
-        }
-
-        handleRepeatingBankNames(bankName);
-    });
-    Object.values(domainFeedsData).forEach((domainFeed) => {
-        handleRepeatingBankNames(domainFeed.bank);
-    });
-    return repeatingBanks;
+    }
+    for (const domainFeed of Object.values(domainFeedsData)) {
+        bankFrequency[domainFeed.bank] = (bankFrequency[domainFeed.bank] || 0) + 1;
+    }
+    return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
 }
 
-function buildIndividualCardsData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>, userCardList: CardList, selectedCards: string[], iconStyles: StyleProp<ViewStyle>) {
-    const userAssignedCards = Object.values(userCardList ?? {}).map((card) => {
-        const isSelected = selectedCards.includes(card.cardID.toString());
-        const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
-        const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
-        const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+function createIndividualCardFilterItem(card: Card, selectedCards: string[], iconStyles: StyleProp<ViewStyle>) {
+    const isSelected = selectedCards.includes(card.cardID.toString());
+    const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
+    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+    const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
 
-        return {
-            lastFourPAN: card.lastFourPAN,
-            isVirtual: card?.nameValuePairs?.isVirtual,
-            text,
-            keyForList: card.cardID.toString(),
-            isSelected,
-            bankIcon: {
-                icon,
-                iconWidth: variables.cardIconWidth,
-                iconHeight: variables.cardIconHeight,
-                iconStyles,
-            },
-            isCardFeed: false,
-        };
-    });
+    return {
+        lastFourPAN: card.lastFourPAN,
+        isVirtual: card?.nameValuePairs?.isVirtual,
+        text,
+        keyForList: card.cardID.toString(),
+        isSelected,
+        bankIcon: {
+            icon,
+            iconWidth: variables.cardIconWidth,
+            iconHeight: variables.cardIconHeight,
+            iconStyles,
+        },
+        isCardFeed: false,
+    };
+}
+
+function buildIndividualCardsData(
+    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
+    userCardList: CardList,
+    selectedCards: string[],
+    iconStyles: StyleProp<ViewStyle>,
+): CardFilterItem[] {
+    const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {}).map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
-    const allWorkspaceCards = Object.values(workspaceCardFeeds)
+    const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
                 .filter((card) => card && CardUtils.isCard(card) && !userCardList?.[card.cardID])
-                .map((card) => {
-                    const isSelected = selectedCards.includes(card.cardID.toString());
-                    const icon = CardUtils.getCardFeedIcon(card?.bank as CompanyCardFeed);
-                    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
-                    const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
-
-                    return {
-                        lastFourPAN: card.lastFourPAN,
-                        isVirtual: card?.nameValuePairs?.isVirtual,
-                        text,
-                        keyForList: card.cardID.toString(),
-                        isSelected,
-                        bankIcon: {
-                            icon,
-                            iconWidth: variables.cardIconWidth,
-                            iconHeight: variables.cardIconHeight,
-                            iconStyles,
-                        },
-                        isCardFeed: false,
-                    };
-                });
+                .map((card) => createIndividualCardFilterItem(card, selectedCards, iconStyles));
         });
     return [...userAssignedCards, ...allWorkspaceCards];
+}
+
+function createCardFeedItem({
+    bank,
+    cardFeedLabel,
+    keyForList,
+    correspondingCardIDs,
+    selectedCards,
+    iconStyles,
+    translate,
+}: {
+    bank: string;
+    cardFeedLabel: string | undefined;
+    keyForList: string;
+    correspondingCardIDs: string[];
+    selectedCards: string[];
+    iconStyles: StyleProp<ViewStyle>;
+    translate: LocaleContextProps['translate'];
+}) {
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
+    const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+    const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
+
+    const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
+    return {
+        text,
+        keyForList,
+        isSelected,
+        bankIcon: {
+            icon,
+            iconWidth: variables.cardIconWidth,
+            iconHeight: variables.cardIconHeight,
+            iconStyles,
+        },
+        isCardFeed: true,
+        correspondingCards: correspondingCardIDs,
+    };
 }
 
 function buildCardFeedsData(
@@ -113,33 +127,25 @@ function buildCardFeedsData(
     selectedCards: string[],
     iconStyles: StyleProp<ViewStyle>,
     translate: LocaleContextProps['translate'],
-) {
-    const repeatingBanks = getReapeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
-    const domainFeeds = Object.values(domainFeedsData).map((domainFeed) => {
+): CardFilterItem[] {
+    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
+
+    const domainFeeds: CardFilterItem[] = Object.values(domainFeedsData).map((domainFeed) => {
         const {domainName, bank, correspondingCardIDs} = domainFeed;
         const isBankRepeating = repeatingBanks.includes(bank);
-        const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
-        const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? domainName : undefined});
 
-        const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
-
-        const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
-        return {
-            text,
+        return createCardFeedItem({
+            bank,
+            correspondingCardIDs,
+            iconStyles,
+            cardFeedLabel: isBankRepeating ? domainName : undefined,
+            translate,
             keyForList: `${domainName}-${bank}`,
-            isSelected,
-            bankIcon: {
-                icon,
-                iconWidth: variables.cardIconWidth,
-                iconHeight: variables.cardIconHeight,
-                iconStyles,
-            },
-            isCardFeed: true,
-            correspondingCards: correspondingCardIDs,
-        };
+            selectedCards,
+        });
     });
 
-    const workspaceFeeds = Object.entries(workspaceCardFeeds)
+    const workspaceFeeds: CardFilterItem[] = Object.entries(workspaceCardFeeds)
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
         .map(([cardFeedKey, cardFeed]) => {
             const representativeCard = Object.values(cardFeed ?? {}).find((cardFeedItem) => CardUtils.isCard(cardFeedItem));
@@ -148,28 +154,19 @@ function buildCardFeedsData(
             }
             const {domainName, bank} = representativeCard;
             const isBankRepeating = repeatingBanks.includes(bank);
-            const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils.getCardFeedName(bank as CompanyCardFeed);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = PolicyUtils.getPolicy(policyID?.toUpperCase());
-            const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined});
             const correspondingCardIDs = Object.keys(cardFeed ?? {}).filter((cardKey) => cardKey !== 'cardList');
 
-            const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
-
-            const icon = CardUtils.getCardFeedIcon(bank as CompanyCardFeed);
-            return {
-                text,
+            return createCardFeedItem({
+                bank,
+                correspondingCardIDs,
+                iconStyles,
+                cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined,
+                translate,
                 keyForList: cardFeedKey,
-                isSelected,
-                bankIcon: {
-                    icon,
-                    iconWidth: variables.cardIconWidth,
-                    iconHeight: variables.cardIconHeight,
-                    iconStyles,
-                },
-                isCardFeed: true,
-                correspondingCards: correspondingCardIDs,
-            };
+                selectedCards,
+            });
         })
         .filter((feed) => feed) as CardFilterItem[];
 
