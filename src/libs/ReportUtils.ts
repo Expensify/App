@@ -4572,6 +4572,32 @@ function buildOptimisticTaskCommentReportAction(
     return reportAction;
 }
 
+function buildOptimisticSelfDMReport(created: string): Report {
+    return {
+        reportID: generateReportID(),
+        participants: {
+            [currentUserAccountID ?? '-1']: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
+            },
+        },
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        isOwnPolicyExpenseChat: false,
+        isPinned: true,
+        lastActorAccountID: 0,
+        lastMessageTranslationKey: '',
+        lastMessageHtml: '',
+        lastMessageText: undefined,
+        lastReadTime: created,
+        lastVisibleActionCreated: created,
+        ownerAccountID: currentUserAccountID,
+        reportName: '',
+        stateNum: 0,
+        statusNum: 0,
+        writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    };
+}
+
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
@@ -8869,6 +8895,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
+    buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
 };
 
