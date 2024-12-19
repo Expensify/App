@@ -25,7 +25,6 @@ function ShareRootPage() {
     const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
 
     const handleProcessFiles = useCallback(() => {
-        setIsFileScannable(false);
         ShareActionHandlerModule.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as TempShareFile);
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
@@ -38,8 +37,12 @@ function ShareRootPage() {
                 ]);
             }
             if (tempFile) {
-                if (tempFile.mimeType && imageFileFormats.includes(tempFile.mimeType)) {
-                    setIsFileScannable(true);
+                if (tempFile.mimeType) {
+                    if (imageFileFormats.includes(tempFile.mimeType)) {
+                        setIsFileScannable(true);
+                    } else {
+                        setIsFileScannable(false);
+                    }
                 }
 
                 ShareActions.addTempShareFile(tempFile);
