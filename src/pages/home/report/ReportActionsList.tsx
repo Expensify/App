@@ -167,8 +167,9 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const [pendingBottomScroll, setPendingBottomScroll] = useState(false);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     useEffect(() => {
@@ -183,7 +184,7 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID ?? '-1';
+    const linkedReportActionID = route?.params?.reportActionID ?? CONST.DEFAULT_NUMBER_ID;
 
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
@@ -413,26 +414,51 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const isNewMessageDisplayed = useCallback(() => {
+        const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
+        const lastPrevAction = prevActions.at(0);
+        return lastAction?.reportActionID !== lastPrevAction?.reportActionID;
+    }, [prevSortedVisibleReportActionsObjects, lastAction]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            InteractionManager.runAfterInteractions(() => {
-                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-                // they are now in the list.
-                if (!isFromCurrentUser) {
+            // InteractionManager.runAfterInteractions(() => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || scrollingVerticalOffset.current === 0) {
+                return;
+            }
+            if (!hasNewestReportActionRef.current) {
+                if (isInNarrowPaneModal) {
                     return;
                 }
-                if (!hasNewestReportActionRef.current) {
-                    if (isInNarrowPaneModal) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                    return;
-                }
-                reportScrollManager.scrollToBottom();
-            });
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                return;
+            }
+            if (!isNewMessageDisplayed()) {
+                setPendingBottomScroll(true);
+            } else {
+                InteractionManager.runAfterInteractions(() => {
+                    reportScrollManager.scrollToBottom();
+                });
+            }
         },
-        [isInNarrowPaneModal, reportScrollManager, report.reportID],
+        [isInNarrowPaneModal, reportScrollManager, report.reportID, isNewMessageDisplayed],
     );
+
+    useEffect(() => {
+        if (!pendingBottomScroll || scrollingVerticalOffset.current === 0) {
+            return;
+        }
+
+        if (isNewMessageDisplayed()) {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+                setPendingBottomScroll(false);
+            });
+        }
+    }, [pendingBottomScroll, prevSortedVisibleReportActionsObjects, reportScrollManager, isNewMessageDisplayed]);
+
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
