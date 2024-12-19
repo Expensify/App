@@ -28,17 +28,30 @@ function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
 function canUseCombinedTrackSubmit(): boolean {
     // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
     const session = SessionUtils.getSession();
-    return isAccountIDEven(session?.accountID ?? -1);
+    return isAccountIDEven(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 }
 
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
+// TEMPORARY BETA TO HIDE PRODUCT TRAINING TOOLTIP AND MIGRATE USER WELCOME MODAL
+function shouldShowProductTrainingElements(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PRODUCT_TRAINING) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
 function canUseLinkPreviews(): boolean {
+    return false;
+}
+
+/**
+ * Workspace downgrade is temporarily disabled
+ * API is being integrated in this GH issue https://github.com/Expensify/App/issues/51494
+ */
+function canUseWorkspaceDowngrade() {
     return false;
 }
 
@@ -50,4 +63,6 @@ export default {
     canUseCombinedTrackSubmit,
     canUseCategoryAndTagApprovers,
     canUsePerDiem,
+    canUseWorkspaceDowngrade,
+    shouldShowProductTrainingElements,
 };
