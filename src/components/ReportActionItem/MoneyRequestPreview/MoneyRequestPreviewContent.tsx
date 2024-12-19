@@ -203,7 +203,7 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (TransactionUtils.isPending(transaction)) {
+        if (TransactionUtils.hasPendingUI(transaction)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
