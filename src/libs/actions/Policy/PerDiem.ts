@@ -234,7 +234,9 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
         } else {
             const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
             newCustomUnit.rates[rateID].subRates = newSubRates;
-            customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
+            if (customUnitOnyxUpdate.rates[rateID]) {
+                customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
+            }
         }
     }
     return {newCustomUnit, customUnitOnyxUpdate};

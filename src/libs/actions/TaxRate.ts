@@ -303,8 +303,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
 
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
 
     ratesToUpdate.forEach((rate) => {
         const rateID = rate.customUnitRateID ?? '';
@@ -552,7 +552,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                     };
                 }
                 return rates;
-            }, {} as Record<string, Rate>),
+            }, {} as Record<string, NullishDeep<Rate>>),
         },
     };
     const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
