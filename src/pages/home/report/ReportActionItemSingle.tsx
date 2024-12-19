@@ -102,13 +102,13 @@ function ReportActionItemSingle({
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
-
+    const isDelegateActor = action?.delegateAccountID && personalDetails?.[action?.delegateAccountID];
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
-    } else if (action?.delegateAccountID && personalDetails?.[action?.delegateAccountID]) {
+    } else if (isDelegateActor) {
         displayName = delegatePersonalDetails?.displayName ?? '';
         avatarSource = delegatePersonalDetails?.avatar;
         avatarId = delegatePersonalDetails?.accountID;
@@ -226,7 +226,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(icon.id ?? -1)}
+                accountID={Number(isDelegateActor && !isWorkspaceActor ? actorAccountID : icon.id ?? -1)}
                 delegateAccountID={Number(action?.delegateAccountID ?? -1)}
                 icon={icon}
             >
@@ -297,7 +297,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!action?.delegateAccountID && !isReportPreviewAction && (
+                {!!action?.delegateAccountID && !isReportPreviewAction && !!delegatePersonalDetails && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
