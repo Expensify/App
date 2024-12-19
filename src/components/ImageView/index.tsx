@@ -238,6 +238,11 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    waitForSession={() => {
+                        setIsLoading(true);
+                        setZoomScale(0);
+                        setIsZoomed(false);
+                    }}
                     onError={onError}
                 />
             </PressableWithoutFeedback>
