@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -39,6 +39,7 @@ function ReportVirtualCardFraudPage({
     const loginData = loginList?.[primaryLogin];
 
     const virtualCard = cardList?.[cardID];
+    const virtualCardRef = useRef(virtualCard);
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
     const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
 
@@ -81,7 +82,7 @@ function ReportVirtualCardFraudPage({
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
 
-    if (isEmptyObject(virtualCard)) {
+    if (isEmptyObject(virtualCardRef?.current)) {
         return <NotFoundPage />;
     }
 
@@ -106,7 +107,7 @@ function ReportVirtualCardFraudPage({
                     sendValidateCode={sendValidateCode}
                     validateError={validateError}
                     clearError={() => {
-                        Card.clearCardListErrors(virtualCard.cardID);
+                        Card.clearCardListErrors(virtualCard?.cardID ?? 0);
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
