@@ -11,12 +11,12 @@ type Props = {
 
 function UpgradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
-    const hasOtherControlWorkspace = PolicyUtils.hasOtherControlWorkspace(policyID);
+    const hasOtherControlWorkspaces = PolicyUtils.hasOtherControlWorkspaces(policyID);
 
     return (
         <ConfirmationPage
             heading={translate('workspace.downgrade.completed.headline')}
-            description={hasOtherControlWorkspace ? translate('workspace.downgrade.completed.description') : undefined}
+            description={hasOtherControlWorkspaces ? translate('workspace.downgrade.completed.description') : undefined}
             illustration={MushroomTopHat}
             shouldShowButton
             onButtonPress={onConfirmDowngrade}

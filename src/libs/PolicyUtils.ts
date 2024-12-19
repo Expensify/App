@@ -1160,8 +1160,8 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
 }
 
 function hasOtherControlWorkspace(currentPolicyID: string) {
-    const hasOtherControlWorkspace = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy));
-    return hasOtherControlWorkspace.length > 0;
+    const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
+    return otherControlWorkspaces.length > 0;
 }
 
 export {
