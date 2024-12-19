@@ -25,6 +25,7 @@ import Bell from '@assets/images/bell.svg';
 import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Binoculars from '@assets/images/binoculars.svg';
+import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
@@ -186,6 +187,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -412,4 +414,6 @@ export {
     Star,
     QBDSquare,
     GalleryNotFound,
+    Train,
+    boltSlash,
 };
