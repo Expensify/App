@@ -10,8 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
-import {fetchSAMLUrl} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +27,7 @@ function SAMLSignInPage() {
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
         if (!credentials?.login) {
-            handleError(translate('common.error.email'), true);
+            handleSAMLLoginError(translate('common.error.email'), true);
             return;
         }
 
@@ -41,16 +40,16 @@ function SAMLSignInPage() {
         body.append('email', credentials.login);
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
-        fetchSAMLUrl(body)
+        postSAMLLogin(body)
             .then((response) => {
                 if (!response || !response.url) {
-                    handleError(translate('common.error.login'));
+                    handleSAMLLoginError(translate('common.error.login'), false);
                     return;
                 }
                 setSAMLUrl(response.url);
             })
             .catch((error: Error) => {
-                handleError(error.message ?? translate('common.error.login'));
+                handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
             });
     }, [credentials?.login, SAMLUrl, translate]);
 
@@ -85,15 +84,6 @@ function SAMLSignInPage() {
         },
         [credentials?.login, shouldShowNavigation, account?.isLoading],
     );
-
-    function handleError(errorMessage: string, cleanSignInData = false) {
-        if (cleanSignInData) {
-            Session.clearSignInData();
-        }
-
-        Session.setAccountError(errorMessage);
-        Navigation.goBack(ROUTES.HOME);
-    }
 
     return (
         <ScreenWrapper
