@@ -69,6 +69,7 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
+    FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
@@ -192,7 +193,10 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
+    WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -478,8 +482,13 @@ const translations = {
         links: 'Links',
         days: 'days',
         rename: 'Rename',
+        address: 'Address',
+        hourAbbreviation: 'h',
+        minuteAbbreviation: 'm',
+        skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
+        validate: 'Validate',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -492,6 +501,13 @@ const translations = {
         please: 'Please',
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
+    },
+    contact: {
+        importContacts: 'Import contacts',
+        importContactsTitle: 'Import your contacts',
+        importContactsText: 'Import contacts from your phone so your favorite people are always a tap away.',
+        importContactsExplanation: 'so your favorite people are always a tap away.',
+        importContactsNativeText: 'Just one more step! Give us the green light to import your contacts.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -647,6 +663,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        tooltip: {
+            title: 'Get started!',
+            subtitle: ' Submit your first expense',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
@@ -833,6 +853,10 @@ const translations = {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -1226,6 +1250,7 @@ const translations = {
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
+            simulatePoorConnection: 'Simulate poor internet connection',
             simulatFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
@@ -1753,6 +1778,11 @@ const translations = {
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
+        peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        joinAWorkspace: 'Join a workspace',
+        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Please make a selection to continue.',
         purpose: {
@@ -1835,7 +1865,10 @@ const translations = {
         toUnblock: ' to unblock your login.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
+        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+        validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -2434,9 +2467,50 @@ const translations = {
             error: 'You must accept the Terms & Conditions for travel to continue',
         },
         flight: 'Flight',
+        flightDetails: {
+            passenger: 'Passenger',
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>You have a <strong>${layover} layover</strong> before this flight</muted-text-label>`,
+            takeOff: 'Take-off',
+            landing: 'Landing',
+            seat: 'Seat',
+            class: 'Cabin Class',
+            recordLocator: 'Record locator',
+        },
         hotel: 'Hotel',
+        hotelDetails: {
+            guest: 'Guest',
+            checkIn: 'Check-in',
+            checkOut: 'Check-out',
+            roomType: 'Room type',
+            cancellation: 'Cancellation policy',
+            cancellationUntil: 'Free cancellation until',
+            confirmation: 'Confirmation number',
+        },
         car: 'Car',
+        carDetails: {
+            rentalCar: 'Car rental',
+            pickUp: 'Pick-up',
+            dropOff: 'Drop-off',
+            driver: 'Driver',
+            carType: 'Car type',
+            cancellation: 'Cancellation policy',
+            cancellationUntil: 'Free cancellation until',
+            confirmation: 'Confirmation number',
+        },
+        train: 'Rail',
+        trainDetails: {
+            passenger: 'Passenger',
+            departs: 'Departs',
+            arrives: 'Arrives',
+            coachNumber: 'Coach number',
+            seat: 'Seat',
+            fareDetails: 'Fare details',
+            confirmation: 'Confirmation number',
+        },
         viewTrip: 'View trip',
+        modifyTrip: 'Modify trip',
+        tripSupport: 'Trip support',
+        tripDetails: 'Trip details',
         viewTripDetails: 'View trip details',
         trip: 'Trip',
         trips: 'Trips',
@@ -2539,6 +2613,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
@@ -2765,6 +2840,10 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
+        },
+        workspaceList: {
+            joinNow: 'Join now',
+            askToJoin: 'Ask to join',
         },
         xero: {
             organization: 'Xero organization',
@@ -4289,6 +4368,19 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
+            commonFeatures: {
+                title: 'Upgrade to the Control plan',
+                note: 'Unlock our most powerful features, including:',
+                benefits: {
+                    note: 'The Control plan starts at $9 per active member per month.',
+                    learnMore: 'Learn more',
+                    pricing: 'about our plans and pricing.',
+                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -4391,6 +4483,25 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+        },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'For teams looking to automate their processes.',
+                },
+                corporate: {
+                    label: 'Control',
+                    description: 'For organizations with advanced requirements.',
+                },
+            },
+            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
+            subscriptionLink: 'plan types and pricing help page',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+                other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+            }),
+            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {
@@ -4546,6 +4657,7 @@ const translations = {
             },
         },
         saveSearch: 'Save search',
+        saveSearchTooltipText: 'You can rename your saved search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
@@ -5099,7 +5211,7 @@ const translations = {
         tryAgain: 'Try again',
     },
     systemMessage: {
-        mergedWithCashTransaction: 'matched a receipt to this transaction.',
+        mergedWithCashTransaction: 'matched a receipt to this transaction',
     },
     subscription: {
         authenticatePaymentCard: 'Authenticate payment card',
@@ -5445,25 +5557,6 @@ const translations = {
             chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
             scanReceipt: '<strong>Scan receipts</strong> and get paid back',
             crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
-        },
-    },
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: 'Get started',
-            part2: ' here!',
-        },
-        saveSearchTooltip: {
-            part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        quickActionButton: {
-            part1: 'Quick action!',
-            part2: ' Just a tap away',
-        },
-        workspaceChatCreate: {
-            part1: 'Submit your',
-            part2: ' expenses',
-            part3: ' here!',
         },
     },
 };
