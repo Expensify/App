@@ -34,13 +34,13 @@ type Subrate = {
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Name of the rate */
-        name: string;
+        name?: string;
 
         /** Amount to be reimbursed per unit */
-        rate: number;
+        rate?: number;
 
         /** Currency used to pay the rate */
-        currency: string;
+        currency?: string;
 
         /** Generated ID to identify the rate */
         customUnitRateID: string;
