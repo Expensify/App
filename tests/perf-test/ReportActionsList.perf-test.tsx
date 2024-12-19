@@ -97,7 +97,6 @@ function ReportActionsListWrapper() {
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
                         transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
-                        reportActions={reportActions}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
