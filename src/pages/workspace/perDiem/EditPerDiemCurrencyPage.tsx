@@ -25,7 +25,7 @@ type EditPerDiemCurrencyPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
