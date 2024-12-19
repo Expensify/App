@@ -29,9 +29,9 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const shouldDisableNotificationPreferences =
         ReportUtils.isArchivedRoom(report, reportNameValuePairs) ||
         ReportUtils.isSelfDM(report) ||
-        (!isMoneyRequestReport && currentNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        (!isMoneyRequestReport && ReportUtils.isHiddenForCurrentUser(currentNotificationPreference));
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
-        .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+        .filter((pref) => !ReportUtils.isHiddenForCurrentUser(pref))
         .map((preference) => ({
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),

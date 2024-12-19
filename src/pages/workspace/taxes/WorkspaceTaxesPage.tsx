@@ -297,6 +297,7 @@ function WorkspaceTaxesPage({
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.Coins : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
