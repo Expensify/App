@@ -167,12 +167,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     const inputHelperText = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
+                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 ||
+                    !isEmptyObject(chatOptions.selfDMChat),
                 !!chatOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => OptionsListUtils.getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        [chatOptions.personalDetails, chatOptions.recentReports, chatOptions.selfDMChat, chatOptions?.userToInvite, cleanSearchTerm, debouncedSearchTerm, participants],
+        [
+            chatOptions.personalDetails,
+            chatOptions.recentReports,
+            chatOptions.selfDMChat,
+            chatOptions?.userToInvite,
+            chatOptions.workspaceChats,
+            cleanSearchTerm,
+            debouncedSearchTerm,
+            participants,
+        ],
     );
     /**
      * Returns the sections needed for the OptionsSelector

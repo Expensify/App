@@ -1832,19 +1832,6 @@ function filterWorkspaceChats(reports: ReportUtils.OptionData[], searchTerms: st
                 if (item.text) {
                     values.push(item.text);
                 }
-                if (item.login) {
-                    values.push(item.login);
-                    values.push(item.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
-                }
-                if (item.isThread) {
-                    if (item.alternateText) {
-                        values.push(item.alternateText);
-                    }
-                } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
-                    if (item.subtitle) {
-                        values.push(item.subtitle);
-                    }
-                }
                 return uniqFast(values);
             }),
         // We start from all unfiltered reports:
