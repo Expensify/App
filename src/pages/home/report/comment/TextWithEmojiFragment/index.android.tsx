@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
@@ -11,17 +10,18 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
 
     return (
-        <Text style={style}>
+        <Text style={[style]}>
             {processedTextArray.map(({text, isEmoji}, index) =>
                 isEmoji ? (
-                    <View
+                    <Text
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
+                        style={styles.emojisWithTextFontSize}
                     >
-                        <Text style={styles.emojisWithTextFontSizeAligned}>{text}</Text>
-                    </View>
+                        {text}
+                    </Text>
                 ) : (
-                    convertToLTR(text)
+                    <Text>{convertToLTR(text)}</Text>
                 ),
             )}
         </Text>
