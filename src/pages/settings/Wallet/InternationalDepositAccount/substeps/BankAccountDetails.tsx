@@ -49,7 +49,11 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
         [fieldsMap, translate],
     );
 
-    const currencyHeaderContent = <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.currencyHeader')}</Text>;
+    const currencyHeaderContent = (
+        <View style={styles.ph5}>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('addPersonalBankAccount.currencyHeader')}</Text>
+        </View>
+    );
 
     return (
         <FormProvider
