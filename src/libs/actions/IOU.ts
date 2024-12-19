@@ -1377,7 +1377,6 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateInvoiceFailureMessage'),
-                pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
         },
@@ -2098,7 +2097,14 @@ function getSendInvoiceInformation(
     }
 
     // STEP 2: Create a new optimistic invoice report.
-    const optimisticInvoiceReport = ReportUtils.buildOptimisticInvoiceReport(chatReport.reportID, senderWorkspaceID, receiverAccountID, receiver.displayName ?? '', amount, currency);
+    const optimisticInvoiceReport = ReportUtils.buildOptimisticInvoiceReport(
+        chatReport.reportID,
+        senderWorkspaceID,
+        receiverAccountID,
+        receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
+        amount,
+        currency,
+    );
 
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
