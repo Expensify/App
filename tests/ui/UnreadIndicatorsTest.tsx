@@ -85,7 +85,7 @@ function navigateToSidebar(): Promise<void> {
 
 function areYouOnChatListScreen(): boolean {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChats');
-    const sidebarLinks = screen.queryAllByLabelText(hintText);
+    const sidebarLinks = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
 
     return !sidebarLinks?.at(0)?.props?.accessibilityElementsHidden;
 }
@@ -369,12 +369,12 @@ describe('Unread Indicators', () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameTexts = screen.queryAllByLabelText(hintText);
+                const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
                 expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User')).toBeOnTheScreen();
+                expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -528,7 +528,7 @@ describe('Unread Indicators', () => {
                 .then(() => {
                     // Verify the chat preview text matches the last comment from the current user
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
-                    const alternateText = screen.queryAllByLabelText(hintText);
+                    const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
 
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
@@ -541,7 +541,7 @@ describe('Unread Indicators', () => {
                 })
                 .then(() => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
-                    const alternateText = screen.queryAllByLabelText(hintText);
+                    const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
                 })
