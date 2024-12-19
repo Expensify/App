@@ -7,6 +7,7 @@ type AddPersonalBankAccountParams = {
     bank?: string;
     plaidAccountID: string;
     plaidAccessToken: string;
+    isInvoiceBankAccount?: boolean;
 };
 
 export default AddPersonalBankAccountParams;
