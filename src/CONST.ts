@@ -1632,6 +1632,7 @@ const CONST = {
         XVND8: 'video/x-vnd.on2.vp8',
         XVND9: 'video/x-vnd.on2.vp9',
         AV01: 'video/av01',
+        TXT: 'txt',
     },
 
     ATTACHMENT_TYPE: {
