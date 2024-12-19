@@ -48,8 +48,8 @@ function OnboardingWelcomeVideo() {
                 Welcome.dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
-            animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
-            animationOuterContainerStyle={styles.p0}
+            illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
+            illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}

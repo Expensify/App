@@ -1733,10 +1733,6 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
-        welcomeVideoNarrowLayout: {
-            width: variables.onboardingModalWidth,
-        },
-
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -4836,7 +4832,7 @@ const styles = (theme: ThemeColors) =>
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
-            color: theme.heading,
+            color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
 
