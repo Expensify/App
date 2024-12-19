@@ -2354,6 +2354,7 @@ const CONST = {
             DISTANCE: 'distance',
             MANUAL: 'manual',
             SCAN: 'scan',
+            PER_DIEM: 'per-diem',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -4607,6 +4608,7 @@ const CONST = {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+        PER_DIEM: 'per-diem',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,

@@ -208,10 +208,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
             <View style={styles.flex1}>
-                <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('workspace.perDiem.destination')}</Text>
+                <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
             <View style={styles.flex1}>
-                <Text style={[styles.searchInputStyle, styles.alignItemsStart]}>{translate('workspace.perDiem.subrate')}</Text>
+                <Text style={[styles.searchInputStyle, styles.alignItemsStart]}>{translate('common.subrate')}</Text>
             </View>
             <View style={styles.flex1}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
@@ -345,7 +345,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.perDiem')}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
                     icon={!selectionModeHeader ? Illustrations.PerDiem : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {

@@ -445,6 +445,14 @@ function getEndOfToday(): string {
 /**
  * returns {string} example: 2023-05-16 05:34:14
  */
+function getStartOfToday(): string {
+    const date = startOfDay(new Date());
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
 function getOneWeekFromNow(): string {
     const date = addDays(new Date(), 7);
     return format(date, 'yyyy-MM-dd HH:mm:ss');
@@ -659,6 +667,17 @@ const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeStrin
 
     // Check if the combinedDate is at least one minute later than the current date and time
     return isAfter(new Date(dateToCheck), addMinutes(now, 1));
+};
+
+/**
+ * Checks if the time range input is valid.
+ * param {String} startTime: '2023-11-14 12:24:00'
+ * param {String} endTime: '2023-11-14 14:24:00'
+ * returns {Boolean}
+ */
+const isValidStartEndTimeRange = ({startTime, endTime}: {startTime: string; endTime: string}): boolean => {
+    // Check if the combinedDate is at least one minute later than the current date and time
+    return isAfter(new Date(endTime), new Date(startTime));
 };
 
 /**
@@ -907,11 +926,13 @@ const DateUtils = {
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
+    getStartOfToday,
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
     getStatusUntilDate,
     extractTime12Hour,
+    formatDateTimeTo12Hour,
     get12HourTimeObjectFromDate,
     getLocalizedTimePeriodDescription,
     combineDateAndTime,
@@ -925,6 +946,7 @@ const DateUtils = {
     formatWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    isValidStartEndTimeRange,
     formatToSupportedTimezone,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,

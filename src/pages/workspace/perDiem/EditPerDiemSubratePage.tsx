@@ -77,7 +77,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.perDiem.subrate')}
+                    title={translate('common.subrate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <FormProvider
@@ -92,8 +92,8 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         defaultValue={selectedSubrate?.name}
-                        label={translate('workspace.perDiem.subrate')}
-                        accessibilityLabel={translate('workspace.perDiem.subrate')}
+                        label={translate('common.subrate')}
+                        accessibilityLabel={translate('common.subrate')}
                         inputID={INPUT_IDS.SUBRATE}
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.MAX_LENGTH_256}
