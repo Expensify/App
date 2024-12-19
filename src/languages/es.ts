@@ -447,6 +447,7 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
+        downgradeWorkspace: 'Bajar de categoría el espacio de trabajo',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -4447,6 +4448,27 @@ const translations = {
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
                 },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Bajar de categoría el espacio de trabajo al plan Recopilar',
+                note: 'Algunas funciones solo están disponibles en el plan Controlar. Si bajas de categoría, perderás acceso a estas funciones y más:',
+                benefits: {
+                    note: 'Para una comparación completa de nuestros planes, consulta nuestro',
+                    pricingPage: 'página de precios',
+                    confirm: '¿Estás seguro de que deseas bajar de categoría y eliminar tus configuraciones?',
+                    warning: 'Esto no se puede deshacer.',
+                    benefit1: 'Conexiones contables (excepto QBO y Xero)',
+                    benefit2: 'Reglas de gastos',
+                    benefit3: 'Flujos de aprobación de múltiples niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
+            },
+            completed: {
+                headline: 'Tu espacio de trabajo ha sido bajado de categoría',
+                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                gotIt: 'Entendido, gracias.',
             },
         },
         restrictedAction: {
