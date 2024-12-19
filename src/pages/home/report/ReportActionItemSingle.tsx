@@ -7,7 +7,6 @@ import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
@@ -24,11 +23,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -57,6 +58,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** Personal details list */
+    personalDetails?: PersonalDetailsList | Record<string, SearchPersonalDetails | null>;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -77,21 +81,26 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    personalDetails,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
+    // fallback to action?.accountID to handle search result chat item
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report) ?? action?.accountID;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? -1] ?? {};
+    const {avatar, login} = personalDetails?.[actorAccountID ?? -1] ?? {};
+    const pendingFields = personalDetails && 'pendingFields' in personalDetails ? personalDetails.pendingFields : undefined;
+    const status = personalDetails && 'status' in personalDetails ? personalDetails.status : undefined;
+    const fallbackIcon = personalDetails && 'fallbackIcon' in personalDetails && personalDetails.fallbackIcon !== null ? personalDetails.fallbackIcon : undefined;
+
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -237,17 +246,18 @@ function ReportActionItemSingle({
                         type={icon.type}
                         name={icon.name}
                         avatarID={icon.id}
-                        fallbackIcon={fallbackIcon}
+                        fallbackIcon={fallbackIcon as AvatarSource}
                     />
                 </View>
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
-    const statusText = status?.text ?? '';
+    const hasEmojiStatus = !displayAllActors && status && 'emojiCode' in status && status?.emojiCode;
+    const statusClearAfter = status && 'clearAfter' in status ? String(status?.clearAfter) ?? '' : '';
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfter);
+    const statusText = status && 'text' in status ? String(status?.text) ?? '' : '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-
+    // const pendingFieldsAvatar = pendingFields && 'avatar' in pendingFields ? pendingFields?.avatar ?? undefined : undefined;
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -259,7 +269,7 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar as PendingAction | undefined}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
@@ -291,7 +301,7 @@ function ReportActionItemSingle({
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${status?.emojiCode}`}</Text>
+                                >{`${String(status?.emojiCode ?? '')}`}</Text>
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
