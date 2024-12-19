@@ -18,7 +18,6 @@ function TransactionListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onCheckboxPress,
-    onDismissError,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,

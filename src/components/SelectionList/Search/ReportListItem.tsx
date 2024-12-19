@@ -61,7 +61,6 @@ function ReportListItem<TItem extends ListItem>({
     canSelectMultiple,
     onCheckboxPress,
     onSelectRow,
-    onDismissError,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
@@ -132,7 +131,6 @@ function ReportListItem<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
                 onSelectRow={onSelectRow}
-                onDismissError={onDismissError}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
