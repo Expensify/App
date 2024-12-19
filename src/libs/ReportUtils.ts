@@ -1298,8 +1298,8 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
  * Get the notification preference given a report. This should ALWAYS default to 'hidden'. Do not change this!
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
-  const participant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
-  return participant?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const participant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
+    return participant?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 const CONCIERGE_ACCOUNT_ID_STRING = CONST.ACCOUNT_ID.CONCIERGE.toString();
@@ -8522,7 +8522,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
     const reportTotal = expenseReport?.total ?? 0;
-    const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? -1]).at(0) ?? '';
+    const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]).at(0) ?? '';
 
     if (PolicyUtils.isSubmitAndClose(policy)) {
         return approvalChain;
