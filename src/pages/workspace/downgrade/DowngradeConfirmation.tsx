@@ -9,7 +9,7 @@ type Props = {
     policyID: string;
 };
 
-function UpgradeConfirmation({onConfirmDowngrade, policyID}: Props) {
+function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const hasOtherControlWorkspaces = PolicyUtils.hasOtherControlWorkspaces(policyID);
 
@@ -25,4 +25,4 @@ function UpgradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     );
 }
 
-export default UpgradeConfirmation;
+export default DowngradeConfirmation;
