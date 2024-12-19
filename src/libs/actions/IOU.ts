@@ -6910,7 +6910,7 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
@@ -6920,7 +6920,7 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
                 ...iouReport,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
@@ -6941,14 +6941,14 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
             value: optimisticNextStep,
         },
     );
 
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID ?? ''}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
         value: {
             pendingFields: {
                 preview: null,
@@ -6961,7 +6961,7 @@ function getPayMoneyRequestParams(
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
@@ -6970,7 +6970,7 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
                 ...iouReport,
             },
@@ -6982,7 +6982,7 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
             value: currentNextStep,
         },
     );
