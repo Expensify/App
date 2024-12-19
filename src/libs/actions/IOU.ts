@@ -1401,16 +1401,19 @@ function buildOnyxDataForInvoice(
                 },
             },
         },
-        {
+    ];
+
+    if (transactionThreadCreatedReportAction?.reportActionID) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
-                [transactionThreadCreatedReportAction?.reportActionID ?? '-1']: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateInvoiceFailureMessage', errorKey),
                 },
             },
-        },
-    ];
+        });
+    }
 
     if (companyName && companyWebsite) {
         optimisticData.push({
