@@ -21,6 +21,8 @@ There are numerous options for exporting Expensify reports to NetSuite. Let's ex
 
 To access these settings, go to **Settings > Workspace > Group > Connections** and select the **Configure** button. 
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_06.png){:width="100%"}
+
 ## Subsidiary
 
 The subsidiary selection will only appear if you use NetSuite OneWorld and have multiple subsidiaries active. If you add a new subsidiary to NetSuite, sync the workspace connection, and the new subsidiary should appear in the dropdown list under **Settings > Workspaces > _[Workspace Name]_ > Connections**.
@@ -86,6 +88,8 @@ When selecting the option to export non-reimbursable expenses as vendor bills, t
 # Step 2: Configure Coding Settings
 
 The Coding tab is where NetSuite information is configured in Expensify, which allows employees to code expenses and reports accurately. There are several coding options in NetSuite. Let’s go over each of those below. 
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_08.png){:width="100%"}
 
 ## Expense Categories
 
@@ -222,6 +226,8 @@ Lastly, head over to Expensify, and do the following:
 From there, you should see the values for the Custom Lists under the Tag or Report Field settings in Expensify. 
 
 # Step 3: Configure Advanced Settings
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
 
