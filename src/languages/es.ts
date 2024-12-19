@@ -196,6 +196,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
@@ -484,6 +485,7 @@ const translations = {
         destination: 'Destino',
         subrate: 'Subtasa',
         perDiem: 'Per diem',
+        validate: 'Validar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -500,6 +502,13 @@ const translations = {
         please: 'Por favor,',
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
+    },
+    contact: {
+        importContacts: 'Importar contactos',
+        importContactsTitle: 'Importa tus contactos',
+        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
+        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
+        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -1881,7 +1890,10 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar mensajes SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
     },
     welcomeSignUpForm: {
         join: 'Unirse',
@@ -2644,6 +2656,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
@@ -4339,6 +4352,25 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'Para equipos que buscan automatizar sus procesos.',
+                },
+                corporate: {
+                    label: 'Recolectar',
+                    description: 'Para organizaciones con requisitos avanzados.',
+                },
+            },
+            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
+            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `Tienes un compromiso anual de 1 miembro activo en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+            }),
+            subscriptions: 'Suscripciones',
+        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4419,6 +4451,19 @@ const translations = {
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
                 gotIt: 'Entendido, gracias.',
+            },
+            commonFeatures: {
+                title: 'Mejorar al plan Controlar',
+                note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
+                benefits: {
+                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    learnMore: 'Más información',
+                    pricing: 'sobre nuestros planes y precios.',
+                    benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
             },
         },
         restrictedAction: {
