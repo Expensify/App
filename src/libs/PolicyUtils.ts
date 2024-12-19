@@ -659,7 +659,7 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogi
 }
 
 function hasWorkspaceWithInvoices(currentUserLogin: string | undefined): boolean {
-    const activePolicies = getActivePolicies(allPolicies, currentUserLogin);
+    const activePolicies = getActivePolicies(allPolicies, currentUserLogin, false);
     return activePolicies.some((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && policy.areInvoicesEnabled);
 }
 
