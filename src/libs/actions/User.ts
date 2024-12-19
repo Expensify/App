@@ -58,7 +58,7 @@ let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
     },
 });
@@ -910,9 +910,9 @@ function subscribeToUserEvents() {
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-            lastUpdateID: Number(pushJSON.lastUpdateID || 0),
+            lastUpdateID: Number(pushJSON.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
             updates: pushJSON.updates ?? [],
-            previousUpdateID: Number(pushJSON.previousUpdateID || 0),
+            previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         applyOnyxUpdatesReliably(updates);
     });

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -40,7 +41,7 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
     }
 
     return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
-        if (Number(lastUpdateID) > (options.minUpdateID ?? 0)) {
+        if (Number(lastUpdateID) > (options.minUpdateID ?? CONST.DEFAULT_NUMBER_ID)) {
             acc[Number(lastUpdateID)] = update;
         }
         return acc;

@@ -43,12 +43,12 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
         Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => resolve(value ?? 0),
+            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
         });
     });
 }
 
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}: ReportActionPushNotificationData): Promise<void> {
+function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -56,30 +56,56 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         return Promise.resolve();
     }
 
-    if (!onyxData || !lastUpdateID || !previousUpdateID) {
-        Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-        return Promise.resolve();
-    }
+    const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
+        if (isDataMissing) {
+            Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+            return false;
+        }
 
-    Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-    const updates: OnyxUpdatesFromServer = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: '', // This is only needed for Pusher events
-                data: onyxData,
-            },
-        ],
+        Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+        return true;
     };
+
+    let updates: OnyxUpdatesFromServer;
+    if (hasPendingOnyxUpdates) {
+        const isDataMissing = !lastUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
+
+        updates = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            shouldFetchPendingUpdates: true,
+            updates: [],
+        };
+    } else {
+        const isDataMissing = !lastUpdateID || !onyxData || !previousUpdateID;
+        logMissingOnyxDataInfo(isDataMissing);
+        if (isDataMissing) {
+            return Promise.resolve();
+        }
+
+        updates = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            previousUpdateID,
+            updates: [
+                {
+                    eventType: '', // This is only needed for Pusher events
+                    data: onyxData,
+                },
+            ],
+        };
+    }
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
+    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
