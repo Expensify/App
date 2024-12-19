@@ -1,6 +1,6 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -49,6 +49,14 @@ let stashedSession: Session = {};
 Onyx.connect({
     key: ONYXKEYS.STASHED_SESSION,
     callback: (value) => (stashedSession = value ?? {}),
+});
+
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (newActivePolicyID) => {
+        activePolicyID = newActivePolicyID;
+    },
 });
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
@@ -140,7 +148,7 @@ function connect(email: string) {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccount(email);
+                    NativeModules.HybridAppModule.switchAccount(email, response?.restrictedToken ?? '', activePolicyID ?? '');
                 });
         })
         .catch((error) => {
@@ -210,7 +218,7 @@ function disconnect() {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '');
+                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '', response?.authToken ?? '', activePolicyID ?? '');
                 });
         })
         .catch((error) => {
