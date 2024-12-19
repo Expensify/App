@@ -651,7 +651,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    const activePolicies = getActivePolicies(policies, currentUserLogin,);
+    const activePolicies = getActivePolicies(policies, currentUserLogin, false);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
