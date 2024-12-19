@@ -20,6 +20,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -35,15 +36,18 @@ function SubmitDetailsPage({
     const {translate} = useLocalize();
     const [currentAttachment] = useOnyx(ONYXKEYS.TEMP_SHARE_FILE);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onyxReport?.policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, onyxReport)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, onyxReport)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
+
+    const optimisticReport = Report.getOptimisticChatReport(parseInt(reportID, 10));
+    const report = onyxReport ?? optimisticReport;
 
     useEffect(() => {
         IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
@@ -65,7 +69,7 @@ function SubmitDetailsPage({
             return;
         }
         IOU.requestMoney({
-            report,
+            report: onyxReport,
             participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
             policyParams: {policy, policyTagList: policyTags, policyCategories},
             gpsPoints,
@@ -134,7 +138,7 @@ function SubmitDetailsPage({
 
         FileUtils.readFileAsync(
             currentAttachment?.content ?? '',
-            FileUtils.getFileName(currentAttachment?.content ?? 'image'),
+            FileUtils.getFileName(currentAttachment?.content ?? 'shared_image.jpg'),
             (file) => onSuccess(file, shouldStartLocationPermissionFlow),
             () => {},
             currentAttachment?.mimeType ?? 'image/jpeg',
@@ -160,6 +164,7 @@ function SubmitDetailsPage({
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <MoneyRequestConfirmationList
+                        transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={0}
                         iouComment={trimmedComment}
