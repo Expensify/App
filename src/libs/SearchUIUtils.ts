@@ -374,7 +374,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 action: getAction(data, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
