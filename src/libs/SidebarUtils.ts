@@ -35,6 +35,16 @@ Onyx.connect({
         allPersonalDetails = value ?? {};
     },
 });
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -42,7 +52,7 @@ Onyx.connect({
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        const report = ReportUtils.getReport(reportID);
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
@@ -91,7 +101,7 @@ function ensureSingleSpacing(text: string) {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxCollection<Report>,
+    reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
@@ -102,7 +112,7 @@ function getOrderedReportIDs(
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
-    const allReportsDictValues = Object.values(allReports ?? {});
+    const allReportsDictValues = Object.values(reports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay: Array<Report & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
@@ -115,7 +125,7 @@ function getOrderedReportIDs(
         }
         const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const isHidden = ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const isHidden = ReportUtils.isHiddenForCurrentUser(report);
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = ReportUtils.hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;

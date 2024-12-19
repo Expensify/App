@@ -1848,6 +1848,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
+
+        /** Indicate whether the Workspace plan can be downgraded */
+        canDowngrade?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
