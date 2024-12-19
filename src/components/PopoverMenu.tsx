@@ -54,6 +54,9 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseAllModals?: boolean;
 
     pendingAction?: PendingAction;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;

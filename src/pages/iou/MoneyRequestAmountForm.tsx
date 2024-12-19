@@ -282,6 +282,7 @@ function MoneyRequestAmountForm(
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
+                    testID="moneyRequestAmountInput"
                 />
                 {!!formError && (
                     <FormHelpMessage
@@ -337,6 +338,7 @@ function MoneyRequestAmountForm(
                             style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                             onPress={() => submitAndNavigateToNextPage()}
                             text={buttonText}
+                            testID="next-button"
                         />
                     )}
                 </View>

@@ -9,6 +9,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -71,6 +72,10 @@ function IOURequestStepParticipants({
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
 
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+    }, []);
+
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
@@ -132,6 +137,7 @@ function IOURequestStepParticipants({
             transactionID,
             selectedReportID.current || reportID,
         );
+        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
         if (isCategorizing) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
         } else {

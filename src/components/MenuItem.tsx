@@ -348,6 +348,9 @@ type MenuItemBaseProps = {
 
     /** Should break word for room title */
     shouldBreakWord?: boolean;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -461,6 +464,7 @@ function MenuItem(
         onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
         shouldBreakWord = false,
+        testID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -629,6 +633,7 @@ function MenuItem(
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
                                 onFocus={onFocus}
+                                testID={testID}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
