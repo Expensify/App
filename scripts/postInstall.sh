@@ -10,7 +10,11 @@ cd "$ROOT_DIR" || exit 1
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 
-if [[ "$IS_HYBRID_APP_REPO" == "true" ]]; then
+# See if we should force standalone NewDot build
+NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
+
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+  echo -e "\n${GREEN}Installing node modules in Mobile-Expensify submodule!${NC}"
   cd Mobile-Expensify || exit 1
   npm i
 
