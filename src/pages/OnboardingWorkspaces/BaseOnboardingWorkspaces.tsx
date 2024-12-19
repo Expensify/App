@@ -33,7 +33,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING);
 
@@ -58,9 +58,9 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID(policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, policyID, activeWorkspaceID, route.params?.backTo);
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
         },
-        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, activeWorkspaceID, route.params?.backTo],
+        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );
     const policyIDItems = useMemo(() => {
         return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
