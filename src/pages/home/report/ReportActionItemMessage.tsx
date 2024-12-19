@@ -37,6 +37,7 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`);
 
     const fragments = ReportActionsUtils.getReportActionMessageFragments(action);
@@ -122,7 +123,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     };
 
     const openWorkspaceInvoicesPage = () => {
-        const policyID = ReportUtils.getReport(reportID)?.policyID;
+        const policyID = report?.policyID;
 
         if (!policyID) {
             return;
@@ -131,12 +132,14 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
+    const shouldShowAddBankAccountButton = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && !ReportUtils.isSettled(reportID);
+
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
                 <>
                     {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
-                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
+                    {shouldShowAddBankAccountButton && (
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
                             success
