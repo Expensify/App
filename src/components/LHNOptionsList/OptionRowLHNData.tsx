@@ -37,7 +37,6 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
     const isSettled = ReportUtils.isSettled(fullReport);
     const shouldDisplayReportViolations = !isSettled && ReportUtils.isReportOwner(fullReport) && ReportUtils.hasReportViolations(reportID);
 
@@ -50,7 +49,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
+            hasViolations: shouldDisplayReportViolations,
             lastMessageTextFromReport,
             transactionViolations,
             invoiceReceiverPolicy,
