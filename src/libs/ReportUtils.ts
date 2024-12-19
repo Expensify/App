@@ -1041,7 +1041,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
  * Whether the current user is the submitter of the report
  */
 function isCurrentUserSubmitter(reportID: string | undefined): boolean {
-    if (!allReports) {
+    if (!allReports || !reportID) {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
