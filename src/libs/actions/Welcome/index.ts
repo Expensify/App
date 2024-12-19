@@ -13,7 +13,7 @@ import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as OnboardingFlow from './OnboardingFlow';
 
-type OnboardingData = Onboarding | [] | undefined;
+type OnboardingData = Onboarding | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
@@ -44,7 +44,7 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (Array.isArray(onboarding) || isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
         }

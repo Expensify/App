@@ -11,7 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
  */
 function hasCompletedGuidedSetupFlowSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
     // Onboarding is an empty object for old accounts and accounts migrated from OldDot
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return true;
     }
 
@@ -49,7 +49,7 @@ function tryNewDotOnyxSelector(tryNewDotData: OnyxValue<typeof ONYXKEYS.NVP_TRYN
  * `false` means the user has not completed the NewDot onboarding flow
  */
 function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    if (Array.isArray(onboarding) || isEmptyObject(onboarding)) {
+    if (isEmptyObject(onboarding)) {
         return false;
     }
 
