@@ -193,6 +193,7 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
@@ -2612,6 +2613,7 @@ const translations = {
                         return 'Member';
                 }
             },
+            planType: 'Plan type',
             submitExpense: 'Submit expenses using your workspace chat below:',
             defaultCategory: 'Default category',
         },
@@ -4366,6 +4368,19 @@ const translations = {
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
             },
+            commonFeatures: {
+                title: 'Upgrade to the Control plan',
+                note: 'Unlock our most powerful features, including:',
+                benefits: {
+                    note: 'The Control plan starts at $9 per active member per month.',
+                    learnMore: 'Learn more',
+                    pricing: 'about our plans and pricing.',
+                    benefit1: 'Advanced accounting connections (NetSuite, Sage Intacct, and more)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',
@@ -4468,6 +4483,25 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+        },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Collect',
+                    description: 'For teams looking to automate their processes.',
+                },
+                corporate: {
+                    label: 'Control',
+                    description: 'For organizations with advanced requirements.',
+                },
+            },
+            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
+            subscriptionLink: 'plan types and pricing help page',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+                other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
+            }),
+            subscriptions: 'Subscriptions',
         },
     },
     getAssistancePage: {
