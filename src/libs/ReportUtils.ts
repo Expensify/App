@@ -3510,7 +3510,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
+        return Localize.translateLocal('iou.receiptScanning', {count: 1});
     }
 
     if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
@@ -3555,6 +3555,14 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const reportActionMessage = ReportActionsUtils.getReportActionHtml(iouReportAction);
 
+    if (!report?.reportID) {
+        return reportActionMessage;
+    }
+
+    const allReportTransactions = TransactionUtils.getAllReportTransactions(report.reportID);
+    const transactionsWithReceipts = allReportTransactions.filter(TransactionUtils.hasReceipt);
+    const numberOfScanningReceipts = transactionsWithReceipts.filter(TransactionUtils.isReceiptBeingScanned).length;
+
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
@@ -3570,7 +3578,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning');
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
@@ -3592,7 +3600,7 @@ function getReportPreviewMessage(
 
         if (!isEmptyObject(linkedTransaction)) {
             if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-                return Localize.translateLocal('iou.receiptScanning');
+                return Localize.translateLocal('iou.receiptScanning', {count: 1});
             }
 
             if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
@@ -3627,7 +3635,7 @@ function getReportPreviewMessage(
     }
 
     if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-        return Localize.translateLocal('iou.receiptScanning');
+        return Localize.translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
     if (!isEmptyObject(linkedTransaction) && TransactionUtils.isFetchingWaypointsFromServer(linkedTransaction) && !TransactionUtils.getAmount(linkedTransaction)) {
@@ -7799,7 +7807,10 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTra
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string, allReportTransactions?: SearchTransaction[]): boolean {
+function hasOnlyHeldExpenses(iouReportID: string | undefined, allReportTransactions?: SearchTransaction[]): boolean {
+    if (!iouReportID) {
+        return false;
+    }
     const reportTransactions = allReportTransactions ?? reportsTransactions[iouReportID ?? ''] ?? [];
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
