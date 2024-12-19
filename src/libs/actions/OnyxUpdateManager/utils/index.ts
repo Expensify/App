@@ -2,15 +2,16 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as App from '@userActions/App';
 import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
 // eslint-disable-next-line import/no-cycle
 import * as DeferredOnyxUpdates from './DeferredOnyxUpdates';
 
-let lastUpdateIDAppliedToClient = 0;
+let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
 });
 
 /**
@@ -114,7 +115,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
  * apply the updates in order after the missing updates are fetched and applied
  */
 function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousParams?: {newLastUpdateIDFromClient: number; latestMissingUpdateID: number}): Promise<void> {
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
 
     Log.info('[DeferredUpdates] Processing deferred updates', false, {lastUpdateIDFromClient, previousParams});
 
@@ -140,7 +141,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
                 // the initial "updatesAfterGaps" and all new deferred updates will be applied in order,
                 // as long as there was no new gap detected. Otherwise repeat the process.
 
-                const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
+                const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? CONST.DEFAULT_NUMBER_ID;
 
                 DeferredOnyxUpdates.enqueue(updatesAfterGaps, {shouldPauseSequentialQueue: false});
 
