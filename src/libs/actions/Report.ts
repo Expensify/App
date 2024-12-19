@@ -545,9 +545,8 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const shouldUpdateNotificationPrefernece = !isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-
-    if (shouldUpdateNotificationPrefernece) {
+    const shouldUpdateNotificationPreference = !isEmptyObject(report) && ReportUtils.isHiddenForCurrentUser(report);
+    if (shouldUpdateNotificationPreference) {
         optimisticReport.participants = {
             [currentUserAccountID]: {notificationPreference: ReportUtils.getDefaultNotificationPreferenceForReport(report)},
         };
@@ -1931,11 +1930,8 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
 function toggleSubscribeToChildReport(childReportID = '', parentReportAction: Partial<ReportAction> = {}, parentReportID = '', prevNotificationPreference?: NotificationPreference) {
     if (childReportID !== '') {
         openReport(childReportID);
-        // updateNotificationPreference cannot default parentReportActionID to '',
-        // otherwise it's behaviour will change
-        // eslint-disable-next-line rulesdir/no-default-id-values
-        const parentReportActionID = parentReportAction?.reportActionID ?? '';
-        if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        const parentReportActionID = parentReportAction?.reportActionID ?? '-1';
+        if (!prevNotificationPreference || ReportUtils.isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
         } else {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, parentReportID, parentReportActionID);
@@ -1960,8 +1956,9 @@ function toggleSubscribeToChildReport(childReportID = '', parentReportAction: Pa
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
-        const notificationPreference =
-            prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const notificationPreference = ReportUtils.isHiddenForCurrentUser(prevNotificationPreference)
+            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }
 }
@@ -3065,7 +3062,12 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {[report.parentReportActionID]: {childReportNotificationPreference: ReportUtils.getReportNotificationPreference(report, false)}},
+            value: {
+                [report.parentReportActionID]: {
+                    childReportNotificationPreference:
+                        report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? ReportUtils.getDefaultNotificationPreferenceForReport(report),
+                },
+            },
         });
     }
 
