@@ -1859,6 +1859,9 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
 
     let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
 
+    // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
+    filteredPersonalDetails = filteredPersonalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
+
     if (typeof config?.maxRecentReportsToShow === 'number') {
         filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
         filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
