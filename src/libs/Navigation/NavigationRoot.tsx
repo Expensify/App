@@ -99,10 +99,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-
     const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: wasInvitedToNewDotSelector,
     });
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.NVP_HAS_NON_PERSONAL_POLICY);
 
     const initialState = useMemo(() => {
         if (!user || user.isFromPublicDomain) {
@@ -111,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated.
-        if (!NativeModules.HybridAppModule && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
+        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
             const {adaptedState} = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
             return adaptedState;
         }
