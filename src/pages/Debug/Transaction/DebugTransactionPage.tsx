@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,6 +14,8 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -32,6 +34,10 @@ function DebugTransactionPage({
 }: DebugTransactionPageProps) {
     const {translate} = useLocalize();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+
     const styles = useThemeStyles();
 
     const DebugDetailsTab = useCallback(
@@ -39,12 +45,18 @@ function DebugTransactionPage({
             <DebugDetails
                 formType={CONST.DEBUG.FORMS.TRANSACTION}
                 data={transaction}
+                policyID={report?.policyID}
+                policyHasEnabledTags={TagsOptionsListUtils.hasEnabledTags(policyTagLists)}
                 onSave={(data) => {
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, data);
                 }}
                 onDelete={() => {
-                    Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
                     Navigation.goBack();
+                    // We need to wait for navigation animations to finish before deleting a transaction,
+                    // otherwise the user will see a not found page briefly.
+                    InteractionManager.runAfterInteractions(() => {
+                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+                    });
                 }}
                 validate={DebugUtils.validateTransactionDraftProperty}
             >
@@ -52,13 +64,13 @@ function DebugTransactionPage({
                     <Button
                         text={translate('debug.viewReport')}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(transaction?.reportID));
+                            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(`${transaction?.reportID}`));
                         }}
                     />
                 </View>
             </DebugDetails>
         ),
-        [styles.mb5, styles.mh5, transaction, transactionID, translate],
+        [policyTagLists, report?.policyID, styles.mb5, styles.mh5, transaction, transactionID, translate],
     );
 
     const DebugJSONTab = useCallback(() => <DebugJSON data={transaction ?? {}} />, [transaction]);

@@ -123,7 +123,6 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                     navigateToConciergeChatAndDeleteReport(reportID, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
