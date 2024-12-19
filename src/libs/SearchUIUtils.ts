@@ -310,11 +310,24 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+    const transactions = Object.keys(data)
+        .filter(key => isTransactionEntry(key)) // Filter keys starting with 'transactions_'
+        .map(key => data[key]);
+    const reports = Object.keys(data)
+        .filter(key => isReportEntry(key)) // Filter keys starting with 'transactions_'
+        .map(key => data[key]);
+    const policies = Object.keys(data)
+        .filter(key => key.startsWith(ONYXKEYS.COLLECTION.POLICY)) // Filter keys starting with 'transactions_'
+        .map(key => data[key]);
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const invoiceReceiverPolicy =
+                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : {};
                 if (ReportActionsUtils.isDeletedAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
@@ -322,6 +335,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    reportName: ReportUtils.getReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

@@ -183,6 +183,9 @@ type SearchReportAction = {
 
     /** The ID of the report */
     reportID: string;
+
+    /** The report name */
+    reportName: string;
 };
 
 /** Model of policy search result */

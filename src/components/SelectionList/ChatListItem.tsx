@@ -90,8 +90,7 @@ function ChatListItem<TItem extends ListItem>({
                                         fontSize={variables.fontSizeSmall}
                                         onPress={() => onSelectRow(item)}
                                     >
-                                        {/* {ReportUtils.getReportName( */}
-                                        Report test
+                                        {reportActionItem.reportName}
                                     </TextLink>
                                 </View>
                                 <View style={styles.flexRow}>
