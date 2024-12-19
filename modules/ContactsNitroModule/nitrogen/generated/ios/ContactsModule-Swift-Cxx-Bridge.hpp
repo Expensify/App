@@ -18,8 +18,8 @@ namespace margelo::nitro::contacts { class HybridContactsModuleSpec; }
 namespace margelo::nitro::contacts { struct StringHolder; }
 
 // Forward declarations of Swift defined types
-// Forward declaration of `HybridContactsModuleSpecCxx` to properly resolve imports.
-namespace ContactsModule { class HybridContactsModuleSpecCxx; }
+// Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
+namespace ContactsModule { class HybridContactsModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
@@ -27,6 +27,7 @@ namespace ContactsModule { class HybridContactsModuleSpecCxx; }
 #include "HybridContactsModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
+#include <NitroModules/Result.hpp>
 #include <exception>
 #include <functional>
 #include <memory>
@@ -163,5 +164,18 @@ namespace margelo::nitro::contacts::bridge::swift {
   using std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ = std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>;
   std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec> create_std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer);
   void* _Nonnull get_std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_(std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>
+  using std__weak_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ = std::weak_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>;
+  inline std__weak_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_ weakify_std__shared_ptr_margelo__nitro__contacts__HybridContactsModuleSpec_(const std::shared_ptr<margelo::nitro::contacts::HybridContactsModuleSpec>& strong) { return strong; }
+  
+  // pragma MARK: Result<std::shared_ptr<Promise<std::vector<Contact>>>>
+  using Result_std__shared_ptr_Promise_std__vector_Contact____ = Result<std::shared_ptr<Promise<std::vector<Contact>>>>;
+  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::shared_ptr<Promise<std::vector<Contact>>>& value) {
+    return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) {
+    return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
+  }
 
 } // namespace margelo::nitro::contacts::bridge::swift

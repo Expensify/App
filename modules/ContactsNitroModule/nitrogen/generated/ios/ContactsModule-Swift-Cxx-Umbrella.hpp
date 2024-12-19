@@ -23,6 +23,8 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 #include "HybridContactsModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
+#include <NitroModules/Result.hpp>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,8 +40,8 @@ namespace margelo::nitro::contacts { struct StringHolder; }
 #include <NitroModules/RuntimeError.hpp>
 
 // Forward declarations of Swift defined types
-// Forward declaration of `HybridContactsModuleSpecCxx` to properly resolve imports.
-namespace ContactsModule { class HybridContactsModuleSpecCxx; }
+// Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
+namespace ContactsModule { class HybridContactsModuleSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ContactsModule-Swift.h")
