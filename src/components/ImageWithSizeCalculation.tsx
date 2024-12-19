@@ -111,6 +111,12 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
+                waitForSession={() => {
+                    // at the moment this function is called the image is not in cache anymore
+                    isLoadedRef.current = false;
+                    setIsImageCached(false);
+                    setIsLoading(true);
+                }}
                 objectPosition={objectPosition}
             />
             {isLoading && !isImageCached && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
