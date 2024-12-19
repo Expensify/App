@@ -61,6 +61,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
@@ -2639,6 +2640,9 @@ const translations = {
                 existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
             },
             importPerDiemRates: 'Import per diem rates',
+            editPerDiemRate: 'Edit per diem rate',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this destination will change it for all ${destination} per diem subrates.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Updating this currency will change it for all ${destination} per diem subrates.`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Desktop.',
