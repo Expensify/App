@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
@@ -24,6 +25,7 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
 
     const confirmCredentials = useCallback(
@@ -70,7 +72,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 shouldValidateOnChange
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
-                {formItems.map((formItem) => (
+                {formItems.map((formItem, index) => (
                     <View
                         style={styles.mb4}
                         key={formItem}
@@ -78,6 +80,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={formItem}
+                            ref={index === 0 ? inputCallbackRef : undefined}
                             label={translate(`common.${formItem}`)}
                             aria-label={translate(`common.${formItem}`)}
                             role={CONST.ROLE.PRESENTATION}
