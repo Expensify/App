@@ -45,7 +45,7 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
         case SCREENS.REPORT_AVATAR:
         case SCREENS.CONCIERGE:
             // If we are not in the target report, we need to navigate to it after dismissing the modal
-            if (targetReport?.reportID !== getTopmostReportId(state)) {
+            if (targetReport?.reportID && targetReport?.reportID !== getTopmostReportId(state)) {
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID));
                 const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);

@@ -17,7 +17,7 @@ type Message = {
     type: string;
 
     /** The text content of the fragment. */
-    text: string | undefined;
+    text: string;
 
     /** The html content of the fragment. */
     html?: string;

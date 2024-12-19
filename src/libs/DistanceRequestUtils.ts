@@ -293,7 +293,7 @@ function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
-    let customUnitRateID: string | undefined = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (isPolicyExpenseChat(report) || isPolicyExpenseChat(parentReport)) {
         const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -302,7 +302,7 @@ function getCustomUnitRateID(reportID: string) {
         if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID;
+            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         }
     }
 

@@ -476,6 +476,9 @@ function ReportPreview({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {
+        if (!iouReportID) {
+            return;
+        }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));

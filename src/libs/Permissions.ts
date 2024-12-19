@@ -6,7 +6,7 @@ import * as SessionUtils from './SessionUtils';
 const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
 }
 
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {

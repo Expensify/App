@@ -243,6 +243,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID;
+                if (!childReportID) {
+                    return;
+                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;

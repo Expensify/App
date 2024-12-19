@@ -53,6 +53,9 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
+        if (!reportAction?.childReportID) {
+            return;
+        }
         IOU.mergeDuplicates(transactionsMergeParams);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
     }, [reportAction?.childReportID, transactionsMergeParams]);
