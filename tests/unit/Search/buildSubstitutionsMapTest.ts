@@ -5,14 +5,6 @@ import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSu
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-jest.mock('@libs/CardUtils', () => {
-    return {
-        getCardDescription(cardID: number) {
-            return cardID;
-        },
-    };
-});
-
 jest.mock('@libs/ReportUtils', () => {
     return {
         parseReportRouteParams: jest.fn(() => ({})),
@@ -53,18 +45,26 @@ const taxRatesMock = {
     TAX_1: ['id_TAX_1'],
 } as Record<string, string[]>;
 
+const cardListMock = {
+    '11223344': {
+        state: 1,
+        bank: 'vcf',
+        lastFourPAN: '1234',
+    },
+} as unknown as OnyxTypes.CardList;
+
 describe('buildSubstitutionsMap should return correct substitutions map', () => {
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {});
 
         expect(result).toStrictEqual({});
     });
     test('when query has a single substitution', () => {
         const userQuery = 'foo from:12345';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {});
 
         expect(result).toStrictEqual({
             'from:John Doe': '12345',
@@ -74,13 +74,13 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when query has multiple substitutions of different types', () => {
         const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock);
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock);
 
         expect(result).toStrictEqual({
             'from:Jane Doe': '78901',
             'from:John Doe': '12345',
             'in:Report 1': 'rep123',
-            'cardID:11223344': '11223344',
+            'cardID:Visa - 1234': '11223344',
             'taxRate:TAX_1': 'id_TAX_1',
         });
     });

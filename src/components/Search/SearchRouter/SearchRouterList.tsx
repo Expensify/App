@@ -145,8 +145,11 @@ function SearchRouterList(
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const cardAutocompleteList = Object.values(cardList);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const cardAutocompleteList = Object.values(allCards);
+
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
             return [];
@@ -179,7 +182,7 @@ function SearchRouterList(
         if (currentUser) {
             autocompleteOptions.push({
                 name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID?.toString() ?? '-1',
+                accountID: currentUser.accountID.toString(),
             });
         }
 
@@ -341,7 +344,7 @@ function SearchRouterList(
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: CardUtils.getCardDescription(card.cardID),
+                    text: CardUtils.getCardDescription(card.cardID, allCards),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -365,6 +368,7 @@ function SearchRouterList(
         statusAutocompleteList,
         expenseTypes,
         cardAutocompleteList,
+        allCards,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -374,7 +378,7 @@ function SearchRouterList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates) : query,
+            text: searchQueryJSON ? SearchQueryUtils.buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,

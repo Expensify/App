@@ -63,16 +63,34 @@ function isCorporateCard(cardID: number) {
  * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
-function getCardDescription(cardID?: number) {
+function getCardDescription(cardID?: number, cards: CardList = allCards) {
     if (!cardID) {
         return '';
     }
-    const card = allCards[cardID];
+    const card = cards[cardID];
     if (!card) {
         return '';
     }
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    return cardDescriptor ? `${card.bank} - ${cardDescriptor}` : `${card.bank}`;
+    const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getCardFeedName(card.bank as CompanyCardFeed);
+    return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+}
+
+function isCard(item: Card | Record<string, string>): item is Card {
+    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
+}
+
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
+    const feedCards: CardList = {...cardList};
+    Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
+        Object.values(currentCardFeed ?? {}).forEach((card) => {
+            if (!isCard(card)) {
+                return;
+            }
+            feedCards[card.cardID] = card;
+        });
+    });
+    return feedCards;
 }
 
 /**
@@ -203,8 +221,8 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
 function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
     return Object.values(cards).sort((cardA: Card, cardB: Card) => {
-        const userA = personalDetails?.[cardA.accountID ?? '-1'] ?? {};
-        const userB = personalDetails?.[cardB.accountID ?? '-1'] ?? {};
+        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] : {};
+        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] : {};
 
         const aName = PersonalDetailsUtils.getDisplayNameOrDefault(userA);
         const bName = PersonalDetailsUtils.getDisplayNameOrDefault(userB);
@@ -415,4 +433,6 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    mergeCardListWithWorkspaceFeeds,
+    isCard,
 };

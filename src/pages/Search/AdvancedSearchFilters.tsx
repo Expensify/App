@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as CardUtils from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -216,7 +217,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return filterValue
         ? Object.values(cards)
               .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => card.bank)
+              .map((card) => CardUtils.getCardDescription(card.cardID, cards))
               .join(', ')
         : undefined;
 }
@@ -372,8 +373,10 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const policyID = searchAdvancedFilters.policyID ?? '-1';
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const policyID = searchAdvancedFilters.policyID;
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const allCards = useMemo(() => CardUtils.mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -410,7 +413,7 @@ function AdvancedSearchFilters() {
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!singlePolicyCategories);
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
-    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(cardList).length, areCardsEnabled);
+    const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -485,7 +488,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayCardFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, cardList);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
                         if (!shouldDisplayCardFilter) {
                             return;
