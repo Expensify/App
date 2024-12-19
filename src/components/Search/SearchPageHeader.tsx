@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,6 +9,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,6 +58,11 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const isFocused = useIsFocused();
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isFocused,
+    );
 
     const {status, hash} = queryJSON;
 
@@ -348,12 +356,25 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shouldUseStyleUtilityForAnchorPosition
                     />
                 ) : (
-                    <Button
-                        innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
-                        text={translate('search.filtersHeader')}
-                        icon={Expensicons.Filters}
-                        onPress={onFiltersButtonPress}
-                    />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        anchorAlignment={{
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        }}
+                        shouldUseOverlay
+                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                        onHideTooltip={hideProductTrainingTooltip}
+                    >
+                        <Button
+                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            text={translate('search.filtersHeader')}
+                            icon={Expensicons.Filters}
+                            onPress={onFiltersButtonPress}
+                        />
+                    </EducationalTooltip>
                 )}
             </SearchPageHeaderInput>
             <ConfirmModal

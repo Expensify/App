@@ -11,7 +11,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import Text from '@components/Text';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -207,6 +207,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+
+    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
+        isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
+    );
+
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
      * 1. on at least one group policy
@@ -232,16 +238,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy, policyChatForActivePolicy]);
-
-    const renderQuickActionTooltip = useCallback(
-        () => (
-            <Text>
-                <Text style={styles.quickActionTooltipTitle}>{translate('quickAction.tooltip.title')}</Text>
-                <Text style={styles.quickActionTooltipSubtitle}>{translate('quickAction.tooltip.subtitle')}</Text>
-            </Text>
-        ),
-        [styles.quickActionTooltipTitle, styles.quickActionTooltipSubtitle, translate],
-    );
 
     const quickActionTitle = useMemo(() => {
         if (isEmptyObject(quickActionReport)) {
@@ -381,8 +377,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             },
             tooltipShiftHorizontal: styles.popoverMenuItem.paddingHorizontal,
             tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            renderTooltipContent: renderQuickActionTooltip,
-            tooltipWrapperStyle: styles.quickActionTooltipWrapper,
+            renderTooltipContent: renderProductTrainingTooltip,
+            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
+            onHideTooltip: hideProductTrainingTooltip,
+            shouldRenderTooltip: shouldShowProductTrainingTooltip,
         };
 
         if (quickAction?.action) {
@@ -401,7 +399,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             QuickActionNavigation.navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption),
                         ),
                     shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                    shouldRenderTooltip: quickAction.isFirstQuickAction,
                 },
             ];
         }
@@ -420,7 +417,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                             }, true);
                         }),
                     shouldShowSubscriptRightAvatar: true,
-                    shouldRenderTooltip: false,
                 },
             ];
         }
@@ -434,13 +430,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         styles.popoverMenuItem.paddingVertical,
         styles.pt3,
         styles.pb2,
+        styles.productTrainingTooltipWrapper,
+        renderProductTrainingTooltip,
+        hideProductTrainingTooltip,
         quickAction,
-        styles.quickActionTooltipWrapper,
-        renderQuickActionTooltip,
         policyChatForActivePolicy,
         quickActionTitle,
         hideQABSubtitle,
         quickActionReport,
+        shouldShowProductTrainingTooltip,
         selectOption,
         quickActionPolicy,
     ]);

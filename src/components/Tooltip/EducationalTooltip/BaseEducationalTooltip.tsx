@@ -11,7 +11,7 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, onHideTooltip: onHideTooltipProp, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
@@ -20,6 +20,13 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     const removePendingTooltipRef = useRef(() => {});
 
     const didShow = useRef(false);
+
+    const onHideTooltip = useCallback(() => {
+        if (!shouldRender) {
+            return;
+        }
+        onHideTooltipProp?.();
+    }, [onHideTooltipProp, shouldRender]);
 
     const closeTooltip = useCallback(() => {
         if (!didShow.current) {
