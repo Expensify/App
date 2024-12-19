@@ -2903,30 +2903,33 @@ function getUpdateMoneyRequestParams(
     });
 
     if (isScanning && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
-        optimisticData.push(
-            {
+        if (transactionThread?.parentReportActionID) {
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
-                    [transactionThread?.parentReportActionID ?? '-1']: {
+                    [transactionThread?.parentReportActionID]: {
                         originalMessage: {
                             whisperedTo: [],
                         },
                     },
                 },
-            },
-            {
+            });
+        }
+
+        if (iouReport?.parentReportActionID) {
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
                 value: {
-                    [iouReport?.parentReportActionID ?? '-1']: {
+                    [iouReport.parentReportActionID]: {
                         originalMessage: {
                             whisperedTo: [],
                         },
                     },
                 },
-            },
-        );
+            });
+        }
     }
 
     // Update recently used categories if the category is changed
