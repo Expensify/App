@@ -1084,6 +1084,10 @@ const translations = {
         paymentComplete: 'Payment complete',
         justTrackIt: 'Just track it (don’t submit it)',
     },
+    share: {
+        shareToExpensify: 'Share to expensify',
+        messageInputLabel: 'Message',
+    },
     notificationPreferencesPage: {
         header: 'Notification preferences',
         label: 'Notify me about new messages',

@@ -4,7 +4,7 @@ import type {OnboardingCompanySize} from './CONST';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
-import type {Attendee} from './types/onyx/IOU';
+import type {Attendee, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
@@ -469,6 +469,12 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** The details of not existing user while sharing a file */
+    SHARE_UNKNOWN_USER_DETAILS: 'shareUnknownUserDetails',
+
+    /** Temporary file to be shared from outside the app */
+    TEMP_SHARE_FILE: 'tempShareFile',
 
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
@@ -1044,6 +1050,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
+    [ONYXKEYS.TEMP_SHARE_FILE]: OnyxTypes.TempShareFile;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
 };

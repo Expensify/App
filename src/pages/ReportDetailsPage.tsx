@@ -49,7 +49,6 @@ import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -839,7 +838,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 urlToNavigateBack = Task.getNavigationUrlOnTaskDelete(report);
                 if (urlToNavigateBack) {
                     Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                    Navigation.goBack(urlToNavigateBack as Route);
+                    Navigation.goBack(urlToNavigateBack);
                 } else {
                     Navigation.dismissModal();
                 }
@@ -861,7 +860,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Navigation.dismissModal();
         } else {
             Report.setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+            ReportUtils.navigateBackOnDeleteTransaction(urlToNavigateBack, true);
         }
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView, isTransactionDeleted]);
 

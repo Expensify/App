@@ -1382,6 +1382,16 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
+    SHARE_ROOT: 'share/root',
+    SHARE_DETAILS: {
+        route: 'share/share-details/:reportID',
+        getRoute: (reportID: string) => `share/share-details/${reportID}`,
+    },
+    SHARE_SUBMIT_DETAILS: {
+        route: 'share/submit-details/:reportID',
+        getRoute: (reportID: string) => `share/submit-details/${reportID}`,
+    },
+
     PROCESS_MONEY_REQUEST_HOLD: {
         route: 'hold-expense-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),

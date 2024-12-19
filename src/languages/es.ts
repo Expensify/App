@@ -1082,6 +1082,10 @@ const translations = {
         paymentComplete: 'Pago completo',
         justTrackIt: 'Solo guardarlo (no enviarlo)',
     },
+    share: {
+        shareToExpensify: 'Compartir para expensify',
+        messageInputLabel: 'Mensaje',
+    },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',

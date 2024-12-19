@@ -92,7 +92,6 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
@@ -1092,6 +1091,26 @@ function openReport(
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
+}
+
+/**
+ * This will return an optimistic report object for a given user we want to create a chat with without saving it, when everything we know about recipient is his accountId.
+ *
+ * @param accountId accountId of the user that the optimistic chat report is created with.
+ */
+function getOptimisticChatReport(accountId: number): ReportUtils.OptimisticChatReport {
+    return ReportUtils.buildOptimisticChatReport(
+        [accountId, currentUserAccountID],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    );
 }
 
 /**
@@ -2865,7 +2884,7 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
                         };
 
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
@@ -4558,6 +4577,7 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    getOptimisticChatReport,
     getConciergeReportID,
     setDeleteTransactionNavigateBackUrl,
     clearDeleteTransactionNavigateBackUrl,
