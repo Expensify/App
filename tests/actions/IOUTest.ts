@@ -269,6 +269,54 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+        it('trackExpense - categorizing tracked expense should set the quick action to REQUEST_MANUAL with the correct chatReportID', () => {
+            const chatReportID = ReportUtils.generateReportID();
+            // When we categorize a tracked expense with a given chatReportID
+            IOU.trackExpense(
+                {reportID: chatReportID},
+                1000,
+                'USD',
+                '2024-10-30',
+                'merchant',
+                undefined,
+                0,
+                {accountID: 123456},
+                'comment',
+                true,
+                undefined,
+                'category',
+                'tag',
+                'taxCode',
+                0,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.IOU.ACTION.CATEGORIZE,
+                'actionableWhisperReportActionID',
+                {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+                'linkedTrackedExpenseReportID',
+            );
+
+            return waitForBatchedUpdates().then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                            callback: (quickAction) => {
+                                Onyx.disconnect(connection);
+                                // Then the quickAction.action should be set to REQUEST_MANUAL
+                                expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_MANUAL);
+                                // Then the quickAction.chatReportID should be set to the given chatReportID
+                                expect(quickAction?.chatReportID).toBe(chatReportID);
+                                resolve();
+                            },
+                        });
+                    }),
+            );
+        });
 
         it('updates existing chat report if there is one', () => {
             const amount = 10000;
