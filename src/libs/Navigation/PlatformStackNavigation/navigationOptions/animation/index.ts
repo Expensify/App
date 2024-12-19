@@ -6,6 +6,7 @@ const InternalPlatformAnimations = {
     IOS_FROM_RIGHT: 'ios_from_right',
     SIMPLE_PUSH: 'simple_push',
     FADE: 'fade',
+    NONE: 'none',
 } as const;
 
 const Animations = {

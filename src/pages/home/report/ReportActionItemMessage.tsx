@@ -132,12 +132,14 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
+    const shouldShowAddBankAccountButton = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && !ReportUtils.isSettled(reportID);
+
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
                 <>
                     {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
-                    {action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && ReportUtils.hasMissingInvoiceBankAccount(reportID) && (
+                    {shouldShowAddBankAccountButton && (
                         <Button
                             style={[styles.mt2, styles.alignSelfStart]}
                             success
