@@ -206,7 +206,7 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
 }
 
 type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
-    rates: Record<string, Rate | null>;
+    rates: Record<string, NullishDeep<Rate> | null>;
 };
 
 function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
@@ -234,9 +234,7 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
         } else {
             const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
             newCustomUnit.rates[rateID].subRates = newSubRates;
-            if (customUnitOnyxUpdate.rates[rateID]) {
-                customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
-            }
+            customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
         }
     }
     return {newCustomUnit, customUnitOnyxUpdate};
