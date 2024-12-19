@@ -159,9 +159,6 @@ type SearchReport = {
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
-    /** Whether the transaction has violations or errors */
-    hasErrors?: boolean;
-
     /** Collection of report participants, indexed by their accountID */
     participants?: Participants;
 };
@@ -369,9 +366,6 @@ type SearchTransaction = {
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
-
-    /** Whether the transaction has violations or errors */
-    hasErrors?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;

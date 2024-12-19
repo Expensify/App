@@ -264,7 +264,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors || transaction?.hasErrors || report?.errors || report?.hasErrors) {
+    if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
