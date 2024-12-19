@@ -7,7 +7,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 /**
@@ -20,12 +20,11 @@ function extractAttachments(
         accountID,
         parentReportAction,
         reportActions,
-        reportID,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; reportID: string},
+        report,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
-    const report = ReportUtils.getReport(reportID);
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate

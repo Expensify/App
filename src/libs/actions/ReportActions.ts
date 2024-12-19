@@ -1,21 +1,29 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
 
-let allReportActions: OnyxCollection<ReportActions>;
+let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
 });
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
@@ -81,7 +89,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     clearReportActionErrors(reportID, reportAction, keys);
 
-    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = ReportActionUtils.getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
@@ -98,6 +106,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
     }
 }
 
+export type {IgnoreDirection};
 export {
     // eslint-disable-next-line import/prefer-default-export
     clearAllRelatedReportActionErrors,

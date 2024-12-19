@@ -222,7 +222,6 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}

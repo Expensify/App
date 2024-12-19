@@ -97,7 +97,7 @@ function AddPaymentCard() {
                                             {translate('subscription.paymentCard.security')}{' '}
                                             <TextLink
                                                 style={[styles.mutedTextLabel, styles.link]}
-                                                href={CONST.TERMS_URL}
+                                                href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
                                             >
                                                 {translate('subscription.paymentCard.learnMoreAboutSecurity')}
                                             </TextLink>

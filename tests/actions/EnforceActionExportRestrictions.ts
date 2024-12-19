@@ -14,6 +14,11 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getParentReport).toBeUndefined();
     });
 
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getReport).toBeUndefined();
+    });
+
     it('does not export isOneTransactionReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.isOneTransactionReport).toBeUndefined();

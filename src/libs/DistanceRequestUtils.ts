@@ -1,15 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
@@ -27,6 +26,15 @@ Onyx.connect({
     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
     callback: (value) => {
         lastSelectedDistanceRates = value;
+    },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -282,7 +290,6 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  * Returns custom unit rate ID for the distance transaction
  */
 function getCustomUnitRateID(reportID: string) {
-    const allReports = ReportConnection.getAllReports();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');

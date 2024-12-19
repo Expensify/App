@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useNetwork from '@hooks/useNetwork';
@@ -63,6 +64,7 @@ function ReportActionItemParentAction({
     shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
@@ -107,7 +109,7 @@ function ReportActionItemParentAction({
             <AnimatedEmptyStateBackground />
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => {
-                const ancestorReport = ReportUtils.getReport(ancestor.report.reportID);
+                const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(ancestorReport);
                 return (
                     <OfflineWithFeedback

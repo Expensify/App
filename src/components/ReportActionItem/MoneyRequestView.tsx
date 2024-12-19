@@ -15,7 +15,6 @@ import ViolationMessages from '@components/ViolationMessages';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
@@ -34,7 +33,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -79,12 +77,10 @@ const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActio
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const parentReportID = report?.parentReportID ?? '-1';
     const policyID = report?.policyID ?? '-1';
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -93,7 +89,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const targetPolicyID = updatedTransaction?.reportID ? ReportUtils.getReport(updatedTransaction?.reportID)?.policyID : policyID;
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`);
+    const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
@@ -189,7 +186,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
@@ -390,7 +387,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
 
@@ -700,10 +697,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
-                        iconRight={Expensicons.NewWindow}
-                        shouldShowRightIcon
                         onPress={() => {
-                            Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID));
+                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', Navigation.getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report?.reportID ?? '-1', transaction?.transactionID ?? '-1', 0, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}
@@ -729,7 +728,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}

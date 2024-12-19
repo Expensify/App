@@ -98,6 +98,7 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
         <SelectionList
             ListItem={RadioListItem}
             sectionTitleStyles={styles.mt5}
+            listItemTitleStyles={styles.breakAll}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}

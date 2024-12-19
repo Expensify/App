@@ -40,6 +40,15 @@ Onyx.connect({
     },
 });
 
+let reportsCollection: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        reportsCollection = value;
+    },
+});
+
 let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -74,7 +83,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     }
 
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
+        const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
         if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;

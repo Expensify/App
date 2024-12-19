@@ -64,6 +64,9 @@ type ValidateCodeFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
+    /** Whether to show the verify button  */
+    hideSubmitButton?: boolean;
+
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
@@ -82,6 +85,7 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    hideSubmitButton,
     isLoading,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
@@ -264,16 +268,18 @@ function BaseValidateCodeForm({
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    large
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isLoading={account?.isLoading || isLoading}
-                />
+                {!hideSubmitButton && (
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        large
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        isLoading={account?.isLoading || isLoading}
+                    />
+                )}
             </OfflineWithFeedback>
         </>
     );

@@ -165,8 +165,6 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
-type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
-
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -545,6 +543,16 @@ type ImportedTypesParams = {
     importedTypes: string[];
 };
 
+type WorkspaceYouMayJoin = {
+    domain: string;
+    email: string;
+};
+
+type WorkspaceMemberList = {
+    employeeCount: number;
+    policyOwner: string;
+};
+
 type FileLimitParams = {
     fileLimit: number;
 };
@@ -571,6 +579,10 @@ type CustomUnitRateParams = {
 
 type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
+};
+
+type FlightLayoverParams = {
+    layover: string;
 };
 
 export type {
@@ -669,7 +681,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MovedFromSelfDMParams,
+    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -703,7 +715,6 @@ export type {
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
-    SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
@@ -774,9 +785,12 @@ export type {
     OptionalParam,
     AssignCardParams,
     ImportedTypesParams,
+    WorkspaceYouMayJoin,
+    WorkspaceMemberList,
     ImportPerDiemRatesSuccessfullDescriptionParams,
     CurrencyCodeParams,
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    FlightLayoverParams,
 };

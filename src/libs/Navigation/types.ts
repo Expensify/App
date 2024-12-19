@@ -1407,6 +1407,17 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRIP_SUMMARY]: {
+        reportID: string;
+        transactionID: string;
+        backTo?: string;
+    };
+    [SCREENS.TRAVEL.TRIP_DETAILS]: {
+        reportID: string;
+        transactionID: string;
+        reservationIndex: number;
+        backTo?: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {
@@ -1515,6 +1526,12 @@ type OnboardingModalNavigatorParamList = {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORKSPACES]: {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {

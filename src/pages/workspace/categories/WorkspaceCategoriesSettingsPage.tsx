@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -99,52 +100,54 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     title={translate('common.settings')}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
-                <ToggleSettingOptionRow
-                    title={translate('workspace.categories.requiresCategory')}
-                    subtitle={toggleSubtitle}
-                    switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
-                    isActive={policy?.requiresCategory ?? false}
-                    onToggle={updateWorkspaceRequiresCategory}
-                    pendingAction={policy?.pendingFields?.requiresCategory}
-                    disabled={isToggleDisabled}
-                    wrapperStyle={[styles.pv2, styles.mh5]}
-                    errors={policy?.errorFields?.requiresCategory ?? undefined}
-                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
-                    shouldPlaceSubtitleBelowSwitch
-                />
-                <View style={[styles.sectionDividerLine]} />
-                <View style={[styles.containerWithSpaceBetween]}>
-                    {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
-                        <SelectionList
-                            headerContent={
-                                <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-                                    <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
-                                    <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
-                                </View>
-                            }
-                            sections={sections}
-                            ListItem={SpendCategorySelectorListItem}
-                            onSelectRow={(item) => {
-                                if (!item.groupID || !item.categoryID) {
-                                    return;
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.categories.requiresCategory')}
+                        subtitle={toggleSubtitle}
+                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
+                        isActive={policy?.requiresCategory ?? false}
+                        onToggle={updateWorkspaceRequiresCategory}
+                        pendingAction={policy?.pendingFields?.requiresCategory}
+                        disabled={isToggleDisabled}
+                        wrapperStyle={[styles.pv2, styles.mh5]}
+                        errors={policy?.errorFields?.requiresCategory ?? undefined}
+                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    <View style={[styles.sectionDividerLine]} />
+                    <View style={[styles.containerWithSpaceBetween]}>
+                        {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                            <SelectionList
+                                headerContent={
+                                    <View style={[styles.mh5, styles.mt2, styles.mb1]}>
+                                        <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+                                        <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
+                                    </View>
                                 }
-                                setIsSelectorModalVisible(true);
-                                setCategoryID(item.categoryID);
-                                setGroupID(item.groupID);
-                            }}
-                        />
-                    )}
-                    {!!categoryID && !!groupID && (
-                        <CategorySelectorModal
-                            policyID={policyID}
-                            isVisible={isSelectorModalVisible}
-                            currentCategory={categoryID}
-                            onClose={() => setIsSelectorModalVisible(false)}
-                            onCategorySelected={setNewCategory}
-                            label={groupID[0].toUpperCase() + groupID.slice(1)}
-                        />
-                    )}
-                </View>
+                                sections={sections}
+                                ListItem={SpendCategorySelectorListItem}
+                                onSelectRow={(item) => {
+                                    if (!item.groupID || !item.categoryID) {
+                                        return;
+                                    }
+                                    setIsSelectorModalVisible(true);
+                                    setCategoryID(item.categoryID);
+                                    setGroupID(item.groupID);
+                                }}
+                            />
+                        )}
+                    </View>
+                </ScrollView>
+                {!!categoryID && !!groupID && (
+                    <CategorySelectorModal
+                        policyID={policyID}
+                        isVisible={isSelectorModalVisible}
+                        currentCategory={categoryID}
+                        onClose={() => setIsSelectorModalVisible(false)}
+                        onCategorySelected={setNewCategory}
+                        label={groupID[0].toUpperCase() + groupID.slice(1)}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

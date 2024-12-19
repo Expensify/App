@@ -128,12 +128,20 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
+                    path: ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.EMPLOYEES]: {
                     path: ROUTES.ONBOARDING_EMPLOYEES.route,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.ACCOUNTING]: {
                     path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACES]: {
+                    path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
             },
@@ -1337,6 +1345,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                        [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
+                        [SCREENS.TRAVEL.TRIP_DETAILS]: {
+                            path: ROUTES.TRAVEL_TRIP_DETAILS.route,
+                            parse: {
+                                reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
+                            },
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {

@@ -15,7 +15,7 @@ The first step to exporting and downloading expenses is finding the data you nee
  3. Select your Filters on the top right to filter by credit card used, coding, date range, keyword, expense value and a number of other useful criteria
  4. Hit View Results to see all expenses that match your filters
  
- ## Download Expenses
+## Download Expenses
  
  1. Select the checkbox to the left of the expenses or select all with the very top checkbox.
  2. Click **# selected** at the top-right and select **Download**.

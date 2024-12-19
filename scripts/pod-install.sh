@@ -45,11 +45,9 @@ fi
 
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
-NEW_DOT_FLAG="false"
 
-if [ "$1" == "--new-dot" ]; then   
-    NEW_DOT_FLAG="true"
-fi
+# See if we should force standalone NewDot build
+NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     echo -e "${BLUE}Executing npm run pod-install for HybridApp...${NC}"

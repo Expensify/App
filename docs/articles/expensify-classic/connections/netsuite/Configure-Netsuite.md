@@ -36,6 +36,12 @@ The three options for the date your report will export with are:
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
+## Accounting Method
+
+This dictates when reimbursable expenses will export, according to your preferred accounting method:
+- Accrual: Out of pocket expenses will export immediately when the report is final approved
+- Cash: Out of pocket expenses will export when paid via Expensify or marked as Reimbursed
+
 ## Export Settings for Reimbursable Expenses 
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 

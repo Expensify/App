@@ -70,11 +70,14 @@ Onyx.connect({
 });
 
 let socket: PusherWithAuthParams | null;
-let pusherSocketID = '';
+let pusherSocketID: string | undefined;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
-let initPromise: Promise<void>;
+let resolveInitPromise: () => void;
+let initPromise = new Promise<void>((resolve) => {
+    resolveInitPromise = resolve;
+});
 
 const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
 
@@ -90,7 +93,7 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * @returns resolves when Pusher has connected
  */
 function init(args: Args, params?: unknown): Promise<void> {
-    initPromise = new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         if (socket) {
             resolve();
             return;
@@ -129,7 +132,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         });
 
         socket?.connection.bind('connected', () => {
-            pusherSocketID = socket?.connection.socket_id ?? '';
+            pusherSocketID = socket?.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -141,9 +144,7 @@ function init(args: Args, params?: unknown): Promise<void> {
         socket?.connection.bind('state_change', (states: States) => {
             callSocketEventCallbacks('state_change', states);
         });
-    });
-
-    return initPromise;
+    }).then(resolveInitPromise);
 }
 
 /**
@@ -394,6 +395,9 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    initPromise = new Promise((resolve) => {
+        resolveInitPromise = resolve;
+    });
 }
 
 /**
@@ -410,7 +414,7 @@ function reconnect() {
     socket.connect();
 }
 
-function getPusherSocketID(): string {
+function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 

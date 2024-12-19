@@ -51,17 +51,17 @@ freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
-      "in"
-      / "currency"
-      / "tag"
-      / "category"
-      / "to"
-      / "taxRate"
-      / "from"
-      / "expenseType"
-      / "type"
-      / "status"
-      / "cardID"
+      in
+      / currency
+      / tag
+      / category
+      / to
+      / taxRate
+      / from
+      / expenseType
+      / type
+      / status
+      / cardID
     )
 
 identifier

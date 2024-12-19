@@ -34,12 +34,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         Card.startIssueNewCardFlow(policyID);
     }, [policyID]);
 
-    useEffect(() => {
-        return () => {
-            Card.clearIssueNewCardFlow();
-        };
-    }, []);
-
     const getCurrentStep = () => {
         switch (currentStep) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:

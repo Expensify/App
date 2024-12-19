@@ -84,7 +84,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
 
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -182,7 +182,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -359,6 +359,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedCategories({});
@@ -408,7 +409,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         sections={[{data: categoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
