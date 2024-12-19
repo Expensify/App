@@ -87,6 +87,18 @@ type Comment = {
 
 /** Model of transaction custom unit */
 type TransactionCustomUnit = {
+    /** Attributes related to custom unit */
+    attributes?: {
+        /** Duration of the custom unit for per diem */
+        dates: {
+            /** Start date of the custom unit */
+            start: string;
+
+            /** End date of the custom unit */
+            end: string;
+        };
+    };
+
     /** ID of the custom unit */
     customUnitID?: string;
 
@@ -104,6 +116,24 @@ type TransactionCustomUnit = {
 
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
+
+    /** Sub Rates for the custom unit */
+    subRates?: Array<{
+        /** Key of the sub rate */
+        key?: string;
+
+        /** ID of the custom unit sub rate */
+        id: string;
+
+        /** Custom unit amount */
+        quantity: number;
+
+        /** Custom unit name */
+        name: string;
+
+        /** Custom unit rate */
+        rate?: number;
+    }>;
 };
 
 /** Types of geometry */
