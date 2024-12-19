@@ -89,6 +89,18 @@ type MoneyRequestAmountInputProps = {
      */
     autoGrow?: boolean;
 
+    /**
+     * Determines whether the amount should be reset.
+     */
+    shouldResetAmount?: boolean;
+
+    /**
+     * Callback function triggered when the amount is reset.
+     *
+     * @param resetValue - A boolean indicating whether the amount should be reset.
+     */
+    onResetAmount?: (resetValue: boolean) => void;
+
     /** The width of inner content */
     contentWidth?: number;
 };
@@ -126,6 +138,8 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        shouldResetAmount,
+        onResetAmount,
         contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
@@ -209,11 +223,20 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
+        const frontendAmount = onFormatAmount(amount, currency);
+        setCurrentAmount(frontendAmount);
+        if (shouldResetAmount) {
+            setSelection({
+                start: frontendAmount.length,
+                end: frontendAmount.length,
+            });
+            onResetAmount?.(false);
+            return;
+        }
+
         if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
-        const frontendAmount = onFormatAmount(amount, currency);
-        setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
         // In the line below the currentAmount is not immediately updated, it should still hold the previous value.
