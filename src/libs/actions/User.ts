@@ -32,6 +32,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
@@ -281,6 +282,15 @@ function clearValidateCodeActionError(fieldName: string) {
         errorFields: {
             [fieldName]: null,
         },
+    });
+}
+
+/**
+ * Reset validateCodeSent on validate action code.
+ */
+function resetValidateActionCodeSent() {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        validateCodeSent: false,
     });
 }
 
@@ -786,9 +796,7 @@ const isChannelMuted = (reportId: string) =>
                 Onyx.disconnect(connection);
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
-                resolve(
-                    !notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                );
+                resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });
@@ -1426,4 +1434,5 @@ export {
     subscribeToActiveGuides,
     dismissGBRTooltip,
     setIsDebugModeEnabled,
+    resetValidateActionCodeSent,
 };

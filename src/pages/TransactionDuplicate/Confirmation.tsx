@@ -39,8 +39,8 @@ function Confirmation() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -54,12 +54,15 @@ function Confirmation() {
 
     const mergeDuplicates = useCallback(() => {
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '-1'));
+        if (!reportAction?.childReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal(reportAction?.childReportID ?? '-1');
+        Navigation.dismissModal(reportAction?.childReportID);
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(
@@ -75,8 +78,8 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = TransactionUtils.getTransactionID(report?.reportID ?? '');
-    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || reviewDuplicates?.duplicates.includes(reportTransactionID);
+    const reportTransactionID = report?.reportID ? TransactionUtils.getTransactionID(report.reportID) : undefined;
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -94,52 +97,50 @@ function Confirmation() {
             testID={Confirmation.displayName}
             shouldShowOfflineIndicator
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.reviewDuplicates')}
-                            onBackButtonPress={goBack}
-                        />
-                        <ScrollView>
-                            <View style={[styles.ph5, styles.pb8]}>
-                                <Text
-                                    family="EXP_NEW_KANSAS_MEDIUM"
-                                    fontSize={variables.fontSizeLarge}
-                                    style={styles.pb5}
-                                >
-                                    {translate('violations.confirmDetails')}
-                                </Text>
-                                <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
-                            </View>
-                            {/* We need that provider here becuase MoneyRequestView component requires that */}
-                            <ShowContextMenuContext.Provider value={contextValue}>
-                                <MoneyRequestView
-                                    report={report}
-                                    shouldShowAnimatedBackground={false}
-                                    readonly
-                                    isFromReviewDuplicates
-                                    updatedTransaction={transaction as OnyxEntry<Transaction>}
-                                />
-                            </ShowContextMenuContext.Provider>
-                        </ScrollView>
-                        <FixedFooter style={styles.mtAuto}>
-                            <Button
-                                text={translate('common.confirm')}
-                                success
-                                onPress={() => {
-                                    if (!isReportOwner) {
-                                        resolveDuplicates();
-                                        return;
-                                    }
-                                    mergeDuplicates();
-                                }}
-                                large
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
+                <View style={[styles.flex1]}>
+                    <HeaderWithBackButton
+                        title={translate('iou.reviewDuplicates')}
+                        onBackButtonPress={goBack}
+                    />
+                    <ScrollView>
+                        <View style={[styles.ph5, styles.pb8]}>
+                            <Text
+                                family="EXP_NEW_KANSAS_MEDIUM"
+                                fontSize={variables.fontSizeLarge}
+                                style={styles.pb5}
+                            >
+                                {translate('violations.confirmDetails')}
+                            </Text>
+                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                        </View>
+                        {/* We need that provider here becuase MoneyRequestView component requires that */}
+                        <ShowContextMenuContext.Provider value={contextValue}>
+                            <MoneyRequestView
+                                report={report}
+                                shouldShowAnimatedBackground={false}
+                                readonly
+                                isFromReviewDuplicates
+                                updatedTransaction={transaction as OnyxEntry<Transaction>}
                             />
-                        </FixedFooter>
-                    </View>
-                </FullPageNotFoundView>
-            )}
+                        </ShowContextMenuContext.Provider>
+                    </ScrollView>
+                    <FixedFooter style={styles.mtAuto}>
+                        <Button
+                            text={translate('common.confirm')}
+                            success
+                            onPress={() => {
+                                if (!isReportOwner) {
+                                    resolveDuplicates();
+                                    return;
+                                }
+                                mergeDuplicates();
+                            }}
+                            large
+                        />
+                    </FixedFooter>
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
