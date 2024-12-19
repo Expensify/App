@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -34,20 +35,24 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        const previousTransactionsLength = previousTransactions && Object.keys(previousTransactions).length;
-        const transactionsLength = transactions && Object.keys(transactions).length;
+        const previousTransactionIDList = Object.keys(previousTransactions ?? {});
+        const transactionIDList = Object.keys(transactions ?? {});
 
-        const reportActionsLength = reportActions && Object.values(reportActions).reduce((sum, curr) => sum + Object.keys(curr ?? {}).length, 0);
-        const prevReportActionsLength = previousReportActions && Object.values(previousReportActions).reduce((sum, curr) => sum + Object.keys(curr ?? {}).length, 0);
-        // Return early if search was already triggered or there's no change in current and previous data length
-        if (searchTriggeredRef.current || (!isChat && previousTransactionsLength === transactionsLength) || (isChat && reportActionsLength === prevReportActionsLength)) {
+        const reportActionIDList = Object.values(reportActions ?? {})
+            .map((actions) => Object.keys(actions ?? {}))
+            .flat();
+        const prevReportActionIDList = Object.values(previousReportActions ?? {})
+            .map((actions) => Object.keys(actions ?? {}))
+            .flat();
+
+        if (searchTriggeredRef.current) {
             return;
         }
-        const newTransactionAdded = transactionsLength && typeof previousTransactionsLength === 'number' && transactionsLength > previousTransactionsLength;
-        const newReportActionAdded = reportActionsLength && typeof prevReportActionsLength === 'number' && reportActionsLength > prevReportActionsLength;
+        const hasTransactionChange = !isEqual(transactionIDList, previousTransactionIDList);
+        const hasReportActionChange = !isEqual(reportActionIDList, prevReportActionIDList);
 
-        // Check if a new transaction or report action was added
-        if ((!isChat && !!newTransactionAdded) || (isChat && !!newReportActionAdded)) {
+        // Check if there is a change in transaction or report action list
+        if ((!isChat && hasTransactionChange) || (isChat && hasReportActionChange)) {
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
