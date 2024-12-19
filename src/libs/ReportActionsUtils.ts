@@ -929,8 +929,8 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return getOriginalMessage(reportAction)?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | undefined {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
+function getReportAction(reportID?: string, reportActionID?: string): ReportAction | undefined {
+    return reportActionID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] : undefined;
 }
 
 function getMostRecentReportActionLastModified(): string {
