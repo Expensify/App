@@ -38,6 +38,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import Visibility from '@libs/Visibility';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -49,9 +50,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
+
+const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
+    facingMode: {
+        exact: 'environment',
+    },
+    zoom: {
+        ideal: 1,
+    },
+};
 
 function IOURequestStepScan({
     report,
@@ -92,7 +101,7 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
-    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
+    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>(VIDEO_CONSTRAINTS);
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -121,56 +130,19 @@ function IOURequestStepScan({
             return;
         }
 
-        const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
-            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .getUserMedia({video: videoConstraints})
             .then((stream) => {
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
-                // Only Safari 17+ supports zoom constraint
-                if (Browser.isMobileWebKit() && stream.getTracks().length > 0) {
-                    let deviceId;
-                    for (const track of stream.getTracks()) {
-                        const setting = track.getSettings();
-                        if (setting.zoom === 1) {
-                            deviceId = setting.deviceId;
-                            break;
-                        }
-                    }
-                    if (deviceId) {
-                        setVideoConstraints({deviceId});
-                        return;
-                    }
-                }
-                if (!navigator.mediaDevices.enumerateDevices) {
-                    setVideoConstraints(defaultConstraints);
-                    return;
-                }
-                navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    let lastBackDeviceId = '';
-                    for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices.at(i);
-                        if (device?.kind === 'videoinput') {
-                            lastBackDeviceId = device.deviceId;
-                            break;
-                        }
-                    }
-                    if (!lastBackDeviceId) {
-                        setVideoConstraints(defaultConstraints);
-                        return;
-                    }
-                    setVideoConstraints({deviceId: lastBackDeviceId});
-                });
             })
             .catch(() => {
-                setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-    }, []);
+    }, [videoConstraints]);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -618,11 +590,24 @@ function IOURequestStepScan({
         />
     ) : null;
 
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!Visibility.isVisible() || !isTabActive) {
+                return;
+            }
+
+            // When the page is active again, we set a "seed" property with a random value in order
+            // to restart the camera stream with the correct constraints and zoom.
+            setVideoConstraints((constraints) => ({...constraints, seed: Math.random()}));
+        });
+        return unsubscribeVisibilityListener;
+    }, [isTabActive]);
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
                 {PDFThumbnailView}
-                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || cameraPermissionState === 'granted') && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
@@ -655,7 +640,7 @@ function IOURequestStepScan({
                         />
                     </View>
                 )}
-                {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
+                {cameraPermissionState === 'granted' && (
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
