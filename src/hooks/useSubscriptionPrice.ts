@@ -4,18 +4,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import usePreferredCurrency from './usePreferredCurrency';
 import useSubscriptionPlan from './useSubscriptionPlan';
 
-function useSubscriptionPrice(upgradePlan?: 'corporate' | 'team' | null): number {
+function useSubscriptionPrice(): number {
     const preferredCurrency = usePreferredCurrency();
-    const currentSubscriptionPlan = useSubscriptionPlan();
+    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
-    if ((!currentSubscriptionPlan && !upgradePlan) || (currentSubscriptionPlan && !upgradePlan && !privateSubscription?.type)) {
+    if (!subscriptionPlan || !privateSubscription?.type) {
         return 0;
     }
 
-    return CONST.SUBSCRIPTION.PRICES[preferredCurrency][
-        currentSubscriptionPlan === CONST.POLICY.TYPE.CORPORATE || upgradePlan === CONST.POLICY.TYPE.CORPORATE ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM
-    ][privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL];
+    return SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][privateSubscription.type];
 }
 
 export default useSubscriptionPrice;
