@@ -5444,12 +5444,16 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         );
         onyxData = splitOnyxData;
 
+        if (!splitData.createdReportActionID) {
+            return;
+        }
+
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
         // Therefore, any params related to the IOU report are irrelevant and omitted below.
         parameters = {
             transactionID: splitData.transactionID,
             chatReportID: splitData.chatReportID,
-            createdChatReportActionID: splitData.createdReportActionID ?? '',
+            createdChatReportActionID: splitData.createdReportActionID,
             reportActionID: splitData.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             customUnitRateID,
