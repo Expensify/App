@@ -148,7 +148,7 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = value.accountID ?? -1;
+        currentAccountID = value.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can subscribe to user events
@@ -250,7 +250,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID ?? '';
+        return initialReport?.reportID;
     });
 
     useEffect(() => {

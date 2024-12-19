@@ -105,7 +105,7 @@ function WorkspaceSwitcherPage() {
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
-                policyID: policy?.id ?? '-1',
+                policyID: policy?.id,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
