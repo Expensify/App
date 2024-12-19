@@ -8869,6 +8869,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
+    getReport,
     isHiddenForCurrentUser,
 };
 
