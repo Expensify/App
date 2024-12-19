@@ -41,7 +41,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const reportActionIDList = Object.values(reportActions ?? {})
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
-        const prevReportActionIDList = Object.values(previousReportActions ?? {})
+        const previousReportActionIDList = Object.values(previousReportActions ?? {})
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
 
@@ -49,7 +49,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
         const hasTransactionChange = !isEqual(transactionIDList, previousTransactionIDList);
-        const hasReportActionChange = !isEqual(reportActionIDList, prevReportActionIDList);
+        const hasReportActionChange = !isEqual(reportActionIDList, previousReportActionIDList);
 
         // Check if there is a change in transaction or report action list
         if ((!isChat && hasTransactionChange) || (isChat && hasReportActionChange)) {
