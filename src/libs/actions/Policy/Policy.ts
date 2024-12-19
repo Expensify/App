@@ -1913,7 +1913,7 @@ function buildPolicyData(
         customUnitRateID,
         engagementChoice,
         currency: outputCurrency,
-        file,
+        file: file ? {...file} : undefined,
     };
 
     return {successData, optimisticData, failureData, params};
@@ -2041,7 +2041,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         customUnitID,
         customUnitRateID,
         currency: outputCurrency,
-        file,
+        file: file ? {...file} : undefined,
     };
 
     Onyx.update(optimisticData);
