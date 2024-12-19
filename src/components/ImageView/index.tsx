@@ -38,6 +38,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [zoomScale, setZoomScale] = useState(0);
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
     const {isOffline} = useNetwork();
+    console.log(`@51888 ImageView isAuthTokenRequired ${isAuthTokenRequired} url ${url} fileName ${fileName}`);
 
     const scrollableRef = useRef<HTMLDivElement>(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -49,7 +50,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         const newZoomScale = Math.min(newContainerWidth / newImageWidth, newContainerHeight / newImageHeight);
         setZoomScale(newZoomScale);
     };
-
+    
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         const {width, height} = e.nativeEvent.layout;
         setScale(width, height, imgWidth, imgHeight);
@@ -204,6 +205,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
 
     if (canUseTouchScreen) {
+        console.log(`@51888 ImageView isAuthTokenRequired ${isAuthTokenRequired} displaying lightbox url ${url} fileName ${fileName}`);
         return (
             <Lightbox
                 uri={url}
@@ -212,6 +214,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             />
         );
     }
+    console.log(`@51888 ImageView isAuthTokenRequired ${isAuthTokenRequired} displaying Image url ${url} fileName ${fileName}`);
     return (
         <View
             // eslint-disable-next-line react-compiler/react-compiler

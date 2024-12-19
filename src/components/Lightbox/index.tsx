@@ -163,7 +163,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
-
+    console.log(`@51888 lightbox ${uri} isActive ${isActive} isCanvasLoading ${isCanvasLoading} isFallbackStillLoading ${isFallbackStillLoading} isLightboxStillLoading ${isLightboxStillLoading} isLoading ${isLoading}`);
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
         if (isLightboxVisible) {
@@ -235,15 +235,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                         setLightboxImageLoaded(true);
                                     }}
                                     waitForSession={() => {
-                                        console.log(`@51888 lightbox waitForSession`);
                                         // only active lightbox should call this function
-                                        if (!isActive || isFallbackVisible || !isLightboxVisible || isLightboxImageLoaded) {
+                                        if (!isActive || isFallbackVisible || !isLightboxVisible) {
+                                            console.log(`@51888 lightbox returns, waitForSession ${uri} isActive ${isActive} isFallbackVisible ${isFallbackVisible} isLightboxVisible ${isLightboxVisible} isLightboxImageLoaded ${isLightboxImageLoaded}`);
                                             return;
                                         }
-                                        // we only work on visible lightbox/canvas so we shouldnt really care about the fallback image (status)
-                                        setLightboxImageLoaded(false);
+                                        console.log(`@51888 HERE lightbox waitForSession ${uri}`);
                                         setContentSize(cachedImageDimensions.get(uri));
-                                        setCanvasSize(undefined); // to set isCanvasLoading to true
+                                        setLightboxImageLoaded(false);
                                     }}
                                 />
                             </MultiGestureCanvas>

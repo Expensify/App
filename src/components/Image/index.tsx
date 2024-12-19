@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSession} from '@components/OnyxProvider';
 import {isExpiredSession} from '@libs/actions/Session';

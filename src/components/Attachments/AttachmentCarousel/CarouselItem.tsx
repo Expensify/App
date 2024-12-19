@@ -69,7 +69,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <View style={[styles.attachmentRevealButtonContainer]}>{children}</View>
         );
     }
-
+    console.log(`@51888 carouselItem isAuthTokenRequired ${item.isAuthTokenRequired} previewSource ${item.previewSource} source ${item.source} fileName ${item.file?.name} `, item.source);
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.imageModalImageCenterContainer]}>

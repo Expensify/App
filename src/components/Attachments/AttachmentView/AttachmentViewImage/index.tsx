@@ -18,6 +18,7 @@ type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' 
 };
 
 function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
+    console.log(`@51888 AttachmentViewImage isAuthTokenRequired ${isAuthTokenRequired} url ${url} fileName ${file?.name} isImage ${isImage}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
