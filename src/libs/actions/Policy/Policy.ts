@@ -1899,6 +1899,13 @@ function buildPolicyData(
         successData.push(...optimisticCategoriesData.successData);
     }
 
+    const clonedFile = file
+        ? new File([file], file.name, {
+              type: file.type,
+              lastModified: file.lastModified,
+          })
+        : undefined;
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -1913,7 +1920,7 @@ function buildPolicyData(
         customUnitRateID,
         engagementChoice,
         currency: outputCurrency,
-        file: file ? {...file} : undefined,
+        file: clonedFile,
     };
 
     return {successData, optimisticData, failureData, params};
@@ -2028,6 +2035,13 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         },
     ];
 
+    const clonedFile = file
+        ? new File([file], file.name, {
+              type: file.type,
+              lastModified: file.lastModified,
+          })
+        : undefined;
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -2041,7 +2055,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         customUnitID,
         customUnitRateID,
         currency: outputCurrency,
-        file: file ? {...file} : undefined,
+        file: clonedFile,
     };
 
     Onyx.update(optimisticData);
