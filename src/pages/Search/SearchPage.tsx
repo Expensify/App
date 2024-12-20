@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
+import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import SearchPageBottomTab from './SearchPageBottomTab';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -90,7 +90,7 @@ function SearchPage({route}: SearchPageProps) {
                                     }}
                                 />
                             )}
-                            <BottomTabBar selectedTab={SCREENS.SEARCH.CENTRAL_PANE} />
+                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}

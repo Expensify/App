@@ -562,6 +562,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, bottomSafeAreaOffset: number) => ({
+            position: 'absolute',
+            width: '100%',
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: shouldDisplayTopLevelBottomTabBar ? 0 : -(bottomSafeAreaOffset + variables.bottomTabHeight),
+        }),
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,

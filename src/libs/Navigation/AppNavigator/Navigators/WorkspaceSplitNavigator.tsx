@@ -1,9 +1,12 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useRootNavigatorOptions from '@libs/Navigation/AppNavigator/useRootNavigatorOptions';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -31,9 +34,25 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-function WorkspaceNavigator() {
-    const route = useRoute();
+function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const rootNavigatorOptions = useRootNavigatorOptions();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('transitionEnd', () => {
+            // We want to call this function only once.
+            unsubscribe();
+
+            // If we open this screen from a different tab, then it won't have animation.
+            if (!workspaceSplitsWithoutEnteringAnimation.has(route.key)) {
+                return;
+            }
+
+            // We want ot set animation after mounting so it will animate on going UP to the settings split.
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+
+        return unsubscribe;
+    }, [navigation, route.key]);
 
     return (
         <FocusTrapForScreens>
@@ -60,7 +79,7 @@ function WorkspaceNavigator() {
     );
 }
 
-WorkspaceNavigator.displayName = 'WorkspaceNavigator';
+WorkspaceSplitNavigator.displayName = 'WorkspaceSplitNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
-export default WorkspaceNavigator;
+export default WorkspaceSplitNavigator;

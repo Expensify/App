@@ -19,7 +19,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
-import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
+import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,7 +38,6 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -115,8 +113,6 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    const {activeWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -406,7 +402,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+                bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -440,7 +436,7 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
-            bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton

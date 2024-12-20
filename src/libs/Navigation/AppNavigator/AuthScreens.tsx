@@ -25,7 +25,6 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers';
-import SIDEBAR_TO_SPLIT from '@libs/Navigation/linkingConfig/RELATIONS/SIDEBAR_TO_SPLIT';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
@@ -59,6 +58,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
+import {workspaceSplitsWithoutEnteringAnimation} from './createResponsiveStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
@@ -367,21 +367,23 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, []);
 
     // Animation is disabled when navigating to the sidebar screen
-    const getSplitNavigatorOptions = (route: RouteProp<AuthScreensParamList>) => {
-        if (!shouldUseNarrowLayout || !route?.params) {
+    const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+        // We don't need to do anything special for the wide screen.
+        if (!shouldUseNarrowLayout) {
             return rootNavigatorOptions.fullScreen;
         }
 
-        const screenName = 'screen' in route.params ? route.params.screen : undefined;
-
-        if (!screenName) {
-            return rootNavigatorOptions.fullScreen;
-        }
-
-        const animationEnabled = !Object.keys(SIDEBAR_TO_SPLIT).includes(screenName);
+        // On the narrow screen, we want to animate this navigator if it is opened from the settings split.
+        // If it is opened from other tab, we don't want to animate it on the entry.
+        // There is a hook inside the workspace navigator that changes animation to SLIDE_FROM_RIGHT after entering.
+        // This way it can be animated properly when going back to the settings split.
+        const animationEnabled = !workspaceSplitsWithoutEnteringAnimation.has(route.key);
 
         return {
             ...rootNavigatorOptions.fullScreen,
+
+            // Allow swipe to go back from this split navigator to the settings navigator.
+            gestureEnabled: true,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
         };
     };
@@ -393,12 +395,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     {/* This have to be the first navigator in auth screens. */}
                     <RootStack.Screen
                         name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                        options={({route}) => getSplitNavigatorOptions(route)}
+                        options={rootNavigatorOptions.fullScreen}
                         getComponent={loadReportSplitNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                        options={({route}) => getSplitNavigatorOptions(route)}
+                        options={rootNavigatorOptions.fullScreen}
                         getComponent={loadSettingsSplitNavigator}
                     />
                     <RootStack.Screen
@@ -409,7 +411,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                        options={({route}) => getSplitNavigatorOptions(route)}
+                        options={getWorkspaceSplitNavigatorOptions}
                         getComponent={loadWorkspaceSplitNavigator}
                     />
                     <RootStack.Screen
