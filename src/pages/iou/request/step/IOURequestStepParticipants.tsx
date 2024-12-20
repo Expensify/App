@@ -64,6 +64,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), []);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -89,10 +90,10 @@ function IOURequestStepParticipants({
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
         IOU.setCustomUnitRateID(transactionID, rateID);
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, ReportUtils.getReport(selfDMReportID));
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
         Navigation.navigate(iouConfirmationPageRoute);
-    }, [action, selfDMReportID, transactionID]);
+    }, [action, selfDMReport, selfDMReportID, transactionID]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
