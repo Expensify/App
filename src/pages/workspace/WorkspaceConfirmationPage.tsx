@@ -70,7 +70,7 @@ function WorkspaceConfirmationPage() {
     const defaultWorkspaceName = Policy.generateDefaultWorkspaceName(policyOwnerEmail);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
-    const userCurrency = allPersonalDetails?.[session?.accountID ?? 0]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const [currencyCode, setCurrencyCode] = useState(userCurrency);
 
     const currency = getCurrency(currencyCode);
