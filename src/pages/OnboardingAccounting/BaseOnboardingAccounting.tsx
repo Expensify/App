@@ -52,6 +52,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
+    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
+    const [error, setError] = useState('');
+
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
     useEffect(() => {
         if (!onboardingPolicyForOD || onboardingPolicyID) {
@@ -60,9 +63,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         Welcome.setOnboardingAdminsChatReportID(onboardingPolicyForOD.chatReportIDAdmins?.toString());
         Welcome.setOnboardingPolicyID(onboardingPolicyForOD.id);
     }, [onboardingPolicyForOD, onboardingPolicyID]);
-
-    const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
-    const [error, setError] = useState('');
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
             .map((connectionName): OnboardingListItem | undefined => {
