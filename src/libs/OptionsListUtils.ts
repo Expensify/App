@@ -1041,12 +1041,20 @@ function canCreateOptimisticPersonalDetailOption({
     recentReportOptions,
     personalDetailsOptions,
     currentUserOption,
+    searchValue,
 }: {
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
+    searchValue: string;
 }) {
-    return recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
+    if (recentReportOptions.length + personalDetailsOptions.length > 0) {
+        return false;
+    }
+    if (!currentUserOption) {
+        return true;
+    }
+    return currentUserOption.login !== PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserOption.login !== searchValue?.toLowerCase();
 }
 
 /**
@@ -1711,8 +1719,10 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         recentReportOptions: options.recentReports,
         personalDetailsOptions: options.personalDetails,
         currentUserOption: options.currentUserOption,
+        searchValue,
     });
 
+    console.log('canCreateOptimisticDetail', canCreateOptimisticDetail);
     if (!canCreateOptimisticDetail) {
         return null;
     }
