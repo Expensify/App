@@ -105,7 +105,6 @@ function AttachmentView({
     isDeleted,
     isUploading = false,
 }: AttachmentViewProps) {
-    console.log(`@51888 AttachmentView isAuthTokenRequired ${isAuthTokenRequired} url ${source} fileName ${file?.name} `, source);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();

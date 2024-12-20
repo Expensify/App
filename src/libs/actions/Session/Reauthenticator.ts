@@ -27,9 +27,6 @@ Onyx.connect({
         }
         setTimeout(() => {
             isOffline = !!network.shouldForceOffline || !!network.isOffline;
-            if (isOffline) {
-                console.log(`@51888 reauthenticator is Offline`);
-            }
         }, 500);
     },
 });
@@ -38,20 +35,9 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        if (value?.creationDate) {
-            console.log(
-                `@51888 reauthenticator new session received ${value?.authToken?.substring(0, 10)} creationDate ${new Date(
-                    value?.creationDate,
-                ).toISOString()} , active ${active}  isOffline? ${isOffline} currentActiveSession  ${currentActiveSession?.authToken?.substring(0, 10)} creationDate ${
-                    currentActiveSession?.creationDate ? new Date(currentActiveSession?.creationDate).toISOString() : ''
-                }`,
-            );
-        }
         if (!value || isSameSession(value) || !active) {
-            console.log(`@51888 reauthenticator new session received but not doing anything`);
             return;
         }
-        console.log(`@51888 reauthenticator new session received, deactivating`);
         deactivate();
     },
 });
@@ -61,7 +47,6 @@ function isSameSession(session: Session): boolean {
 }
 
 function deactivate() {
-    console.log(`@51888 reauthenticator deactivating`);
     active = false;
     currentActiveSession = {};
     clearInterval(timer);
@@ -75,10 +60,8 @@ function deactivate() {
  */
 function activate(session: Session) {
     if (!session || isSameSession(session) || isOffline) {
-        console.log(`@51888 reauthenticator activation requested but already active or offline`);
         return;
     }    
-    console.log(`@51888 reauthenticator activating`);
     currentActiveSession = session;
     active = true;
     // no need to Timers.register()
@@ -89,7 +72,6 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
-    console.log(`@51888 reauthenticator reauthenticating at ${new Date().toISOString()}`);
     reauthenticate();
 }
 

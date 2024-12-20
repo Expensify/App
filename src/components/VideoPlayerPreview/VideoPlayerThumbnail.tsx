@@ -30,7 +30,7 @@ type VideoPlayerThumbnailProps = {
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
-
+    
     return (
         <View style={styles.flex1}>
             {!!thumbnailUrl && (

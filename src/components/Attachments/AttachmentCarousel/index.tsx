@@ -90,10 +90,8 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
-            console.log(`@51888 attachmentcarousel ${newAttachments?.length} newAttachments1 created `, newAttachments);
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
-            console.log(`@51888 attachmentcarousel ${newAttachments?.length} newAttachments2 created `, newAttachments);
         }
 
         if (isEqual(attachments, newAttachments)) {
@@ -132,7 +130,6 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                 onNavigate(attachment);
             }
         }
-        console.log(`@51888 attachmentcarousel ${attachments?.length} attachments created `, attachments);
     }, [reportActions, parentReportActions, compareImage, attachments, setDownloadButtonVisibility, onNavigate, accountID, type, report]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes

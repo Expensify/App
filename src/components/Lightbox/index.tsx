@@ -43,7 +43,7 @@ type LightboxProps = {
 function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    console.log(`@51888 lightbox uri ${uri}`);
+
     /**
      * React hooks must be used in the render function of the component at top-level and unconditionally.
      * Therefore, in order to provide a default value for "isPagerScrolling" if the "AttachmentCarouselPagerContext" is not available,
@@ -163,7 +163,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
-    console.log(`@51888 lightbox ${uri} isActive ${isActive} isCanvasLoading ${isCanvasLoading} isFallbackStillLoading ${isFallbackStillLoading} isLightboxStillLoading ${isLightboxStillLoading} isLoading ${isLoading}`);
+    
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
         if (isLightboxVisible) {
@@ -237,10 +237,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                     waitForSession={() => {
                                         // only active lightbox should call this function
                                         if (!isActive || isFallbackVisible || !isLightboxVisible) {
-                                            console.log(`@51888 lightbox returns, waitForSession ${uri} isActive ${isActive} isFallbackVisible ${isFallbackVisible} isLightboxVisible ${isLightboxVisible} isLightboxImageLoaded ${isLightboxImageLoaded}`);
                                             return;
                                         }
-                                        console.log(`@51888 HERE lightbox waitForSession ${uri}`);
                                         setContentSize(cachedImageDimensions.get(uri));
                                         setLightboxImageLoaded(false);
                                     }}

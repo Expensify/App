@@ -58,7 +58,6 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
-
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
