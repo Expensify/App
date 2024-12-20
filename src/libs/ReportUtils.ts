@@ -6757,7 +6757,7 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(ownerAccountID: number, policyID?: string): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number, policyID: string | undefined): OnyxEntry<Report> {
     if (!policyID) {
         return undefined;
     }

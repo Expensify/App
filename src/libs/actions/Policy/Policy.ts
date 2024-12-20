@@ -623,7 +623,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
-function clearPolicyErrorField(policyID?: string, fieldName?: string) {
+function clearPolicyErrorField(policyID: string | undefined, fieldName: string | undefined) {
     if (!policyID || !fieldName) {
         return;
     }
