@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -23,6 +25,12 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
+
+    const isAccordionExpanded = useSharedValue(!!qboConfig?.autoCreateVendor);
+
+    useEffect(() => {
+        isAccordionExpanded.set(!!qboConfig?.autoCreateVendor);
+    }, [isAccordionExpanded, qboConfig?.autoCreateVendor]);
 
     const sections = [
         {
@@ -93,7 +101,10 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         }
                         onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
                     />
-                    {qboConfig?.autoCreateVendor && (
+                    <Accordion
+                        isExpanded={isAccordionExpanded}
+                        style={styles.overflowHidden}
+                    >
                         <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
                             <MenuItemWithTopDescription
                                 title={nonReimbursableBillDefaultVendorObject?.name}
@@ -107,7 +118,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 shouldShowRightIcon
                             />
                         </OfflineWithFeedback>
-                    )}
+                    </Accordion>
                 </>
             )}
         </ConnectionLayout>

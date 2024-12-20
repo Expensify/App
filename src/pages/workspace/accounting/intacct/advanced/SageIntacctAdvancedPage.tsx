@@ -1,4 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -33,6 +35,11 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
     const {importEmployees, autoSync, sync, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
     const {data, config} = policy?.connections?.intacct ?? {};
+    const isAccordionExpanded = useSharedValue(!!sync?.syncReimbursedReports);
+
+    useEffect(() => {
+        isAccordionExpanded.set(!!sync?.syncReimbursedReports);
+    }, [isAccordionExpanded, sync?.syncReimbursedReports]);
 
     const toggleSections = useMemo(
         () => [
@@ -113,20 +120,23 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 />
             ))}
 
-            {!!sync?.syncReimbursedReports && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+            >
                 <OfflineWithFeedback
                     key={translate('workspace.sageIntacct.paymentAccount')}
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
                     <MenuItemWithTopDescription
-                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync.reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
+                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
                         description={translate('workspace.sageIntacct.paymentAccount')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
                         brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

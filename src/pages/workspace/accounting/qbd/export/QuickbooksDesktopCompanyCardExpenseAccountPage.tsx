@@ -1,4 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -33,6 +35,12 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name || translate('workspace.qbd.notConfigured');
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, translate, nonReimbursableAccount]);
+
+    const isAccordionExpanded = useSharedValue(!!qbdConfig?.shouldAutoCreateVendor);
+
+    useEffect(() => {
+        isAccordionExpanded.set(!!qbdConfig?.shouldAutoCreateVendor);
+    }, [isAccordionExpanded, qbdConfig?.shouldAutoCreateVendor]);
 
     const sections = [
         {
@@ -96,7 +104,11 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         onToggle={(isOn) => QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
                         onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
                     />
-                    {!!qbdConfig?.shouldAutoCreateVendor && (
+
+                    <Accordion
+                        isExpanded={isAccordionExpanded}
+                        style={styles.overflowHidden}
+                    >
                         <OfflineWithFeedback
                             pendingAction={PolicyUtils.settingsPendingAction(
                                 [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR],
@@ -115,7 +127,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                                 shouldShowRightIcon
                             />
                         </OfflineWithFeedback>
-                    )}
+                    </Accordion>
                 </>
             )}
         </ConnectionLayout>

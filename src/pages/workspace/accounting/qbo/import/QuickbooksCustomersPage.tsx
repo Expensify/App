@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +15,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import Accordion from "@components/Accordion";
 
 function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -22,6 +24,13 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncCustomers && qboConfig?.syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = qboConfig?.syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
+    const isAccordionExpanded = useSharedValue(isSwitchOn);
+
+    useEffect(() => {
+        isAccordionExpanded.set(isSwitchOn);
+    }, [isAccordionExpanded, isSwitchOn]);
+
     return (
         <ConnectionLayout
             displayName={QuickbooksCustomersPage.displayName}
@@ -49,7 +58,11 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             />
-            {isSwitchOn && (
+
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+            >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -60,7 +73,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                         brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

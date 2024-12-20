@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import { ReactNode, useEffect } from "react";
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -101,9 +101,10 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
     const isExpanded = useSharedValue(isActive);
-    const setIsExpanded = (value: boolean) => {
-        isExpanded.set(value);
-    };
+
+    useEffect(() => {
+        isExpanded.set(isActive);
+    }, [isExpanded, isActive]);
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -181,7 +182,6 @@ function ToggleSettingOptionRow({
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
-                        onStateChange={setIsExpanded}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}

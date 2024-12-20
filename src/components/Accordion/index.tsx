@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -14,20 +15,23 @@ type AccordionProps = {
 
     /** Duration of expansion animation  */
     duration?: number;
+
+    /** Additional external style */
+    style?: StyleProp<ViewStyle>;
 };
 
-function Accordion({isExpanded, children, duration = 300}: AccordionProps) {
+function Accordion({isExpanded, children, duration = 300, style}: AccordionProps) {
     const height = useSharedValue(0);
     const styles = useThemeStyles();
 
     const derivedHeight = useDerivedValue(() =>
-        withTiming(height.get() * Number(isExpanded.get()), {
+        withTiming(height.value * Number(isExpanded.value), {
             duration,
         }),
     );
 
     const derivedOpacity = useDerivedValue(() =>
-        withTiming(isExpanded.get() ? 1 : 0, {
+        withTiming(isExpanded.value ? 1 : 0, {
             duration,
         }),
     );
@@ -38,10 +42,10 @@ function Accordion({isExpanded, children, duration = 300}: AccordionProps) {
     }));
 
     return (
-        <Animated.View style={[bodyStyle, styles.overflowHidden]}>
+        <Animated.View style={[bodyStyle, style]}>
             <View
                 onLayout={(e) => {
-                    height.set(e.nativeEvent.layout.height);
+                    height.value = e.nativeEvent.layout.height;
                 }}
                 style={[styles.pAbsolute, styles.l0, styles.r0, styles.t0]}
             >

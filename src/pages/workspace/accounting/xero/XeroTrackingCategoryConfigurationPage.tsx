@@ -1,5 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,6 +27,12 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
+
+    const isAccordionExpanded = useSharedValue(!!xeroConfig?.importTrackingCategories);
+
+    useEffect(() => {
+        isAccordionExpanded.set(!!xeroConfig?.importTrackingCategories);
+    }, [isAccordionExpanded, xeroConfig?.importTrackingCategories]);
 
     const menuItems = useMemo(() => {
         const trackingCategories = Xero.getTrackingCategories(policy);
@@ -61,7 +69,10 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
-            {!!xeroConfig?.importTrackingCategories && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+            >
                 <View>
                     {menuItems.map((menuItem) => (
                         <OfflineWithFeedback
@@ -79,7 +90,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                         </OfflineWithFeedback>
                     ))}
                 </View>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

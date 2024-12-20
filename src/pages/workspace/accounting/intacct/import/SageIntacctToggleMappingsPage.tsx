@@ -101,7 +101,10 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
-            <Accordion isExpanded={isAccordionExpanded}>
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                style={styles.overflowHidden}
+            >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
@@ -111,12 +114,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                         brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
                         hintText={translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
                     />
-                    {/* <Text */}
-                    {/*     style={[styles.textLabelSupporting, styles.ph5]} */}
-                    {/*     numberOfLines={2} */}
-                    {/* > */}
-                    {/*     {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined} */}
-                    {/* </Text> */}
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>
