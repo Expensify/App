@@ -76,6 +76,8 @@ type ExpensifyProps = {
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
+
+// TEST
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
