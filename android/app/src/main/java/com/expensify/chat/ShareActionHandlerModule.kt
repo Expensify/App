@@ -34,16 +34,16 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             }
 
             val shareObject = JSONObject(shareObjectString)
-            val filePath = shareObject.optString("content")
+            val content = shareObject.optString("content")
             val mimeType = shareObject.optString("mimeType")
-            val fileUriPath = "file://$filePath"
+            val fileUriPath = "file://$content"
             val timestamp = System.currentTimeMillis()
 
-            val file = File(filePath)
+            val file = File(content)
             if (!file.exists()) {
                 val textObject = JSONObject().apply {
                     put("id", "text")
-                    put("content", filePath)
+                    put("content", content)
                     put("mimeType", "txt")
                     put("processedAt", timestamp)
                 }
@@ -56,12 +56,12 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
 
             if (mimeType.startsWith("image/")) {
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(filePath, options)
+                BitmapFactory.decodeFile(content, options)
                 aspectRatio = if (options.outHeight != 0) options.outWidth.toFloat() / options.outHeight else 1.0f
             } else if (mimeType.startsWith("video/")) {
                 val retriever = MediaMetadataRetriever()
                 try {
-                    retriever.setDataSource(filePath)
+                    retriever.setDataSource(content)
                     val videoWidth = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toFloatOrNull() ?: 1f
                     val videoHeight = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toFloatOrNull() ?: 1f
                     if (videoHeight != 0f) aspectRatio = videoWidth / videoHeight

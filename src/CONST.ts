@@ -4643,7 +4643,11 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
-        SHARE: {NAVIGATOR_ID: 'ShareNavigatorID', SHARE: 'ShareTab', SUBMIT: 'SubmitTab'},
+        SHARE: {
+            NAVIGATOR_ID: 'ShareNavigatorID',
+            SHARE: 'ShareTab',
+            SUBMIT: 'SubmitTab',
+        },
     },
     TAB_REQUEST: {
         MANUAL: 'manual',

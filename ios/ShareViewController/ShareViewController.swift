@@ -16,7 +16,6 @@ class ShareViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let content = extensionContext!.inputItems[0] as? NSExtensionItem {
-            os_log("ShareViewController.viewDidAppear content: \(content)")
             saveFileToAppGroup(content: content) {
                 (error) in
                 guard error == nil else {
@@ -32,7 +31,6 @@ class ShareViewController: UIViewController {
         let filePath = folder.appendingPathComponent(filename)
         do {
             try fileData.write(to: filePath, options: .completeFileProtection)
-            os_log("TEST SAVE PATH: \(filePath).")
             return filePath
         }
         catch {
@@ -118,7 +116,6 @@ class ShareViewController: UIViewController {
         let filename = "text_to_read.txt"
         if let fileData = url.absoluteString.data(using: .utf8) as NSData? {
             if let fileFinalPath = saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
-                os_log("URL saved successfully at path: %@", fileFinalPath.path)
                 completion(nil)
             }
             else {
@@ -132,7 +129,7 @@ class ShareViewController: UIViewController {
 
     private func handleData(_ data: Any?, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         guard let data = data else {
-            os_log("Data is nil", type: .error)  // No dynamic content, no issue here
+            os_log("Data is nil", type: .error)
             completion(.CouldNotLoad)
             return
         }
@@ -141,7 +138,6 @@ class ShareViewController: UIViewController {
                 let filename = "text_to_read.txt"
                 if let fileData = dataString.data(using: .utf8) as NSData? {
                     if let fileFinalPath = self.saveFileToFolder(folder: folder, filename: filename, fileData: fileData) {
-                        os_log("Saving string data to file TEST PATH %@", type: .info, fileFinalPath.path as CVarArg) // Convert variable logs to use CVarArg
                         completion(nil)
                     }
                     else {
@@ -157,7 +153,6 @@ class ShareViewController: UIViewController {
         }
         else if let url = data as? NSURL, let fileData = NSData(contentsOf: url as URL) {
             guard let filename = url.lastPathComponent else {
-                os_log("Skipping file, no filename.", type: .error)
                 completion(.CouldNotLoad)
                 return
             }

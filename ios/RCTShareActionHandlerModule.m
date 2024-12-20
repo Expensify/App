@@ -1,4 +1,3 @@
-
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import "RCTShareActionHandlerModule.h"
@@ -32,13 +31,10 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
 
   NSError *error = nil;
   NSArray *fileSrcPath = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:sharedFilesFolderPath error:&error];
-  NSLog(@"handleShareAction fileSrcPath %@", fileSrcPath);
   if (fileSrcPath.count == 0) {
       NSLog(@"handleShareAction Failed to find files in 'sharedFilesFolderPath' %@", sharedFilesFolderPath);
       return;
   }
-
-  NSLog(@"handleShareAction shared %lu files", fileSrcPath.count);
 
   NSMutableArray *fileFinalPaths = [NSMutableArray array];
 
@@ -85,7 +81,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback)
       NSString *mimeType = type.preferredMIMEType ? : @"application/octet-stream";
       
       NSTimeInterval timestampInterval = [[NSDate date] timeIntervalSince1970] * 1000;
-      NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
+    NSString *timestamp = [NSString stringWithFormat:@"%.0f", timestampInterval];
       NSString *identifier = [NSString stringWithFormat:@"%@_%@", (unsigned long)timestamp, filePath];
       NSString *fileUriPath = [@"file://" stringByAppendingString:filePath];
 
