@@ -95,9 +95,6 @@ function ChatListItem<TItem extends ListItem>({
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 personalDetails={personalDetails}
-                contextValueOverride={contextValue}
-                attachmentContextValueOverride={attachmentContextValue}
-                mentionReportContextValueOverride={mentionReportContextValue}
                 shouldDisplayContextMenu={false}
             />
         </BaseListItem>
