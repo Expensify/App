@@ -39,13 +39,13 @@ The entityID for Expensify is https://expensify.com. Remember not to copy and pa
 ## Can you have multiple domains with only one entity ID?
 Yes. Please send a message to the Concierge or your account manager, and we will enable the use of the same entity ID with multiple domains.
 
-## How can I update the Microsoft Azure SSO Certificate?
+## How can I update the Microsoft Entra ID SSO Certificate?
 Expensify's SAML configuration doesn't support multiple active certificates. This means that if you create the new certification ahead of time without first removing the old one, the respective IDP will include two unique x509 certificates instead of one, and the connection will break. Should you need to access Expensify, switching back to the old certificate will continue to allow access while that certificate is still valid.
 
-**To transfer from one Microsoft Azure certificate to another, please follow the below steps:**
-1. In Azure Directory, create your new certificate.
-2. In Azure Director, remove the old, expiring certificate.
-3. In Azure Directory, activate the remaining certificate and get a new IDP for Expensify from it.
+**To transfer from one Microsoft Entra certificate to another, please follow the below steps:**
+1. In Microsoft Entra, create your new certificate.
+2. In Microsoft Entra, remove the old, expiring certificate.
+3. In Microsoft Entra, activate the remaining certificate and get a new IDP for Expensify from it.
 4. In Expensify, replace the previous IDP with the new IDP.
 5. Log in via SSO. If login continues to fail, write to Concierge for assistance.
 
