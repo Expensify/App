@@ -239,9 +239,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
-                const childReportID = reportAction?.childReportID ?? '-1';
+                const childReportID = reportAction?.childReportID;
                 Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${childReportID}`));
                 return;
             }
             const editAction = () => {
