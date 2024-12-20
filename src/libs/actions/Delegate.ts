@@ -16,6 +16,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
+import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -80,6 +81,8 @@ function connect(email: string) {
 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);
+
+    const previousAccountID = getCurrentUserAccountID();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -148,7 +151,7 @@ function connect(email: string) {
                     confirmReadyToOpenApp();
                     openApp();
 
-                    NativeModules.HybridAppModule.switchAccount(email, response?.restrictedToken ?? '', activePolicyID ?? '');
+                    NativeModules.HybridAppModule.switchAccount(email, response?.restrictedToken ?? '', activePolicyID ?? '', String(previousAccountID));
                 });
         })
         .catch((error) => {
@@ -206,19 +209,20 @@ function disconnect() {
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
+                    Onyx.set(ONYXKEYS.CREDENTIALS, stashedCredentials);
+                    Onyx.set(ONYXKEYS.SESSION, stashedSession);
+                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+
                     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
                     updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
-                    Onyx.set(ONYXKEYS.CREDENTIALS, stashedCredentials);
-                    Onyx.set(ONYXKEYS.SESSION, stashedSession);
-                    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                    Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
-                    openApp();
-
-                    NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '', response?.authToken ?? '', activePolicyID ?? '');
+                    openApp().then(() => {
+                        NativeModules.HybridAppModule.switchAccount(getCurrentUserEmail() ?? '', response?.authToken ?? '', activePolicyID ?? '', '');
+                    });
                 });
         })
         .catch((error) => {
