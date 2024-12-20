@@ -964,7 +964,7 @@ function openReport(
                 value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                 value: {
                     isOptimisticReport: true,
@@ -1208,7 +1208,11 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  */
-function getOlderActions(reportID: string, reportActionID: string) {
+function getOlderActions(reportID: string | undefined, reportActionID: string | undefined) {
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1262,7 +1266,11 @@ function getOlderActions(reportID: string, reportActionID: string) {
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string, reportActionID: string) {
+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
