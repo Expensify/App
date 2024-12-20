@@ -17,7 +17,7 @@ Once the domain is verified, you can access the SSO settings by navigating to Se
 **Below are instructions for setting up Expensify for specific SSO providers:**
 - [Amazon Web Services (AWS SSO)](https://static.global.sso.amazonaws.com/app-202a715cb67cddd9/instructions/index.htm)
 - [Google SAML](https://support.google.com/a/answer/7371682) (for GSuite, not Google SSO)
-- [Microsoft Azure Active Directory](https://learn.microsoft.com/en-us/entra/identity/saas-apps/expensify-tutorial)
+- [Microsoft Entra ID (formerly Azure Active Directory)](https://learn.microsoft.com/en-us/entra/identity/saas-apps/expensify-tutorial)
 - [Okta](https://saml-doc.okta.com/SAML_Docs/How-to-Configure-SAML-2.0-for-Expensify.html)
 - [OneLogin](https://onelogin.service-now.com/support?id=kb_article&sys_id=e44c9e52db187410fe39dde7489619ba)
 - [Oracle Identity Cloud Service](https://docs.oracle.com/en/cloud/paas/identity-cloud/idcsc/expensify.html#Expensify)
