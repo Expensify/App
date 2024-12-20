@@ -3191,13 +3191,7 @@ function getUpdateTrackExpenseParams(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [transactionThread?.parentReportActionID ?? '-1']: {
-                    originalMessage: {
-                        whisperedTo: [],
-                    },
-                },
-            },
+            value: transactionThread?.parentReportActionID ? {[transactionThread.parentReportActionID]: {originalMessage: {whisperedTo: []}}} : null,
         });
     }
 
@@ -6044,7 +6038,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '-1']: updatedReportPreviewAction,
+                [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
             },
         },
         {
@@ -6075,8 +6069,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID, canUserPerformWriteAction, {[reportPreviewAction?.reportActionID ?? '-1']: null})
-                    ?.lastMessageText,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID, canUserPerformWriteAction, {[reportPreviewAction.reportActionID]: null})?.lastMessageText,
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID, canUserPerformWriteAction, {
                     [reportPreviewAction.reportActionID]: null,
                 })?.created,
@@ -6109,7 +6102,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '-1']: {
+                [reportPreviewAction.reportActionID]: {
                     pendingAction: null,
                     errors: null,
                 },
@@ -6188,7 +6181,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '-1']: {
+                [reportPreviewAction.reportActionID]: {
                     ...reportPreviewAction,
                     pendingAction: null,
                     errors: {
@@ -6382,9 +6375,7 @@ function getSendMoneyParams(
     const optimisticTransactionThreadReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-        value: {
-            [optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1']: optimisticCreatedActionForTransactionThread,
-        },
+        value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread} : null,
     };
 
     const successData: OnyxUpdate[] = [];
@@ -6481,11 +6472,7 @@ function getSendMoneyParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {
-                [optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1']: {
-                    pendingAction: null,
-                },
-            },
+            value: optimisticCreatedActionForTransactionThread ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}} : null,
         },
     );
 
@@ -6509,11 +6496,9 @@ function getSendMoneyParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {
-                [optimisticCreatedActionForTransactionThread?.reportActionID ?? '-1']: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
-                },
-            },
+            value: optimisticCreatedActionForTransactionThread?.reportActionID
+                ? {[optimisticCreatedActionForTransactionThread?.reportActionID]: {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage')}}
+                : null,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -6756,7 +6741,7 @@ function getReportFromHoldRequestsOnyxData(
         // remove hold report actions from old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID ?? ''}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: deleteHoldReportActions,
         },
         // add hold report actions to new iou report
@@ -6904,7 +6889,7 @@ function getPayMoneyRequestParams(
     }
 
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    if (ReportUtils.hasHeldExpenses(iouReport?.reportID ?? '') && !full && !!iouReport?.unheldTotal) {
+    if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
         total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
@@ -6930,7 +6915,7 @@ function getPayMoneyRequestParams(
     let currentNextStep = null;
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID ?? ''}`] ?? null;
+        currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
         optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED);
     }
 
