@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
@@ -46,8 +47,19 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const onboardingPolicyForOD = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
+    useEffect(() => {
+        if (!onboardingPolicyForOD || onboardingPolicyID) {
+            return;
+        }
+        Welcome.setOnboardingAdminsChatReportID(onboardingPolicyForOD.chatReportIDAdmins?.toString());
+        Welcome.setOnboardingPolicyID(onboardingPolicyForOD.id);
+    }, [onboardingPolicyForOD, onboardingPolicyID]);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
