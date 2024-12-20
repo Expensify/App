@@ -22,6 +22,7 @@ import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -65,6 +66,7 @@ describe('actions/IOU', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
+        jest.clearAllTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
@@ -1912,6 +1914,79 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('payMoneyRequest', () => {
+        it('should apply optimistic data correctly', async () => {
+            // Given an outstanding IOU report
+            const chatReport = {
+                ...createRandomReport(0),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+
+            jest.advanceTimersByTime(10);
+
+            // When paying the IOU report
+            IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+
+            await waitForBatchedUpdates();
+
+            // Then the optimistic data should be applied correctly
+            const payReportAction = await new Promise<OnyxTypes.ReportAction | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(reportActions ?? {}).pop());
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.lastVisibleActionCreated).toBe(chatReport.lastVisibleActionCreated);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.iouReportID).toBeUndefined();
+                        expect(new Date(report?.lastReadTime ?? '').getTime()).toBeGreaterThan(new Date(chatReport?.lastReadTime ?? '').getTime());
+                        expect(report?.lastMessageText).toBe(ReportActionsUtils.getReportActionText(payReportAction));
+                        expect(report?.lastMessageHtml).toBe(ReportActionsUtils.getReportActionHtml(payReportAction));
+                        resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        expect(report?.lastVisibleActionCreated).toBe(payReportAction?.created);
+                        expect(report?.lastMessageText).toBe(ReportActionsUtils.getReportActionText(payReportAction));
+                        expect(report?.lastMessageHtml).toBe(ReportActionsUtils.getReportActionHtml(payReportAction));
+                        expect(report?.pendingFields).toEqual({
+                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        });
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
         });
     });
 
