@@ -44,6 +44,7 @@ function PreferencesPage() {
             <HeaderWithBackButton
                 title={translate('common.preferences')}
                 icon={Illustrations.Gears}
+                shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack()}
