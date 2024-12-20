@@ -12,10 +12,10 @@ import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
@@ -93,8 +93,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setActiveWorkspaceID} = useActiveWorkspace();
     const [user] = useOnyx(ONYXKEYS.USER);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isPrivateDomain = !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
