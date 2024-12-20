@@ -51,7 +51,7 @@ type SearchAdvancedFiltersForm = Form<
     InputID,
     {
         [FILTER_KEYS.TYPE]: string;
-        [FILTER_KEYS.STATUS]: string;
+        [FILTER_KEYS.STATUS]: string[] | string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;

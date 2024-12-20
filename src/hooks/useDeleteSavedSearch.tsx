@@ -22,7 +22,7 @@ export default function useDeleteSavedSearch() {
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: SearchQueryUtils.buildCannedSearchQuery(),
+                query: SearchQueryUtils.buildDefaultCannedSearchQuery(),
             }),
         );
     };
