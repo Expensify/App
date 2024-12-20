@@ -4385,15 +4385,15 @@ const translations = {
         },
         downgrade: {
             commonFeatures: {
-                title: 'Downgrade workspace to the Collect',
-                note: "Some features are only available on the Control plan. If you downgrade, you'll lose access to these features and more:",
+                title: 'Downgrade to the Collect plan',
+                note: 'If you downgrade, you’ll lose access to these features and more:',
                 benefits: {
                     note: 'For a full comparison of our plans, check out our',
                     pricingPage: 'pricing page',
                     confirm: 'Are you sure you want to downgrade and remove your configurations?',
                     warning: 'This cannot be undone.',
-                    benefit1: 'Accounting connections (except QBO and Xero)',
-                    benefit2: 'Expense rules',
+                    benefit1: 'Accounting connections (except QuickBooks Online and Xero)',
+                    benefit2: 'Smart expense rules',
                     benefit3: 'Multi-level approval workflows',
                     benefit4: 'Enhanced security controls',
                 },
