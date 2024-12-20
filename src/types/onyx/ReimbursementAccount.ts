@@ -157,10 +157,8 @@ type AdditionalData = {
     [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
     /** Account holder address - country */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: string;
-    /** Country user selects in first step */
-    [INPUT_IDS.ADDITIONAL_DATA.DESTINATION_COUNTRY]: Country | '';
-    /** Country user selects in first step */
-    [INPUT_IDS.ADDITIONAL_DATA.BANK_CURRENCY]: string;
+    /** Account holder country */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
     /** Corpay fields */
     corpay: Corpay;
 };
