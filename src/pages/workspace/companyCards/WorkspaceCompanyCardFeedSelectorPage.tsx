@@ -49,6 +49,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
         keyForList: feed,
         isSelected: feed === selectedFeed,
+        isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        pendingAction: companyFeeds[feed]?.pendingAction,
         brickRoadIndicator: companyFeeds[feed]?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         canShowSeveralIndicators: !!companyFeeds[feed]?.errors,
         leftElement: (

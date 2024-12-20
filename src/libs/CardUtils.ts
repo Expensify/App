@@ -252,16 +252,25 @@ function isCustomFeed(feed: CompanyCardFeed): boolean {
 }
 
 function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
-    return {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
+    const allFeeds = {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
+    const {[CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed]: expensifyFeed, ...companyFeeds} = allFeeds;
+    return companyFeeds;
 }
 
-function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
+function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
     if (!cardFeeds) {
         return {};
     }
 
     const companyCards = getCompanyFeeds(cardFeeds);
-    return Object.fromEntries(Object.entries(companyCards).filter(([key]) => key !== CONST.EXPENSIFY_CARD.BANK));
+    return Object.fromEntries(
+        Object.entries(companyCards).filter(([key, value]) => {
+            if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+            return key !== CONST.EXPENSIFY_CARD.BANK;
+        }),
+    );
 }
 
 function getCardFeedName(feedType: CompanyCardFeed): string {
@@ -348,7 +357,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds)).at(0) as CompanyCardFeed | undefined;
+    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
 

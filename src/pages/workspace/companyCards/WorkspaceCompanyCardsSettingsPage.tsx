@@ -42,6 +42,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want to run the hook only once to escape unexpected feed change
     const selectedFeed = useMemo(() => CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds), []);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
     const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
     const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
@@ -53,8 +54,10 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const deleteCompanyCardFeed = () => {
         if (selectedFeed) {
+            const {cardList, ...cards} = cardsList ?? {};
+            const cardIDs = Object.keys(cards);
             const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).filter((feed) => feed !== selectedFeed).at(0);
-            CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, feedToOpen);
+            CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, cardIDs, feedToOpen);
         }
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
