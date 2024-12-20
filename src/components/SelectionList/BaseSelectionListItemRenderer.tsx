@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import * as Browser from '@libs/Browser';
@@ -13,6 +13,7 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
+        titleStyles?: StyleProp<TextStyle>;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -39,6 +40,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldSyncFocus,
     shouldHighlightSelectedItem,
     wrapperStyle,
+    titleStyles,
     singleExecution,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -88,6 +90,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
+                titleStyles={titleStyles}
             />
             {item.footerContent && item.footerContent}
         </>
