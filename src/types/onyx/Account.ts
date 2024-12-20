@@ -140,9 +140,6 @@ type Account = {
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
 
-    /** Current two factor authentication step */
-    twoFactorAuthStep?: TwoFactorAuthStep;
-
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
 

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AnimatedStepProvider from '@components/AnimatedStep/AnimatedStepProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -21,12 +21,7 @@ type TwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 function TwoFactorAuthPage({route}: TwoFactorAuthPageProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const initialStep = useMemo(() => {
-        if (account?.twoFactorAuthStep) {
-            return account.twoFactorAuthStep;
-        }
-        return account?.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
-    }, [account?.requiresTwoFactorAuth, account?.twoFactorAuthStep]);
+    const initialStep = account?.requiresTwoFactorAuth ? CONST.TWO_FACTOR_AUTH_STEPS.ENABLED : CONST.TWO_FACTOR_AUTH_STEPS.CODES;
 
     const backTo = route.params?.backTo ?? '';
     const forwardTo = route.params?.forwardTo ?? '';

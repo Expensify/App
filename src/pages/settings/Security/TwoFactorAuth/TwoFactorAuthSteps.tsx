@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -11,14 +11,14 @@ function TwoFactorAuthSteps() {
 
     useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
 
-    const handleSetStep = useCallback(
-        (step: TwoFactorAuthStep, direction: AnimationDirection = CONST.ANIMATION_DIRECTION.IN) => {
-            setStep(step, direction);
-            TwoFactorAuthActions.setTwoFactorAuthStep(step);
-        },
+    const contextValue = useMemo(
+        () => ({
+            setStep: (step: TwoFactorAuthStep, direction: AnimationDirection = CONST.ANIMATION_DIRECTION.IN) => {
+                setStep(step, direction);
+            },
+        }),
         [setStep],
     );
-    const contextValue = useMemo(() => ({setStep: handleSetStep}), [handleSetStep]);
 
     return (
         <TwoFactorAuthContext.Provider value={contextValue}>
