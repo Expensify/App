@@ -87,7 +87,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
-    const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? CONST.DEFAULT_NUMBER_ID];
+    const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
@@ -107,13 +107,12 @@ function ReportActionItemSingle({
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
-    const isDelegateActor = action?.delegateAccountID && personalDetails?.[action?.delegateAccountID];
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report, undefined, policy);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
-    } else if (isDelegateActor) {
+    } else if (delegatePersonalDetails) {
         displayName = delegatePersonalDetails?.displayName ?? '';
         avatarSource = delegatePersonalDetails?.avatar;
         avatarId = delegatePersonalDetails?.accountID;
@@ -231,7 +230,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(isDelegateActor && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
                 delegateAccountID={Number(action?.delegateAccountID ?? CONST.DEFAULT_NUMBER_ID)}
                 icon={icon}
             >
