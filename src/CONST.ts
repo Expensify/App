@@ -4621,6 +4621,7 @@ const CONST = {
             /** These action types are custom for RootNavigator */
             SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
             DISMISS_MODAL: 'DISMISS_MODAL',
+            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
         },
     },
     TIME_PERIOD: {

@@ -23,7 +23,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
+import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import getTopmostRouteName from '@libs/Navigation/helpers/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,7 +36,6 @@ import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -396,7 +395,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom
-            bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} /> : null}
+            bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} /> : null}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}

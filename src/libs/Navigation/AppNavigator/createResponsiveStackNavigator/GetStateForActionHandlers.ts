@@ -7,7 +7,7 @@ import type {RootStackParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {PushActionType, SwitchPolicyIdActionType} from './types';
+import type {OpenWorkspaceSplitActionType, PushActionType, SwitchPolicyIdActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -23,6 +23,55 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
 ];
+
+const workspaceSplitsWithoutEnteringAnimation = new Set();
+
+/**
+ * Handles the OPEN_WORKSPACE_SPLIT action.
+ * If the user is on other tab than settings and the workspace split is "remembered", this action will called after pressing the settings tab.
+ * It will push the settings split navigator first and then push the workspace split navigator.
+ * This allows the user to swipe back on the iOS to the settings split navigator underneath.
+ */
+function handleOpenWorkspaceSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: OpenWorkspaceSplitActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const actionToPushSettingsSplitNavigator = StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
+        screen: SCREENS.SETTINGS.WORKSPACES,
+    });
+
+    const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
+        screen: SCREENS.WORKSPACE.INITIAL,
+        params: {
+            policyID: action.payload.policyID,
+        },
+    });
+
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, actionToPushSettingsSplitNavigator, configOptions);
+
+    if (!stateWithSettingsSplitNavigator) {
+        return null;
+    }
+
+    const rehydratedStateWithSettingsSplitNavigator = stackRouter.getRehydratedState(stateWithSettingsSplitNavigator, configOptions);
+    const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
+
+    if (!stateWithWorkspaceSplitNavigator) {
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithWorkspaceSplitNavigator.routes.at(-1);
+
+    if (lastFullScreenRoute?.key) {
+        // If the user opened the workspace split navigator from a different tab, we don't want to animate the entering transition.
+        // To make it feel like bottom tab navigator.
+        workspaceSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithWorkspaceSplitNavigator;
+}
 
 function handleSwitchPolicyID(
     state: StackNavigationState<ParamListBase>,
@@ -151,4 +200,4 @@ function handleDismissModalAction(
     return stackRouter.getStateForAction(state, newAction, configOptions);
 }
 
-export {handleDismissModalAction, handlePushReportAction, handlePushSearchPageAction, handleSwitchPolicyID};
+export {handleOpenWorkspaceSplitAction, handleDismissModalAction, handlePushReportAction, handlePushSearchPageAction, handleSwitchPolicyID, workspaceSplitsWithoutEnteringAnimation};

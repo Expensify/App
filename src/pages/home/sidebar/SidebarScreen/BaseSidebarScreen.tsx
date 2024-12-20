@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import * as Browser from '@libs/Browser';
-import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
+import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
@@ -36,6 +36,7 @@ function BaseSidebarScreen() {
     }, []);
 
     const isSwitchingWorkspace = useRef(false);
+
     useEffect(() => {
         // Whether the active workspace or the "Everything" page is loaded
         const isWorkspaceOrEverythingLoaded = !!activeWorkspace || activeWorkspaceID === undefined;
@@ -74,7 +75,7 @@ function BaseSidebarScreen() {
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
         });
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID]);
+    }, [activeWorkspace, activeWorkspaceID, currentRoute.key]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 
@@ -83,7 +84,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={<BottomTabBar selectedTab={SCREENS.HOME} />}
+            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.HOME} />}
         >
             {({insets}) => (
                 <>

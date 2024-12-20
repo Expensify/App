@@ -10,7 +10,19 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import * as GetStateForActionHandlers from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {CustomRouterAction, CustomRouterActionType, DismissModalActionType, PushActionType, ResponsiveStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
+import type {
+    CustomRouterAction,
+    CustomRouterActionType,
+    DismissModalActionType,
+    OpenWorkspaceSplitActionType,
+    PushActionType,
+    ResponsiveStackNavigatorRouterOptions,
+    SwitchPolicyIdActionType,
+} from './types';
+
+function isOpenWorkspaceSplitAction(action: CustomRouterAction): action is OpenWorkspaceSplitActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+}
 
 function isSwitchPolicyIdAction(action: CustomRouterAction): action is SwitchPolicyIdActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
@@ -59,10 +71,13 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     const {setActiveWorkspaceID} = useActiveWorkspace();
 
-    // @TODO: Make sure that everything works fine without compareAndAdaptState function. Probably with getMatchingFullScreenRoute.
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CustomRouterAction, configOptions: RouterConfigOptions) {
+            if (isOpenWorkspaceSplitAction(action)) {
+                return GetStateForActionHandlers.handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            }
+
             if (isSwitchPolicyIdAction(action)) {
                 return GetStateForActionHandlers.handleSwitchPolicyID(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }

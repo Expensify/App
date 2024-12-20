@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import BottomTabBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
+import BottomTabBar, {BOTTOM_TABS} from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar';
 import getTopmostRouteName from '@libs/Navigation/helpers/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -50,7 +50,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -428,7 +427,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            bottomContent={<BottomTabBar selectedTab={SCREENS.SETTINGS.ROOT} />}
+            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}

@@ -9,7 +9,19 @@ type CustomRouterActionType =
               policyID: string;
           };
       }
-    | {type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL};
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+          payload: {
+              policyID: string;
+          };
+      };
+
+type OpenWorkspaceSplitActionType = CustomRouterActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+};
 
 type SwitchPolicyIdActionType = CustomRouterActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
@@ -33,6 +45,7 @@ type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, Stac
 type CustomRouterAction = CommonActions.Action | StackActionType | CustomRouterActionType;
 
 export type {
+    OpenWorkspaceSplitActionType,
     SwitchPolicyIdActionType,
     PushActionType,
     DismissModalActionType,
