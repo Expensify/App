@@ -21,7 +21,10 @@ function EnabledStep() {
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
+        <StepWrapper
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED}
+            title={translate('twoFactorAuth.headerTitle')}
+        >
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}

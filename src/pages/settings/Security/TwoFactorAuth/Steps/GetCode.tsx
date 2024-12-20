@@ -1,25 +1,23 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BackToParams} from '@libs/Navigation/types';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
+import type {BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type GetCodeProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
-
-function GetCode({account}: GetCodeProps) {
+function GetCode() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -27,6 +25,7 @@ function GetCode({account}: GetCodeProps) {
 
     return (
         <StepWrapper
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.GETCODE}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
             onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED, CONST.ANIMATION_DIRECTION.OUT)}
             onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
@@ -63,9 +62,4 @@ function GetCode({account}: GetCodeProps) {
 
 GetCode.displayName = 'GetCode';
 
-export default withOnyx<GetCodeProps, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(GetCode);
+export default GetCode;

@@ -68,6 +68,7 @@ function VerifyStep() {
 
     return (
         <StepWrapper
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 2,

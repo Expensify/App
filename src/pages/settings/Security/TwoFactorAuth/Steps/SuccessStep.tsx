@@ -24,6 +24,7 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
 
     return (
         <StepWrapper
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 3,
