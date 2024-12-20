@@ -3,7 +3,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type AccordionProps = {
@@ -27,12 +27,14 @@ function Accordion({isExpanded, children, duration = 300, style}: AccordionProps
     const derivedHeight = useDerivedValue(() =>
         withTiming(height.value * Number(isExpanded.value), {
             duration,
+            easing: Easing.inOut(Easing.quad),
         }),
     );
 
     const derivedOpacity = useDerivedValue(() =>
         withTiming(isExpanded.value ? 1 : 0, {
             duration,
+            easing: Easing.inOut(Easing.quad),
         }),
     );
 
