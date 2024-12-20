@@ -76,7 +76,7 @@ function getSubRatesData(customUnitRates: Rate[]) {
                     subRateName: subRate.name,
                     rate: subRate.rate,
                     currency: rate.currency ?? CONST.CURRENCY.USD,
-                    rateID: rate.customUnitRateID ?? '',
+                    rateID: rate.customUnitRateID,
                     subRateID: subRate.id,
                 });
             }
@@ -100,7 +100,7 @@ function generateSingleSubRateData(customUnitRates: Rate[], rateID: string, subR
         subRateName: selectedSubRate.name,
         rate: selectedSubRate.rate,
         currency: selectedRate.currency ?? CONST.CURRENCY.USD,
-        rateID: selectedRate.customUnitRateID ?? '',
+        rateID: selectedRate.customUnitRateID,
         subRateID: selectedSubRate.id,
     };
 }
@@ -120,7 +120,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
@@ -223,18 +223,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openSubRateDetails = (rate: PolicyOption) => {
-        // TODO: Uncomment this when the import feature is ready
-        // Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_RATE_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const dismissError = (item: PolicyOption) => {
-        // TODO: Implement this when the editing feature is ready
+        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
     };
 
     const handleDeletePerDiemRates = () => {
+        PerDiem.deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
         setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
     };
@@ -353,6 +347,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.perDiem')}
                     icon={!selectionModeHeader ? Illustrations.PerDiem : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedPerDiem([]);
@@ -423,7 +418,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         onSelectAll={toggleAllSubRates}
                         ListItem={TableListItem}
-                        onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}

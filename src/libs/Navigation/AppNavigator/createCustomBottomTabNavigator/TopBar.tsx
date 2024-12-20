@@ -22,15 +22,9 @@ type TopBarProps = {
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayCancelSearch?: boolean;
-
-    /**
-     * Callback used to keep track of the workspace switching process in the BaseSidebarScreen.
-     * Passed to the WorkspaceSwitcherButton component.
-     */
-    onSwitchWorkspace?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false, onSwitchWorkspace}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -53,10 +47,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
-                    <WorkspaceSwitcherButton
-                        policy={policy}
-                        onSwitchWorkspace={onSwitchWorkspace}
-                    />
+                    <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>
                         <Breadcrumbs
