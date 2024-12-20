@@ -66,6 +66,7 @@ describe('actions/IOU', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
+        jest.clearAllTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
@@ -1984,6 +1985,8 @@ describe('actions/IOU', () => {
                     },
                 });
             });
+
+            mockFetch?.resume?.();
         });
     });
 
