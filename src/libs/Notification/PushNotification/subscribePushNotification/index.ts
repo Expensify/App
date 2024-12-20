@@ -1,6 +1,5 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -13,7 +12,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer, Report} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '..';
 
 let lastVisitedPath: string | undefined;
@@ -24,15 +23,6 @@ Onyx.connect({
             return;
         }
         lastVisitedPath = value;
-    },
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
     },
 });
 
