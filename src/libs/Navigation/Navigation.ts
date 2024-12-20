@@ -225,10 +225,17 @@ type GoBackOptions = {
      * In that case we want to goUp to a country picker with any params so we don't compare them.
      */
     compareParams?: boolean;
+
+    /**
+     * Specifies whether goBack should pop to top when invoked.
+     * Additionaly, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
+     */
+    shouldPopToTop?: boolean;
 };
 
 const defaultGoBackOptions: Required<GoBackOptions> = {
     compareParams: true,
+    shouldPopToTop: false,
 };
 
 /**
@@ -296,6 +303,14 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
 function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
     if (!canNavigate('goBack')) {
         return;
+    }
+
+    if (options?.shouldPopToTop) {
+        if (shouldPopAllStateOnUP) {
+            shouldPopAllStateOnUP = false;
+            navigationRef.current?.dispatch(StackActions.popToTop());
+            return;
+        }
     }
 
     if (fallbackRoute) {

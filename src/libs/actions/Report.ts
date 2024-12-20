@@ -2468,7 +2468,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop
     // @TODO: Check if this method works the same as on the main branch
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
-        Navigation.popToTop();
+        Navigation.goBack(undefined, {shouldPopToTop: true});
     } else {
         Navigation.goBack();
     }

@@ -303,7 +303,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
         // @TODO: Handle popToTop here
-        Navigation.goBack(ROUTES.HOME);
+        Navigation.goBack(ROUTES.HOME, {shouldPopToTop: true});
     }, [isInNarrowPaneModal]);
 
     let headerView = (
@@ -609,7 +609,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
                 // @TODO: Check if this method works the same as on the main branch
-                Navigation.popToTop();
+                Navigation.goBack(undefined, {shouldPopToTop: true});
             }
             if (prevReport?.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
