@@ -23,6 +23,7 @@ function getExportMenuItem(
     translate: LocaleContextProps['translate'],
     policy?: Policy,
     companyCard?: Card,
+    backTo?: string | undefined,
 ): ExportIntegration | undefined {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
@@ -269,7 +270,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 title,
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo)),
                 data,
             };
         }
