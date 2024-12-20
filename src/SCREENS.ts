@@ -558,6 +558,11 @@ const SCREENS = {
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
         PER_DIEM_SETTINGS: 'Per_Diem_Settings',
+        PER_DIEM_DETAILS: 'Per_Diem_Details',
+        PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
+        PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
+        PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
     },
 
     EDIT_REQUEST: {
