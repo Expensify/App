@@ -13,6 +13,14 @@ type SearchableData<T> = {
      * If you have multiple fields that should be searchable, simply concat them to the string and return it.
      */
     toSearchableString: (data: T) => string;
+
+    /**
+     * Gives the possibility to identify data by a unique attribute. Assume you have to search results with the same text they might be valid
+     * and represent different data. In this case, you can provide a function that returns a unique identifier for the data.
+     * If multiple items with the same identifier are found, only the first one will be returned.
+     * This fixes: https://github.com/Expensify/App/issues/53579
+     */
+    uniqueId?: (data: T) => string | undefined;
 };
 
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
@@ -72,6 +80,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
         const result = tree.findSubstring(Array.from(numeric));
 
         const resultsByDataSet = Array.from({length: dataSets.length}, () => new Set<T>());
+        const uniqueMap: Record<number, Record<string, T>> = {};
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < result.length; i++) {
             const occurrenceIndex = result[i];
@@ -85,6 +94,24 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
             if (!item) {
                 throw new Error(`[FastSearch] The item with index ${itemIndexInDataSet} in dataset ${dataSetIndex} is not defined`);
             }
+
+            // Check for uniqueness eventually
+            const getUniqueId = dataSets[dataSetIndex].uniqueId;
+            if (getUniqueId) {
+                const uniqueId = getUniqueId(item);
+                if (uniqueId) {
+                    const hasId = uniqueMap[dataSetIndex]?.[uniqueId];
+                    if (hasId) {
+                        // eslint-disable-next-line no-continue
+                        continue;
+                    }
+                    if (!uniqueMap[dataSetIndex]) {
+                        uniqueMap[dataSetIndex] = {};
+                    }
+                    uniqueMap[dataSetIndex][uniqueId] = item;
+                }
+            }
+
             resultsByDataSet[dataSetIndex].add(item);
         }
 

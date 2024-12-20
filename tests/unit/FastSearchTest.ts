@@ -115,4 +115,55 @@ describe('FastSearch', () => {
         expect(search('test.user')).toEqual([['test.user@example.com']]);
         expect(search('examplecom')).toEqual([['test.user@example.com']]);
     });
+
+    it('should filter duplicate IDs', () => {
+        const {search} = FastSearch.createFastSearch([
+            {
+                data: [
+                    {
+                        text: 'qa.guide@team.expensify.com',
+                        alternateText: 'qa.guide@team.expensify.com',
+                        keyForList: '14365522',
+                        isSelected: false,
+                        isDisabled: false,
+                        accountID: 14365522,
+                        login: 'qa.guide@team.expensify.com',
+                        icons: [
+                            {
+                                source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_11.png',
+                                type: 'avatar',
+                                name: 'qa.guide@team.expensify.com',
+                                id: 14365522,
+                            },
+                        ],
+                        reportID: '',
+                    },
+                    {
+                        text: 'qa.guide@team.expensify.com',
+                        alternateText: 'qa.guide@team.expensify.com',
+                        keyForList: '714749267',
+                        isSelected: false,
+                        isDisabled: false,
+                        accountID: 714749267,
+                        login: 'qa.guide@team.expensify.com',
+                        icons: [
+                            {
+                                source: 'ƒ SvgFallbackAvatar(props)',
+                                type: 'avatar',
+                                name: 'qa.guide@team.expensify.com',
+                                id: 714749267,
+                            },
+                        ],
+                        reportID: '',
+                    },
+                ],
+                toSearchableString: (data) => data.text,
+                uniqueId: (data) => data.login,
+            },
+        ]);
+
+        const [result] = search('qa.g');
+        // The both items are represented using the same string.
+        expect(result).toHaveLength(1);
+    });
 });

@@ -42,6 +42,7 @@ function useFastSearchFromOptions(
                     const displayName = option.participantsList?.[0]?.displayName ?? '';
                     return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
                 },
+                uniqueId: (option) => option.login,
             },
             {
                 data: options.recentReports,
