@@ -72,9 +72,11 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID || '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || report?.reportID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -103,7 +105,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const reportDescription = Parser.htmlToText(ReportUtils.getReportDescription(report));
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
-    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '');
+    const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report?.reportID);
     const policyID = report?.policyID;
     useEffect(() => {
         if (!policyID) {
@@ -126,17 +128,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     };
 
     const shouldShowGuideBooking = !!account && report?.reportID.toString() === account?.adminsRoomReportID?.toString() && !!account?.guideDetails?.calendarLink;
-
-    const guideBookingButton = (
-        <Button
-            success
-            text={translate('getAssistancePage.scheduleADemo')}
-            onPress={() => {
-                openExternalLink(account?.guideDetails?.calendarLink ?? '');
-            }}
-            icon={Expensicons.CalendarSolid}
-        />
-    );
 
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
@@ -177,6 +168,18 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isChatUsedForOnboarding = ReportUtils.isChatUsedForOnboarding(report);
+
+    const guideBookingButton = (
+        <Button
+            success
+            text={translate('getAssistancePage.scheduleADemo')}
+            onPress={() => {
+                openExternalLink(account?.guideDetails?.calendarLink ?? '');
+            }}
+            style={isChatUsedForOnboarding && styles.mr2}
+            icon={Expensicons.CalendarSolid}
+        />
+    );
 
     return (
         <View
@@ -283,8 +286,8 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                                     {isPolicyExpenseChat && !!policyDescription && isEmptyObject(parentNavigationSubtitleData) && (
                                         <PressableWithoutFeedback
                                             onPress={() => {
-                                                if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
+                                                if (ReportUtils.canEditPolicyDescription(policy) && report.policyID) {
+                                                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID));
                                                     return;
                                                 }
                                                 Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
