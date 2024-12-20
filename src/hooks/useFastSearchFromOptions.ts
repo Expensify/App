@@ -82,7 +82,14 @@ function useFastSearchFromOptions(
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
-                const userToInvite = OptionsListUtils.filterUserToInvite(options, searchInput);
+                const userToInvite = OptionsListUtils.filterUserToInvite(
+                    {
+                        ...options,
+                        personalDetails,
+                        recentReports,
+                    },
+                    searchInput,
+                );
                 return {
                     personalDetails,
                     recentReports,
