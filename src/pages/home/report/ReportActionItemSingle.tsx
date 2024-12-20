@@ -231,7 +231,7 @@ function ReportActionItemSingle({
         return (
             <UserDetailsTooltip
                 accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
-                delegateAccountID={Number(action?.delegateAccountID ?? CONST.DEFAULT_NUMBER_ID)}
+                delegateAccountID={action?.delegateAccountID}
                 icon={icon}
             >
                 <View>
@@ -281,7 +281,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(icon.id) ?? -1}
+                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
