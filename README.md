@@ -463,6 +463,13 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
+- If you encounter issues with API requests failing, navigate to `Mobile-Expensify/app/libs/api.js` and modify the `_isOnDev` function to always return `false`:
+
+    ```javascript
+    _isOnDev: function () {
+        return false;
+    },
+    ```
 
 At this point, the default behavior of some `npm` scripts will change to target HybridApp:
 - `npm run android` - build HybridApp for Android
@@ -475,11 +482,11 @@ At this point, the default behavior of some `npm` scripts will change to target 
 If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
 
 ## Working with HybridApp
-Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo. 
+Day-to-day work with HybridApp shouldn't differ much from the work on the standalone NewDot repo.
 
-The main difference is that the native code which runs React Native is located in `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` directories. It means, that changes in `./android` and `./ios` folders in the root **won't affect the HybridApp build**. 
+The main difference is that the native code which runs React Native is located in `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` directories. It means, that changes in `./android` and `./ios` folders in the root **won't affect the HybridApp build**.
 
-In that case, if you'd like to eg. remove `Pods`, you need to do it in `./Mobile-Expensify/iOS`. The same rule applies to Android builds - if you'd like to delete `.cxx`, `build` or `.gradle` directories, you need to go to `./Mobile-Expensify/android` first. 
+In that case, if you'd like to eg. remove `Pods`, you need to do it in `./Mobile-Expensify/iOS`. The same rule applies to Android builds - if you'd like to delete `.cxx`, `build` or `.gradle` directories, you need to go to `./Mobile-Expensify/android` first.
 
 Additionally, If you'd like to open the HybridApp project in Android Studio or XCode, you **must choose a workspace located in the `Mobile-Expensify`** directory:
 
@@ -494,9 +501,9 @@ Additionally, If you'd like to open the HybridApp project in Android Studio or X
 
 ### Modifying Mobile-Expensify code
 
-It's important to emphasise that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+It's important to emphasise that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory.
 
-> [!Note]  
+> [!Note]
 > #### For external contributors
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
@@ -523,7 +530,7 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
 
 #### Common errors
-1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
+1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false`
 2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
 
 3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
@@ -720,7 +727,7 @@ Some pointers:
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
-  - zero: Used when there are no items **(optional)**. 
+  - zero: Used when there are no items **(optional)**.
   - one: Used when there's exactly one item.
   - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
