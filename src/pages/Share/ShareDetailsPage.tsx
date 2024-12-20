@@ -47,7 +47,7 @@ function ShareDetailsPage({
 
     if (unknownUserDetails) {
         optimisticReport.reportID = unknownUserDetails?.accountID?.toString() ?? '';
-        displayReport.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? -1}];
+        displayReport.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     }
 
     if (!onyxReport || onyxReport?.ownerAccountID === 0) {

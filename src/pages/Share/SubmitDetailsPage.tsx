@@ -53,7 +53,7 @@ function SubmitDetailsPage({
         IOU.initMoneyRequest(reportID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportID, policy]);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? '-1', report);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : IOU.setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, report);
     const participants = selectedParticipants.map((participant) =>
         participant?.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant),
     );
