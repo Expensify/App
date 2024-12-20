@@ -197,9 +197,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the bank */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 
-    /** Currency changed flag */
-    [INPUT_IDS.ADDITIONAL_DATA.CURRENCY_CHANGED]: boolean;
-
     /** Preferred method of payment */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PREFERRED_METHOD]: string;
 
