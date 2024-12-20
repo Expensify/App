@@ -39,7 +39,7 @@ function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor 
     return (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+            style={[styles.tabSelectorButton, styles.animatedTabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[styles.flex1]}
             onPress={onPress}
             onHoverIn={() => setIsHovered(true)}
