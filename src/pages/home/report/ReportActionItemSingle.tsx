@@ -63,7 +63,7 @@ const showUserDetails = (accountID: string) => {
     Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
 };
 
-const showWorkspaceDetails = (reportID: string) => {
+const showWorkspaceDetails = (reportID: string | undefined) => {
     if (!reportID) {
         return;
     }
@@ -87,7 +87,7 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
-    const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID];
+    const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
@@ -302,7 +302,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!action?.delegateAccountID && !isReportPreviewAction && !!delegatePersonalDetails && (
+                {!!delegatePersonalDetails && !isReportPreviewAction && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
