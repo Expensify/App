@@ -517,6 +517,7 @@ const CONST = {
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
