@@ -3,8 +3,6 @@ set -e
 
 export PROJECT_ROOT_PATH
 
-BUILD="$1"
-NEW_DOT_FLAG="false"
 IOS_MODE="DebugDevelopment"
 ANDROID_MODE="developmentDebug"
 SCHEME="New Expensify Dev"
@@ -20,25 +18,18 @@ function print_error_and_exit {
     exit 1
 }
 
-# Assign the arguments to variables
-if [ "$#" -eq 1 ]; then
-    BUILD="$1"
-elif [ "$#" -eq 2 ]; then
-    if [ "$1" == "--new-dot" ]; then
-        BUILD="$2"      
-        NEW_DOT_FLAG="true"
-    elif [ "$2" == "--new-dot" ]; then
-        BUILD="$1"
-        NEW_DOT_FLAG="true"
-    else
-        print_error_and_exit
-    fi
-else
+# Assign the arguments to variables if arguments are correct
+if [ "$#" -ne 1 ] || [[ "$1" != "--ios" && "$1" != "--ipad" && "$1" != "--ipad-sm" && "$1" != "--android" ]]; then
     print_error_and_exit
 fi
 
+BUILD="$1"
+
 # See if we're in the HybridApp repo
 IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
+
+# See if we should force standalone NewDot build
+NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
  if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Set HybridApp-specific arguments

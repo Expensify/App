@@ -514,6 +514,7 @@ const CONST = {
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -900,6 +901,7 @@ const CONST = {
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
+    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive--practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
@@ -4452,7 +4454,7 @@ const CONST = {
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
-    TRIP_ID_PATH: (tripID: string) => `trips/${tripID}`,
+    TRIP_ID_PATH: (tripID?: string) => (tripID ? `trips/${tripID}` : undefined),
     SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
     STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
@@ -5953,6 +5955,7 @@ const CONST = {
         CAR: 'car',
         HOTEL: 'hotel',
         FLIGHT: 'flight',
+        TRAIN: 'train',
     },
 
     DOT_SEPARATOR: '•',
