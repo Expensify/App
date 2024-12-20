@@ -463,8 +463,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
-3. **Temporary Step (For API Request Failures):**
-   If you encounter issues with API requests failing, navigate to `Mobile-Expensify/app/libs/api.js` and modify the `_isOnDev` function to always return `false`:
+- If you encounter issues with API requests failing, navigate to `Mobile-Expensify/app/libs/api.js` and modify the `_isOnDev` function to always return `false`:
 
     ```javascript
     _isOnDev: function () {
