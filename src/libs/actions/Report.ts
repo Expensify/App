@@ -607,8 +607,8 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
-    if (lastMessageText || lastMessageTranslationKey) {
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
@@ -1761,7 +1761,6 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageTranslationKey: '',
             lastMessageText,
         };
         optimisticData.push({
