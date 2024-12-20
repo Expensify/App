@@ -1,6 +1,5 @@
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
@@ -45,14 +44,11 @@ function startOnboardingFlow(isPrivateDomain?: boolean) {
     if (focusedRoute?.name === currentRoute?.name) {
         return;
     }
-    // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
-    InteractionManager.runAfterInteractions(() => {
-        navigationRef.resetRoot({
-            ...navigationRef.getRootState(),
-            ...adaptedState,
-            stale: true,
-        } as PartialState<NavigationState>);
-    });
+    navigationRef.resetRoot({
+        ...navigationRef.getRootState(),
+        ...adaptedState,
+        stale: true,
+    } as PartialState<NavigationState>);
 }
 
 function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
