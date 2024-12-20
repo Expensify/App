@@ -12,10 +12,13 @@ type AmountFormProps = {
 
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
+
+    /** Should we allow negative number as valid input */
+    shouldAllowNegative?: boolean;
 } & Partial<BaseTextInputProps>;
 
 function AmountWithoutCurrencyForm(
-    {value: amount, onInputChange, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
+    {value: amount, onInputChange, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit} = useLocalize();
@@ -32,13 +35,13 @@ function AmountWithoutCurrencyForm(
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-            const withLeadingZero = addLeadingZero(replacedCommasAmount);
-            if (!validateAmount(withLeadingZero, 2)) {
+            const withLeadingZero = addLeadingZero(replacedCommasAmount, shouldAllowNegative);
+            if (!validateAmount(withLeadingZero, 2, CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative)) {
                 return;
             }
             onInputChange?.(withLeadingZero);
         },
-        [onInputChange],
+        [onInputChange, shouldAllowNegative],
     );
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
@@ -54,7 +57,7 @@ function AmountWithoutCurrencyForm(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+            keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
