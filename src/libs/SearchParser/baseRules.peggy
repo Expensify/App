@@ -56,12 +56,12 @@ operator "operator"
   / "<" { return "lt"; }
 
 quotedString "quote"
-  = start:[^ ,"\t\n\r]* "\"" inner:[^"\r\n]* "\"" end:[^ ,\t\n\r]* {
+  = start:[^ ,"\t\n\r\xA0]* "\"" inner:[^"\r\n]* "\"" end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
-alphanumeric "word" = chars:[^ ,\t\n\r]+ { return chars.join("").trim(); }
+alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { return "and"; }
 
-_ "whitespace" = [ \t\r\n]*
+_ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space

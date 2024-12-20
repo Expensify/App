@@ -84,7 +84,7 @@ defaultFilter
     }
 
 freeTextFilter
-  = _ value:(quotedString / [^ \t\r\n]+) _ {
+  = _ value:(quotedString / [^ \t\r\n\xA0]+) _ { //handle no-breaking space
       if (Array.isArray(value)) {
         return buildFilter("eq", "keyword", value.join(""));
       }

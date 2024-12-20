@@ -218,10 +218,10 @@ function peg$parse(input, options) {
   var peg$c37 = "\"";
 
   var peg$r0 = /^[:=]/;
-  var peg$r1 = /^[^ ,"\t\n\r]/;
+  var peg$r1 = /^[^ ,"\t\n\r\xA0]/;
   var peg$r2 = /^[^"\r\n]/;
-  var peg$r3 = /^[^ ,\t\n\r]/;
-  var peg$r4 = /^[ \t\r\n]/;
+  var peg$r3 = /^[^ ,\t\n\r\xA0]/;
+  var peg$r4 = /^[ \t\r\n\xA0]/;
 
   var peg$e0 = peg$literalExpectation(",", false);
   var peg$e1 = peg$otherExpectation("key");
@@ -264,13 +264,13 @@ function peg$parse(input, options) {
   var peg$e38 = peg$literalExpectation("<=", false);
   var peg$e39 = peg$literalExpectation("<", false);
   var peg$e40 = peg$otherExpectation("quote");
-  var peg$e41 = peg$classExpectation([" ", ",", "\"", "\t", "\n", "\r"], true, false);
+  var peg$e41 = peg$classExpectation([" ", ",", "\"", "\t", "\n", "\r", "\xA0"], true, false);
   var peg$e42 = peg$literalExpectation("\"", false);
   var peg$e43 = peg$classExpectation(["\"", "\r", "\n"], true, false);
-  var peg$e44 = peg$classExpectation([" ", ",", "\t", "\n", "\r"], true, false);
+  var peg$e44 = peg$classExpectation([" ", ",", "\t", "\n", "\r", "\xA0"], true, false);
   var peg$e45 = peg$otherExpectation("word");
   var peg$e46 = peg$otherExpectation("whitespace");
-  var peg$e47 = peg$classExpectation([" ", "\t", "\r", "\n"], false, false);
+  var peg$e47 = peg$classExpectation([" ", "\t", "\r", "\n", "\xA0"], false, false);
 
   var peg$f0 = function(ranges) { return { autocomplete, ranges }; };
   var peg$f1 = function(filters) { return filters.filter(Boolean).flat(); };
@@ -351,7 +351,7 @@ function peg$parse(input, options) {
   var peg$f33 = function() { return "gt"; };
   var peg$f34 = function() { return "lte"; };
   var peg$f35 = function() { return "lt"; };
-  var peg$f36 = function(start, inner, end) {
+  var peg$f36 = function(start, inner, end) { //handle no-breaking-space
       return [...start, '"', ...inner, '"', ...end].join("");
     };
   var peg$f37 = function(chars) { return chars.join("").trim(); };
