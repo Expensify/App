@@ -87,6 +87,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
+    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
@@ -202,6 +203,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
     );
 
+    const setTextAndUpdateSelection = useCallback(
+        (text: string) => {
+            setTextInputValue(text);
+            setSelection({start: text.length, end: text.length});
+        },
+        [setSelection, setTextInputValue],
+    );
+
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
@@ -211,7 +220,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item);
-                    onSearchQueryChange(`${searchQuery} `, true);
+                    const newSearchQuery = `${searchQuery}\u00A0`;
+                    onSearchQueryChange(newSearchQuery, true);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item);
                     if (autocompleteKey && item.autocompleteID) {
@@ -221,7 +232,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    onSearchQueryChange(newSearchQuery);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -292,6 +305,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                         wrapperFocusedStyle={[styles.borderColorFocus]}
                         isSearchingForReports={isSearchingForReports}
+                        selection={selection}
                         ref={textInputRef}
                     />
                     <SearchRouterList
@@ -299,7 +313,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         searchQueryItem={searchQueryItem}
                         additionalSections={additionalSections}
                         onListItemPress={onListItemPress}
-                        setTextQuery={setTextInputValue}
+                        setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
                     />

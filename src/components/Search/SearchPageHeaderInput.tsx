@@ -81,6 +81,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [textInputValue, setTextInputValue] = useState(queryText);
     // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(queryText);
+    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
@@ -158,7 +159,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    onSearchQueryChange(newSearchQuery);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -187,6 +190,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             setAutocompleteSubstitutions(substitutions);
         },
         [autocompleteSubstitutions],
+    );
+
+    const setTextAndUpdateSelection = useCallback(
+        (text: string) => {
+            setTextInputValue(text);
+            setSelection({start: text.length, end: text.length});
+        },
+        [setSelection, setTextInputValue],
     );
 
     if (isCannedQuery) {
@@ -267,13 +278,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     rightComponent={children}
                     routerListRef={listRef}
                     ref={textInputRef}
+                    selection={selection}
                 />
                 <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchRouterList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}
                         onListItemPress={onListItemPress}
-                        setTextQuery={setTextInputValue}
+                        setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
                     />
