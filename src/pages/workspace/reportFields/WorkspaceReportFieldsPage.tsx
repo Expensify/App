@@ -246,6 +246,7 @@ function WorkspaceReportFieldsPage({
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.Pencil : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.reportFields')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {

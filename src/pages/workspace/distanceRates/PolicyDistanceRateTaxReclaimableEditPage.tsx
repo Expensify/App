@@ -43,7 +43,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
             Navigation.goBack();
             return;
         }
-        if (!customUnit) {
+        if (!customUnit || !rate) {
             return;
         }
         DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [

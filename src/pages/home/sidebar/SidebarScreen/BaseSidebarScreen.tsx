@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +27,7 @@ function BaseSidebarScreen() {
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
     const currentRoute = useRoute();
 
     useEffect(() => {
@@ -35,25 +35,12 @@ function BaseSidebarScreen() {
         Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
-    const isSwitchingWorkspace = useRef(false);
-
     useEffect(() => {
-        // Whether the active workspace or the "Everything" page is loaded
-        const isWorkspaceOrEverythingLoaded = !!activeWorkspace || activeWorkspaceID === undefined;
-
-        // If we are currently switching workspaces, we don't want to do anything until the target workspace is loaded
-        if (isSwitchingWorkspace.current) {
-            if (isWorkspaceOrEverythingLoaded) {
-                isSwitchingWorkspace.current = false;
-            }
+        if (!!activeWorkspace || activeWorkspaceID === undefined) {
             return;
         }
 
         // Otherwise, if the workspace is already loaded, we don't need to do anything
-        if (isWorkspaceOrEverythingLoaded) {
-            return;
-        }
-
         const topmostReport = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
         if (!topmostReport) {
@@ -68,7 +55,6 @@ function BaseSidebarScreen() {
             return;
         }
 
-        isSwitchingWorkspace.current = true;
         navigationRef.current?.dispatch({
             target: navigationRef.current.getRootState().key,
             payload: getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT}),
@@ -92,7 +78,6 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
-                        onSwitchWorkspace={() => (isSwitchingWorkspace.current = true)}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />

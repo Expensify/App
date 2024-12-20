@@ -1,13 +1,14 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import config from '@libs/Navigation/linkingConfig/config';
 import RELATIONS from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -15,6 +16,15 @@ import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
@@ -122,7 +132,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        if (!ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+        if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
             return fallbackRoute;
         }
 

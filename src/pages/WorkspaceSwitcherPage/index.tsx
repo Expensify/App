@@ -11,7 +11,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -20,6 +20,7 @@ import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/Worksp
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import switchPolicyAfterInteractions from './switchPolicyAfterInteractions';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 
 type WorkspaceListItem = {
@@ -85,8 +86,10 @@ function WorkspaceSwitcherPage() {
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             Navigation.goBack();
-            if (policyID !== activeWorkspaceID) {
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID, payload: {policyID: newPolicyID}});
+            if (newPolicyID !== activeWorkspaceID) {
+                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
+                // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
+                switchPolicyAfterInteractions(newPolicyID);
             }
         },
         [activeWorkspaceID, isFocused],
@@ -101,7 +104,7 @@ function WorkspaceSwitcherPage() {
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
-                policyID: policy?.id ?? '-1',
+                policyID: policy?.id,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
