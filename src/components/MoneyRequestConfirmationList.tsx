@@ -177,14 +177,14 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? CONST.DEFAULT_NUMBER_ID}`, {
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
@@ -202,17 +202,22 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID);
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? String(CONST.DEFAULT_NUMBER_ID);
+    const transactionID = transaction?.transactionID;
+    const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     useEffect(() => {
-        if ((customUnitRateID && customUnitRateID !== '0') || !isDistanceRequest) {
+        if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
         }
 
-        const defaultRate = defaultMileageRate?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const lastSelectedRate = lastSelectedDistanceRates?.[policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)] ?? defaultRate;
+        const defaultRate = defaultMileageRate?.customUnitRateID;
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy.id] ?? defaultRate;
         const rateID = lastSelectedRate;
+
+        if (!rateID) {
+            return;
+        }
+
         IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
@@ -242,6 +247,7 @@ function MoneyRequestConfirmationList({
         if (
             !shouldShowTax ||
             !transaction ||
+            !transactionID ||
             (transaction.taxCode &&
                 previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
                 previousTransactionCurrency === transaction.currency &&
@@ -330,7 +336,7 @@ function MoneyRequestConfirmationList({
         if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
-        if (!isDistanceRequest) {
+        if (!isDistanceRequest || !transactionID) {
             return;
         }
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
@@ -339,7 +345,7 @@ function MoneyRequestConfirmationList({
     }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount) {
+        if (!shouldCalculateDistanceAmount || !transactionID) {
             return;
         }
 
@@ -347,7 +353,7 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
 
         // If it's a split request among individuals, set the split shares
-        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -CONST.DEFAULT_NUMBER_ID);
+        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
@@ -369,20 +375,25 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        let taxableAmount: number;
-        let taxCode: string;
+        let taxableAmount: number | undefined;
+        let taxCode: string | undefined;
         if (isDistanceRequest) {
-            const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? String(CONST.DEFAULT_NUMBER_ID);
-            taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
+            if (customUnitRateID) {
+                const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+                taxCode = customUnitRate?.attributes?.taxRateExternalID;
+                taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
+            }
         } else {
             taxableAmount = transaction.amount ?? 0;
             taxCode = transaction.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
         }
-        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
-        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? String(CONST.DEFAULT_NUMBER_ID), taxAmountInSmallestCurrencyUnits);
+
+        if (taxCode && taxableAmount) {
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+            const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
+            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
+        }
     }, [
         policy,
         shouldShowTax,
@@ -642,7 +653,7 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
+        if (!isDistanceRequest || isMovingTransactionFromTrackExpense || !transactionID) {
             return;
         }
 
@@ -674,16 +685,20 @@ function MoneyRequestConfirmationList({
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
-        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+        if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '');
+        IOU.setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [shouldShowCategories, policyCategories, isCategoryRequired]);
+    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const isTagListRequired = tagList.required ?? false;
@@ -726,7 +741,7 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (routeError) {
+            if (!!routeError || !transactionID) {
                 return;
             }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
