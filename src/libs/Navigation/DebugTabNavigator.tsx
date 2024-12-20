@@ -2,7 +2,6 @@ import type {EventMapCore, NavigationProp, NavigationState} from '@react-navigat
 import {useNavigation} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import type {Animated} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -77,7 +76,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                         tabIndex: index,
                         active: true,
                         affectedTabs: affectedAnimatedTabs,
-                        position: {} as Animated.AnimatedInterpolation<number>,
+                        position: undefined,
                         isActive,
                     });
                     const inactiveOpacity = getOpacity({
@@ -85,7 +84,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                         tabIndex: index,
                         active: false,
                         affectedTabs: affectedAnimatedTabs,
-                        position: {} as Animated.AnimatedInterpolation<number>,
+                        position: undefined,
                         isActive,
                     });
                     const backgroundColor = getBackgroundColor({
@@ -93,7 +92,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                         tabIndex: index,
                         affectedTabs: affectedAnimatedTabs,
                         theme,
-                        position: {} as Animated.AnimatedInterpolation<number>,
+                        position: undefined,
                         isActive,
                     });
                     const {icon, title} = getIconAndTitle(route.name, translate);

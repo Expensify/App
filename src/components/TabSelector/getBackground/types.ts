@@ -28,7 +28,7 @@ type GetBackgroudColorConfig = {
     /**
      * The animated position interpolation.
      */
-    position: Animated.AnimatedInterpolation<number>;
+    position: Animated.AnimatedInterpolation<number> | undefined;
 
     /**
      * Whether the tab is active.
