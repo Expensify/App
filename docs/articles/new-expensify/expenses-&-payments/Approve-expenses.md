@@ -6,13 +6,13 @@ description: Approve, hold, and unapprove submitted expenses
 
 Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or a workspace. 
 
-This help article has more details about creating and submitting an expense to an individual or a workspace. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) has more details about creating and submitting an expense to an individual or a workspace. 
 
 # Receiving an expense from an Individual
 
 When an expense is submitted to an individual, it doesn’t need approval. It only needs to be paid. 
 
-This help article has the steps to pay the expense. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense) has the steps to pay the expense. 
 
 # Receiving a workspace expense
 
@@ -33,7 +33,7 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 2. Click the expense in the email to be directed to New Expensify, where you can review it.
 3. Click on the expense to view the receipt, amount, description, and additional details the submitter provides.
 4. Click **Approve**.
-5. When you are ready to pay the expense, follow the steps in this help article.
+5. When you are ready to pay the expense, follow the steps in this [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense).
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
@@ -90,6 +90,12 @@ When you’re ready to remove the hold,
 {% include end-option.html %}
 
 {% include end-selector.html %}
+
+![Use Search to find an expense]({{site.url}}/assets/images/search-hold-01.png){:width="100%"}
+![Click on top of expense]({{site.url}}/assets/images/search-hold-02.png){:width="100%"}
+![Click Hold]({{site.url}}/assets/images/search-hold-03.png){:width="100%"}
+![Click Unhold]({{site.url}}/assets/images/search-hold-04.png){:width="100%"}
+![Click Approve]({{site.url}}/assets/images/search-hold-05.png){:width="100%"}
 
 {% include info.html %}
 Held expenses will not be available for payment until they have been approved.
