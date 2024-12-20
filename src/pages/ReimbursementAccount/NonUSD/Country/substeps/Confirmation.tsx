@@ -29,7 +29,7 @@ function Confirmation({onNext}: SubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
@@ -42,6 +42,10 @@ function Confirmation({onNext}: SubStepProps) {
     const disableSubmit = !(currency in CONST.CURRENCY);
 
     const handleSettingsPress = () => {
+        if (!policyID) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 

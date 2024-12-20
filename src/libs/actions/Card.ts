@@ -392,8 +392,8 @@ function clearIssueNewCardFlow() {
     });
 }
 
-function clearIssueNewCardError(issueNewCard: IssueNewCardFlowData) {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {...issueNewCard, errors: null});
+function clearIssueNewCardError() {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {errors: null});
 }
 
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
