@@ -590,8 +590,19 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestCategory(transactionID: string, category: string) {
+function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (!policyID) {
+        setMoneyRequestTaxRate(transactionID, '');
+        setMoneyRequestTaxAmount(transactionID, null);
+        return;
+    }
+    const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
+    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, PolicyUtils.getPolicy(policyID));
+    if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        setMoneyRequestTaxRate(transactionID, categoryTaxCode);
+        setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+    }
 }
 
 function setMoneyRequestTag(transactionID: string, tag: string) {
@@ -3432,9 +3443,17 @@ function updateMoneyRequestCategory(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, policy);
     const transactionChanges: TransactionChanges = {
         category,
+        ...(categoryTaxCode &&
+            categoryTaxAmount !== undefined && {
+                taxCode: categoryTaxCode,
+                taxAmount: categoryTaxAmount,
+            }),
     };
+
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -5359,17 +5378,26 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
-function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}) {
+function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
+    const newTransactionChanges = {...transactionChanges};
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
+    if (transactionChanges.category) {
+        const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(transactionChanges.category, draftSplitTransaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+            newTransactionChanges.taxCode = categoryTaxCode;
+            newTransactionChanges.taxAmount = categoryTaxAmount;
+        }
+    }
+
     const updatedTransaction = draftSplitTransaction
         ? TransactionUtils.getUpdatedTransaction({
               transaction: draftSplitTransaction,
-              transactionChanges,
+              transactionChanges: newTransactionChanges,
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
           })
@@ -6889,7 +6917,6 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        lastVisibleActionCreated: optimisticIOUReportAction.created,
         hasOutstandingChildRequest: false,
         iouReportID: null,
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
@@ -6925,6 +6952,7 @@ function getPayMoneyRequestParams(
                 ...iouReport,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 pendingFields: {
@@ -8577,7 +8605,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
         },
     };
 
-    const iouActionsToDelete = getIOUActionForTransactions(params.transactionIDList, params.reportID);
+    const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
 
     const deletedTime = DateUtils.getDBTime();
     const expenseReportActionsOptimisticData: OnyxUpdate = {
@@ -8644,6 +8672,10 @@ function updateLastLocationPermissionPrompt() {
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
 function resolveDuplicates(params: TransactionMergeParams) {
+    if (!params.transactionID) {
+        return;
+    }
+
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -8691,7 +8723,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    const iouActionList = getIOUActionForTransactions(params.transactionIDList, params.reportID);
+    const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
     const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
     const orderedTransactionIDList = iouActionList.map((action) => {
         const message = ReportActionsUtils.getOriginalMessage(action);
@@ -8743,7 +8775,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
         });
     });
 
-    const transactionThreadReportID = getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID;
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
     const optimisticReportAction = ReportUtils.buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -8774,6 +8806,7 @@ function resolveDuplicates(params: TransactionMergeParams) {
 
     const parameters: ResolveDuplicatesParams = {
         ...otherParams,
+        transactionID: params.transactionID,
         reportActionIDList,
         transactionIDList: orderedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
