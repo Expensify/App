@@ -84,14 +84,12 @@ function postSAMLLogin(body: FormData): Promise<Response | void> {
         method: CONST.NETWORK.METHOD.POST,
         body,
         credentials: 'omit',
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('An error occurred while logging in. Please try again');
-            }
-            return response.json() as Promise<Response>;
-        })
-        .then((response) => response);
+    }).then((response) => {
+        if (!response.ok) {
+            throw new Error('An error occurred while logging in. Please try again');
+        }
+        return response.json() as Promise<Response>;
+    });
 }
 
 function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
