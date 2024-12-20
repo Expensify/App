@@ -1860,7 +1860,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         filterResult = filterOptions(options, searchInputValue, config);
     }
 
-    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails, workspaceChats: filteredWorkspaceChats} = filterResult;
+    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
     filteredPersonalDetails = filteredPersonalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
@@ -1868,10 +1868,6 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     if (typeof config?.maxRecentReportsToShow === 'number') {
         filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
         filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
-    }
-
-    if (typeof config?.maxRecentReportsToShow === 'number' && filteredWorkspaceChats && filteredWorkspaceChats?.length > config.maxRecentReportsToShow) {
-        filteredWorkspaceChats = filteredWorkspaceChats.slice(0, config.maxRecentReportsToShow);
     }
 
     const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
@@ -1892,7 +1888,7 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
         personalDetails: filteredPersonalDetails,
         userToInvite: filterResult.userToInvite,
         currentUserOption: filterResult.currentUserOption,
-        workspaceChats: filteredWorkspaceChats,
+        workspaceChats: filterResult.workspaceChats,
         selfDMChat: filterResult.selfDMChat,
     };
 }
