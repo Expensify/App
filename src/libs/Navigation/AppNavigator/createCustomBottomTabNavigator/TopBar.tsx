@@ -17,7 +17,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean; shouldDisplayCancelSearch?: boolean};
+type TopBarProps = {
+    breadcrumbLabel: string;
+    activeWorkspaceID?: string;
+    shouldDisplaySearch?: boolean;
+    shouldDisplayCancelSearch?: boolean;
+};
 
 function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
     const styles = useThemeStyles();

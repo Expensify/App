@@ -1,6 +1,5 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +11,7 @@ import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-type DebugTransactionViolationPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION>;
+type DebugTransactionViolationPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION>;
 
 function DebugTransactionViolationPage({
     route: {
@@ -45,7 +45,12 @@ function DebugTransactionViolationPage({
     const deleteTransactionViolation = useCallback(() => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
-        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        Navigation.goBack();
+        // We need to wait for navigation animations to finish before deleting a violation,
+        // otherwise the user will see a not found page briefly.
+        InteractionManager.runAfterInteractions(() => {
+            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+        });
     }, [index, transactionID, transactionViolations]);
 
     if (!transactionViolation) {

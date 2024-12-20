@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
@@ -26,6 +25,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -38,7 +38,7 @@ import type {Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string};
 
-type PolicyDistanceRatesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
+type PolicyDistanceRatesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
 function PolicyDistanceRatesPage({
     route: {
@@ -295,6 +295,7 @@ function PolicyDistanceRatesPage({
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.CarIce : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {

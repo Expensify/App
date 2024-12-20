@@ -1,6 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -43,7 +43,7 @@ function IOURequestStepCategory({
     },
     transaction,
 }: IOURequestStepCategoryProps) {
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? '-1'}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, reportReal)}`);
@@ -68,7 +68,8 @@ function IOURequestStepCategory({
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
+    const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const transactionCategory = ReportUtils.getTransactionDetails(currentTransaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
@@ -85,11 +86,11 @@ function IOURequestStepCategory({
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
 
     const fetchData = () => {
-        if (policy && policyCategories) {
+        if ((!!policy && !!policyCategories) || !report?.policyID) {
             return;
         }
 
-        Category.getPolicyCategories(report?.policyID ?? '-1');
+        Category.getPolicyCategories(report?.policyID);
     };
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isLoading = !isOffline && policyCategories === undefined;
@@ -113,7 +114,7 @@ function IOURequestStepCategory({
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplitBill) {
-                IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
+                IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory}, policy);
                 navigateBack();
                 return;
             }
@@ -125,10 +126,12 @@ function IOURequestStepCategory({
             }
         }
 
-        IOU.setMoneyRequestCategory(transactionID, updatedCategory);
+        IOU.setMoneyRequestCategory(transactionID, updatedCategory, policy?.id);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.closeAndNavigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
+            if (report?.reportID) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
+            }
             return;
         }
 
@@ -167,14 +170,23 @@ function IOURequestStepCategory({
                                 large
                                 success
                                 style={[styles.w100]}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                            policy?.id ?? '-1',
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                        ),
-                                    )
-                                }
+                                onPress={() => {
+                                    if (!policy?.id || !report?.reportID) {
+                                        return;
+                                    }
+
+                                    if (!policy.areCategoriesEnabled) {
+                                        Category.enablePolicyCategories(policy.id, true, false);
+                                    }
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policy.id,
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                                            ),
+                                        );
+                                    });
+                                }}
                                 text={translate('workspace.categories.editCategories')}
                                 pressOnEnter
                             />
@@ -187,7 +199,7 @@ function IOURequestStepCategory({
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
                     <CategoryPicker
                         selectedCategory={transactionCategory}
-                        policyID={report?.policyID ?? policy?.id ?? '-1'}
+                        policyID={report?.policyID ?? policy?.id}
                         onSubmit={updateCategory}
                     />
                 </>

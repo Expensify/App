@@ -21,7 +21,7 @@ function BaseSidebarScreen() {
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);

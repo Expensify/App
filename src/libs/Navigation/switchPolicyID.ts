@@ -80,7 +80,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
 
     // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
-    // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // Here's the configuration: src/libs/Navigation/AppNavigator/createResponsiveStackNavigator/index.tsx
     const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
         newPath = ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()});

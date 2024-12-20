@@ -6,6 +6,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import {resolveDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -183,7 +184,14 @@ function signOut() {
         shouldRetry: false,
     };
 
-    API.write(WRITE_COMMANDS.LOG_OUT, params);
+    API.write(
+        WRITE_COMMANDS.LOG_OUT,
+        params,
+        {},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.LOG_OUT),
+        },
+    );
 }
 
 /**
@@ -1155,6 +1163,43 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
+/**
+ * Validates user account and returns a list of accessible policies.
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: true,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
+}
+
+function isUserOnPrivateDomain() {
+    // TODO: Implement this function later, and skip the check for now
+    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    return false;
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1192,4 +1237,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
+    validateUserAndGetAccessiblePolicies,
+    isUserOnPrivateDomain,
 };
