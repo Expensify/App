@@ -726,7 +726,10 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
 }
 
 function leaveWorkspace(policyID?: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`];
+    if (!policyID) {
+        return;
+    }
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
     const optimisticData: OnyxUpdate[] = [
