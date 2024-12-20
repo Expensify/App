@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -238,7 +237,7 @@ function getExportMenuItem(
                 }
                 case CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE: {
                     const intacctCreditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-                    const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+                    const activeDefaultVendor = PolicyUtils.getSageIntacctNonReimbursableActiveDefaultVendor(policy);
 
                     const defaultVendorAccount = (policy?.connections?.intacct?.data?.vendors ?? []).find((vendor) => vendor.id === activeDefaultVendor);
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
