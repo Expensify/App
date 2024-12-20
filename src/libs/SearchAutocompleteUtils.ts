@@ -1,3 +1,4 @@
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,7 +15,7 @@ function parseForAutocomplete(text: string) {
         const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete query"`, e);
+        console.error(`Error when parsing autocomplete query"`, e);
     }
 }
 
@@ -131,6 +132,15 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+function workletizedParser(input: string) {
+    'worklet';
+
+    const parsedAutocomplete = autocompleteParser.parse(input) as SearchAutocompleteResult;
+    const ranges = parsedAutocomplete.ranges;
+    // TODO: change type depending on range
+    return ranges.map((range) => ({...range, type: 'mention-user'})) as MarkdownRange[];
+}
+
 export {
     parseForAutocomplete,
     getAutocompleteTags,
@@ -140,4 +150,5 @@ export {
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
     getAutocompleteQueryWithComma,
+    workletizedParser,
 };
