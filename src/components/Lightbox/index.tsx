@@ -163,7 +163,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
-    
+
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
         if (isLightboxVisible) {

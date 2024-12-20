@@ -49,7 +49,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         const newZoomScale = Math.min(newContainerWidth / newImageWidth, newContainerHeight / newImageHeight);
         setZoomScale(newZoomScale);
     };
-    
+
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         const {width, height} = e.nativeEvent.layout;
         setScale(width, height, imgWidth, imgHeight);

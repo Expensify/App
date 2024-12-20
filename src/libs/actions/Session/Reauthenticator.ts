@@ -12,7 +12,6 @@ let timer: NodeJS.Timeout;
 // and we wish not to overlap and make a double reauthentication
 const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
 
-
 // We subscribe to network's online/offline status
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -61,7 +60,7 @@ function deactivate() {
 function activate(session: Session) {
     if (!session || isSameSession(session) || isOffline) {
         return;
-    }    
+    }
     currentActiveSession = session;
     active = true;
     // no need to Timers.register()
