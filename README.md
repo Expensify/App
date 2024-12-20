@@ -500,7 +500,7 @@ It's important to emphasise that a git submodule is just a **regular git reposit
 > #### For external contributors
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
-> 
+>
 > `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
 >
 > This way, you'll attach the submodule to your fork repository.
