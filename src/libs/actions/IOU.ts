@@ -7722,17 +7722,13 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         return;
     }
 
-    if (!chatReport.iouReportID) {
-        return;
-    }
-
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
     const policy = PolicyUtils.getPolicy(chatReport.policyID);
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
     const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, statusNum);
-    const iouReportActions = ReportActionsUtils.getAllReportActions(chatReport.iouReportID);
+    const iouReportActions = chatReport.iouReportID ? ReportActionsUtils.getAllReportActions(chatReport.iouReportID) : {};
     const expenseReportActions = ReportActionsUtils.getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => ReportActionsUtils.isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => ReportActionsUtils.isCreatedAction(action));
