@@ -608,7 +608,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
-            height: 64,
+            minHeight: 64,
         },
 
         buttonSmall: {
@@ -3997,15 +3997,19 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        productTrainingTooltipWrapper: {
+        quickActionTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
-            borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        productTrainingTooltipText: {
+        quickActionTooltipTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeLabel,
+            color: theme.tooltipHighlightText,
+        },
+
+        quickActionTooltipSubtitle: {
             fontSize: variables.fontSizeLabel,
             color: theme.textDark,
-            lineHeight: variables.lineHeightLarge,
         },
 
         quickReactionsContainer: {

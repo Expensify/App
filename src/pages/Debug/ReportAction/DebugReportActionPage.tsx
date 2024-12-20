@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -61,11 +61,15 @@ function DebugReportActionPage({
                                     formType={CONST.DEBUG.FORMS.REPORT_ACTION}
                                     data={reportAction}
                                     onSave={(data) => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+                                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
                                     }}
                                     onDelete={() => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                                         Navigation.goBack();
+                                        // We need to wait for navigation animations to finish before deleting an action,
+                                        // otherwise the user will see a not found page briefly.
+                                        InteractionManager.runAfterInteractions(() => {
+                                            Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                                        });
                                     }}
                                     validate={DebugUtils.validateReportActionDraftProperty}
                                 >
