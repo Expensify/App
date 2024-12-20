@@ -1,6 +1,6 @@
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import type {ForwardedRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
@@ -8,9 +8,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BaseTwoFactorAuthFormOnyxProps, BaseTwoFactorAuthFormRef} from './types';
+import type {BaseTwoFactorAuthFormRef} from './types';
 
-type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
+type BaseTwoFactorAuthFormProps = {
     autoComplete: AutoCompleteVariant;
 
     // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
@@ -18,9 +18,10 @@ type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
     validateInsteadOfDisable?: boolean;
 };
 
-function BaseTwoFactorAuthForm({account, autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
@@ -92,6 +93,4 @@ function BaseTwoFactorAuthForm({account, autoComplete, validateInsteadOfDisable}
     );
 }
 
-export default withOnyx<BaseTwoFactorAuthFormProps & RefAttributes<BaseTwoFactorAuthFormRef>, BaseTwoFactorAuthFormOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(forwardRef(BaseTwoFactorAuthForm));
+export default forwardRef(BaseTwoFactorAuthForm);
