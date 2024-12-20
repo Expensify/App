@@ -3,8 +3,6 @@ import Animated from 'react-native-reanimated';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {StepCounterParams} from '@src/languages/params';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -32,8 +30,6 @@ type AnimatedStepProps = ChildrenProps & {
 
 function AnimatedStep({stepName, title = '', stepCounter, onBackButtonPress, children = null, shouldEnableKeyboardAvoidingView = true, onEntryTransitionEnd}: AnimatedStepProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {previousStep, currentScreenAnimatedStyle, previousScreenAnimatedStyle} = useAnimatedStepContext();
 
     useEffect(() => {
@@ -46,15 +42,7 @@ function AnimatedStep({stepName, title = '', stepCounter, onBackButtonPress, chi
 
     return (
         <Animated.View
-            style={[
-                styles.pAbsolute,
-                styles.t0,
-                styles.l0,
-                styles.r0,
-                styles.b0,
-                StyleUtils.getBackgroundColorStyle(theme.appBG),
-                stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle,
-            ]}
+            style={[styles.animatedStep, stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle]}
             key={stepName}
         >
             <ScreenWrapper
