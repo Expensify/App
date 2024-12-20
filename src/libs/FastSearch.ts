@@ -15,7 +15,7 @@ type SearchableData<T> = {
     toSearchableString: (data: T) => string;
 
     /**
-     * Gives the possibility to identify data by a unique attribute. Assume you have to search results with the same text they might be valid
+     * Gives the possibility to identify data by a unique attribute. Assume you have two search results with the same text they might be valid
      * and represent different data. In this case, you can provide a function that returns a unique identifier for the data.
      * If multiple items with the same identifier are found, only the first one will be returned.
      * This fixes: https://github.com/Expensify/App/issues/53579
