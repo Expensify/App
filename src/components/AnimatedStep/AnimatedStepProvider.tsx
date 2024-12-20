@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -21,14 +23,20 @@ function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepP
     const currentTranslateX = useSharedValue(0);
     const prevTranslateX = useSharedValue(0);
 
+    const {windowWidth} = useWindowDimensions();
+    // We need to use isSmallScreenWidth, to apply the correct width for the sidebar
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const setStep = useCallback(
         (newStep: string, direction: AnimationDirection) => {
             setAnimationDirection(direction);
             setPreviousStep(currentStep);
             setCurrentStep(newStep);
 
-            const currentStepPosition = direction === 'in' ? variables.sideBarWidth : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
-            const previousStepPosition = direction === 'in' ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : variables.sideBarWidth;
+            const sideBarWidth = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
+            const currentStepPosition = direction === 'in' ? sideBarWidth : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
+            const previousStepPosition = direction === 'in' ? -CONST.ANIMATED_TRANSITION_FROM_VALUE : sideBarWidth;
 
             currentTranslateX.set(currentStepPosition);
             currentTranslateX.set(withTiming(0, {duration: ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}, () => setPreviousStep(null)));
@@ -36,7 +44,7 @@ function AnimatedStepProvider({children, renderStep, initialStep}: AnimatedStepP
             prevTranslateX.set(0);
             prevTranslateX.set(withTiming(previousStepPosition, {duration: ANIMATED_SCREEN_TRANSITION, easing: Easing.inOut(Easing.cubic)}));
         },
-        [currentStep, currentTranslateX, prevTranslateX],
+        [currentStep, currentTranslateX, prevTranslateX, isSmallScreenWidth, windowWidth],
     );
 
     const currentScreenAnimatedStyle = useAnimatedStyle(() => ({
