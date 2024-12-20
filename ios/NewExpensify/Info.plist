@@ -4,9 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.chat.expensify.chat</string>
-		<string>com.expensify.chat.dev</string>
-		<string>com.expensify.chat.adhoc</string>
+		<string>com.chat.expensify.backgroundTaskSync</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
