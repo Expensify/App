@@ -16,6 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import * as Localize from './Localize';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -404,6 +405,16 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
+const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+    // A domain name containing a policyID indicates that this is a workspace feed
+    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    if (policyID) {
+        const policy = PolicyUtils.getPolicy(policyID.toUpperCase());
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+};
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -435,4 +446,5 @@ export {
     getDefaultCardName,
     mergeCardListWithWorkspaceFeeds,
     isCard,
+    getDescriptionForPolicyDomainCard,
 };

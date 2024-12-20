@@ -138,7 +138,7 @@ function buildCardFeedsData(
             bank,
             correspondingCardIDs,
             iconStyles,
-            cardFeedLabel: isBankRepeating ? domainName : undefined,
+            cardFeedLabel: isBankRepeating ? CardUtils.getDescriptionForPolicyDomainCard(domainName) : undefined,
             translate,
             keyForList: `${domainName}-${bank}`,
             selectedCards,
@@ -178,7 +178,7 @@ function SearchFiltersCardPage() {
     const {translate} = useLocalize();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
@@ -293,6 +293,9 @@ function SearchFiltersCardPage() {
                     shouldStopPropagation
                     shouldShowTooltips
                     canSelectMultiple
+                    shouldPreventDefaultFocusOnSelectRow={false}
+                    shouldKeepFocusedItemAtTopOfViewableArea={false}
+                    shouldScrollToFocusedIndex={false}
                     ListItem={CardListItem}
                     shouldShowTextInput={shouldShowSearchInput}
                     textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}

@@ -22,7 +22,6 @@ import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -214,16 +213,6 @@ function PaymentMethodList({
     const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
-    const getDescriptionForPolicyDomainCard = (domainName: string): string => {
-        // A domain name containing a policyID indicates that this is a workspace feed
-        const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
-        if (policyID) {
-            const policy = PolicyUtils.getPolicy(policyID.toUpperCase());
-            return policy?.name ?? domainName;
-        }
-        return domainName;
-    };
-
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
@@ -239,7 +228,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: CardUtils.maskCardNumber(card.cardName ?? '', card.bank),
-                        description: getDescriptionForPolicyDomainCard(card.domainName),
+                        description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
                         shouldShowRightIcon: false,
                         interactive: false,
                         canDismissError: false,
@@ -277,7 +266,7 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: getDescriptionForPolicyDomainCard(card.domainName),
+                    description: CardUtils.getDescriptionForPolicyDomainCard(card.domainName),
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
