@@ -480,7 +480,6 @@ const translations = {
         minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
-        validate: 'Validar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -497,13 +496,6 @@ const translations = {
         please: 'Por favor,',
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
-    },
-    contact: {
-        importContacts: 'Importar contactos',
-        importContactsTitle: 'Importa tus contactos',
-        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
-        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
-        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
@@ -528,7 +520,7 @@ const translations = {
         attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB}MB. Por favor, vuelve a intentarlo.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
     },
     filePicker: {
         fileError: 'Error de archivo',
@@ -1104,7 +1096,7 @@ const translations = {
         viewPhoto: 'Ver foto',
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de tu espacio de trabajo',
-        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
@@ -1872,10 +1864,7 @@ const translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
-        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
-        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `No hemos podido entregar mensajes SMS a ${login}, por lo que lo hemos suspendido durante 24 horas.`,
     },
     welcomeSignUpForm: {
         join: 'Unirse',
@@ -4694,7 +4683,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Por favor intenta crear algo con el botón verde.',
+                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
