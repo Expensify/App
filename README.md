@@ -711,7 +711,7 @@ Some pointers:
 
 - All translations are stored in language files in [src/languages](https://github.com/Expensify/App/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages).
 - We try to group translations by their pages/components
-- A common rule of thumb is to move a common word/phrase to be shared when it's in 3 places
+- A common rule of thumb is to move a common word/phrase to be shared when it's in 3 places.
 - Always prefer longer and more complex strings in the translation files. For example
   if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
   key to the translation file and use the arrow function version, like so:
