@@ -51,7 +51,6 @@ function GetCode() {
                         if (!formRef.current) {
                             return;
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                         formRef.current.validateAndSubmitForm();
                     }}
                 />
