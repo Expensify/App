@@ -131,7 +131,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
@@ -149,7 +149,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         }
 
         return '';
-    }, [report, policy]);
+    }, [report]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
@@ -381,7 +381,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         if (isTrackExpenseReport && !isDeletedParentAction) {
             const actionReportID = ReportUtils.getOriginalReportID(report.reportID, parentReportAction);
-            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID ?? '', moneyRequestReport?.reportID ?? '');
+            const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
