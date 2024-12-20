@@ -12,6 +12,7 @@ import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
