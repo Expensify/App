@@ -310,7 +310,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - NitroModules (0.18.1):
+  - NitroModules (0.18.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3276,7 +3276,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: d7090b1a93a9798c029277a8288114f2948f471c
-  ContactsModule: 21671b28654413dc28795d1afc3b12eaffa28ed1
+  ContactsModule: d57f3e1374eb719c7315aefbd48ecb8e4f7b876e
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
@@ -3317,7 +3317,7 @@ SPEC CHECKSUMS:
   MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  NitroModules: ebe2ba2d01dc03c1f82441561fe6062b8c3c4366
+  NitroModules: d5e3886c34fc5c5ebab18327e52f35460c039e2d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
@@ -3411,7 +3411,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f19d3c962fba4fb87bb9bc27ce9119216d86d92e
+  RNLiveMarkdown: 661a8d92a4dc607d858daafba68e2f86f2a2cd51
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
   RNPermissions: 9e5c26aaa982fe00743281f6f47fbdc050ebc58f
@@ -3430,6 +3430,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 3deb2471faa9916c8a82dda2a22d3fba2620ad37
 
-PODFILE CHECKSUM: e744fa802b4bee097ff8d1977dd8f79d16b21547
+PODFILE CHECKSUM: 110a8480badecbb6c44e6660c35e183437044d5f
 
 COCOAPODS: 1.15.2
