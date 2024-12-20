@@ -1338,7 +1338,7 @@ function getValidOptions(
     let workspaceChats: ReportUtils.OptionData[] = [];
 
     if (shouldSeparateWorkspaceChat) {
-        workspaceChats = allReportOptions.filter((option) => option.isOwnPolicyExpenseChat);
+        workspaceChats = allReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
     }
 
     const allPersonalDetailsOptions = includeP2P
