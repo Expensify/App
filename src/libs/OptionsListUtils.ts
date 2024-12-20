@@ -1722,7 +1722,6 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         searchValue,
     });
 
-    console.log('canCreateOptimisticDetail', canCreateOptimisticDetail);
     if (!canCreateOptimisticDetail) {
         return null;
     }
