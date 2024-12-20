@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -37,8 +36,6 @@ function BaseModal(
         fullscreen = true,
         animationIn,
         animationOut,
-        useNativeDriver: useNativeDriverProp,
-        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -250,10 +247,8 @@ function BaseModal(
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
                     animationOut={animationOut ?? modalStyleAnimationOut}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriver={useNativeDriverProp && useNativeDriver}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                    useNativeDriver
+                    useNativeDriverForBackdrop
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                     animationInTiming={animationInTiming}
                     animationOutTiming={animationOutTiming}
