@@ -86,7 +86,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString());
+    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -104,7 +104,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString())?.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
@@ -142,9 +142,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }, [fetchPolicyData]),
     );
 
-    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const policyName = policy?.name ?? '';
+    const policyID = `${policy?.id ?? CONST.DEFAULT_NUMBER_ID}`;
 
+    const policyName = policy?.name ?? '';
     useEffect(() => {
         if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
             return;
@@ -382,7 +382,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? CONST.DEFAULT_NUMBER_ID,
+            id: policy.id,
         };
     }, [policy]);
 
@@ -452,10 +452,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     description={translate('workspace.common.workspace')}
                                     icon={getIcons(currentUserPolicyExpenseChat, personalDetails)}
                                     onPress={() =>
-                                        Navigation.navigate(
-                                            ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString()),
-                                            CONST.NAVIGATION.TYPE.UP,
-                                        )
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(`${currentUserPolicyExpenseChat?.reportID ?? CONST.DEFAULT_NUMBER_ID}`), CONST.NAVIGATION.TYPE.UP)
                                     }
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
