@@ -296,7 +296,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const reportID = report?.reportID;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -393,11 +393,14 @@ function PureReportActionItem({
         }
 
         downloadedPreviews.current = urls;
+        if (!reportID) {
+            return;
+        }
         Report.expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
 
     useEffect(() => {
-        if (draftMessage === undefined || !ReportActionsUtils.isDeletedAction(action)) {
+        if (draftMessage === undefined || !ReportActionsUtils.isDeletedAction(action) || !reportID) {
             return;
         }
         deleteReportActionDraft(reportID, action);
@@ -499,6 +502,9 @@ function PureReportActionItem({
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            if (!reportID) {
+                return;
+            }
             toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
         },
         [reportID, action, emojiReactions, toggleEmojiReaction],
@@ -507,7 +513,7 @@ function PureReportActionItem({
     const contextValue = useMemo(
         () => ({
             anchor: popoverAnchorRef.current,
-            report: {...report, reportID: report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`},
+            report: report?.reportID ? {...report, reportID: report?.reportID} : undefined,
             reportNameValuePairs,
             action,
             transactionThreadReport,
@@ -519,7 +525,7 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => (report?.reportID ? {currentReportID: report?.reportID} : {currentReportID: ''}), [report?.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
@@ -547,7 +553,10 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        if (!transactionID || !reportID) {
+                            return;
+                        }
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -555,7 +564,10 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        if (!transactionID || !reportID) {
+                            return;
+                        }
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -563,7 +575,10 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        if (!transactionID || !reportID) {
+                            return;
+                        }
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -571,6 +586,9 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.nothing',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                     onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
                         dismissTrackExpenseActionableWhisper(reportID, action);
                     },
                     isMediumSized: true,
@@ -583,13 +601,23 @@ function PureReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Member.acceptJoinRequest(reportID, action),
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        Member.acceptJoinRequest(reportID, action);
+                    },
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Member.declineJoinRequest(reportID, action),
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        Member.declineJoinRequest(reportID, action);
+                    },
                 },
             ];
         }
@@ -599,13 +627,23 @@ function PureReportActionItem({
                 {
                     text: 'common.yes',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE);
+                    },
                     isPrimary: true,
                 },
                 {
                     text: 'common.no',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING);
+                    },
                 },
             ];
         }
@@ -614,13 +652,23 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.invite',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
+                onPress: () => {
+                    if (!reportID) {
+                        return;
+                    }
+                    resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE);
+                },
                 isPrimary: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+                onPress: () => {
+                    if (!reportID) {
+                        return;
+                    }
+                    resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING);
+                },
             },
         ];
     }, [
@@ -660,7 +708,7 @@ function PureReportActionItem({
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID ?? `${CONST.DEFAULT_NUMBER_ID}` : reportID}
+                    chatReportID={ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? report?.chatReportID : reportID}
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}
@@ -691,7 +739,7 @@ function PureReportActionItem({
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
-                    policyID={report?.policyID ?? '-1'}
+                    policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
@@ -709,19 +757,21 @@ function PureReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         style={displayAsGroup ? [] : [styles.mt1]}
-                        taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '-1' : '-1'}
+                        taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() : undefined}
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                        policyID={report?.policyID ?? '-1'}
+                        policyID={report?.policyID}
                     />
                 </ShowContextMenuContext.Provider>
             );
         } else if (ReportActionsUtils.isReimbursementQueuedAction(action)) {
             const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? -1]));
+            const submitterDisplayName = LocalePhoneNumber.formatPhoneNumber(
+                PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]),
+            );
             const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -1013,7 +1063,7 @@ function PureReportActionItem({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
             ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
-            : '-1';
+            : undefined;
 
         return (
             <ReportActionItemContentCreated
@@ -1063,12 +1113,12 @@ function PureReportActionItem({
 
     const iouReportID =
         ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUReportID
-            ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ?? '').toString()
-            : '-1';
+            ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString()
+            : undefined;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
+        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
@@ -1102,7 +1152,7 @@ function PureReportActionItem({
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        {shouldDisplayContextMenu && (
+                        {shouldDisplayContextMenu && !!reportID && (
                             <MiniReportActionContextMenu
                                 reportID={reportID}
                                 reportActionID={action.reportActionID}
@@ -1130,6 +1180,9 @@ function PureReportActionItem({
                                     const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
                                     if (transactionID) {
                                         clearError(transactionID);
+                                    }
+                                    if (!reportID) {
+                                        return;
                                     }
                                     clearAllRelatedReportActionErrors(reportID, action);
                                 }}

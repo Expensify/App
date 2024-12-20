@@ -60,7 +60,7 @@ type ReportActionItemMessageEditProps = {
     draftMessage: string;
 
     /** ReportID that holds the comment we're editing */
-    reportID: string;
+    reportID?: string;
 
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
@@ -246,6 +246,9 @@ function ReportActionItemMessageEdit(
         () =>
             // eslint-disable-next-line react-compiler/react-compiler
             lodashDebounce((newDraft: string) => {
+                if (!reportID) {
+                    return;
+                }
                 Report.saveReportActionDraft(reportID, action, newDraft);
                 isCommentPendingSaved.current = false;
             }, 1000),
@@ -301,6 +304,9 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
+        if (!reportID) {
+            return;
+        }
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
@@ -324,7 +330,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (!reportID || ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 

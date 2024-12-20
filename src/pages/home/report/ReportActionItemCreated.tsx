@@ -17,7 +17,7 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
     /** The id of the report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** The id of the policy */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -31,7 +31,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`);
 
     if (!ReportUtils.isChatReport(report)) {
         return null;
@@ -49,7 +49,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID ?? reportID, undefined, true)}
+            onClose={() => {
+                const reportIDToNavigate = report?.reportID ?? reportID;
+                if (!reportIDToNavigate) {
+                    return;
+                }
+                navigateToConciergeChatAndDeleteReport(reportIDToNavigate, undefined, true);
+            }}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />

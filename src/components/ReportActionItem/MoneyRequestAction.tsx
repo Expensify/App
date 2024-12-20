@@ -1,7 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,29 +17,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestPreview from './MoneyRequestPreview';
 
-type MoneyRequestActionOnyxProps = {
-    /** Chat report associated with iouReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** IOU report data object */
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-};
-
-type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
+type MoneyRequestActionProps = {
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
     /** The ID of the associated chatReport */
-    chatReportID: string;
+    chatReportID?: string;
 
     /** The ID of the associated expense report */
     requestReportID: string;
 
     /** The ID of the current report */
-    reportID: string;
+    reportID?: string;
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: boolean;
@@ -72,9 +60,6 @@ function MoneyRequestAction({
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive = () => {},
-    chatReport,
-    iouReport,
-    reportActions,
     isHovered = false,
     style,
     isWhisper = false,
@@ -85,15 +70,26 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+        canEvict: false,
+    });
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
-            const reportActionID = action.reportActionID ?? '-1';
+            const reportActionID = action.reportActionID;
+            if (!chatReportID) {
+                return;
+            }
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
-        const childReportID = action?.childReportID ?? '-1';
+        const childReportID = action?.childReportID;
+        if (!childReportID) {
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
@@ -142,15 +138,4 @@ function MoneyRequestAction({
 
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
-export default withOnyx<MoneyRequestActionProps, MoneyRequestActionOnyxProps>({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
-    },
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(MoneyRequestAction);
+export default MoneyRequestAction;
