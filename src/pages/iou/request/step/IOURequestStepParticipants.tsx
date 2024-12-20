@@ -91,7 +91,7 @@ function IOURequestStepParticipants({
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-            const firstParticipantReportID = val.at(0)?.reportID ?? '';
+            const firstParticipantReportID = val.at(0)?.reportID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
@@ -107,7 +107,7 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = firstParticipantReportID || reportID;
+            selectedReportID.current = firstParticipantReportID ?? reportID;
         },
         [iouType, reportID, transactionID],
     );
