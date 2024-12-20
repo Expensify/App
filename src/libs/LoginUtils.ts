@@ -1,11 +1,11 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as Session from './actions/Session';
+import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
