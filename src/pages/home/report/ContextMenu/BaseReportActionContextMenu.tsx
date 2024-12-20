@@ -137,7 +137,8 @@ function BaseReportActionContextMenu({
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
-    const policyID = ReportUtils.getReport(reportID)?.policyID;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policyID = report?.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
@@ -153,7 +154,7 @@ function BaseReportActionContextMenu({
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
 
@@ -180,7 +181,7 @@ function BaseReportActionContextMenu({
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
@@ -325,6 +326,7 @@ function BaseReportActionContextMenu({
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
+                            report,
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),

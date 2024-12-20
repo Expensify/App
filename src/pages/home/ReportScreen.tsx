@@ -112,6 +112,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const lastAccessedReportIDRef = useRef(false);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
@@ -151,6 +152,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
+        if (lastAccessedReportIDRef.current) {
+            return;
+        }
+
         const lastAccessedReportID = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, !!route.params.openOnAdminRoom, activeWorkspaceID)?.reportID;
 
         // It's possible that reports aren't fully loaded yet
@@ -160,6 +165,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+        lastAccessedReportIDRef.current = true;
         navigation.setParams({reportID: lastAccessedReportID});
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route, finishedLoadingApp]);
 
@@ -296,7 +302,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(undefined, false, true);
+        Navigation.goBack(ROUTES.HOME, false, true);
     }, [isInNarrowPaneModal]);
 
     let headerView = (
@@ -558,14 +564,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (
-            !shouldUseNarrowLayout ||
-            !isFocused ||
-            prevIsFocused ||
-            !ReportUtils.isChatThread(report) ||
-            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
-            isSingleTransactionView
-        ) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || !ReportUtils.isHiddenForCurrentUser(report) || isSingleTransactionView) {
             return;
         }
         Report.openReport(reportID ?? '');
