@@ -64,6 +64,9 @@ const showUserDetails = (accountID: string) => {
 };
 
 const showWorkspaceDetails = (reportID: string) => {
+    if (!reportID) {
+        return;
+    }
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
 };
 
@@ -84,14 +87,16 @@ function ReportActionItemSingle({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
-    const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID ?? ''];
+    const delegatePersonalDetails = personalDetails?.[action?.delegateAccountID];
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport, report);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : -1}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
 
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? -1] ?? {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -149,7 +154,7 @@ function ReportActionItemSingle({
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (ReportUtils.isInvoiceReport(iouReport)) {
-        const secondaryAccountId = iouReport?.managerID ?? -1;
+        const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
 
@@ -186,7 +191,7 @@ function ReportActionItemSingle({
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
-            showWorkspaceDetails(reportID ?? '');
+            showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
             if (iouReportID && displayAllActors) {
@@ -199,8 +204,8 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? -1) ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? CONST.DEFAULT_NUMBER_ID)),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -226,8 +231,8 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(isDelegateActor && !isWorkspaceActor ? actorAccountID : icon.id ?? -1)}
-                delegateAccountID={Number(action?.delegateAccountID ?? -1)}
+                accountID={Number(isDelegateActor && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                delegateAccountID={Number(action?.delegateAccountID ?? CONST.DEFAULT_NUMBER_ID)}
                 icon={icon}
             >
                 <View>
