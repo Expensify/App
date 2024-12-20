@@ -59,7 +59,7 @@ This dictates when reimbursable expenses will export, according to your preferre
 
 **Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
 
-- Expensify Card expenses will always export as Journal Entries, even if you have Expense Reports or Vendor Bills configured for non-reimbursable expenses on the Export tab
+- Expensify Card expenses always export as individual, itemized Journal Entries, regardless of Expense Reports or Vendor Bills settings configured for non-reimbursable expenses on the Export tab.
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
