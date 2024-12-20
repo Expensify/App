@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import AnimatedStep from '@components/AnimatedStep';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
@@ -8,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import CONST from '@src/CONST';
 
@@ -21,7 +21,7 @@ function EnabledStep() {
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper
+        <AnimatedStep
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED}
             title={translate('twoFactorAuth.headerTitle')}
         >
@@ -47,7 +47,7 @@ function EnabledStep() {
                     </View>
                 </Section>
             </ScrollView>
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 

@@ -1,11 +1,11 @@
 import React from 'react';
+import AnimatedStep from '@components/AnimatedStep';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import variables from '@styles/variables';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
@@ -15,7 +15,7 @@ function DisabledStep() {
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper
+        <AnimatedStep
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLED}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
@@ -34,7 +34,7 @@ function DisabledStep() {
                     onPress={() => TwoFactorAuthActions.quitAndNavigateBack()}
                 />
             </FixedFooter>
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 

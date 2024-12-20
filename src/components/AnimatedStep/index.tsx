@@ -1,42 +1,79 @@
-import React, {useEffect, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import CONST from '@src/CONST';
+import React, {useEffect} from 'react';
+import Animated from 'react-native-reanimated';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {StepCounterParams} from '@src/languages/params';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {AnimationDirection} from './AnimatedStepContext';
+import useAnimatedStepContext from './useAnimatedStepContext';
 
 type AnimatedStepProps = ChildrenProps & {
-    /** Styles to be assigned to Container */
-    style: StyleProp<ViewStyle>;
+    /** Name of the step */
+    stepName: string;
 
-    /** Whether we're animating the step in or out */
-    direction: AnimationDirection;
+    /** Title of the Header */
+    title?: string;
 
-    /** Callback to fire when the animation ends */
-    onAnimationEnd?: () => void;
+    /** Data to display a step counter in the header */
+    stepCounter?: StepCounterParams;
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress?: () => void;
+
+    /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
+    onEntryTransitionEnd?: () => void;
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView?: boolean;
 };
 
-function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
-    const sharedTranslateX = useSharedValue(0);
-    const transitionValue = useMemo(() => (direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE), [direction]);
+function AnimatedStep({stepName, title = '', stepCounter, onBackButtonPress, children = null, shouldEnableKeyboardAvoidingView = true, onEntryTransitionEnd}: AnimatedStepProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const {previousStep, currentScreenAnimatedStyle, previousScreenAnimatedStyle} = useAnimatedStepContext();
 
     useEffect(() => {
-        sharedTranslateX.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, onAnimationEnd));
-    }, [sharedTranslateX, transitionValue, onAnimationEnd]);
+        if (previousStep) {
+            return;
+        }
 
-    // Animated style for the reanimated component
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: sharedTranslateX.get()}],
-    }));
+        onEntryTransitionEnd?.();
+    }, [onEntryTransitionEnd, previousStep]);
 
     return (
         <Animated.View
-            style={[style, animatedStyle]} // Combine external style and animation style
+            style={[
+                styles.pAbsolute,
+                styles.t0,
+                styles.l0,
+                styles.r0,
+                styles.b0,
+                StyleUtils.getBackgroundColorStyle(theme.appBG),
+                stepName === previousStep ? previousScreenAnimatedStyle : currentScreenAnimatedStyle,
+            ]}
+            key={stepName}
         >
-            {children}
+            <ScreenWrapper
+                shouldShowOfflineIndicator={false}
+                shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                shouldEnableMaxHeight
+                testID={AnimatedStep.displayName}
+            >
+                <HeaderWithBackButton
+                    title={title}
+                    stepCounter={stepCounter}
+                    onBackButtonPress={onBackButtonPress}
+                />
+                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            </ScreenWrapper>
         </Animated.View>
     );
 }
 
 AnimatedStep.displayName = 'AnimatedStep';
+
 export default AnimatedStep;

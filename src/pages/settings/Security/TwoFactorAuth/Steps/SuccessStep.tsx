@@ -1,10 +1,10 @@
 import React from 'react';
+import AnimatedStep from '@components/AnimatedStep';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as Link from '@userActions/Link';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -23,7 +23,7 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
     const {environmentURL} = useEnvironment();
 
     return (
-        <StepWrapper
+        <AnimatedStep
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
@@ -48,7 +48,7 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
                     }
                 }}
             />
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 

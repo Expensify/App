@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AnimatedStep from '@components/AnimatedStep';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -23,7 +24,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BackToParams, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
@@ -75,7 +75,7 @@ function CodesStep({backTo}: CodesStepProps) {
     useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
-        <StepWrapper
+        <AnimatedStep
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.CODES}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
@@ -195,7 +195,7 @@ function CodesStep({backTo}: CodesStepProps) {
                     TwoFactorAuthActions.quitAndNavigateBack(backTo);
                 }}
             />
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 

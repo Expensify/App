@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import AnimatedStep from '@components/AnimatedStep';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import * as UserUtils from '@libs/UserUtils';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm/types';
@@ -67,7 +67,7 @@ function VerifyStep() {
     }
 
     return (
-        <StepWrapper
+        <AnimatedStep
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
@@ -131,7 +131,7 @@ function VerifyStep() {
                     }}
                 />
             </FixedFooter>
-        </StepWrapper>
+        </AnimatedStep>
     );
 }
 
