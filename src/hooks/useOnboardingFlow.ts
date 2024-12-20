@@ -32,7 +32,7 @@ function useOnboardingFlowRouter() {
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata, allBetasMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
