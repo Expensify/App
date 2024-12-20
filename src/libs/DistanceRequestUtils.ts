@@ -295,14 +295,22 @@ function getCustomUnitRateID(reportID: string) {
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
+    if (isEmptyObject(policy)) {
+        return customUnitRateID;
+    }
+
     if (isPolicyExpenseChat(report) || isPolicyExpenseChat(parentReport)) {
-        const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const lastSelectedDistanceRateID = policy?.id ? lastSelectedDistanceRates?.[policy?.id] : undefined;
-        const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : {};
+        const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
+        const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
         if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+            const defaultMileageRate = getDefaultMileageRate(policy);
+            if (!defaultMileageRate?.customUnitRateID) {
+                return customUnitRateID;
+            }
+            customUnitRateID = defaultMileageRate.customUnitRateID;
         }
     }
 

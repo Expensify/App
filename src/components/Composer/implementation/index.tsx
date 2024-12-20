@@ -1,4 +1,5 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -252,7 +253,8 @@ function Composer(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
-    useHtmlPaste(textInput, handlePaste, true);
+    const isActive = useIsFocused();
+    useHtmlPaste(textInput, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);
