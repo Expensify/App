@@ -7,13 +7,12 @@
 
 filePath=$1
 
-if [ ! -f $filePath ]; then
+if [ ! -f "$filePath" ]; then
     echo "$filePath does not exist."
     exit 1
 fi
-awk 'BEGIN { print "\47worklet\47\n\nclass peg\$SyntaxError{}" } 1' $filePath | sed 's/function peg\$SyntaxError/function temporary/g' | sed 's/peg$subclass(peg$SyntaxError, Error);//g' > tmp.txt
-if [ $? -eq 0 ]; then
-    mv tmp.txt $filePath
+if awk 'BEGIN { print "\47worklet\47\n\nclass peg\$SyntaxError{}" } 1' "$filePath" | sed 's/function peg\$SyntaxError/function temporary/g' | sed 's/peg$subclass(peg$SyntaxError, Error);//g' > tmp.txt; then
+    mv tmp.txt "$filePath"
     echo "Successfully updated $filePath"
 else
     echo "An error occurred while modifying the file."

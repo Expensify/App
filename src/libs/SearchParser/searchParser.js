@@ -310,7 +310,7 @@ function peg$parse(input, options) {
   var peg$f2 = function(key, op, value) {
       updateDefaultValues(key, value);
     };
-  var peg$f3 = function(value) { //handle no-breaking-space
+  var peg$f3 = function(value) { //handle no-breaking space
       if (Array.isArray(value)) {
         return buildFilter("eq", "keyword", value.join(""));
       }
@@ -362,7 +362,7 @@ function peg$parse(input, options) {
   var peg$f34 = function() { return "gt"; };
   var peg$f35 = function() { return "lte"; };
   var peg$f36 = function() { return "lt"; };
-  var peg$f37 = function(start, inner, end) { //handle no-breaking-space
+  var peg$f37 = function(start, inner, end) { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     };
   var peg$f38 = function(chars) { return chars.join("").trim(); };

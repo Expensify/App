@@ -351,7 +351,7 @@ function peg$parse(input, options) {
   var peg$f33 = function() { return "gt"; };
   var peg$f34 = function() { return "lte"; };
   var peg$f35 = function() { return "lt"; };
-  var peg$f36 = function(start, inner, end) { //handle no-breaking-space
+  var peg$f36 = function(start, inner, end) { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     };
   var peg$f37 = function(chars) { return chars.join("").trim(); };
