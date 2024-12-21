@@ -351,7 +351,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                     <Button
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()))}
                                         icon={Expensicons.UserPlus}
                                         style={[styles.mr2]}
                                     />
