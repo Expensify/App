@@ -685,10 +685,6 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
-function shouldShowReceiptEmptyState(transaction: OnyxInputOrEntry<Transaction>, moneyRequestReport: OnyxEntry<Report>, parentReportAction: ''): boolean {
-    return ReportUtils.isInvoiceReport(moneyRequestReport);
-}
-
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
