@@ -521,7 +521,7 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: attachmentContextValueType}), [reportID]);
+    const attachmentContextValue = useMemo(() => ({reportID, type: attachmentContextValueType}), [reportID, attachmentContextValueType]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID ?? '-1'}), [report?.reportID]);
 
