@@ -753,6 +753,10 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         return null;
     }
 
+    if (!isFocused) {
+        return null;
+    }
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
