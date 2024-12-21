@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
-import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -28,7 +28,7 @@ function SAMLSignInPage() {
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
         if (!credentials?.login) {
-            handleSAMLLoginError(translate('common.error.email'), true);
+            LoginUtils.handleSAMLLoginError(translate('common.error.email'), true);
             return;
         }
 
@@ -41,16 +41,16 @@ function SAMLSignInPage() {
         body.append('email', credentials.login);
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
-        postSAMLLogin(body)
+        LoginUtils.postSAMLLogin(body)
             .then((response) => {
                 if (!response || !response.url) {
-                    handleSAMLLoginError(translate('common.error.login'), false);
+                    LoginUtils.handleSAMLLoginError(translate('common.error.login'), false);
                     return;
                 }
                 setSAMLUrl(response.url);
             })
             .catch((error: Error) => {
-                handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
+                LoginUtils.handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
             });
     }, [credentials?.login, SAMLUrl, translate]);
 
@@ -104,7 +104,7 @@ function SAMLSignInPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-                {!!SAMLUrl && (
+                {!!SAMLUrl ? (
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['https://*']}
@@ -115,6 +115,8 @@ function SAMLSignInPage() {
                         renderLoading={() => <SAMLLoadingIndicator />}
                         onNavigationStateChange={handleNavigationStateChange}
                     />
+                ) : (
+                    <SAMLLoadingIndicator />
                 )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
