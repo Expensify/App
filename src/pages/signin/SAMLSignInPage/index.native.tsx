@@ -104,7 +104,9 @@ function SAMLSignInPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-                {!!SAMLUrl ? (
+                {!SAMLUrl ? (
+                    <SAMLLoadingIndicator />
+                ) : (
                     <WebView
                         ref={webViewRef}
                         originWhitelist={['https://*']}
@@ -115,8 +117,6 @@ function SAMLSignInPage() {
                         renderLoading={() => <SAMLLoadingIndicator />}
                         onNavigationStateChange={handleNavigationStateChange}
                     />
-                ) : (
-                    <SAMLLoadingIndicator />
                 )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
