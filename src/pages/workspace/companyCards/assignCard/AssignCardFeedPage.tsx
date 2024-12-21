@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import AssigneeStep from './AssigneeStep';
+import BankConnection from './BankConnection';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
@@ -46,6 +47,13 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     }
 
     switch (currentStep) {
+        case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
+            return (
+                <BankConnection
+                    policyID={policyID}
+                    feed={feed}
+                />
+            );
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return (
                 <AssigneeStep
