@@ -3290,6 +3290,19 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     return true;
 }
 
+function canAddTransactionReciept(iouReport: OnyxEntry<Report>, iouAction: OnyxInputOrEntry<ReportAction>, currentLoginAccountID: number): boolean {
+    const policy = getPolicy(iouReport?.policyID);
+    const isInvoice = isInvoiceReport(iouReport);
+    const canPerformWriteAction = !!canUserPerformWriteAction(iouReport);
+    const isApproved = isReportApproved(iouReport);
+    const isApprover = isMoneyRequestReport(iouReport) && iouReport?.managerID !== null && currentUserPersonalDetails?.accountID === iouReport?.managerID;
+    const isRequestor = currentLoginAccountID === iouAction?.actorAccountID;
+    const canEditReceipt = canPerformWriteAction && canEditFieldOfMoneyRequest(iouAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isSettledRequest = isSettled(iouReport?.reportID);
+    return !isInvoice && !isApproved && !isSettledRequest && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || isPaidGroupPolicy(iouReport));
+}
+
 /**
  * Can only edit if:
  *
@@ -8835,6 +8848,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     getReportMetadata,
+    canAddTransactionReciept,
 };
 
 export type {

@@ -78,6 +78,7 @@ function MoneyRequestPreviewContent({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
@@ -329,16 +330,7 @@ function MoneyRequestPreviewContent({
     };
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-
-    const isInvoice = ReportUtils.isInvoiceReport(iouReport);
-    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(iouReport);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isApprover = ReportUtils.isMoneyRequestReport(iouReport) && iouReport?.managerID !== null && currentUserPersonalDetails?.accountID === iouReport?.managerID;
-    const isRequestor = currentUserPersonalDetails.accountID === action?.actorAccountID;
-    const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(action, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowReceiptEmptyState =
-        !isInvoice && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(iouReport));
+    const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, action, currentUserPersonalDetails.accountID) && !hasReceipt;
 
     const childContainer = (
         <View>

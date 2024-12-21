@@ -15,7 +15,6 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -103,6 +102,7 @@ function ReportPreview({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const currentUserAccountID = getCurrentUserAccountID();
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : -1}`,
     );
@@ -187,24 +187,9 @@ function ReportPreview({
         (ReportUtils.isReportOwner(iouReport) && ReportUtils.hasReportViolations(iouReportID)) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
 
-    // ////////////////////////////////////////
-    // This is just pseudocode, we can refactor this in the PR.
-    const isInvoice = ReportUtils.isInvoiceReport(iouReport);
-    const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(iouReport);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isApprover = ReportUtils.isMoneyRequestReport(iouReport) && iouReport?.managerID !== null && currentUserPersonalDetails?.accountID === iouReport?.managerID;
-    const isRequestor = currentUserPersonalDetails.accountID === action?.actorAccountID;
-    const canEditReceipt = canUserPerformWriteAction && ReportUtils.canEditFieldOfMoneyRequest(action, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-
-    const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const shouldShowReceiptEmptyState =
-        !isInvoice && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(iouReport));
+    const shouldShowReceiptEmptyState = ReportUtils.canAddTransactionReciept(iouReport, action, currentUserAccountID);
     const lastThreeTransactions = allTransactions.slice(-3).filter((t) => TransactionUtils.hasReceipt(t) || shouldShowReceiptEmptyState);
-    //  const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
-    // /////////////////////////////////////////
-    // const lastThreeTransactions = allTransactions.slice(-3);
-
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
@@ -218,7 +203,6 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
-    const currentUserAccountID = getCurrentUserAccountID();
     const shouldShowSubmitButton =
         isOpenExpenseReport &&
         reimbursableSpend !== 0 &&
@@ -498,8 +482,6 @@ function ReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
     }, [iouReportID]);
-
-    // const shouldHideReceipt = !hasReceipt && (isBillSplit || ReportUtils.isInvoiceRoom(chatReport));
 
     return (
         <OfflineWithFeedback
