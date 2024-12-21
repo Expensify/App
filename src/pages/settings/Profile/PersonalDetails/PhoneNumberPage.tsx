@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import useAutoFocusInput from '../../../../hooks/useAutoFocusInput';
 
 function PhoneNumberPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -29,6 +30,8 @@ function PhoneNumberPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
+
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
@@ -97,6 +100,7 @@ function PhoneNumberPage() {
                         >
                             <InputWrapper
                                 InputComponent={TextInput}
+                                ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
                                 name="lfname"
                                 label={translate('common.phoneNumber')}
