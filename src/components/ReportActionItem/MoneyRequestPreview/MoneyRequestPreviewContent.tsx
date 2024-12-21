@@ -75,21 +75,21 @@ function MoneyRequestPreviewContent({
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || '-1'}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || '-1'}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || CONST.DEFAULT_NUMBER_ID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const policy = PolicyUtils.getPolicy(iouReport?.policyID);
     const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : '-1';
+    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const sessionAccountID = session?.accountID;
-    const managerID = iouReport?.managerID ?? -1;
-    const ownerAccountID = iouReport?.ownerAccountID ?? -1;
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const participantAccountIDs =
@@ -119,8 +119,8 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, transactionViolations, true);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
     const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -157,8 +157,8 @@ function MoneyRequestPreviewContent({
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     /*
      Show the merchant for IOUs and expenses only if:

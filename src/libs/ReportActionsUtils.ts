@@ -929,7 +929,10 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return getOriginalMessage(reportAction)?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | undefined {
+function getReportAction(reportID?: string | undefined, reportActionID?: string): ReportAction | undefined {
+    if (!reportID || !reportActionID) {
+        return undefined;
+    }
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
 }
 

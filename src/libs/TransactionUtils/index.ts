@@ -885,7 +885,10 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -894,7 +897,10 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 /**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
-function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
         (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && (showInReview === undefined || showInReview === (violation.showInReview ?? false)),
     );
@@ -903,7 +909,10 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
-function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    if (!transactionID) {
+        return false;
+    }
     const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
@@ -1065,13 +1074,12 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
 
 function compareDuplicateTransactionFields(
     reviewingTransactionID: string | undefined,
-    reportID: string | undefined,
+    reportID: string,
     selectedTransactionID?: string,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
-    if (!reviewingTransactionID || !reportID) {
-        return {change: {}, keep: {}};
+    if (!reviewingTransactionID) {
+        return {keep: {}, change: {}};
     }
-
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => getTransaction(item));
