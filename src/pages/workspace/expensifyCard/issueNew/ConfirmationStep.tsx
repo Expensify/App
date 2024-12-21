@@ -143,15 +143,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     sendValidateCode={() => User.requestValidateCodeAction()}
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
-                    clearError={() => {
-                        Card.clearIssueNewCardError(issueNewCard);
-                    }}
-                    onClose={() => {
-                        if (validateError) {
-                            Card.clearIssueNewCardError(issueNewCard);
-                        }
-                        setIsValidateCodeActionModalVisible(false);
-                    }}
+                    clearError={() => Card.clearIssueNewCardError()}
+                    onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
