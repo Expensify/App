@@ -121,7 +121,7 @@ function MoneyRequestPreviewContent({
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID, transactionViolations, true);
     const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, transactionViolations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID ?? '-1', transactionViolations, true);
+    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, transactionViolations, true);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -255,10 +255,10 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', iouReport, policy)) {
+        if (TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, iouReport, policy)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID, transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
@@ -303,12 +303,8 @@ function MoneyRequestPreviewContent({
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         Transaction.abandonReviewDuplicateTransactions();
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(
-            reviewingTransactionID,
-            transaction?.reportID ?? '',
-            transaction?.transactionID ?? reviewingTransactionID,
-        );
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
