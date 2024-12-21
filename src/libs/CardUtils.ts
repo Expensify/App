@@ -1,3 +1,4 @@
+import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -352,6 +353,14 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds
     return lastSelectedFeed ?? defaultFeed;
 }
 
+function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): boolean {
+    if (!directFeed) {
+        return false;
+    }
+
+    return isBefore(fromUnixTime(directFeed.expiration), new Date());
+}
+
 /** Returns list of cards which can be assigned */
 function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
@@ -403,6 +412,7 @@ export {
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     getCardFeedIcon,
+    isSelectedFeedExpired,
     getCardFeedName,
     getCompanyFeeds,
     isCustomFeed,
