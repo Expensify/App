@@ -20,6 +20,9 @@ type ReportMetadata = {
 
     /** Whether participants private notes are being currently loaded */
     isLoadingPrivateNotes?: boolean;
+
+    /** Whether the current report is optimistic */
+    isOptimisticReport?: boolean;
 };
 
 export default ReportMetadata;

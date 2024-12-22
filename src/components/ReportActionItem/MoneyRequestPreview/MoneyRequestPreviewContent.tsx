@@ -147,7 +147,8 @@ function MoneyRequestPreviewContent({
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
-    const shouldShowCategoryOrTag = !!tag || !!category;
+    const shouldShowTag = !!tag && isPolicyExpenseChat;
+    const shouldShowCategoryOrTag = shouldShowTag || !!category;
     const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
@@ -175,7 +176,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}] : [];
+    const receiptImages = [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}];
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -326,6 +327,8 @@ function MoneyRequestPreviewContent({
         }
     };
 
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -346,17 +349,15 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
-                        <ReportActionItemImages
-                            images={receiptImages}
-                            isHovered={isHovered || isScanning}
-                            size={1}
-                        />
-                    )}
+                    <ReportActionItemImages
+                        images={receiptImages}
+                        isHovered={isHovered || isScanning}
+                        size={1}
+                    />
                     {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipt ? styles.mtn1 : {}]}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
@@ -438,7 +439,16 @@ function MoneyRequestPreviewContent({
                                     {shouldShowCategoryOrTag && (
                                         <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
                                             {!!category && (
-                                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, tag && styles.mw50, tag && styles.pr1, styles.flexShrink1]}>
+                                                <View
+                                                    style={[
+                                                        styles.flexRow,
+                                                        styles.alignItemsCenter,
+                                                        styles.gap1,
+                                                        shouldShowTag && styles.mw50,
+                                                        shouldShowTag && styles.pr1,
+                                                        styles.flexShrink1,
+                                                    ]}
+                                                >
                                                     <Icon
                                                         src={Expensicons.Folder}
                                                         height={variables.iconSizeExtraSmall}
@@ -453,7 +463,7 @@ function MoneyRequestPreviewContent({
                                                     </Text>
                                                 </View>
                                             )}
-                                            {!!tag && (
+                                            {shouldShowTag && (
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
                                                     <Icon
                                                         src={Expensicons.Tag}
@@ -483,8 +493,6 @@ function MoneyRequestPreviewContent({
     if (!onPreviewPressed) {
         return childContainer;
     }
-
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
         <PressableWithoutFeedback

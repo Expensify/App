@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -23,6 +24,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
+import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -122,7 +124,7 @@ function ReportActionCompose({
     const {isOffline} = useNetwork();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const navigation = useNavigation();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
@@ -171,7 +173,9 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
+    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
+    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
+    const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef>();
@@ -306,6 +310,16 @@ function ReportActionCompose({
         onComposerFocus?.();
     }, [onComposerFocus]);
 
+    useEffect(() => {
+        if (hasExceededMaxTaskTitleLength) {
+            setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
+        } else if (hasExceededMaxCommentLength) {
+            setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
+        } else {
+            setExceededMaxLength(null);
+        }
+    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
+
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
@@ -328,12 +342,12 @@ function ReportActionCompose({
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
+    const reportRecipient = personalDetails?.[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || !!exceededMaxLength;
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
@@ -394,14 +408,31 @@ function ReportActionCompose({
         ],
     );
 
+    const validateMaxLength = useCallback(
+        (value: string) => {
+            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            if (taskCommentMatch) {
+                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replace(/\n/g, ' ') : '';
+                setHasExceededMaxCommentLength(false);
+                validateTaskTitleMaxLength(title);
+            } else {
+                setHasExceededMaxTitleLength(false);
+                validateCommentMaxLength(value, {reportID});
+            }
+        },
+        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
+    );
+
+    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
+
     const onValueChange = useCallback(
         (value: string) => {
             if (value.length === 0 && isComposerFullSize) {
                 Report.setIsComposerFullSize(reportID, false);
             }
-            validateCommentMaxLength(value, {reportID});
+            debouncedValidate(value);
         },
-        [isComposerFullSize, reportID, validateCommentMaxLength],
+        [isComposerFullSize, reportID, debouncedValidate],
     );
 
     return (
@@ -436,7 +467,7 @@ function ReportActionCompose({
                                 styles.flexRow,
                                 styles.chatItemComposeBox,
                                 isComposerFullSize && styles.chatItemFullComposeBox,
-                                hasExceededMaxCommentLength && styles.borderColorDanger,
+                                !!exceededMaxLength && styles.borderColorDanger,
                             ]}
                         >
                             <AttachmentModal
@@ -444,7 +475,7 @@ function ReportActionCompose({
                                 onConfirm={addAttachment}
                                 onModalShow={() => setIsAttachmentPreviewActive(true)}
                                 onModalHide={onAttachmentPreviewClose}
-                                shouldDisableSendButton={hasExceededMaxCommentLength}
+                                shouldDisableSendButton={!!exceededMaxLength}
                             >
                                 {({displayFileInModal}) => (
                                     <>
@@ -462,8 +493,14 @@ function ReportActionCompose({
                                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
+                                            onCanceledAttachmentPicker={() => {
+                                                if (!shouldFocusInputOnScreenFocus) {
+                                                    return;
+                                                }
+                                                focus();
+                                            }}
                                             actionButtonRef={actionButtonRef}
-                                            shouldDisableAttachmentItem={hasExceededMaxCommentLength}
+                                            shouldDisableAttachmentItem={!!exceededMaxLength}
                                         />
                                         <ComposerWithSuggestions
                                             ref={(ref) => {
@@ -548,7 +585,12 @@ function ReportActionCompose({
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        {hasExceededMaxCommentLength && <ExceededCommentLength />}
+                        {!!exceededMaxLength && (
+                            <ExceededCommentLength
+                                maxCommentLength={exceededMaxLength}
+                                isTaskTitle={hasExceededMaxTaskTitleLength}
+                            />
+                        )}
                     </View>
                 </OfflineWithFeedback>
                 {!isSmallScreenWidth && (

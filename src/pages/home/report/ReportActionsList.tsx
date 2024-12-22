@@ -19,11 +19,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
+import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -59,6 +59,9 @@ type ReportActionsListProps = {
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
+
+    /** Sorted actions that should be visible to the user */
+    sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID?: string | null;
@@ -138,6 +141,7 @@ function ReportActionsList({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     sortedReportActions,
+    sortedVisibleReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
     loadNewerChats,
@@ -150,11 +154,11 @@ function ReportActionsList({
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
-    const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -162,7 +166,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
-    const [isVisible, setIsVisible] = useState(Visibility.isVisible());
+    const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
@@ -182,20 +186,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID ?? '-1';
 
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-
-    const sortedVisibleReportActions = useMemo(
-        () =>
-            sortedReportActions.filter(
-                (reportAction) =>
-                    (isOffline ||
-                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
-                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                        reportAction.errors) &&
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction),
-            ),
-        [sortedReportActions, isOffline, canUserPerformWriteAction],
-    );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
@@ -207,9 +197,14 @@ function ReportActionsList({
     );
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
-    const reportLastReadTime = useMemo(() => {
-        return ReportConnection.getReport(report.reportID)?.lastReadTime ?? report.lastReadTime ?? '';
-    }, [report.reportID, report.lastReadTime]);
+    const reportLastReadTime = report.lastReadTime ?? '';
+
+    // In a one-expense report, the report actions from the expense report and transaction thread are combined.
+    // If the transaction thread has a newer action, it will show an unread marker if we compare it with the expense report lastReadTime.
+    // - expense report action A <- expense report lastReadTime
+    // - transaction thread action A <- transaction thread lastReadTime
+    // So, we use whichever lastReadTime that is bigger.
+    const lastReadTime = transactionThreadReport?.lastReadTime && transactionThreadReport.lastReadTime > reportLastReadTime ? transactionThreadReport.lastReadTime : reportLastReadTime;
 
     /**
      * The timestamp for the unread marker.
@@ -219,9 +214,9 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(lastReadTime);
     useEffect(() => {
-        setUnreadMarkerTime(reportLastReadTime);
+        setUnreadMarkerTime(lastReadTime);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -421,21 +416,20 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser) {
-                return;
-            }
-            if (!hasNewestReportActionRef.current) {
-                if (isInNarrowPaneModal) {
+            InteractionManager.runAfterInteractions(() => {
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
+                if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
                     return;
                 }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                return;
-            }
-            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
+                if (!hasNewestReportActionRef.current) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    return;
+                }
+                reportScrollManager.scrollToBottom();
+            });
         },
-        [isInNarrowPaneModal, reportScrollManager, report.reportID],
+        [reportScrollManager, report.reportID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?

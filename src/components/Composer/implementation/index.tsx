@@ -1,4 +1,5 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -75,6 +76,7 @@ function Composer(
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
@@ -243,15 +245,16 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined) {
+        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        textInput.current.scrollTop = prevScroll;
+        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
-    useHtmlPaste(textInput, handlePaste, true);
+    const isActive = useIsFocused();
+    useHtmlPaste(textInput, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);
@@ -353,6 +356,7 @@ function Composer(
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {
+                setPrevHeight(e.nativeEvent.contentSize.height);
                 setHasMultipleLines(e.nativeEvent.contentSize.height > variables.componentSizeLarge);
             }}
             disabled={isDisabled}

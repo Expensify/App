@@ -93,7 +93,6 @@ function IOURequestStepScan({
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
-    const tabIndex = 1;
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -118,7 +117,7 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!isEmptyObject(videoConstraints) || !Browser.isMobile()) {
+        if (!Browser.isMobile()) {
             return;
         }
 
@@ -129,7 +128,7 @@ function IOURequestStepScan({
                 setCameraPermissionState('granted');
                 stream.getTracks().forEach((track) => track.stop());
                 // Only Safari 17+ supports zoom constraint
-                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                if (Browser.isMobileWebKit() && stream.getTracks().length > 0) {
                     let deviceId;
                     for (const track of stream.getTracks()) {
                         const setting = track.getSettings();
@@ -167,11 +166,11 @@ function IOURequestStepScan({
                 setVideoConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (!Browser.isMobile() || !isTabActive) {
+            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -665,7 +664,6 @@ function IOURequestStepScan({
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
-                        cameraTabIndex={tabIndex}
                         audio={false}
                         disablePictureInPicture={false}
                         imageSmoothing={false}
@@ -717,8 +715,8 @@ function IOURequestStepScan({
                     <Icon
                         height={32}
                         width={32}
-                        src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
+                        src={isFlashLightOn ? Expensicons.Bolt : Expensicons.boltSlash}
+                        fill={theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

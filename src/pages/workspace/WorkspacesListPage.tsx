@@ -17,6 +17,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -131,6 +132,12 @@ function WorkspacesListPage() {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
 
+    const isSupportalAction = Session.isSupportAuthToken();
+
+    const [isSupportalActionRestrictedModalOpen, setIsSupportalActionRestrictedModalOpen] = useState(false);
+    const hideSupportalModal = () => {
+        setIsSupportalActionRestrictedModalOpen(false);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -169,6 +176,10 @@ function WorkspacesListPage() {
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
+                        if (isSupportalAction) {
+                            setIsSupportalActionRestrictedModalOpen(true);
+                            return;
+                        }
                         setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
@@ -237,7 +248,18 @@ function WorkspacesListPage() {
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb2, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID, session?.email],
+        [
+            isLessThanMediumScreen,
+            styles.mb2,
+            styles.mh5,
+            styles.ph5,
+            styles.hoveredComponentBG,
+            translate,
+            styles.offlineFeedback.deleted,
+            session?.accountID,
+            session?.email,
+            isSupportalAction,
+        ],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -395,6 +417,7 @@ function WorkspacesListPage() {
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
+                    shouldUseHeadlineHeader
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -429,6 +452,7 @@ function WorkspacesListPage() {
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
+                    shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
                 </HeaderWithBackButton>
@@ -449,6 +473,10 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <SupportalActionRestrictedModal
+                isModalOpen={isSupportalActionRestrictedModalOpen}
+                hideSupportalModal={hideSupportalModal}
             />
         </ScreenWrapper>
     );

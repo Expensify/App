@@ -20,6 +20,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
@@ -30,6 +31,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
+import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type LastPaymentMethod from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
@@ -241,4 +243,6 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    JoinablePolicies,
+    DismissedProductTraining,
 };
