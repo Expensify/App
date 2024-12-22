@@ -207,16 +207,20 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
 
 function dismissProductTraining(elementName: string) {
     const date = new Date();
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-            value: {
-                [elementName]: DateUtils.getDBTime(date.valueOf()),
-            },
-        },
-    ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
+    // const optimisticData = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+    //         value: {
+    //                 [elementName]: DateUtils.getDBTime(date.valueOf()),
+    //         },
+    //     },
+    // ];
+    // API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
+
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+        [elementName]: DateUtils.getDBTime(date.valueOf()),
+    });
 }
 
 export {
