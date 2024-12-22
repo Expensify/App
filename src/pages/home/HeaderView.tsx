@@ -93,6 +93,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const isChatThread = ReportUtils.isChatThread(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -319,7 +320,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
             </View>
-            {shouldShowDiscountBanner() && <EarlyDiscountBanner timeRemainingProp={getDiscountTimeRemaining(firstDayFreeTrial)} />}
+            {shouldShowDiscountBanner() && ReportUtils.isChatUsedForOnboarding(report) && <EarlyDiscountBanner />}
         </>
     );
 }

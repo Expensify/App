@@ -14,18 +14,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
-function EarlyDiscountBanner({timeRemainingProp}) {
+function EarlyDiscountBanner({isSubscriptionPage}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [timeRemaining, setTimeRemaining] = useState(timeRemainingProp);
+
+    const [timeRemaining, setTimeRemaining] = useState({});
     const discountType = useMemo(() => (timeRemaining < CONST.DATE.SECONDS_PER_DAY ? 50 : 25), [timeRemaining]);
 
     useEffect(() => {
         const intervalID = setInterval(() => {
             setTimeRemaining(getDiscountTimeRemaining(firstDayFreeTrial));
+            console.log('hi');
         }, 1000);
 
         return () => clearInterval(intervalID);
@@ -39,11 +41,18 @@ function EarlyDiscountBanner({timeRemainingProp}) {
     );
 
     const formatTimeRemaining = useCallback(() => {
+        if (!timeRemaining) {
+            return;
+        }
         if (timeRemaining.days === 0) {
             return `Claim within ${timeRemaining.hours}h : ${timeRemaining.minutes}m : ${timeRemaining.seconds}s`;
         }
         return `Claim within ${timeRemaining.days}d : ${timeRemaining.hours}h : ${timeRemaining.minutes}m : ${timeRemaining.seconds}s`;
     }, [timeRemaining]);
+
+    if (!firstDayFreeTrial || !lastDayFreeTrial) {
+        return null;
+    }
 
     return (
         <BillingBanner

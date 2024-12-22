@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
@@ -95,7 +96,9 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
+    if (true) {
+        BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
+    } else if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (SubscriptionUtils.isUserOnFreeTrial()) {
         BillingBanner = <TrialStartedBillingBanner />;

@@ -235,7 +235,7 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(firstDayFreeTrial: string, lastDayFreeTrial: string): boolean {
+function shouldShowDiscountBanner(): boolean {
     if (!isUserOnFreeTrial()) {
         return false;
     }
@@ -254,7 +254,7 @@ function shouldShowDiscountBanner(firstDayFreeTrial: string, lastDayFreeTrial: s
     return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY * 1000;
 }
 
-function getDiscountTimeRemaining(firstDayFreeTrial: string | undefined) {
+function getDiscountTimeRemaining() {
     if (!firstDayFreeTrial) {
         return null;
     }
