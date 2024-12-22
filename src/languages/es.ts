@@ -4397,8 +4397,6 @@ const translations = {
                 aboutOurPlans: 'sobre nuestros planes y precios.',
             },
             pricing: {
-                collect: '$5 ',
-                amount: '$9 ',
                 perActiveMember: 'por miembro activo al mes.',
             },
             upgradeToUnlock: 'Desbloquear esta función',
