@@ -223,7 +223,7 @@ function SearchRouterList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
                 const filteredTags = autocompleteList
-                    .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag))
+                    .filter((tag) => tag.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tag.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
