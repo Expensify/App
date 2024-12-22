@@ -187,7 +187,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                             />
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1, styles.label]}
+                                style={[styles.textStrong, styles.flexShrink1, styles.textLineHeightNormal, styles.fontSizeLabel]}
                             >
                                 {menuTitle}
                             </Text>

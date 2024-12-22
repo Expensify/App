@@ -36,7 +36,7 @@ type ReceiptEmptyStateProps = {
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false, isThumbnail = false, shouldAllowReceiptDrop = false, transactionID}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, shouldAllowReceiptDrop = false, transactionID}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -81,8 +81,10 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
             FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
                 setIsLoadingReceipt(false);
                 const source = URL.createObjectURL(file as Blob);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+                if (transactionID) {
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+                }
             });
         });
     };
@@ -108,8 +110,10 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
         />
     ) : null;
 
+    const Wrapper = onPress ? PressableWithoutFeedback : View;
+
     return (
-        <PressableWithoutFeedback
+        <Wrapper
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
@@ -162,7 +166,7 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
                     />
                 )}
             </View>
-        </PressableWithoutFeedback>
+        </Wrapper>
     );
 }
 
