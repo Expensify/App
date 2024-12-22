@@ -251,14 +251,14 @@ function shouldShowDiscountBanner(): boolean {
         return false;
     }
 
-    return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY * 1000;
+    return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY;
 }
 
-function getDiscountTimeRemaining() {
+function getEarlyDiscountInfo() {
     if (!firstDayFreeTrial) {
         return null;
     }
-    const dateNow = Date.now() / 1000;
+    const dateNow = Math.floor(Date.now() / 1000);
     const firstDayTimestamp = new Date(`${firstDayFreeTrial} UTC`).getTime() / 1000;
 
     let timeLeftInSeconds;
@@ -278,6 +278,7 @@ function getDiscountTimeRemaining() {
         hours: Math.floor((timeLeftInSeconds % 86400) / 3600),
         minutes: Math.floor((timeLeftInSeconds % 3600) / 60),
         seconds: Math.floor(timeLeftInSeconds % 60),
+        discountType: timeLeft24 > 0 ? 50 : 25,
     };
 }
 
@@ -542,5 +543,5 @@ export {
     shouldRestrictUserBillableActions,
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
-    getDiscountTimeRemaining,
+    getEarlyDiscountInfo,
 };

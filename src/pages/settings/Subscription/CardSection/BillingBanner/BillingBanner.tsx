@@ -44,7 +44,19 @@ type BillingBannerProps = {
     rightIconAccessibilityLabel?: string;
 };
 
-function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleStyle, subtitleStyle, rightIcon, onRightIconPress, rightIconAccessibilityLabel}: BillingBannerProps) {
+function BillingBanner({
+    title,
+    subtitle,
+    icon,
+    brickRoadIndicator,
+    style,
+    titleStyle,
+    subtitleStyle,
+    rightIcon,
+    onRightIconPress,
+    rightIconAccessibilityLabel,
+    rightComponent,
+}: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -81,7 +93,7 @@ function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleS
     }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success]);
 
     return (
-        <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
+        <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
             <Icon
                 src={icon}
                 width={variables.menuIconSize}
@@ -92,6 +104,7 @@ function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleS
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
             </View>
+            {!!rightComponent && rightComponent}
             {rightIconComponent}
         </View>
     );

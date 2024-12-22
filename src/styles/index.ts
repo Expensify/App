@@ -611,7 +611,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
-            height: 64,
+            minHeight: 64,
         },
 
         buttonSmall: {

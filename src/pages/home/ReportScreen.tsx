@@ -296,7 +296,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(undefined, false, true);
+        Navigation.goBack(ROUTES.HOME, false, true);
     }, [isInNarrowPaneModal]);
 
     let headerView = (
@@ -488,7 +488,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             return;
         }
 
-        if (!shouldFetchReport(report)) {
+        if (!shouldFetchReport(report, reportMetadata)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -499,7 +499,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
+    }, [reportIDFromRoute, isLoadingApp, report, reportMetadata, fetchReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -562,14 +562,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (
-            !shouldUseNarrowLayout ||
-            !isFocused ||
-            prevIsFocused ||
-            !ReportUtils.isChatThread(report) ||
-            ReportUtils.getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ||
-            isSingleTransactionView
-        ) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || !ReportUtils.isHiddenForCurrentUser(report) || isSingleTransactionView) {
             return;
         }
         Report.openReport(reportID ?? '');

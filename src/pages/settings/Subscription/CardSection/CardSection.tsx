@@ -54,6 +54,8 @@ function CardSection() {
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
     const requestRefund = useCallback(() => {
         User.requestRefund();
@@ -96,7 +98,8 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (true) {
+    console.log(SubscriptionUtils.shouldShowDiscountBanner());
+    if (SubscriptionUtils.shouldShowDiscountBanner()) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
     } else if (SubscriptionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;

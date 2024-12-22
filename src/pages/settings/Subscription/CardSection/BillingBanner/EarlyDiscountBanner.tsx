@@ -1,15 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import {getDiscountTimeRemaining} from '@libs/SubscriptionUtils';
-import CONST from '@src/CONST';
+import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
@@ -21,36 +20,63 @@ function EarlyDiscountBanner({isSubscriptionPage}) {
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
-    const [timeRemaining, setTimeRemaining] = useState({});
-    const discountType = useMemo(() => (timeRemaining < CONST.DATE.SECONDS_PER_DAY ? 50 : 25), [timeRemaining]);
+    const initialDiscountInfo = getEarlyDiscountInfo();
+    const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
+    const [isDismissed, setIsDismissed] = useState(false);
 
     useEffect(() => {
         const intervalID = setInterval(() => {
-            setTimeRemaining(getDiscountTimeRemaining(firstDayFreeTrial));
-            console.log('hi');
+            setDiscountInfo(getEarlyDiscountInfo());
         }, 1000);
 
         return () => clearInterval(intervalID);
     }, [firstDayFreeTrial]);
 
-    const title = (
-        <Text style={[styles.textStrong]}>
-            Limited time offer:
-            <Text>&nbsp;50% off your first year!</Text>
+    const title = isSubscriptionPage ? (
+        <Text style={styles.textStrong}>
+            {discountInfo?.discountType}% off your first year!&nbsp;
+            <Text>Just add payment card and start an annual subscription!</Text>
+        </Text>
+    ) : (
+        <Text style={styles.textStrong}>
+            Limited time offer:&nbsp;
+            <Text>{discountInfo?.discountType}% off your first year!</Text>
         </Text>
     );
 
     const formatTimeRemaining = useCallback(() => {
-        if (!timeRemaining) {
-            return;
+        if (discountInfo?.days === 0) {
+            return `Claim within ${discountInfo?.hours}h : ${discountInfo?.minutes}m : ${discountInfo?.seconds}s`;
         }
-        if (timeRemaining.days === 0) {
-            return `Claim within ${timeRemaining.hours}h : ${timeRemaining.minutes}m : ${timeRemaining.seconds}s`;
-        }
-        return `Claim within ${timeRemaining.days}d : ${timeRemaining.hours}h : ${timeRemaining.minutes}m : ${timeRemaining.seconds}s`;
-    }, [timeRemaining]);
+        return `Claim within ${discountInfo?.days}d : ${discountInfo?.hours}h : ${discountInfo?.minutes}m : ${discountInfo?.seconds}s`;
+    }, [discountInfo]);
 
-    if (!firstDayFreeTrial || !lastDayFreeTrial) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    console.log(shouldUseNarrowLayout);
+    const rightComponent = useMemo(() => {
+        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.flexRow, styles.justifyContentCenter] : [];
+        return (
+            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+                <Button
+                    success
+                    text="Claim offer"
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                />
+                {discountInfo?.discountType === 50 && (
+                    <Button
+                        text="No thanks"
+                        onPress={() => setIsDismissed(true)}
+                    />
+                )}
+            </View>
+        );
+    }, [shouldUseNarrowLayout, styles.flex0, styles.flexRow, styles.flexBasis100, styles.gap2, styles.justifyContentCenter, discountInfo]);
+
+    if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
+        return null;
+    }
+
+    if (isDismissed && !isSubscriptionPage) {
         return null;
     }
 
@@ -60,10 +86,11 @@ function EarlyDiscountBanner({isSubscriptionPage}) {
             subtitle={formatTimeRemaining()}
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel]}
             icon={Illustrations.TreasureChest}
+            rightComponent={!isSubscriptionPage && rightComponent}
         />
     );
 }
 
-EarlyDiscountBanner.displayName = 'PreTrialBillingBanner';
+EarlyDiscountBanner.displayName = 'EarlyDiscountBanner';
 
 export default EarlyDiscountBanner;
