@@ -1,5 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -7,30 +6,28 @@ import type * as OnyxTypes from '@src/types/onyx';
 const fakeSearchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
-            '1': {
-                accountID: 1,
+            '18439984': {
+                accountID: 18439984,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                 displayName: 'test',
                 login: 'test1234@gmail.com',
             },
         },
-        policy_123: {
+        policy_ABC123: {
             approvalMode: 'OPTIONAL',
-            approver: 'test1234@gmail.com',
             autoReimbursement: {
                 limit: 0,
             },
             autoReimbursementLimit: 0,
             autoReporting: true,
             autoReportingFrequency: 'instant',
-            owner: 'test1234@gmail.com',
             preventSelfApproval: false,
             reimbursementChoice: 'reimburseManual',
             role: 'admin',
             type: 'team',
         },
-        report_123: {
-            accountID: 1,
+        report_ABC123: {
+            accountID: 18439984,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -38,9 +35,9 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: 1,
+            managerID: 18439984,
             nonReimbursableTotal: 0,
-            ownerAccountID: 1,
+            ownerAccountID: 18439984,
             policyID: '123',
             private_isArchived: '',
             reportID: '123',
@@ -51,8 +48,8 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             type: 'expense',
             unheldTotal: -5000,
         },
-        transactions_123: {
-            accountID: 1,
+        transactions_AB: {
+            accountID: 18439984,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -66,7 +63,9 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: 1,
+            managerID: 18439984,
+            description: '',
+            hasViolation: false,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -89,7 +88,6 @@ const fakeSearchResults: OnyxTypes.SearchResults = {
             shouldShowTaxColumn: false,
         },
         hasMoreResults: false,
-        hasResults: true,
         offset: 0,
         status: 'all',
         isLoading: false,
