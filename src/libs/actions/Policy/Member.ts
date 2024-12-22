@@ -19,6 +19,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {getDefaultApprover} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -637,7 +638,12 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     logins.forEach((email) => {
-        optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
+        optimisticMembersState[email] = {
+            email,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            role: CONST.POLICY.ROLE.USER,
+            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+        };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
@@ -686,7 +692,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
-        welcomeNote: Parser.replace(welcomeNote),
+        welcomeNote: Parser.replace(welcomeNote, {
+            shouldEscapeText: false,
+        }),
         policyID,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {

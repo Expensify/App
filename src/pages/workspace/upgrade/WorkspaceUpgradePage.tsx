@@ -40,7 +40,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params.policyID;
 
-    const featureNameAlias = getFeatureNameAlias(route.params.featureName);
+    const featureNameAlias = route.params.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
@@ -48,7 +48,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const canPerformUpgrade = !!policy && PolicyUtils.isPolicyAdmin(policy);
     const isUpgraded = useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
@@ -56,6 +56,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const goBack = useCallback(() => {
         if (!feature) {
+            Navigation.dismissModal();
             return;
         }
         switch (feature.id) {
