@@ -1,6 +1,7 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -232,6 +233,52 @@ function hasCardExpiringSoon(): boolean {
     const isExpiringNextMonth = cardYear === (currentMonth === 12 ? currentYear + 1 : currentYear) && cardMonth === (currentMonth === 12 ? 1 : currentMonth + 1);
 
     return isExpiringThisMonth || isExpiringNextMonth;
+}
+
+function shouldShowDiscountBanner(firstDayFreeTrial: string, lastDayFreeTrial: string): boolean {
+    if (!isUserOnFreeTrial()) {
+        return false;
+    }
+
+    if (doesUserHavePaymentCardAdded()) {
+        return false;
+    }
+
+    const dateNow = Date.now() / 1000;
+    const firstDayTimestamp = new Date(`${firstDayFreeTrial} UTC`).getTime() / 1000;
+    const lastDayTimestamp = new Date(`${lastDayFreeTrial} UTC`).getTime() / 1000;
+    if (dateNow > lastDayTimestamp) {
+        return false;
+    }
+
+    return dateNow <= firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY * 1000;
+}
+
+function getDiscountTimeRemaining(firstDayFreeTrial: string | undefined) {
+    if (!firstDayFreeTrial) {
+        return null;
+    }
+    const dateNow = Date.now() / 1000;
+    const firstDayTimestamp = new Date(`${firstDayFreeTrial} UTC`).getTime() / 1000;
+
+    let timeLeftInSeconds;
+    const timeLeft24 = CONST.DATE.SECONDS_PER_DAY - (dateNow - firstDayTimestamp);
+    if (timeLeft24 > 0) {
+        timeLeftInSeconds = timeLeft24;
+    } else {
+        timeLeftInSeconds = firstDayTimestamp + 8 * CONST.DATE.SECONDS_PER_DAY - dateNow;
+    }
+
+    if (timeLeftInSeconds <= 0) {
+        return null;
+    }
+
+    return {
+        days: Math.floor(timeLeftInSeconds / 86400),
+        hours: Math.floor((timeLeftInSeconds % 86400) / 3600),
+        minutes: Math.floor((timeLeftInSeconds % 3600) / 60),
+        seconds: Math.floor(timeLeftInSeconds % 60),
+    };
 }
 
 /**
@@ -494,4 +541,6 @@ export {
     PAYMENT_STATUS,
     shouldRestrictUserBillableActions,
     shouldShowPreTrialBillingBanner,
+    shouldShowDiscountBanner,
+    getDiscountTimeRemaining,
 };
