@@ -97,7 +97,7 @@ function IOURequestStepConfirmation({
 
         return {
             login: participant?.login ?? '',
-            accountID: participant?.accountID ?? -1,
+            accountID: participant?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             avatar: Expensicons.FallbackAvatar,
             displayName: participant?.login ?? '',
             isOptimisticPersonalDetail: true,
@@ -156,9 +156,9 @@ function IOURequestStepConfirmation({
             return;
         }
         if (policyCategories?.[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.setMoneyRequestCategory(transactionID, '');
+            IOU.setMoneyRequestCategory(transactionID, '', policy?.id);
         }
-    }, [policyCategories, transaction?.category, transactionID]);
+    }, [policy?.id, policyCategories, transaction?.category, transactionID]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
@@ -167,10 +167,10 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!transaction?.category) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory, policy?.id);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionID, requestType, defaultCategory]);
+    }, [transactionID, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
@@ -320,30 +320,34 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            IOU.createDistanceRequest(
+            IOU.createDistanceRequest({
                 report,
-                selectedParticipants,
-                trimmedComment,
-                transaction.created,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.amount,
-                transaction.currency,
-                transaction.merchant,
-                transaction.billable,
-                TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
-                policy,
-                policyTags,
-                policyCategories,
-                customUnitRateID,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                transaction.splitShares,
+                participants: selectedParticipants,
+                currentUserLogin: currentUserPersonalDetails.login,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 iouType,
-                transaction,
-            );
+                existingTransaction: transaction,
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    comment: trimmedComment,
+                    created: transaction.created,
+                    currency: transaction.currency,
+                    merchant: transaction.merchant,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    customUnitRateID,
+                    splitShares: transaction.splitShares,
+                    validWaypoints: TransactionUtils.getValidWaypoints(transaction.comment?.waypoints, true),
+                    billable: transaction.billable,
+                },
+            });
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
@@ -359,7 +363,9 @@ function IOURequestStepConfirmation({
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
                 splitParticipants = selectedParticipants.filter((participant) =>
-                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
+                    participantsWithAmount.includes(
+                        participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID : participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    ),
                 );
             }
             const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
