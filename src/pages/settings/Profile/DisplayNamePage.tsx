@@ -98,6 +98,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
+                            autoCapitalize="words"
                         />
                     </View>
                     <View>
@@ -110,6 +111,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
+                            autoCapitalize="words"
                         />
                     </View>
                 </FormProvider>
