@@ -10,10 +10,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Switch from '@components/Switch';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -80,6 +80,13 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         };
     }, [isFocused]);
 
+    const updateWorkspaceTagEnabled = useCallback(
+        (value: boolean, tagName: string) => {
+            Tag.setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+        },
+        [policyID, route.params.orderWeight],
+    );
+
     const tagList = useMemo<TagListItem[]>(
         () =>
             Object.values(currentPolicyTag?.tags ?? {})
@@ -93,9 +100,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                    rightElement: (
+                        <Switch
+                            isOn={tag.enabled}
+                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.tags.enableTag')}
+                            onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                        />
+                    ),
                 })),
-        [currentPolicyTag, selectedTags, canSelectMultiple, translate],
+        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
     const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
