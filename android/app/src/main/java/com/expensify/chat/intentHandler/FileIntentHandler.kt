@@ -43,5 +43,4 @@ class FileIntentHandler(private val context: Context) : AbstractIntentHandler() 
         deepLinkIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         context.startActivity(deepLinkIntent)
     }
-
 }
