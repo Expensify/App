@@ -45,6 +45,9 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** Whether to show educational tooltip in workspace chat for first-time user */
+    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
+
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
@@ -76,6 +79,7 @@ function ReportFooter({
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
     showSoftInputOnFocus,
+    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
     setShowSoftInputOnFocus,
@@ -118,7 +122,7 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat && !isUserPolicyAdmin;
+    const shouldShowEducationalTooltip = !!workspaceTooltip?.shouldShow && !isUserPolicyAdmin;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -249,6 +253,7 @@ export default memo(
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
+        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),

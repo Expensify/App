@@ -21,13 +21,15 @@ type ReceiptEmptyStateProps = {
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false, isThumbnail = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
 
+    const Wrapper = onPress ? PressableWithoutFeedback : View;
+
     return (
-        <PressableWithoutFeedback
+        <Wrapper
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
@@ -57,7 +59,7 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
                     />
                 )}
             </View>
-        </PressableWithoutFeedback>
+        </Wrapper>
     );
 }
 

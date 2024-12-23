@@ -11,7 +11,12 @@ function setDebugData<TKey extends OnyxKey | `${OnyxCollectionKey}${string}`>(on
     Onyx.set(onyxKey, onyxValue);
 }
 
+function mergeDebugData<TKey extends OnyxKey | `${OnyxCollectionKey}${string}`>(onyxKey: TKey, onyxValue: OnyxMergeInput<TKey>) {
+    Onyx.merge(onyxKey, onyxValue);
+}
+
 export default {
     resetDebugDetailsDraftForm,
     setDebugData,
+    mergeDebugData,
 };
