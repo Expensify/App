@@ -34,6 +34,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     const handleLoad = useCallback(
         (event: ImageOnLoadEvent) => {
             const {width, height} = event.nativeEvent;
+
             onLoad?.(event);
             updateAspectRatio(width, height);
         },
