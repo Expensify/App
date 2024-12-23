@@ -39,7 +39,7 @@ import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getAllReportTransactions, getCategory, getTag} from './TransactionUtils';
+import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -182,7 +182,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate, withDecimals?: boolean) {
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Partial<Rate>, withDecimals?: boolean) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit, withDecimals);
 }
 
@@ -542,37 +542,35 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
-/**
- * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
- */
-function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    const defaultApprover = getDefaultApprover(policy);
-
-    let categoryAppover;
-    let tagApprover;
-    const allTransactions = getAllReportTransactions(expenseReport?.reportID).sort((transA, transB) => (transA.created < transB.created ? -1 : 1));
+function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
+    const categoryAppovers: string[] = [];
+    const tagApprovers: string[] = [];
+    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
 
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.
-    for (let i = 0; i < allTransactions.length; i++) {
-        const transaction = allTransactions.at(i);
+    for (let i = 0; i < allReportTransactions.length; i++) {
+        const transaction = allReportTransactions.at(i);
         const tag = getTag(transaction);
         const category = getCategory(transaction);
-        categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const tagApprover = getTagApproverRule(policy, tag)?.approver;
         if (categoryAppover) {
-            return getAccountIDsByLogins([categoryAppover]).at(0) ?? -1;
+            categoryAppovers.push(categoryAppover);
         }
 
-        if (!tagApprover && getTagApproverRule(policy, tag)?.approver) {
-            tagApprover = getTagApproverRule(policy, tag)?.approver;
+        if (tagApprover) {
+            tagApprovers.push(tagApprover);
         }
     }
 
-    if (tagApprover) {
-        return getAccountIDsByLogins([tagApprover]).at(0) ?? -1;
-    }
+    return [...categoryAppovers, ...tagApprovers];
+}
+
+function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
@@ -587,9 +585,21 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseR
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    return getLoginsByAccountIDs([submitToAccountID]).at(0) ?? '';
+/**
+ * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
+ */
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
+    const ruleApprovers = getRuleApprovers(policy, expenseReport);
+    if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
+        return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
+    }
+
+    return getManagerAccountID(policy, expenseReport);
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
+    const managerAccountID = getManagerAccountID(policy, expenseReport);
+    return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
 }
 
 /**
@@ -1263,7 +1273,6 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
-    getSubmitToEmail,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
@@ -1279,6 +1288,8 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    getManagerAccountEmail,
+    getRuleApprovers,
 };
 
 export type {MemberEmailsToAccountIDs};

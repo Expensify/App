@@ -908,6 +908,31 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.PER_DIEM_DETAILS]: {
+        policyID: string;
+        rateID: string;
+        subRateID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION]: {
+        policyID: string;
+        rateID: string;
+        subRateID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE]: {
+        policyID: string;
+        rateID: string;
+        subRateID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT]: {
+        policyID: string;
+        rateID: string;
+        subRateID: string;
+    };
+    [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
+        policyID: string;
+        rateID: string;
+        subRateID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {

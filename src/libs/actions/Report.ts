@@ -545,9 +545,8 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const shouldUpdateNotificationPrefernece = !isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-
-    if (shouldUpdateNotificationPrefernece) {
+    const shouldUpdateNotificationPreference = !isEmptyObject(report) && ReportUtils.isHiddenForCurrentUser(report);
+    if (shouldUpdateNotificationPreference) {
         optimisticReport.participants = {
             [currentUserAccountID]: {notificationPreference: ReportUtils.getDefaultNotificationPreferenceForReport(report)},
         };
@@ -965,7 +964,7 @@ function openReport(
                 value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                 value: {
                     isOptimisticReport: true,
@@ -1229,7 +1228,11 @@ function navigateToAndOpenChildReport(childReportID = '-1', parentReportAction: 
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  */
-function getOlderActions(reportID: string, reportActionID: string) {
+function getOlderActions(reportID: string | undefined, reportActionID: string | undefined) {
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1283,7 +1286,11 @@ function getOlderActions(reportID: string, reportActionID: string) {
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string, reportActionID: string) {
+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1952,7 +1959,7 @@ function toggleSubscribeToChildReport(childReportID = '-1', parentReportAction: 
     if (childReportID !== '-1') {
         openReport(childReportID);
         const parentReportActionID = parentReportAction?.reportActionID ?? '-1';
-        if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!prevNotificationPreference || ReportUtils.isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
         } else {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, parentReportID, parentReportActionID);
@@ -1977,8 +1984,9 @@ function toggleSubscribeToChildReport(childReportID = '-1', parentReportAction: 
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
-        const notificationPreference =
-            prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const notificationPreference = ReportUtils.isHiddenForCurrentUser(prevNotificationPreference)
+            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }
 }
@@ -3082,7 +3090,12 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {[report.parentReportActionID]: {childReportNotificationPreference: ReportUtils.getReportNotificationPreference(report, false)}},
+            value: {
+                [report.parentReportActionID]: {
+                    childReportNotificationPreference:
+                        report?.participants?.[currentUserAccountID ?? -1]?.notificationPreference ?? ReportUtils.getDefaultNotificationPreferenceForReport(report),
+                },
+            },
         });
     }
 

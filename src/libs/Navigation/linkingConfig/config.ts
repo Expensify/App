@@ -974,6 +974,21 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_SETTINGS]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.PER_DIEM_DETAILS]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
