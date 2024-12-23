@@ -975,7 +975,11 @@ function getMostRecentReportActionLastModified(): string {
 /**
  * @returns The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+    if (!chatReportID || !iouReportID) {
+        return;
+    }
+
     return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
             reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
