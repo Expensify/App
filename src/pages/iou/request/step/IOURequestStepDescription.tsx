@@ -44,15 +44,12 @@ function IOURequestStepDescription({
 }: IOURequestStepDescriptionProps) {
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const reportActionsReportID = useMemo(() => {
-        let actionsReportID = '-1';
+        let actionsReportID;
         if (action === CONST.IOU.ACTION.EDIT) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID || '-1' : report?.parentReportID || '-1';
+            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
         }
         return actionsReportID;
     }, [action, iouType, report?.reportID, report?.parentReportID]);
@@ -100,6 +97,10 @@ function IOURequestStepDescription({
     };
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+
         isSavedRef.current = true;
         const newComment = value.moneyRequestComment.trim();
 
@@ -111,16 +112,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {comment: newComment});
+            IOU.setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
         const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
+        IOU.setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '-1', reportID, newComment, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
