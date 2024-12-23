@@ -41,17 +41,20 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
             else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
         }
     }
+    
+    private fun saveToSharedPreferences(key: String, value: String) {
+        val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(key, value)
+        editor.apply()
+    }
 
     private fun handleTextFileIntent(intent: Intent, context: Context) {
         (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
             val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
             if (resultingPath != null) {
                 val shareFileObject = ShareFileObject(resultingPath, intent.type)
-
-                val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putString(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-                editor.apply()
+                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
             }
         }
     }
@@ -60,11 +63,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
             var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
             if(intentTextContent != null) {
                 val shareFileObject = ShareFileObject(intentTextContent, intent.type)
-
-                val sharedPreferences = context.getSharedPreferences(IntentHandlerConstants.preferencesFile, Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putString(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-                editor.apply()
+                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
             }
     }
 
