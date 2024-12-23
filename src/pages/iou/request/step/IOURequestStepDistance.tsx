@@ -218,9 +218,9 @@ function IOURequestStepDistance({
         if (isCreatingNewRequest) {
             return () => {};
         }
-
+        const isDraft = IOUUtils.shouldUseTransactionDraft(action);
         // On mount, create the backup transaction.
-        TransactionEdit.createBackupTransaction(transaction);
+        TransactionEdit.createBackupTransaction(transaction, isDraft);
 
         return () => {
             // If the user cancels out of the modal without without saving changes, then the original transaction
@@ -229,7 +229,7 @@ function IOURequestStepDistance({
                 TransactionEdit.removeBackupTransaction(transaction?.transactionID);
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID, IOUUtils.shouldUseTransactionDraft(action));
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', isDraft);
 
             // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
             if (!transaction?.reportID) {
