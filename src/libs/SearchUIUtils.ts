@@ -305,9 +305,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     ) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
+    const hasOnlyPendingTransactions =
+        allReportTransactions.length > 0 && allReportTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
 
     const isAllowedToApproveExpenseReport = ReportUtils.isAllowedToApproveExpenseReport(report, undefined, policy);
-    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport) {
+    if (IOU.canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
