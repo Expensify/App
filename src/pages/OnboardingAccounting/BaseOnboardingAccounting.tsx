@@ -62,6 +62,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     // So we need to create the new workspace in the accounting step
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!isVsb || paidGroupPolicy || isLoadingOnyxValue(allPoliciesResult)) {
             return;
         }
@@ -69,7 +70,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
         Welcome.setOnboardingPolicyID(policyID);
-    }, [isVsb, allPolicies, allPoliciesResult]);
+    }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
     useEffect(() => {
