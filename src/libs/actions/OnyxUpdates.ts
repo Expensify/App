@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -21,13 +21,13 @@ Onyx.connect({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-let lastOnyxUpdatesFromServer: OnyxUpdatesFromServer | undefined = {};
+let lastOnyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
     callback: (val) => (lastOnyxUpdatesFromServer = val),
 });
 
-const requestsToIgnoreLastCommand: string[] = [WRITE_COMMANDS.SUBMIT_REPORT];
+const requestsToIgnoreLastCommand: Array<string | undefined> = [WRITE_COMMANDS.SUBMIT_REPORT];
 
 // This promise is used to ensure pusher events are always processed in the order they are received,
 // even when such events are received over multiple separate pusher updates.
@@ -147,7 +147,8 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        if (request.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES && requestsToIgnoreLastCommand.includes(lastOnyxUpdatesFromServer?.request?.command)) {
+        if (request.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES && requestsToIgnoreLastCommand?.includes(lastOnyxUpdatesFromServer?.request?.command)) {
+            Log.info(`[OnyxUpdateManager] GetMissingOnyxMessages will not update Onyx for the last command: ${lastOnyxUpdatesFromServer?.request?.command}`);
             return Promise.resolve();
         }
         return applyHTTPSOnyxUpdates(request, response);
