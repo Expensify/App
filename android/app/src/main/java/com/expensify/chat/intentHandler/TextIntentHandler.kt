@@ -1,4 +1,4 @@
-package com.expensify.chat.intentHandler
+package com.expensify.chat.intenthandler
 
 import android.content.Context
 import android.content.Intent
@@ -44,10 +44,6 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
 
     private fun handleTextFileIntent(intent: Intent, context: Context) {
         (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            if (fileUri == null) {
-                return
-            }
-
             val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
             if (resultingPath != null) {
                 val shareFileObject = ShareFileObject(resultingPath, intent.type)

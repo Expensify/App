@@ -3,7 +3,7 @@ package com.expensify.chat
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
-import com.expensify.chat.intentHandler.IntentHandlerConstants
+import com.expensify.chat.intenthandler.IntentHandlerConstants
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule

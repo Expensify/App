@@ -8,7 +8,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import com.expensify.chat.bootsplash.BootSplash
-import com.expensify.chat.intentHandler.IntentHandlerFactory
+import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -68,8 +68,8 @@ class MainActivity : ReactActivity() {
 
     private fun handleIntent(intent: Intent) {
         try {
-            val intentHandler = IntentHandlerFactory.getIntentHandler(this, intent.type, intent.toString())
-            intentHandler?.handle(intent)
+            val intenthandler = IntentHandlerFactory.getIntentHandler(this, intent.type, intent.toString())
+            intenthandler?.handle(intent)
         } catch (exception: Exception) {
             Log.e("handleIntentException", exception.toString())
         }

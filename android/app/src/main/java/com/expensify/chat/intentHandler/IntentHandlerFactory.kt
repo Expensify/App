@@ -1,4 +1,4 @@
-package com.expensify.chat.intentHandler
+package com.expensify.chat.intenthandler
 
 import android.content.Context
 
