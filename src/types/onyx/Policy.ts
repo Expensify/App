@@ -43,7 +43,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         currency?: string;
 
         /** Generated ID to identify the rate */
-        customUnitRateID?: string;
+        customUnitRateID: string;
 
         /** Whether this rate is currently enabled */
         enabled?: boolean;

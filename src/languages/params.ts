@@ -586,6 +586,10 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
+type EditDestinationSubtitleParams = {
+    destination: string;
+};
+
 type FlightLayoverParams = {
     layover: string;
 };
@@ -798,5 +802,6 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    EditDestinationSubtitleParams,
     FlightLayoverParams,
 };
