@@ -2,7 +2,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as CardUtils from '@src/libs/CardUtils';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {CompanyFeeds} from '@src/types/onyx/CardFeeds';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -115,7 +114,6 @@ const customFeedCardsList = {
         '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
     },
 } as unknown as OnyxTypes.WorkspaceCardsList;
-const allFeeds: CompanyFeeds = {...customFeeds, ...directFeeds};
 const customFeedName = 'Custom feed name';
 
 const cardFeedsCollection: OnyxCollection<OnyxTypes.CardFeeds> = {
@@ -200,7 +198,7 @@ describe('CardUtils', () => {
     describe('getCompanyFeeds', () => {
         it('Should return both custom and direct feeds if exists', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(cardFeedsCollection.FAKE_ID_1);
-            expect(companyFeeds).toStrictEqual(allFeeds);
+            expect(companyFeeds).toStrictEqual({...directFeeds, ...customFeedsWithoutExpensifyBank});
         });
 
         it('Should return direct feeds only since custom feeds are not exist', () => {
@@ -210,7 +208,7 @@ describe('CardUtils', () => {
 
         it('Should return custom feeds only since direct feeds are not exist', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(cardFeedsCollection.FAKE_ID_3);
-            expect(companyFeeds).toStrictEqual(customFeeds);
+            expect(companyFeeds).toStrictEqual(customFeedsWithoutExpensifyBank);
         });
 
         it('Should return empty object if undefined is passed', () => {
