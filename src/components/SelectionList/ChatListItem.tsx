@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,18 +25,6 @@ function ChatListItem<TItem extends ListItem>({
     const from = reportActionItem.from;
     const styles = useThemeStyles();
     const theme = useTheme();
-
-    const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.SEARCH};
-
-    const contextValue = {
-        anchor: null,
-        report: undefined,
-        reportNameValuePairs: undefined,
-        action: undefined,
-        transactionThreadReport: undefined,
-        checkIfContextMenuActive: () => {},
-        isDisabled: true,
-    };
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -94,6 +82,7 @@ function ChatListItem<TItem extends ListItem>({
                 isFirstVisibleReportAction={false}
                 personalDetails={personalDetails}
                 shouldDisplayContextMenu={false}
+                attachmentContextValueType={CONST.ATTACHMENT_TYPE.SEARCH}
             />
         </BaseListItem>
     );
