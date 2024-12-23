@@ -434,8 +434,8 @@ function AdvancedSearchFilters() {
     const onSaveSearch = () => {
         const savedSearchKeys = Object.keys(savedSearches ?? {});
         if (!queryJSON || (savedSearches && savedSearchKeys.includes(String(queryJSON.hash)))) {
-            // If the search is already saved, return early to prevent unnecessary API calls
-            Navigation.dismissModal();
+            // If the search is already saved, we only display the results as we don't need to save it.
+            applyFiltersAndNavigate();
             return;
         }
 
