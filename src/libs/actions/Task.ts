@@ -47,7 +47,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -364,8 +364,13 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
+
+    if (!taskReportID) {
+        return;
+    }
+
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -449,8 +454,11 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Reopen a closed task
  */
-function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
-    const taskReportID = taskReport?.reportID ?? '-1';
+function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
+    if (!taskReportID) {
+        return;
+    }
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
     const parentReport = getParentReport(taskReport);
@@ -607,7 +615,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
 function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -1213,9 +1221,14 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 }
 
 /**
- * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task, except auditor
+ * Check if you're allowed to modify the task - only the author can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number): boolean {
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    if (ownerAccountID !== sessionAccountID) {
+        return false;
+    }
+
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -1226,22 +1239,30 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
+    if (sessionAccountID === ownerAccountID) {
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(taskReport) || ReportUtils.isAuditor(taskReport)) {
-        return false;
-    }
-
-    return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
+    return false;
 }
 
 /**
  * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
  */
-function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number): boolean {
-    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, taskAssigneeAccountID?: number): boolean {
+    if (ReportUtils.isCanceledTaskReport(taskReport)) {
+        return false;
+    }
+
+    const parentReport = getParentReport(taskReport);
+    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
+    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
+        return false;
+    }
+
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
+    return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
 function clearTaskErrors(reportID: string) {
@@ -1285,9 +1306,9 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    canActionTask,
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
+    canActionTask,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};

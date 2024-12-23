@@ -114,11 +114,6 @@ type GetUserToInviteConfig = {
     searchValue: string;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    avatar?: UserUtils.AvatarSource;
     shouldAcceptName?: boolean;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
@@ -364,29 +359,25 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID),
         login,
         accountID: detail?.accountID ?? -1,
         text: displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        firstName: (detail?.firstName || ('firstName' in participant ? participant.firstName : '')) ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        lastName: (detail?.lastName || ('lastName' in participant ? participant.lastName : '')) ?? '',
+        firstName: detail?.firstName ?? '',
+        lastName: detail?.lastName ?? '',
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: ('avatar' in participant ? participant.avatar : detail?.avatar) ?? FallbackAvatar,
+                source: detail?.avatar ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
+        phoneNumber: detail?.phoneNumber ?? '',
         selected: participant.selected,
         isSelected: participant.selected,
         searchText: participant.searchText ?? undefined,
@@ -1095,101 +1086,6 @@ function getUserToInviteOption({
             type: CONST.ICON_TYPE_AVATAR,
         },
     ];
-
-    return userToInvite;
-}
-
-function getUserToInviteContactOption({
-    searchValue,
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName,
-    lastName,
-    email,
-    phone,
-    avatar,
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
-
-    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !==
-        -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = UserUtils.generateAccountID(effectiveSearchValue);
-
-    // Construct display name if firstName/lastName are provided
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
-    const userDetails = {
-        accountID: optimisticAccountID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login: effectiveSearchValue,
-        pronouns: '',
-        phoneNumber: phone ?? '',
-        validated: true,
-    };
-
-    const userToInvite = {
-        item: userDetails,
-        text: displayName,
-        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: effectiveSearchValue,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
-        participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login: effectiveSearchValue,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
-        isDefaultRoom: false,
-        isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
-        isChatRoom: false,
-        shouldShowSubscript: false,
-        isPolicyExpenseChat: false,
-        isOwnPolicyExpenseChat: false,
-        isExpenseReport: false,
-        lastMessageText: '',
-        isBold: true,
-        isOptimisticAccount: true,
-    };
 
     return userToInvite;
 }
@@ -1944,7 +1840,6 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
-    getUserToInviteContactOption,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
     getEmptyOptions,
@@ -1954,4 +1849,4 @@ export {
     hasReportErrors,
 };
 
-export type {MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, GetUserToInviteConfig, Section, SectionBase};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree};
