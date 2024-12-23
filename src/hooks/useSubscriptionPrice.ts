@@ -13,7 +13,7 @@ function useSubscriptionPrice(): number {
         return 0;
     }
 
-    return CONST.SUBSCRIPTION.PRICES[preferredCurrency][subscriptionPlan][privateSubscription.type];
+    return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][privateSubscription.type];
 }
 
 export default useSubscriptionPrice;

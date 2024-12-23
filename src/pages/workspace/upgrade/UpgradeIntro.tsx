@@ -39,12 +39,12 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
 
     const formattedPrice = React.useMemo(() => {
-        const upgradeCurrency: keyof typeof CONST.SUBSCRIPTION.PRICES = Object.hasOwn(CONST.SUBSCRIPTION.PRICES, preferredCurrency)
-            ? (preferredCurrency as keyof typeof CONST.SUBSCRIPTION.PRICES)
+        const upgradeCurrency: keyof typeof CONST.SUBSCRIPTION_PRICES = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency)
+            ? (preferredCurrency as keyof typeof CONST.SUBSCRIPTION_PRICES)
             : CONST.PAYMENT_CARD_CURRENCY.USD;
-        const upgradePlan: keyof (typeof CONST.SUBSCRIPTION.PRICES)[typeof upgradeCurrency] =
+        const upgradePlan: keyof (typeof CONST.SUBSCRIPTION_PRICES)[typeof upgradeCurrency] =
             !isCategorizing || subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-        const annualPrice: number = CONST.SUBSCRIPTION.PRICES[upgradeCurrency][upgradePlan][CONST.SUBSCRIPTION.TYPE.ANNUAL];
+        const annualPrice: number = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][upgradePlan][CONST.SUBSCRIPTION.TYPE.ANNUAL];
         return `${convertToShortDisplayString(annualPrice, upgradeCurrency)} `;
     }, [preferredCurrency, subscriptionPlan, isCategorizing]);
 
