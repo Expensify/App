@@ -135,7 +135,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     isGroupPolicyReport: boolean;
 
     /** policy ID of the report */
-    policyID: string;
+    policyID?: string;
 
     /** Whether the soft keyboard is open */
     showSoftInputOnFocus: boolean;
