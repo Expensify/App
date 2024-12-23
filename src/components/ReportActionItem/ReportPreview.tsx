@@ -365,7 +365,8 @@ function ReportPreview({
 
     const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
-    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID);
+    const shouldPromptUserToAddBankAccount =
+        (ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID) || ReportUtils.hasMissingInvoiceBankAccount(iouReportID)) && !ReportUtils.isSettled(iouReportID);
     const shouldShowRBR = hasErrors && !iouSettled;
 
     /*

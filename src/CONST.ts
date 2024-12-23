@@ -514,6 +514,7 @@ const CONST = {
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -6432,14 +6433,6 @@ const CONST = {
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
         },
-    },
-
-    DEVICE_CONTACT: {
-        FIRST_NAME: 'FIRST_NAME',
-        LAST_NAME: 'LAST_NAME',
-        PHONE_NUMBERS: 'PHONE_NUMBERS',
-        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
-        IMAGE_DATA: 'IMAGE_DATA',
     },
 
     HYBRID_APP: {
