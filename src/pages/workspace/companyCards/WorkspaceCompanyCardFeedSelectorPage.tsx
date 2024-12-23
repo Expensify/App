@@ -42,9 +42,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = CardUtils.getCompanyFeeds(cardFeeds);
-    const availableCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
 
-    const feeds: CardFeedListItem[] = (Object.keys(availableCards) as CompanyCardFeed[]).map((feed) => ({
+    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => ({
         value: feed,
         text: CardUtils.getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
         keyForList: feed,

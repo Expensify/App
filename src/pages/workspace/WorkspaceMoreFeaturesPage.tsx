@@ -131,7 +131,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
         isActive: policy?.areCompanyCardsEnabled ?? false,
         pendingAction: policy?.pendingFields?.areCompanyCardsEnabled,
-        disabled: !isEmptyObject(CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds)),
+        disabled: !isEmptyObject(CardUtils.getCompanyFeeds(cardFeeds)),
         action: (isEnabled: boolean) => {
             if (!policyID) {
                 return;

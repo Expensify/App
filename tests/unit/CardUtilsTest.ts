@@ -12,7 +12,7 @@ const longDateHyphen = '09-2024';
 const expectedMonth = '09';
 const expectedYear = '2024';
 
-const customFeeds = {
+const companyCardsCustomFeedSettings = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
         pending: true,
     },
@@ -23,7 +23,7 @@ const customFeeds = {
         liabilityType: 'personal',
     },
 };
-const customFeedsWithoutExpensifyBank = {
+const companyCardsCustomFeedSettingsWithoutExpensifyBank = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
         pending: true,
     },
@@ -31,7 +31,25 @@ const customFeedsWithoutExpensifyBank = {
         liabilityType: 'personal',
     },
 };
-const directFeeds = {
+const companyCardsDirectFeedSettings = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
+        liabilityType: 'personal',
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: {
+        liabilityType: 'personal',
+    },
+};
+const companyCardsSettingsWithoutExpensifyBank = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+        pending: true,
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+        liabilityType: 'personal',
+    },
+    ...companyCardsDirectFeedSettings,
+};
+
+const oAuthAccountDetails = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
         accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
         credentials: 'xxxxx',
@@ -117,23 +135,27 @@ const customFeedCardsList = {
 const customFeedName = 'Custom feed name';
 
 const cardFeedsCollection: OnyxCollection<OnyxTypes.CardFeeds> = {
+    // Policy with both custom and direct feeds
     FAKE_ID_1: {
         settings: {
             companyCardNicknames: {
                 [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: customFeedName,
             },
-            companyCards: customFeeds,
-            oAuthAccountDetails: directFeeds,
+            companyCards: {...companyCardsCustomFeedSettings, ...companyCardsDirectFeedSettings},
+            oAuthAccountDetails,
         },
     },
+    // Policy with direct feeds only
     FAKE_ID_2: {
         settings: {
-            oAuthAccountDetails: directFeeds,
+            companyCards: companyCardsDirectFeedSettings,
+            oAuthAccountDetails,
         },
     },
+    // Policy with custom feeds only
     FAKE_ID_3: {
         settings: {
-            companyCards: customFeeds,
+            companyCards: companyCardsCustomFeedSettings,
         },
     },
 };
@@ -196,40 +218,23 @@ describe('CardUtils', () => {
     });
 
     describe('getCompanyFeeds', () => {
-        it('Should return both custom and direct feeds if exists', () => {
+        it('Should return both custom and direct feeds with filtered out "Expensify Card" bank', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(cardFeedsCollection.FAKE_ID_1);
-            expect(companyFeeds).toStrictEqual({...directFeeds, ...customFeedsWithoutExpensifyBank});
+            expect(companyFeeds).toStrictEqual(companyCardsSettingsWithoutExpensifyBank);
         });
 
         it('Should return direct feeds only since custom feeds are not exist', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(cardFeedsCollection.FAKE_ID_2);
-            expect(companyFeeds).toStrictEqual(directFeeds);
+            expect(companyFeeds).toStrictEqual(companyCardsDirectFeedSettings);
         });
 
-        it('Should return custom feeds only since direct feeds are not exist', () => {
+        it('Should return custom feeds only with filtered out "Expensify Card" bank since direct feeds are not exist', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(cardFeedsCollection.FAKE_ID_3);
-            expect(companyFeeds).toStrictEqual(customFeedsWithoutExpensifyBank);
+            expect(companyFeeds).toStrictEqual(companyCardsCustomFeedSettingsWithoutExpensifyBank);
         });
 
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = CardUtils.getCompanyFeeds(undefined);
-            expect(companyFeeds).toStrictEqual({});
-        });
-    });
-
-    describe('removeExpensifyCardFromCompanyCards', () => {
-        it('Should return custom feeds without filtered out "Expensify Card" bank', () => {
-            const companyFeeds = CardUtils.removeExpensifyCardFromCompanyCards(cardFeedsCollection.FAKE_ID_3);
-            expect(companyFeeds).toStrictEqual(customFeedsWithoutExpensifyBank);
-        });
-
-        it('Should return direct feeds without any updates, since there were no "Expensify Card" bank', () => {
-            const companyFeeds = CardUtils.removeExpensifyCardFromCompanyCards(cardFeedsCollection.FAKE_ID_2);
-            expect(companyFeeds).toStrictEqual(directFeeds);
-        });
-
-        it('Should return empty object if undefined is passed', () => {
-            const companyFeeds = CardUtils.removeExpensifyCardFromCompanyCards(undefined);
             expect(companyFeeds).toStrictEqual({});
         });
     });
@@ -355,13 +360,13 @@ describe('CardUtils', () => {
         });
 
         it('Should return filtered direct feed cards list with a single card', () => {
-            const cardsList = CardUtils.getFilteredCardList(directFeedCardsSingleList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
+            const cardsList = CardUtils.getFilteredCardList(directFeedCardsSingleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({'CREDIT CARD...6607': 'CREDIT CARD...6607'});
         });
 
         it('Should return filtered direct feed cards list with multiple cards', () => {
-            const cardsList = CardUtils.getFilteredCardList(directFeedCardsMultipleList, directFeeds[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
+            const cardsList = CardUtils.getFilteredCardList(directFeedCardsMultipleList, oAuthAccountDetails[CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]);
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(cardsList).toStrictEqual({'CREDIT CARD...1233': 'CREDIT CARD...1233', 'CREDIT CARD...3333': 'CREDIT CARD...3333', 'CREDIT CARD...7788': 'CREDIT CARD...7788'});
         });

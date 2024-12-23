@@ -251,20 +251,9 @@ function isCustomFeed(feed: CompanyCardFeed): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
-    const allFeeds = {...cardFeeds?.settings?.companyCards, ...cardFeeds?.settings?.oAuthAccountDetails};
-    const {[CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed]: expensifyFeed, ...companyFeeds} = allFeeds;
-    return companyFeeds;
-}
-
-function removeExpensifyCardFromCompanyCards(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
-    if (!cardFeeds) {
-        return {};
-    }
-
-    const companyCards = getCompanyFeeds(cardFeeds);
+function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
     return Object.fromEntries(
-        Object.entries(companyCards).filter(([key, value]) => {
+        Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
@@ -357,7 +346,7 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
 };
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
-    const defaultFeed = Object.keys(removeExpensifyCardFromCompanyCards(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
+    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
 }
 
@@ -419,7 +408,6 @@ export {
     getSelectedFeed,
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
-    removeExpensifyCardFromCompanyCards,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,

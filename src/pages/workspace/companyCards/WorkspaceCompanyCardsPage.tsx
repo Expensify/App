@@ -49,7 +49,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
+    const companyCards = CardUtils.getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
