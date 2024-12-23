@@ -406,6 +406,10 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.TEAM;
+}
+
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
@@ -1165,6 +1169,11 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+function hasOtherControlWorkspaces(currentPolicyID: string) {
+    const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
+    return otherControlWorkspaces.length > 0;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1265,6 +1274,7 @@ export {
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
+    isCollectPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,
@@ -1288,6 +1298,7 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
 };
