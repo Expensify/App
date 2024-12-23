@@ -30,7 +30,7 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
                 isMoneyRequestReport(item) &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
-        .map((item) => ({reportID: item.reportID, action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW, total: item.total ?? 0, policyID: item.policyID ?? ''}));
+        .map((item) => ({reportID: item.reportID, action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW, total: item.total ?? CONST.DEFAULT_NUMBER_ID, policyID: item.policyID ?? ''}));
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
