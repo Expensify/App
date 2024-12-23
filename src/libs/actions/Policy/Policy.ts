@@ -725,7 +725,10 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
 }
 
-function leaveWorkspace(policyID: string) {
+function leaveWorkspace(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
