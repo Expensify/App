@@ -151,56 +151,6 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         });
 }
 
-/**
- * Returns the filename replacing special characters with underscore
- */
-function cleanFileName(fileName: string): string {
-    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
-}
-
-type ReadFileAsync = (path: string, fileName: string, fileType?: string) => Promise<File | void>;
-
-/**
- * Reads a locally uploaded file
- * @param path - the blob url of the locally uploaded file
- * @param fileName - name of the file to read
- */
-const readFileAsync: ReadFileAsync = (path, fileName, fileType = '') =>
-    new Promise((resolve) => {
-        if (!path) {
-            resolve();
-            return;
-        }
-        fetch(path)
-            .then((res) => {
-                // For some reason, fetch is "Unable to read uploaded file"
-                // on Android even though the blob is returned, so we'll ignore
-                // in that case
-                if (!res.ok && Platform.OS !== 'android') {
-                    throw Error(res.statusText);
-                }
-                res.blob()
-                    .then((blob) => {
-                        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-                        // In this case, let us fallback on fileType provided by the caller of this function.
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
-                        file.source = path;
-                        // For some reason, the File object on iOS does not have a uri property
-                        // so images aren't uploaded correctly to the backend
-                        file.uri = path;
-                        resolve(file);
-                    })
-                    .catch((e) => {
-                        console.debug('[FileUtils] Could not read uploaded file', e);
-                        resolve();
-                    });
-            })
-            .catch((e) => {
-                console.debug('[FileUtils] Could not read uploaded file', e);
-                resolve();
-            });
-    });
-
 function processFormData(data: Record<string, unknown>): Promise<FormData> {
     const formData = new FormData();
     let promiseChain = Promise.resolve();
@@ -218,7 +168,11 @@ function processFormData(data: Record<string, unknown>): Promise<FormData> {
                 console.debug('[dev] path', path);
                 console.debug('[dev] source', source);
 
-                return readFileAsync(source, path)
+                return import('./fileDownload/FileUtils')
+                    .then(({readFileAsync}) => {
+                        console.debug('[dev] readFileAsync', readFileAsync);
+                        return readFileAsync(source, path, () => {});
+                    })
                     .then((file) => {
                         console.debug('[dev] file', file);
                         if (file) {
