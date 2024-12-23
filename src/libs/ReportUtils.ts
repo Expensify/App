@@ -736,7 +736,7 @@ Onyx.connect({
     },
 });
 
-let onboarding: OnyxEntry<Onboarding | []>;
+let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
@@ -8352,8 +8352,8 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    // onboarding can be an array or an empty object for old accounts and accounts created from olddot
-    if (onboarding && !Array.isArray(onboarding) && !isEmptyObject(onboarding) && onboarding.chatReportID) {
+    // onboarding can be an empty object for old accounts and accounts created from olddot
+    if (onboarding && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
 
