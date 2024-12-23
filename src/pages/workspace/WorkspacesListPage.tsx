@@ -183,7 +183,7 @@ function WorkspacesListPage() {
                             setIsSupportalActionRestrictedModalOpen(true);
                             return;
                         }
-                        setPolicyIDToDelete(item.policyID ?? '-1');
+                        setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
@@ -195,7 +195,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID)),
                 });
             }
 
@@ -419,7 +419,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
                 {shouldShowLoadingIndicator ? (
@@ -458,7 +458,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
