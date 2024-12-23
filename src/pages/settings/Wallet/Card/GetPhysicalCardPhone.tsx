@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -8,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LoginUtils from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import * as PhoneNumberUtils from '@libs/PhoneNumber';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,10 +43,15 @@ function GetPhysicalCardPhone({
 
         const errors: OnValidateResult = {};
 
-        if (!LoginUtils.validateNumber(phoneNumberToValidate)) {
-            errors.phoneNumber = translate('common.error.phoneNumber');
-        } else if (!phoneNumberToValidate) {
+        if (!ValidationUtils.isRequiredFulfilled(phoneNumberToValidate)) {
             errors.phoneNumber = translate('common.error.fieldRequired');
+        }
+
+        const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumberToValidate);
+        const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+
+        if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
+            errors.phoneNumber = translate('bankAccount.error.phoneNumber');
         }
 
         return errors;
