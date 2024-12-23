@@ -28,12 +28,14 @@ function AgreeToTheLabel() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const walletAgreementUrl =
-        userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID ? CONST.BANCORP_WALLET_AGREEMENT_URL : CONST.WALLET_AGREEMENT_URL;
+        userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
+            ? CONST.OLD_DOT_PUBLIC_URLS.BANCORP_WALLET_AGREEMENT_URL
+            : CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL;
 
     return (
         <Text>
             {`${translate('termsStep.agreeToThe')} `}
-            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
             {`${translate('common.and')} `}
             <TextLink href={walletAgreementUrl}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
         </Text>
