@@ -401,7 +401,7 @@ function ReportPreview({
             }
         }
         if (shouldShowScanningSubtitle) {
-            return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+            return {shouldShow: false, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
         if (shouldShowPendingSubtitle) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
