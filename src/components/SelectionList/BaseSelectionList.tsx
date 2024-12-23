@@ -333,6 +333,15 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    useEffect(() => {
+        const selectedItemIndex = flattenedSections.allOptions.findIndex((option) => option.isSelected);
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+            return;
+        }
+        setFocusedIndex(selectedItemIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [flattenedSections]);
+
     const clearInputAfterSelect = useCallback(() => {
         onChangeText?.('');
     }, [onChangeText]);
