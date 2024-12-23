@@ -8354,7 +8354,7 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
  * only use the Concierge chat.
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData): boolean {
-    // onboarding can be an array or an empty object for old accounts and accounts created from olddot
+    // onboarding can be an empty object for old accounts and accounts created from olddot
     if (onboarding && !isEmptyObject(onboarding) && onboarding.chatReportID) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
