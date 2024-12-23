@@ -914,7 +914,7 @@ describe('ReportUtils', () => {
             const reportActionCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID ?? `${CONST.DEFAULT_NUMBER_ID}`,
+                (actions) => Object.values(actions).at(0)?.reportActionID,
             );
             Onyx.multiSet({
                 ...reportCollectionDataSet,
