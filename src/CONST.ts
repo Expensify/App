@@ -6435,6 +6435,14 @@ const CONST = {
         },
     },
 
+    DEVICE_CONTACT: {
+        FIRST_NAME: 'FIRST_NAME',
+        LAST_NAME: 'LAST_NAME',
+        PHONE_NUMBERS: 'PHONE_NUMBERS',
+        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
+        IMAGE_DATA: 'IMAGE_DATA',
+    },
+
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },

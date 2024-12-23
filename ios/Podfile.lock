@@ -28,6 +28,28 @@ PODS:
     - AppAuth/Core
   - AppLogs (0.1.0)
   - boost (1.84.0)
+  - ContactsModule (0.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - DoubleConversion (1.1.6)
   - EXAV (14.0.7):
     - ExpoModulesCore
@@ -287,6 +309,29 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NitroModules (0.18.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
     - DoubleConversion
@@ -2750,6 +2795,7 @@ DEPENDENCIES:
   - AirshipServiceExtension
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - ContactsModule (from `../modules/ContactsNitroModule`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -2765,6 +2811,7 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -2915,6 +2962,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  ContactsModule:
+    :path: "../modules/ContactsNitroModule"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
@@ -2946,6 +2995,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-08-15-RNv0.75.1-4b3bf912cc0f705b51b71ce1a5b8bd79b93a451b
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroModules:
+    :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
   RCT-Folly:
@@ -3160,6 +3211,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 26992d1adf73c1c7676360643e687aee6dda994b
+  ContactsModule: 21671b28654413dc28795d1afc3b12eaffa28ed1
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: afa491e598334bbbb92a92a2f4dd33d7149ad37f
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
@@ -3199,6 +3251,7 @@ SPEC CHECKSUMS:
   MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NitroModules: ebe2ba2d01dc03c1f82441561fe6062b8c3c4366
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
@@ -3295,7 +3348,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: f19d3c962fba4fb87bb9bc27ce9119216d86d92e
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 460d6ff97ae49c7d5708c3212c6521697c36a0c4
-  RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
+  RNPermissions: 9e5c26aaa982fe00743281f6f47fbdc050ebc58f
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: d95f865e1e42c34ca56b987e0719a8c72fc02dbc
   RNScreens: de6e57426ba0e6cbc3fb5b4f496e7f08cb2773c2
@@ -3311,6 +3364,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: a1d7895431387402a674fd0d1c04ec85e87909b8
 
-PODFILE CHECKSUM: 615266329434ea4a994dccf622008a2197313c88
+PODFILE CHECKSUM: e744fa802b4bee097ff8d1977dd8f79d16b21547
 
 COCOAPODS: 1.15.2

@@ -497,6 +497,13 @@ const translations = {
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
     },
+    contact: {
+        importContacts: 'Importar contactos',
+        importContactsTitle: 'Importa tus contactos',
+        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
+        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
+        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
+    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },

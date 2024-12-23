@@ -44,7 +44,7 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
-    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\")",
+    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\" \":!modules/**\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
@@ -111,6 +111,7 @@
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
+    "contacts-nitro-module": "./modules/ContactsNitroModule",
     "core-js": "^3.32.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -161,6 +162,7 @@
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "2.0.86",
+    "react-native-nitro-modules": "^0.18.1",
     "react-native-pager-view": "6.5.1",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
@@ -376,17 +378,7 @@
       ]
     }
   },
-  "electronmon": {
-    "patterns": [
-      "!src/**",
-      "!ios/**",
-      "!android/**",
-      "!tests/**",
-      "*.test.*"
-    ]
-  },
-  "engines": {
-    "node": "20.18.0",
-    "npm": "10.8.2"
-  }
+  "workspaces": [
+    "modules/ContactsNitroModule"
+  ]
 }
