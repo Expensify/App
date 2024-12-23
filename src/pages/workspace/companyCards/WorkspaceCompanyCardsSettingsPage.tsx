@@ -56,7 +56,9 @@ function WorkspaceCompanyCardsSettingsPage({
         if (selectedFeed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
-            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[]).filter((feed) => feed !== selectedFeed).at(0);
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
+                .filter((feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .at(0);
             CompanyCards.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, cardIDs, feedToOpen);
         }
         setDeleteCompanyCardConfirmModalVisible(false);

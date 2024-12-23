@@ -228,13 +228,11 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
         },
     ];
 
-    if (feedToOpen) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedToOpen,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+        value: feedToOpen ?? null,
+    });
 
     const parameters = {
         authToken,
