@@ -713,7 +713,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
@@ -1185,7 +1184,6 @@ function buildOnyxDataForInvoice(
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },

@@ -314,7 +314,6 @@ type OptimisticChatReport = Pick<
     | 'isOwnPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
-    | 'lastMessageTranslationKey'
     | 'lastMessageHtml'
     | 'lastMessageText'
     | 'lastReadTime'
@@ -5506,7 +5505,6 @@ function buildOptimisticChatReport(
         isOwnPolicyExpenseChat,
         isPinned: isNewlyCreatedWorkspaceChat,
         lastActorAccountID: 0,
-        lastMessageTranslationKey: '',
         lastMessageHtml: '',
         lastMessageText: undefined,
         lastReadTime: currentTime,
@@ -6301,12 +6299,12 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (report.lastMessageText ?? report.lastMessageTranslationKey) {
+    if (report.lastMessageText) {
         return false;
     }
 
     const lastVisibleMessage = getLastVisibleMessage(report.reportID);
-    return !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+    return !lastVisibleMessage.lastMessageText;
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
@@ -8421,20 +8419,18 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  */
 function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
     let result: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = getLastVisibleMessage(reportID, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, actionsToMerge);
 
-    if (lastMessageText || lastMessageTranslationKey) {
+    if (lastMessageText) {
         const report = getReport(reportID);
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction(report), actionsToMerge);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         result = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
