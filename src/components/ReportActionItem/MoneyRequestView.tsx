@@ -73,7 +73,7 @@ const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.
 const getTransactionID = (report: OnyxEntry<OnyxTypes.Report>, parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const originalMessage = parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
-    return originalMessage?.IOUTransactionID ?? -1;
+    return originalMessage?.IOUTransactionID ?? undefined;
 };
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
@@ -95,7 +95,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
     });
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getTransactionID(report, parentReportActions)}`);
+    const transactionViolations = TransactionUtils.getTransactionViolations(getTransactionID(report, parentReportActions) ?? undefined);
 
     const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);

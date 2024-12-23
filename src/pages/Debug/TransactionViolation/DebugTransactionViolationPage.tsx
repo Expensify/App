@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -13,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -29,7 +29,7 @@ function DebugTransactionViolationPage({
     },
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = TransactionUtils.getTransactionViolations(transactionID);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
     const styles = useThemeStyles();
 

@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +13,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
@@ -62,7 +62,7 @@ function DebugTransactionViolationCreatePage({
 }: DebugTransactionViolationCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = TransactionUtils.getTransactionViolations(transactionID);
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 

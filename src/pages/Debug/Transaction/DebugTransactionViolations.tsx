@@ -1,6 +1,5 @@
 import React from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -9,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import ROUTES from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 
@@ -19,7 +18,8 @@ type DebugTransactionViolationsProps = {
 };
 
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = TransactionUtils.getTransactionViolations(transactionID);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

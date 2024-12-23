@@ -3293,7 +3293,7 @@ function updateMoneyRequestAttendees(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
