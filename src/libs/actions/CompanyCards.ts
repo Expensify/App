@@ -252,7 +252,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     }
     const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
     const parameters: AssignCompanyCardParams = {
         policyID,
@@ -264,7 +264,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
     const policy = PolicyUtils.getPolicy(policyID);
-    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? -1, policyID);
+    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -302,70 +302,72 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
 
 function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
-    const cardID = card?.cardID ?? '-1';
+    const cardID = card?.cardID;
 
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                value: {
-                    [cardID]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                },
-            },
-        ],
+    const onyxData: OnyxData = cardID
+        ? {
+              optimisticData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                      value: {
+                          [cardID]: {
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.CARD_LIST,
+                      value: {
+                          [cardID]: {
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          },
+                      },
+                  },
+              ],
 
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                value: {
-                    [cardID]: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: null,
-                },
-            },
-        ],
+              successData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                      value: {
+                          [cardID]: null,
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.CARD_LIST,
+                      value: {
+                          [cardID]: null,
+                      },
+                  },
+              ],
 
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                value: {
-                    [cardID]: {
-                        pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: {
-                        pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
-                },
-            },
-        ],
-    };
+              failureData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                      value: {
+                          [cardID]: {
+                              pendingAction: null,
+                              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                          },
+                      },
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.CARD_LIST,
+                      value: {
+                          [cardID]: {
+                              pendingAction: null,
+                              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                          },
+                      },
+                  },
+              ],
+          }
+        : {};
 
     const parameters = {
         authToken,
