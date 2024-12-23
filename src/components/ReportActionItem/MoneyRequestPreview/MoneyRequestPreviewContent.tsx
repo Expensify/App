@@ -299,12 +299,8 @@ function MoneyRequestPreviewContent({
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         Transaction.abandonReviewDuplicateTransactions();
-        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(
-            reviewingTransactionID,
-            transaction?.reportID ?? '',
-            transaction?.transactionID ?? reviewingTransactionID,
-        );
-        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID ?? '', reportID: transaction?.reportID});
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
         if ('merchant' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));

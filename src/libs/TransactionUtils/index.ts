@@ -1062,7 +1062,7 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]) {
 function compareDuplicateTransactionFields(
     reviewingTransactionID: string | undefined,
     reportID: string | undefined,
-    selectedTransactionID?: string,
+    selectedTransactionID?: string | undefined,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     if (!reviewingTransactionID || !reportID) {
         return {change: {}, keep: {}};
