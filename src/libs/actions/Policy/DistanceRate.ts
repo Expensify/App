@@ -129,34 +129,36 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
     if (!enabled) {
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         const customUnit = getDistanceRateCustomUnit(policy);
-        const customUnitID = customUnit?.customUnitID ?? '';
+        if (customUnit) {
+            const customUnitID = customUnit.customUnitID;
 
-        const rateEntries = Object.entries(customUnit?.rates ?? {});
-        // find the rate to be enabled after disabling the distance rate feature
-        const rateEntryToBeEnabled = rateEntries.at(0);
+            const rateEntries = Object.entries(customUnit.rates ?? {});
+            // find the rate to be enabled after disabling the distance rate feature
+            const rateEntryToBeEnabled = rateEntries.at(0);
 
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
-                        rates: Object.fromEntries(
-                            rateEntries.map((rateEntry) => {
-                                const [rateID, rate] = rateEntry;
-                                return [
-                                    rateID,
-                                    {
-                                        ...rate,
-                                        enabled: rateID === rateEntryToBeEnabled?.at(0),
-                                    },
-                                ];
-                            }),
-                        ),
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: Object.fromEntries(
+                                rateEntries.map((rateEntry) => {
+                                    const [rateID, rate] = rateEntry;
+                                    return [
+                                        rateID,
+                                        {
+                                            ...rate,
+                                            enabled: rateID === rateEntryToBeEnabled?.at(0),
+                                        },
+                                    ];
+                                }),
+                            ),
+                        },
                     },
                 },
-            },
-        });
+            });
+        }
     }
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
@@ -177,7 +179,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 ...customUnitRate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
@@ -196,7 +198,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -214,7 +216,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
@@ -339,9 +341,9 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 
 function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
     const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
 
     for (const rateID of Object.keys(customUnit.rates)) {
@@ -410,9 +412,9 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
 
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
     const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
 
     for (const rateID of Object.keys(currentRates)) {
@@ -499,7 +501,10 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             };
         } else {
             optimisticRates[rateID] = currentRates[rateID];
-            successRates[rateID] = currentRates[rateID];
+            successRates[rateID] = {
+                ...currentRates[rateID],
+                pendingAction: null,
+            };
         }
     }
 
@@ -556,9 +561,9 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
     const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
 
     for (const rateID of Object.keys(customUnit.rates)) {
@@ -627,9 +632,9 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
 
 function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
     const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
 
     for (const rateID of Object.keys(customUnit.rates)) {
