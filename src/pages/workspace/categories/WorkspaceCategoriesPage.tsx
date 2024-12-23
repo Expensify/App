@@ -107,19 +107,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? undefined,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                };
-            }),
-        [policyCategories, selectedCategories, canSelectMultiple, translate],
+            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[])
+                .filter((value) => (isOffline ? value : value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+                .map((value) => {
+                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    return {
+                        text: value.name,
+                        keyForList: value.name,
+                        isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                        isDisabled,
+                        pendingAction: value.pendingAction,
+                        errors: value.errors ?? undefined,
+                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                    };
+                }),
+        [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate],
     );
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
