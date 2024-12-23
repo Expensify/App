@@ -1,5 +1,5 @@
 type LeavePolicyParams = {
-    policyID: string;
+    policyID?: string;
     email: string;
 };
 
