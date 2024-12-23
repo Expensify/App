@@ -156,7 +156,9 @@ function MoneyRequestPreviewContent({
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction)
+        ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? undefined
+        : undefined;
 
     /*
      Show the merchant for IOUs and expenses only if:
