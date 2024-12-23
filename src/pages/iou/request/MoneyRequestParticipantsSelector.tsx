@@ -48,7 +48,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish: (value?: string) => void;
+    onFinish?: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -293,7 +293,7 @@ function MoneyRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newParticipants);
-            onFinish();
+            onFinish?.();
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, currentUserLogin],
@@ -364,7 +364,7 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
-            onFinish(CONST.IOU.TYPE.SPLIT);
+            onFinish?.(CONST.IOU.TYPE.SPLIT);
         },
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
     );
@@ -474,7 +474,7 @@ function MoneyRequestParticipantsSelector({
                     <Button
                         success
                         text={translate('workspace.new.newWorkspace')}
-                        onPress={() => onFinish()}
+                        onPress={() => onFinish?.()}
                         pressOnEnter
                         large
                     />
