@@ -59,6 +59,10 @@ function Confirmation({onNext}: SubStepProps) {
     }, []);
 
     useEffect(() => {
+        FormActions.clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+    });
+
+    useEffect(() => {
         if (currency === CONST.CURRENCY.EUR) {
             return;
         }
