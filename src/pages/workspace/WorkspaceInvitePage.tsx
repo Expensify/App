@@ -242,7 +242,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '-1';
+            const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
