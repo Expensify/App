@@ -184,7 +184,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            icon={Illustrations.House}
+            icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
@@ -253,7 +253,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
-                                description={translate('workspace.editor.nameInputLabel')}
+                                description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}

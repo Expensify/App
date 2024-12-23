@@ -2558,7 +2558,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil',
+            profile: 'Perfil del espacio de trabajo',
             perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
