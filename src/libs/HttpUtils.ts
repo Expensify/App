@@ -1,4 +1,3 @@
-import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
@@ -164,17 +163,17 @@ function processFormData(data: Record<string, unknown>): Promise<FormData> {
             if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
                 const {uri: path = '', source} = data[key] as File;
 
-                console.debug('[dev] data[key]:', data[key]);
-                console.debug('[dev] path', path);
-                console.debug('[dev] source', source);
+                console.debug('[dev] 2. data[key]:', data[key]);
+                console.debug('[dev] 3. path', path);
+                console.debug('[dev] 4. source', source);
 
                 return import('./fileDownload/FileUtils')
                     .then(({readFileAsync}) => {
-                        console.debug('[dev] readFileAsync', readFileAsync);
+                        console.debug('[dev] 5. readFileAsync', readFileAsync);
                         return readFileAsync(source, path, () => {});
                     })
                     .then((file) => {
-                        console.debug('[dev] file', file);
+                        console.debug('[dev] 6. file', file);
                         if (file) {
                             formData.append(key, file);
                         }
@@ -202,18 +201,18 @@ function processFormData(data: Record<string, unknown>): Promise<FormData> {
  */
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     if (command === 'RequestMoney') {
-        console.debug('[dev] data:', data);
+        console.debug('[dev] 1. data:', data);
     }
 
     return processFormData(data).then((formData) => {
         if (command === 'RequestMoney') {
-            console.debug('[dev] formData:', formData);
-            console.debug("[dev] formData.getAll('receipt'):", formData.getAll('receipt'));
+            console.debug('[dev] 7. formData:', formData);
+            console.debug("[dev] 8. formData.getAll('receipt'):", formData.getAll('receipt'));
         }
 
         const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-
         const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
+
         return processHTTPRequest(url, type, formData, abortSignalController?.signal);
     });
 }
