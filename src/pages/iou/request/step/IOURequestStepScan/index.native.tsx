@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/core';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -31,6 +32,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -497,49 +499,68 @@ function IOURequestStepScan({
 
         setDidCapturePhoto(true);
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-            })
-            .then((photo: PhotoFile) => {
-                // Store the receipt on the transaction object in Onyx
-                const source = getPhotoSource(photo.path);
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+        const path = getReceiptsUploadFolderPath();
 
-                FileUtils.readFileAsync(
-                    source,
-                    photo.path,
-                    (file) => {
-                        if (isEditing) {
-                            updateScanAndNavigate(file, source);
-                            return;
-                        }
-                        if (shouldSkipConfirmation) {
-                            setFileResize(file);
-                            setFileSource(source);
-                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                            if (gpsRequired) {
-                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                                if (shouldStartLocationPermissionFlow) {
-                                    setStartLocationPermissionFlow(true);
-                                    return;
-                                }
-                            }
-                        }
-                        navigateToConfirmationStep(file, source, false);
-                    },
-                    () => {
-                        setDidCapturePhoto(false);
-                        showCameraAlert();
-                        Log.warn('Error reading photo');
-                    },
-                );
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the directory', error);
+                });
             })
             .catch((error: string) => {
-                setDidCapturePhoto(false);
-                showCameraAlert();
-                Log.warn('Error taking photo', error);
+                Log.warn('Error checking if the directory exists', error);
+            })
+            .then(() => {
+                camera?.current
+                    ?.takePhoto({
+                        flash: flash && hasFlash ? 'on' : 'off',
+                        enableShutterSound: !isPlatformMuted,
+                        path,
+                    })
+                    .then((photo: PhotoFile) => {
+                        // Store the receipt on the transaction object in Onyx
+                        const source = getPhotoSource(photo.path);
+                        IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+
+                        FileUtils.readFileAsync(
+                            source,
+                            photo.path,
+                            (file) => {
+                                if (isEditing) {
+                                    updateScanAndNavigate(file, source);
+                                    return;
+                                }
+                                if (shouldSkipConfirmation) {
+                                    setFileResize(file);
+                                    setFileSource(source);
+                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                                    if (gpsRequired) {
+                                        const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
+                                        if (shouldStartLocationPermissionFlow) {
+                                            setStartLocationPermissionFlow(true);
+                                            return;
+                                        }
+                                    }
+                                }
+                                navigateToConfirmationStep(file, source, false);
+                            },
+                            () => {
+                                setDidCapturePhoto(false);
+                                showCameraAlert();
+                                Log.warn('Error reading photo');
+                            },
+                        );
+                    })
+                    .catch((error: string) => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error taking photo', error);
+                    });
             });
     }, [
         cameraPermissionStatus,
