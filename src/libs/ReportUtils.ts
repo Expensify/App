@@ -7381,7 +7381,7 @@ function getWorkspaceChats(policyID: string, accountIDs: number[], reports: Onyx
  *
  * @param policyID - the workspace ID to get all associated reports
  */
-function getAllWorkspaceReports(policyID: string | undefined): Array<OnyxEntry<Report>> {
+function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => (report?.policyID ?? '-1') === policyID);
 }
 
@@ -8391,7 +8391,7 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
 
     switch (violation) {
         case 'fieldRequired':
-            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: reportField.name});
+            return Localize.translateLocal('reportViolations.fieldRequired', {fieldName: getAllWorkspaceReportsreportField.name});
         default:
             return '';
     }
