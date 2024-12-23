@@ -497,13 +497,6 @@ const translations = {
         allowPermission: 'habilita el permiso de ubicación en la configuración',
         tryAgain: 'e inténtalo de nuevo.',
     },
-    contact: {
-        importContacts: 'Importar contactos',
-        importContactsTitle: 'Importa tus contactos',
-        importContactsText: 'Importa contactos desde tu teléfono para que tus personas favoritas siempre estén a un toque de distancia.',
-        importContactsExplanation: 'para que tus personas favoritas estén siempre a un toque de distancia.',
-        importContactsNativeText: '¡Solo un paso más! Danos luz verde para importar tus contactos.',
-    },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discusión.',
     },
@@ -2565,7 +2558,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil',
+            profile: 'Perfil del espacio de trabajo',
             perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
@@ -3631,9 +3624,9 @@ const translations = {
                 cardName: 'Nombre de la tarjeta',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) =>
-                    `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.`,
                 integrationExportTitleLinkPart: 'opción de exportación',
+                integrationExportTitlePart: 'Seleccione una cuenta diferente',
                 integrationExportTitleSecondPart: 'para cambiar las cuentas disponibles.',
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',

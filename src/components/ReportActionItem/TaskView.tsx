@@ -10,8 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,27 +26,28 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
-type TaskViewProps = WithCurrentUserPersonalDetailsProps & {
+type TaskViewProps = {
     /** The report currently being looked at */
     report: Report;
 };
 
-function TaskView({report, ...props}: TaskViewProps) {
+function TaskView({report}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     useEffect(() => {
         Task.setTaskReport(report);
     }, [report]);
-    const personalDetails = usePersonalDetails();
     const taskTitle = convertToLTR(report.reportName ?? '');
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails),
         false,
     );
-    const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
+    const isCompleted = ReportUtils.isCompletedTaskReport(report);
+    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
+    const canActionTask = Task.canActionTask(report, currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const {translate} = useLocalize();
@@ -77,10 +77,10 @@ function TaskView({report, ...props}: TaskViewProps) {
                                 styles.ph5,
                                 styles.pv2,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
-                                isDisableInteractive && !disableState && styles.cursorDefault,
+                                isDisableInteractive && styles.cursorDefault,
                             ]}
-                            disabled={disableState}
                             accessibilityLabel={taskTitle || translate('task.task')}
+                            disabled={isDisableInteractive}
                         >
                             {({pressed}) => (
                                 <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
@@ -104,7 +104,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                             containerBorderRadius={8}
                                             caretSize={16}
                                             accessibilityLabel={taskTitle || translate('task.task')}
-                                            disabled={!canModifyTask || !canActionTask}
+                                            disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
                                             <Text
@@ -114,7 +114,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                                                 {taskTitle}
                                             </Text>
                                         </View>
-                                        {isOpen && (
+                                        {!isDisableInteractive && (
                                             <View style={styles.taskRightIconContainer}>
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
@@ -135,12 +135,13 @@ function TaskView({report, ...props}: TaskViewProps) {
                         description={translate('task.description')}
                         title={report.description ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                        shouldShowRightIcon={isOpen}
+                        shouldShowRightIcon={!isDisableInteractive}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
+                        shouldUseDefaultCursorWhenDisabled
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
@@ -153,23 +154,25 @@ function TaskView({report, ...props}: TaskViewProps) {
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
+                            shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
                             isSmallAvatarSubscriptMenu
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
                             titleWithTooltips={assigneeTooltipDetails}
+                            shouldUseDefaultCursorWhenDisabled
                         />
                     ) : (
                         <MenuItemWithTopDescription
                             description={translate('task.assignee')}
                             onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
+                            shouldShowRightIcon={!isDisableInteractive}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
                             shouldGreyOutWhenDisabled={false}
                             interactive={!isDisableInteractive}
+                            shouldUseDefaultCursorWhenDisabled
                         />
                     )}
                 </OfflineWithFeedback>
@@ -180,4 +183,4 @@ function TaskView({report, ...props}: TaskViewProps) {
 
 TaskView.displayName = 'TaskView';
 
-export default withCurrentUserPersonalDetails(TaskView);
+export default TaskView;

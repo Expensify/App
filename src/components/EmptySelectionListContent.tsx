@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import * as Illustrations from './Icon/Illustrations';
 import ScrollView from './ScrollView';
@@ -34,7 +36,13 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
     const EmptySubtitle = (
         <Text style={[styles.textAlignCenter]}>
             {translate(`emptyList.${contentType}.subtitleText1`)}
-            <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate(`emptyList.${contentType}.subtitleText2`)}</TextLink>
+            <TextLink
+                onPress={() => {
+                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE, Navigation.getActiveRouteWithoutParams()));
+                }}
+            >
+                {translate(`emptyList.${contentType}.subtitleText2`)}
+            </TextLink>
             {translate(`emptyList.${contentType}.subtitleText3`)}
         </Text>
     );
