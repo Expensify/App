@@ -300,74 +300,72 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card?: Card) {
+function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card: Card) {
     const authToken = NetworkStore.getAuthToken();
-    const cardID = card?.cardID;
+    const cardID = card.cardID;
 
-    const onyxData: OnyxData = cardID
-        ? {
-              optimisticData: [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                      value: {
-                          [cardID]: {
-                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                          },
-                      },
-                  },
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.CARD_LIST,
-                      value: {
-                          [cardID]: {
-                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                          },
-                      },
-                  },
-              ],
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        ],
 
-              successData: [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                      value: {
-                          [cardID]: null,
-                      },
-                  },
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.CARD_LIST,
-                      value: {
-                          [cardID]: null,
-                      },
-                  },
-              ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
+                    [cardID]: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: null,
+                },
+            },
+        ],
 
-              failureData: [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
-                      value: {
-                          [cardID]: {
-                              pendingAction: null,
-                              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                          },
-                      },
-                  },
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.CARD_LIST,
-                      value: {
-                          [cardID]: {
-                              pendingAction: null,
-                              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                          },
-                      },
-                  },
-              ],
-          }
-        : {};
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+                value: {
+                    [cardID]: {
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
 
     const parameters = {
         authToken,
