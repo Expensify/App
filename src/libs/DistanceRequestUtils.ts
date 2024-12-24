@@ -292,17 +292,25 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
+    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
+    if (isEmptyObject(policy)) {
+        return customUnitRateID;
+    }
+
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? '-1';
-        const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
-        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
+        const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
+        const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
-            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '-1';
+            const defaultMileageRate = getDefaultMileageRate(policy);
+            if (!defaultMileageRate?.customUnitRateID) {
+                return customUnitRateID;
+            }
+            customUnitRateID = defaultMileageRate.customUnitRateID;
         }
     }
 
