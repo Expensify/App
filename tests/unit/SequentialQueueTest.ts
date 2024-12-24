@@ -229,7 +229,7 @@ describe('SequentialQueue', () => {
 
     // I need to test now when moving the request from the queue to the ongoing request the PERSISTED_REQUESTS is decreased and PERSISTED_ONGOING_REQUESTS has the new request
     it('should move the request from the queue to the ongoing request and save it into Onyx', () => {
-        const persistedRequest = {...request, persistWhenOngoing: true};
+        const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
         SequentialQueue.push(persistedRequest);
 
         const connectionId = Onyx.connect({
