@@ -3006,7 +3006,7 @@ const CONST = {
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
                 },
             },
-            [CONST.PAYMENT_CARD_CURRENCY.NZD]: {
+            [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
