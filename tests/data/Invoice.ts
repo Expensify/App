@@ -242,7 +242,6 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     lastActorAccountID: 32,
     lastMessageHtml: 'paid $1.00',
     lastMessageText: 'paid $1.00',
-    lastMessageTranslationKey: '',
     lastReadSequenceNumber: 0,
     lastReadTime: '2024-12-13 19:45:28.942',
     lastVisibleActionCreated: '2024-12-13 19:19:01.794',
