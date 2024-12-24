@@ -86,10 +86,11 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
  */
 function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): PrivatePersonalDetails {
     const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues ?? {};
+    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber ?? '');
     return {
         legalFirstName,
         legalLastName,
-        phoneNumber,
+        phoneNumber: phoneNumberWithCountryCode,
         addresses: [...(privatePersonalDetails?.addresses ?? []), {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode}],
     };
 }
