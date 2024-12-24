@@ -448,6 +448,7 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
+        downgradeWorkspace: 'Desmejora tu espacio de trabajo',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -4432,6 +4433,27 @@ const translations = {
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
                 },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Desmejorar al plan Recopilar',
+                note: 'Si desmejoras, perderás acceso a estas funciones y más:',
+                benefits: {
+                    note: 'Para una comparación completa de nuestros planes, consulta nuestra',
+                    pricingPage: 'página de precios',
+                    confirm: '¿Estás seguro de que deseas desmejorar y eliminar tus configuraciones?',
+                    warning: 'Esto no se puede deshacer.',
+                    benefit1: 'Conexiones de contabilidad (excepto QuickBooks Online y Xero)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
+            },
+            completed: {
+                headline: 'Tu espacio de trabajo ha sido bajado de categoría',
+                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                gotIt: 'Entendido, gracias.',
             },
         },
         restrictedAction: {
