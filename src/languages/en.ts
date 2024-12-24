@@ -455,6 +455,7 @@ const translations = {
         drafts: 'Drafts',
         finished: 'Finished',
         upgrade: 'Upgrade',
+        downgradeWorkspace: 'Downgrade workspace',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
@@ -501,13 +502,6 @@ const translations = {
         please: 'Please',
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
-    },
-    contact: {
-        importContacts: 'Import contacts',
-        importContactsTitle: 'Import your contacts',
-        importContactsText: 'Import contacts from your phone so your favorite people are always a tap away.',
-        importContactsExplanation: 'so your favorite people are always a tap away.',
-        importContactsNativeText: 'Just one more step! Give us the green light to import your contacts.',
     },
     anonymousReportFooter: {
         logoTagline: 'Join the discussion.',
@@ -2543,7 +2537,7 @@ const translations = {
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
-            profile: 'Profile',
+            profile: 'Workspace profile',
             perDiem: 'Per diem',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
@@ -3588,7 +3582,8 @@ const translations = {
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported. Select a different`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported.`,
+                integrationExportTitlePart: 'Select a different',
                 integrationExportTitleLinkPart: 'export option',
                 integrationExportTitleSecondPart: 'to change the available accounts.',
                 lastUpdated: 'Last updated',
@@ -4382,6 +4377,27 @@ const translations = {
                 },
             },
         },
+        downgrade: {
+            commonFeatures: {
+                title: 'Downgrade to the Collect plan',
+                note: 'If you downgrade, you’ll lose access to these features and more:',
+                benefits: {
+                    note: 'For a full comparison of our plans, check out our',
+                    pricingPage: 'pricing page',
+                    confirm: 'Are you sure you want to downgrade and remove your configurations?',
+                    warning: 'This cannot be undone.',
+                    benefit1: 'Accounting connections (except QuickBooks Online and Xero)',
+                    benefit2: 'Smart expense rules',
+                    benefit3: 'Multi-level approval workflows',
+                    benefit4: 'Enhanced security controls',
+                },
+            },
+            completed: {
+                headline: 'Your workspace has been downgraded',
+                description: 'You have other workspace on the Control plan. To be billed at the Collect rate, you must downgrade all workspaces.',
+                gotIt: 'Got it, thanks',
+            },
+        },
         restrictedAction: {
             restricted: 'Restricted',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Actions on the ${workspaceName} workspace are currently restricted`,
@@ -4640,7 +4656,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try creating something with the green + button.',
+                subtitle: 'Try adjusting your search criteria or creating something with the green + button.',
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
