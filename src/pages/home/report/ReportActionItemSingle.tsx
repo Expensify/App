@@ -148,6 +148,17 @@ function ReportActionItemSingle({
         const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
+    } else if (ReportUtils.isInvoiceReport(iouReport)) {
+        const secondaryAccountId = iouReport?.managerID ?? -1;
+        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+
+        secondaryAvatar = {
+            source: secondaryUserAvatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: secondaryDisplayName,
+            id: secondaryAccountId,
+        };
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }

@@ -48,20 +48,20 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
 }
 
 function getContextualSearchQuery(item: SearchQueryItem) {
-    const baseQuery = `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${item.roomType}`;
+    const baseQuery = `${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE}:${item.roomType}`;
     let additionalQuery = '';
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            additionalQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${item.policyID}`;
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
             if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${SearchQueryUtils.sanitizeSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;
@@ -223,8 +223,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                     const trimmedUserSearchQuery = SearchAutocompleteUtils.getQueryWithoutAutocompletedPart(textInputValue);
                     onSearchQueryChange(`${trimmedUserSearchQuery}${SearchQueryUtils.sanitizeSearchValue(item.searchQuery)} `);
 
-                    if (item.text && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+                    if (item.mapKey && item.autocompleteID) {
+                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
 
                         setAutocompleteSubstitutions(substitutions);
                     }
@@ -248,11 +248,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const updateAutocompleteSubstitutions = useCallback(
         (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.text) {
+            if (!item.autocompleteID || !item.mapKey) {
                 return;
             }
 
-            const substitutions = {...autocompleteSubstitutions, [item.text]: item.autocompleteID};
+            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
             setAutocompleteSubstitutions(substitutions);
         },
         [autocompleteSubstitutions],

@@ -57,6 +57,7 @@ function ReportIDsContextProvider({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const draftAmount = Object.keys(reportsDrafts ?? {}).length;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -70,9 +71,9 @@ function ReportIDsContextProvider({
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
             SidebarUtils.getOrderedReportIDs(currentReportID ?? null, chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
-        // we need reports draft in deps array for reloading of list when reportsDrafts will change
+        // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
