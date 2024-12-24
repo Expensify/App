@@ -893,8 +893,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
 
-    // NVP_ONBOARDING is an array for old users.
-    [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
+    [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
