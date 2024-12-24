@@ -169,7 +169,7 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     useEffect(() => {
@@ -263,10 +263,8 @@ function ReportActionsList({
                 return true;
             }
 
-            const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? message.created < (userActiveSince.current ?? '') : true;
-
             // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-            if (ReportActionsUtils.shouldHideNewMarker(message) || !isWithinVisibleThreshold) {
+            if (ReportActionsUtils.shouldHideNewMarker(message)) {
                 return false;
             }
 

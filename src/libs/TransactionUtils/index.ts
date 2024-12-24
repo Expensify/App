@@ -1210,7 +1210,7 @@ function compareDuplicateTransactionFields(
     return {keep, change};
 }
 
-function getTransactionID(threadReportID: string | undefined): string | undefined {
+function getTransactionID(threadReportID?: string): string | undefined {
     if (!threadReportID) {
         return;
     }
