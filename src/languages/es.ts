@@ -60,6 +60,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
@@ -68,6 +69,7 @@ import type {
     FeatureNameParams,
     FileLimitParams,
     FiltersAmountBetweenParams,
+    FlightLayoverParams,
     FormattedMaxLengthParams,
     ForwardedAmountParams,
     GoBackMessageParams,
@@ -97,7 +99,6 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -193,7 +194,10 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
+    WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -220,6 +224,7 @@ const translations = {
         new: 'Nuevo',
         center: 'Centrar',
         search: 'Buscar',
+        reports: 'Informes',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -349,6 +354,7 @@ const translations = {
         semicolon: 'el punto y coma',
         please: 'Por favor',
         rename: 'Renombrar',
+        skip: 'Saltarse',
         contactUs: 'contáctenos',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un correo electrónico o número de teléfono',
         fixTheErrors: 'corrige los errores',
@@ -442,6 +448,7 @@ const translations = {
         drafts: 'Borradores',
         finished: 'Finalizados',
         upgrade: 'Mejora',
+        downgradeWorkspace: 'Desmejora tu espacio de trabajo',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -469,6 +476,9 @@ const translations = {
         sent: 'Enviado',
         links: 'Enlaces',
         days: 'días',
+        address: 'Dirección',
+        hourAbbreviation: 'h',
+        minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
     },
@@ -511,7 +521,7 @@ const translations = {
         attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB}MB. Por favor, vuelve a intentarlo.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
     },
     filePicker: {
         fileError: 'Error de archivo',
@@ -639,6 +649,10 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        tooltip: {
+            title: '¡Empecemos!',
+            subtitle: ' Presenta tu primer gasto',
+        },
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',
@@ -828,6 +842,10 @@ const translations = {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        tooltip: {
+            title: '¡Acción rápida! ',
+            subtitle: 'A un click.',
+        },
     },
     iou: {
         amount: 'Importe',
@@ -970,7 +988,6 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
@@ -1000,7 +1017,6 @@ const translations = {
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
             atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
-            invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
@@ -1079,7 +1095,7 @@ const translations = {
         viewPhoto: 'Ver foto',
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de tu espacio de trabajo',
-        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
@@ -1225,6 +1241,7 @@ const translations = {
             testingPreferences: 'Preferencias para Tests',
             useStagingServer: 'Usar servidor “staging”',
             forceOffline: 'Forzar desconexión',
+            simulatePoorConnection: 'Simular una conexión a internet deficiente',
             simulatFailingNetworkRequests: 'Simular fallos en solicitudes de red',
             authenticationStatus: 'Estado de autenticación',
             deviceCredentials: 'Credenciales del dispositivo',
@@ -1756,6 +1773,11 @@ const translations = {
         },
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
+        peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
+        joinAWorkspace: 'Unirse a un espacio de trabajo',
+        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Por favor selecciona una opción para continuar.',
         purpose: {
@@ -2458,9 +2480,50 @@ const translations = {
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
         flight: 'Vuelo',
+        flightDetails: {
+            passenger: 'Pasajero',
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Tienes una <strong>escala de ${layover}</strong> antes de este vuelo</muted-text-label>`,
+            takeOff: 'Despegue',
+            landing: 'Aterrizaje',
+            seat: 'Asiento',
+            class: 'Clase de cabina',
+            recordLocator: 'Localizador de la reserva',
+        },
         hotel: 'Hotel',
+        hotelDetails: {
+            guest: 'Cliente',
+            checkIn: 'Entrada',
+            checkOut: 'Salida',
+            roomType: 'Tipo de habitación',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            confirmation: 'Número de confirmación',
+        },
         car: 'Auto',
+        carDetails: {
+            rentalCar: 'Coche de alquiler',
+            pickUp: 'Recogida',
+            dropOff: 'Devolución',
+            driver: 'Conductor',
+            carType: 'Tipo de coche',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            confirmation: 'Número de confirmación',
+        },
+        train: 'Tren',
+        trainDetails: {
+            passenger: 'Pasajero',
+            departs: 'Sale',
+            arrives: 'Llega',
+            coachNumber: 'Número de vagón',
+            seat: 'Asiento',
+            fareDetails: 'Detalles de la tarifa',
+            confirmation: 'Número de confirmación',
+        },
         viewTrip: 'Ver viaje',
+        modifyTrip: 'Modificar viaje',
+        tripSupport: 'Soporte de Viaje',
+        tripDetails: 'Detalles del viaje',
         viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
         trips: 'Viajes',
@@ -2494,7 +2557,7 @@ const translations = {
             accounting: 'Contabilidad',
             rules: 'Reglas',
             plan: 'Plan',
-            profile: 'Perfil',
+            profile: 'Perfil del espacio de trabajo',
             perDiem: 'Per diem',
             bankAccount: 'Cuenta bancaria',
             displayedAs: 'Mostrado como',
@@ -2563,6 +2626,7 @@ const translations = {
                         return 'Miembro';
                 }
             },
+            planType: 'Tipo de plan',
             submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
             defaultCategory: 'Categoría predeterminada',
         },
@@ -2588,6 +2652,9 @@ const translations = {
                 existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
             },
             importPerDiemRates: 'Importar tasas de per diem',
+            editPerDiemRate: 'Editar la tasa de per diem',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar este destino lo modificará para todas las subtasas per diem de ${destination}.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar esta moneda la modificará para todas las subtasas per diem de ${destination}.`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
@@ -2796,6 +2863,10 @@ const translations = {
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
+        },
+        workspaceList: {
+            joinNow: 'Únete ahora',
+            askToJoin: 'Pedir unirse',
         },
         xero: {
             organization: 'Organización Xero',
@@ -3552,9 +3623,9 @@ const translations = {
                 cardName: 'Nombre de la tarjeta',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) =>
-                    `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.`,
                 integrationExportTitleLinkPart: 'opción de exportación',
+                integrationExportTitlePart: 'Seleccione una cuenta diferente',
                 integrationExportTitleSecondPart: 'para cambiar las cuentas disponibles.',
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',
@@ -4256,6 +4327,25 @@ const translations = {
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Recopilar',
+                    description: 'Para equipos que buscan automatizar sus procesos.',
+                },
+                corporate: {
+                    label: 'Controlar',
+                    description: 'Para organizaciones con requisitos avanzados.',
+                },
+            },
+            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
+            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `Tienes un compromiso anual de 1 miembro activo en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Control hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+            }),
+            subscriptions: 'Suscripciones',
+        },
         upgrade: {
             reportFields: {
                 title: 'Los campos',
@@ -4335,6 +4425,40 @@ const translations = {
                 successMessage: ({policyName}: ReportPolicyNameParams) => `Has actualizado con éxito ${policyName} al plan Controlar.`,
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
+                gotIt: 'Entendido, gracias.',
+            },
+            commonFeatures: {
+                title: 'Mejorar al plan Controlar',
+                note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
+                benefits: {
+                    note: 'El plan Controlar comienza desde $9 por miembro activo al mes.',
+                    learnMore: 'Más información',
+                    pricing: 'sobre nuestros planes y precios.',
+                    benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Desmejorar al plan Recopilar',
+                note: 'Si desmejoras, perderás acceso a estas funciones y más:',
+                benefits: {
+                    note: 'Para una comparación completa de nuestros planes, consulta nuestra',
+                    pricingPage: 'página de precios',
+                    confirm: '¿Estás seguro de que deseas desmejorar y eliminar tus configuraciones?',
+                    warning: 'Esto no se puede deshacer.',
+                    benefit1: 'Conexiones de contabilidad (excepto QuickBooks Online y Xero)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                },
+            },
+            completed: {
+                headline: 'Tu espacio de trabajo ha sido bajado de categoría',
+                description: 'Tienes otro espacio de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
                 gotIt: 'Entendido, gracias.',
             },
         },
@@ -4481,7 +4605,7 @@ const translations = {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala de ${oldName} a ${newName}`,
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -4495,7 +4619,7 @@ const translations = {
         },
     },
     workspaceActions: {
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo de ${oldName} a ${newName}`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4578,7 +4702,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Por favor intenta crear algo con el botón verde.',
+                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
@@ -4595,6 +4719,7 @@ const translations = {
             },
         },
         saveSearch: 'Guardar búsqueda',
+        saveSearchTooltipText: 'Puedes cambiar el nombre de tu búsqueda guardada',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -5614,7 +5739,7 @@ const translations = {
         tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
-        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción',
     },
     subscription: {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
@@ -5965,25 +6090,6 @@ const translations = {
             chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
             scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
             crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
-        },
-    },
-    productTrainingTooltip: {
-        conciergeLHNGBR: {
-            part1: '¡Comienza',
-            part2: ' aquí!',
-        },
-        saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
         },
     },
 };

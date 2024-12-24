@@ -177,14 +177,14 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? '-1'}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? '-1'}`);
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID ?? '-1'}`, {
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID ?? '-1'}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
@@ -202,17 +202,23 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? '-1';
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
+    const transactionID = transaction?.transactionID;
+    const customUnitRateID = TransactionUtils.getRateID(transaction);
 
     useEffect(() => {
-        if ((customUnitRateID && customUnitRateID !== '-1') || !isDistanceRequest) {
+        if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
         }
 
-        const defaultRate = defaultMileageRate?.customUnitRateID ?? '';
-        const lastSelectedRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultRate;
-        IOU.setCustomUnitRateID(transactionID, lastSelectedRateID);
+        const defaultRate = defaultMileageRate?.customUnitRateID;
+        const lastSelectedRate = lastSelectedDistanceRates?.[policy.id] ?? defaultRate;
+        const rateID = lastSelectedRate;
+
+        if (!rateID) {
+            return;
+        }
+
+        IOU.setCustomUnitRateID(transactionID, rateID);
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, transactionID, isDistanceRequest]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
@@ -241,6 +247,7 @@ function MoneyRequestConfirmationList({
         if (
             !shouldShowTax ||
             !transaction ||
+            !transactionID ||
             (transaction.taxCode &&
                 previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
                 previousTransactionCurrency === transaction.currency &&
@@ -277,18 +284,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
-    // Clear the form error if it's set to one among the list passed as an argument
-    const clearFormErrors = useCallback(
-        (errors: string[]) => {
-            if (!errors.includes(formError)) {
-                return;
-            }
-
-            setFormError('');
-        },
-        [formError, setFormError],
-    );
-
     const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
@@ -307,40 +302,17 @@ function MoneyRequestConfirmationList({
             return true;
         }
 
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+        if (
+            !participant.isInvoiceRoom &&
+            !participant.isPolicyExpenseChat &&
+            !participant.isSelfDM &&
+            ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? CONST.DEFAULT_NUMBER_ID)
+        ) {
             return true;
         }
 
         return false;
     };
-
-    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
-
-    useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a workspace chat
-        if (!isDistanceRequest || !isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-            return;
-        }
-
-        const errorKey = 'iou.error.invalidRate';
-        const policyRates = DistanceRequestUtils.getMileageRates(policy);
-
-        // If the selected rate belongs to the policy, clear the error
-        if (Object.keys(policyRates).includes(customUnitRateID)) {
-            clearFormErrors([errorKey]);
-            return;
-        }
-
-        // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
-        const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
-        if (matchingRate?.customUnitRateID) {
-            IOU.setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
-            return;
-        }
-
-        // If none of the above conditions are met, display the rate error
-        setFormError(errorKey);
-    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -352,18 +324,19 @@ function MoneyRequestConfirmationList({
             return;
         }
         // reset the form error whenever the screen gains or loses focus
-        clearFormErrors(['iou.error.genericSmartscanFailureMessage', 'iou.receiptScanningFailed']);
+        setFormError('');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
+    const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
 
     useEffect(() => {
         if (isFirstUpdatedDistanceAmount.current) {
             return;
         }
-        if (!isDistanceRequest) {
+        if (!isDistanceRequest || !transactionID) {
             return;
         }
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
@@ -372,7 +345,7 @@ function MoneyRequestConfirmationList({
     }, [distance, rate, unit, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount) {
+        if (!shouldCalculateDistanceAmount || !transactionID) {
             return;
         }
 
@@ -380,7 +353,7 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
 
         // If it's a split request among individuals, set the split shares
-        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? -1);
+        const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
             IOU.setSplitShares(transaction, amount, currency, participantAccountIDs);
         }
@@ -402,20 +375,25 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        let taxableAmount: number;
-        let taxCode: string;
+        let taxableAmount: number | undefined;
+        let taxCode: string | undefined;
         if (isDistanceRequest) {
-            const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
-            taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
+            if (customUnitRateID) {
+                const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+                taxCode = customUnitRate?.attributes?.taxRateExternalID;
+                taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance);
+            }
         } else {
             taxableAmount = transaction.amount ?? 0;
             taxCode = transaction.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
         }
-        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
-        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+
+        if (taxCode && taxableAmount) {
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+            const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, transaction.currency);
+            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
+        }
     }, [
         policy,
         shouldShowTax,
@@ -507,8 +485,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        clearFormErrors(['iou.error.invalidSplit', 'iou.error.invalidSplitParticipants', 'iou.error.invalidSplitYourself']);
-    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate, clearFormErrors]);
+        setFormError('');
+    }, [isFocused, transaction, isTypeSplit, transaction?.splitShares, currentUserPersonalDetails.accountID, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
@@ -560,7 +538,7 @@ function MoneyRequestConfirmationList({
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -573,7 +551,7 @@ function MoneyRequestConfirmationList({
                     containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length}
                     contentWidth={formattedTotalAmount.length * 8}
                 />
@@ -675,9 +653,7 @@ function MoneyRequestConfirmationList({
     }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat)) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
+        if (!isDistanceRequest || isMovingTransactionFromTrackExpense || !transactionID) {
             return;
         }
 
@@ -700,7 +676,6 @@ function MoneyRequestConfirmationList({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         action,
@@ -710,16 +685,20 @@ function MoneyRequestConfirmationList({
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
-        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+        if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '');
+        IOU.setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [shouldShowCategories, policyCategories, isCategoryRequired]);
+    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
+        if (!transactionID) {
+            return;
+        }
+
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const isTagListRequired = tagList.required ?? false;
@@ -762,7 +741,7 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (routeError) {
+            if (!!routeError || !transactionID) {
                 return;
             }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {

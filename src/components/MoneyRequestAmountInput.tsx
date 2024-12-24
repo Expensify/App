@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
-import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
 
 type CurrentMoney = {amount: string; currency: string};
 
@@ -92,7 +91,7 @@ type MoneyRequestAmountInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
-} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
+};
 
 type Selection = {
     start: number;
@@ -127,7 +126,6 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
-        autoGrowExtraSpace,
         contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
@@ -291,7 +289,6 @@ function MoneyRequestAmountInput(
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
-            autoGrowExtraSpace={autoGrowExtraSpace}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}

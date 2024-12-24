@@ -7,7 +7,7 @@ import type {ReportActionListItemType, ReportListItemType, TransactionListItemTy
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
-import type {InvoiceReceiver} from './Report';
+import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 
@@ -157,6 +157,9 @@ type SearchReport = {
 
     /** Whether the report has violations or errors */
     hasError?: boolean;
+
+    /** Collection of report participants, indexed by their accountID */
+    participants?: Participants;
 };
 
 /** Model of report action search result */
