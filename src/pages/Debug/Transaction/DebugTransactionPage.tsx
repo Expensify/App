@@ -85,7 +85,7 @@ function DebugTransactionPage({
                                         <Button
                                             text={translate('debug.viewReport')}
                                             onPress={() => {
-                                                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(transaction?.reportID ?? ''));
+                                                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(`${transaction?.reportID ?? CONST.DEFAULT_NUMBER_ID}`));
                                             }}
                                         />
                                     </View>

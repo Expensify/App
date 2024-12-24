@@ -179,7 +179,7 @@ function SearchRouterList(
         if (currentUser) {
             autocompleteOptions.push({
                 name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID?.toString() ?? '-1',
+                accountID: currentUser.accountID?.toString(),
             });
         }
 
