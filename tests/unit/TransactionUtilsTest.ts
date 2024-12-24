@@ -11,7 +11,16 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const comment = '';
     const attendees: Attendee[] = [];
     const created = '2023-10-01';
-    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, attendees, created);
+    const baseValues = TransactionUtils.buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID,
+            comment,
+            attendees,
+            created,
+        },
+    });
 
     return {...baseValues, ...values};
 }

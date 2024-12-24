@@ -3407,8 +3407,20 @@ describe('actions/IOU', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const transaction1 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
-            const transaction2 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+            const transaction1 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transaction2 = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,

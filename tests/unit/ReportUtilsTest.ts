@@ -1215,7 +1215,13 @@ describe('ReportUtils', () => {
 
         it('should return true when the report has outstanding violations', async () => {
             const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
-            const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+            const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
             const expenseCreatedAction1 = ReportUtils.buildOptimisticIOUReportAction(
                 'create',
                 100,
