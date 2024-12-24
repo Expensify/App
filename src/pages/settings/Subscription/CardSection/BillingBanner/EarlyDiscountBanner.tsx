@@ -52,7 +52,6 @@ function EarlyDiscountBanner({isSubscriptionPage}) {
     }, [discountInfo]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    console.log(shouldUseNarrowLayout);
     const rightComponent = useMemo(() => {
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.flexRow, styles.justifyContentCenter] : [];
         return (
@@ -62,7 +61,7 @@ function EarlyDiscountBanner({isSubscriptionPage}) {
                     text="Claim offer"
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
                 />
-                {discountInfo?.discountType === 50 && (
+                {discountInfo?.discountType === 25 && (
                     <Button
                         text="No thanks"
                         onPress={() => setIsDismissed(true)}
