@@ -728,7 +728,7 @@ function shouldShowMissingSmartscanFieldsError(transaction: OnyxInputOrEntry<Tra
 /**
  * Get all transaction violations of the transaction with given tranactionID.
  */
-function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
@@ -748,7 +748,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID: string): boolean {
+function hasBrokenConnectionViolation(transactionID: string | undefined): boolean {
     const violations = getTransactionViolations(transactionID, allTransactionViolations);
     return !!violations?.find(
         (violation) =>
@@ -760,7 +760,7 @@ function hasBrokenConnectionViolation(transactionID: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(transactionID: string, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
+function shouldShowBrokenConnectionViolation(transactionID: string | undefined, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
     return (
         hasBrokenConnectionViolation(transactionID) &&
         (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isOpenExpenseReport(report) || (ReportUtils.isProcessingReport(report) && PolicyUtils.isInstantSubmitEnabled(policy)))
@@ -913,7 +913,7 @@ function shouldShowViolation({
     showInReview,
     parentReportAction,
 }: {
-    transactionID: string;
+    transactionID: string | undefined;
     transactionViolations: OnyxCollection<TransactionViolations>;
     showInReview?: boolean;
     parentReportAction: OnyxEntry<ReportAction>;
@@ -933,9 +933,9 @@ function shouldShowViolation({
  * true because we use this function to show RBR only for the user side who can edit the transaction
  * but if we can't determine they cannot edit it, we opted to show the RBR instead of hiding it.
  */
-function canEditTransaction(transactionID: string, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function canEditTransaction(transactionID: string | undefined, parentReportAction: OnyxEntry<ReportAction>): boolean {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportAction?.childReportID ?? CONST.DEFAULT_NUMBER_ID}`];
-    const transaction = getTransaction(transactionID ?? '-1');
+    const transaction = getTransaction(transactionID);
     if (report && transaction && parentReportAction) {
         const canUserPerformWriteAction = !!ReportUtils.canUserPerformWriteAction(report);
         const canEditRequest = canUserPerformWriteAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction, transaction);
@@ -955,7 +955,7 @@ function shouldShowNoticeTypeViolation({
     showInReview,
     parentReportAction,
 }: {
-    transactionID: string;
+    transactionID: string | undefined;
     transactionViolations: OnyxCollection<TransactionViolations>;
     showInReview?: boolean;
     parentReportAction: OnyxEntry<ReportAction>;
@@ -979,7 +979,7 @@ function shouldShowWarningTypeViolation({
     showInReview,
     parentReportAction,
 }: {
-    transactionID: string;
+    transactionID: string | undefined;
     transactionViolations: OnyxCollection<TransactionViolations>;
     showInReview?: boolean;
     parentReportAction: OnyxEntry<ReportAction>;
