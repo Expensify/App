@@ -16,6 +16,8 @@ Share your Expensify billing email with vendors to receive bills automatically.
 - Ask vendors to email bills to your billing address: `domainname@expensify.cash` (e.g., for *expensify.com*, use `expensify@expensify.cash`).  
 - Once emailed, the bill is automatically created in Expensify, ready for payment.  
 
+![Setting the Primary Contact at Domain Admins > Primary Contact](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%201.png){:width="100%"}
+
 ### 2. Forwarding Emails  
 Received a bill in your email? Forward it to Expensify.  
 
@@ -31,6 +33,7 @@ Got a paper bill? Create a bill manually in [Expensify](https://www.expensify.co
 3. Enter the invoice details: sender’s email, merchant name, amount, and date.  
 4. Upload the invoice as a receipt. 
 
+![Manually Create a Bill](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%202.png){:width="100%"}
 
 # Paying Bills in Expensify
 
@@ -43,6 +46,8 @@ Expensify makes it easy to manage and pay vendor bills with a straightforward wo
 3. **Communication**: If the approver needs clarification, they can communicate directly with the sender via the invoice linked to the bill.  
 4. **Approval Workflow**: Once reviewed, the bill follows your workspace’s approval process. The final approver handles the payment.  
 5. **Accounting Integration**: During approval, the bill is coded with the correct GL codes from your connected accounting software. Once approved, it can be exported back to your accounting system. 
+
+![Paying a Bill](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%203.png){:width="100%"}
 
 ## Payment Methods  
 
