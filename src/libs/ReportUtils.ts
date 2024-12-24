@@ -7805,7 +7805,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  */
 function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const iouReportTransactions = getReportTransactions(iouReportID);
-    const transactions = allReportTransactions ?? iouReportTransactions ?? [];
+    const transactions = allReportTransactions ?? iouReportTransactions;
     return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
