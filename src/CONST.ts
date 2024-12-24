@@ -1693,6 +1693,16 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+        EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    },
+
+    FULL_STORY: {
+        MASK: 'fs-mask',
+        UNMASK: 'fs-unmask',
+        CUSTOMER: 'customer',
+        CONCIERGE: 'concierge',
+        OTHER: 'other',
+        WEB_PROP_ATTR: 'data-testid',
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
