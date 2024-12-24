@@ -1,12 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
-import {default as React, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring} from 'react-native-reanimated';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -35,8 +34,8 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -158,33 +157,6 @@ function MoneyRequestPreviewContent({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-    const shouldShowPaidIcon = ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit;
-
-    const checkMarkScale = useSharedValue(shouldShowPaidIcon ? 1 : 0);
-
-    const checkMarkStyle = useAnimatedStyle(() => ({
-        ...styles.defaultCheckmarkWrapper,
-        transform: [{scale: checkMarkScale.value}],
-    }));
-
-    // Track previous shouldShowPaidIcon value
-    const prevIsSettledRef = useRef(shouldShowPaidIcon);
-
-    useEffect(() => {
-        if (shouldShowPaidIcon && !prevIsSettledRef.current) {
-            // Start the checkmark animation
-            checkMarkScale.value = withDelay(CONST.ANIMATION_PAID_CHECKMARK_DELAY, withSpring(1, {duration: CONST.ANIMATION_PAID_DURATION}));
-        } else if (shouldShowPaidIcon) {
-            // Ensure the checkmark is visible without animation if already settled
-            checkMarkScale.value = 1;
-        } else {
-            // Hide the checkmark if not settled
-            checkMarkScale.value = 0;
-        }
-
-        // Update the previous value
-        prevIsSettledRef.current = shouldShowPaidIcon;
-    }, [checkMarkScale, shouldShowPaidIcon]);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -416,13 +388,13 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {shouldShowPaidIcon && (
-                                                    <Animated.View style={[checkMarkStyle, styles.defaultCheckmarkWrapper]}>
+                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
+                                                    <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
-                                                    </Animated.View>
+                                                    </View>
                                                 )}
                                             </View>
                                             {isBillSplit && (
