@@ -7,7 +7,6 @@ import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -115,11 +114,6 @@ type GetUserToInviteConfig = {
     searchValue: string;
     optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
     reportActions?: ReportActions;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-    avatar?: UserUtils.AvatarSource;
     shouldAcceptName?: boolean;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
@@ -153,14 +147,25 @@ type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 
     excludeLogins?: string[];
 };
 
-type OrderOptionsConfig = {
-    /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
-    sortByReportTypeInSearch?: boolean;
-    maxRecentReportsToShow?: number;
+type OrderOptionsConfig =
+    | {
+          maxRecentReportsToShow?: never;
+          /* When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well. */
+          sortByReportTypeInSearch?: true;
+      }
+    | {
+          // When specifying maxRecentReportsToShow, you can't sort by report type in search
+          maxRecentReportsToShow?: number;
+          sortByReportTypeInSearch?: false;
+      };
+
+type OrderReportOptionsConfig = {
     preferChatroomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
 };
+
+type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -365,29 +370,25 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = LocalePhoneNumber.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID),
         login,
         accountID: detail?.accountID ?? -1,
         text: displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        firstName: (detail?.firstName || ('firstName' in participant ? participant.firstName : '')) ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        lastName: (detail?.lastName || ('lastName' in participant ? participant.lastName : '')) ?? '',
+        firstName: detail?.firstName ?? '',
+        lastName: detail?.lastName ?? '',
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: ('avatar' in participant ? participant.avatar : detail?.avatar) ?? FallbackAvatar,
+                source: detail?.avatar ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
+        phoneNumber: detail?.phoneNumber ?? '',
         selected: participant.selected,
         isSelected: participant.selected,
         searchText: participant.searchText ?? undefined,
@@ -559,9 +560,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '-1')) {
         lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
-    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
+    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, type: ''})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
@@ -955,7 +955,7 @@ function orderReportOptions(options: ReportUtils.OptionData[]) {
 function orderReportOptionsWithSearch(
     options: ReportUtils.OptionData[],
     searchValue: string,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderOptionsConfig = {},
+    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1011,11 +1011,16 @@ function sortComparatorReportOptionByDate(options: ReportUtils.OptionData) {
     return options.lastVisibleActionCreated ?? '';
 }
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails'>;
-
+/**
+ * Sorts reports and personal details independently.
+ */
 function orderOptions(options: ReportAndPersonalDetailOptions): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderOptionsConfig): ReportAndPersonalDetailOptions;
-function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderOptionsConfig) {
+
+/**
+ * Sorts reports and personal details independently, but prioritizes the search value.
+ */
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions;
+function orderOptions(options: ReportAndPersonalDetailOptions, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions {
     let orderedReportOptions: ReportUtils.OptionData[];
     if (searchValue) {
         orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
@@ -1034,12 +1039,20 @@ function canCreateOptimisticPersonalDetailOption({
     recentReportOptions,
     personalDetailsOptions,
     currentUserOption,
+    searchValue,
 }: {
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
+    searchValue: string;
 }) {
-    return recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
+    if (recentReportOptions.length + personalDetailsOptions.length > 0) {
+        return false;
+    }
+    if (!currentUserOption) {
+        return true;
+    }
+    return currentUserOption.login !== PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserOption.login !== searchValue?.toLowerCase();
 }
 
 /**
@@ -1097,101 +1110,6 @@ function getUserToInviteOption({
             type: CONST.ICON_TYPE_AVATAR,
         },
     ];
-
-    return userToInvite;
-}
-
-function getUserToInviteContactOption({
-    searchValue,
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName,
-    lastName,
-    email,
-    phone,
-    avatar,
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
-
-    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !==
-        -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = UserUtils.generateAccountID(effectiveSearchValue);
-
-    // Construct display name if firstName/lastName are provided
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
-    const userDetails = {
-        accountID: optimisticAccountID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login: effectiveSearchValue,
-        pronouns: '',
-        phoneNumber: phone ?? '',
-        validated: true,
-    };
-
-    const userToInvite = {
-        item: userDetails,
-        text: displayName,
-        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: effectiveSearchValue,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
-        participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login: effectiveSearchValue,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
-        isDefaultRoom: false,
-        isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
-        isChatRoom: false,
-        shouldShowSubscript: false,
-        isPolicyExpenseChat: false,
-        isOwnPolicyExpenseChat: false,
-        isExpenseReport: false,
-        lastMessageText: '',
-        isBold: true,
-        isOptimisticAccount: true,
-    };
 
     return userToInvite;
 }
@@ -1799,6 +1717,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue:
         recentReportOptions: options.recentReports,
         personalDetailsOptions: options.personalDetails,
         currentUserOption: options.currentUserOption,
+        searchValue,
     });
 
     if (!canCreateOptimisticDetail) {
@@ -1843,48 +1762,58 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     };
 }
 
-type FilterAndOrderConfig = FilterUserToInviteConfig & OrderOptionsConfig;
+type AllOrderConfigs = OrderReportOptionsConfig & OrderOptionsConfig;
+type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
+
+/**
+ * Orders the reports and personal details based on the search input value.
+ * Personal details will be filtered out if they are part of the recent reports.
+ * Additional configs can be applied.
+ */
+function combineOrderingOfReportsAndPersonalDetails(
+    options: ReportAndPersonalDetailOptions,
+    searchInputValue: string,
+    {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
+): ReportAndPersonalDetailOptions {
+    // sortByReportTypeInSearch will show the personal details as part of the recent reports
+    if (sortByReportTypeInSearch) {
+        const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
+        const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+    }
+
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
+    if (typeof maxRecentReportsToShow === 'number') {
+        orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
+    }
+
+    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(orderedReports, options.personalDetails);
+    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
+
+    return {
+        recentReports: orderedReports,
+        personalDetails: orderedPersonalDetails,
+    };
+}
 
 /**
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
 function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
-    const {sortByReportTypeInSearch = false} = config;
-
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, config);
     }
 
-    let {recentReports: filteredReports, personalDetails: filteredPersonalDetails} = filterResult;
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
-    filteredPersonalDetails = filteredPersonalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
-
-    if (typeof config?.maxRecentReportsToShow === 'number') {
-        filteredReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
-        filteredReports = filteredReports.slice(0, config.maxRecentReportsToShow);
-    }
-
-    const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(filteredReports, filteredPersonalDetails);
-    const orderedPersonalDetails = orderPersonalDetailsOptions(personalDetailsWithoutDMs);
-
-    // sortByReportTypeInSearch option will show the personal details as part of the recent reports
-    if (sortByReportTypeInSearch) {
-        filteredReports = filteredReports.concat(orderedPersonalDetails);
-        filteredPersonalDetails = [];
-    } else {
-        filteredPersonalDetails = orderedPersonalDetails;
-    }
-
-    const orderedReports = orderReportOptionsWithSearch(filteredReports, searchInputValue, config);
+    orderedOptions.personalDetails = orderedOptions.personalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
 
     return {
-        recentReports: orderedReports,
-        personalDetails: filteredPersonalDetails,
-        userToInvite: filterResult.userToInvite,
-        currentUserOption: filterResult.currentUserOption,
+        ...filterResult,
+        ...orderedOptions,
     };
 }
 
@@ -1933,12 +1862,13 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getShareLogOptions,
+    orderOptions,
+    filterUserToInvite,
     filterOptions,
     filteredPersonalDetailsOfRecentReports,
     orderReportOptions,
     orderReportOptionsWithSearch,
     orderPersonalDetailsOptions,
-    orderOptions,
     filterAndOrderOptions,
     createOptionList,
     createOptionFromReport,
@@ -1946,7 +1876,6 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
-    getUserToInviteContactOption,
     getPersonalDetailSearchTerms,
     getCurrentUserSearchTerms,
     getEmptyOptions,
@@ -1954,6 +1883,7 @@ export {
     getAttendeeOptions,
     getAlternateText,
     hasReportErrors,
+    combineOrderingOfReportsAndPersonalDetails,
 };
 
-export type {MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, GetUserToInviteConfig, Section, SectionBase};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
