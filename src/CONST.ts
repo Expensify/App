@@ -2996,7 +2996,7 @@ const CONST = {
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
                 },
             },
-            [CONST.PAYMENT_CARD_CURRENCY.GBP]: {
+            [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
