@@ -54,6 +54,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const outputCurrency = policy?.outputCurrency ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.currency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -346,6 +347,15 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                         )}
                         {!readOnly && (
                             <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
+                                {isPolicyAdmin && (
+                                    <Button
+                                        accessibilityLabel={translate('common.invite')}
+                                        text={translate('common.invite')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()))}
+                                        icon={Expensicons.UserPlus}
+                                        style={[styles.mr2]}
+                                    />
+                                )}
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
