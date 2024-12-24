@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -56,6 +57,25 @@ function Composer(
         }
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
+    useEffect(() => {
+        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+            return;
+        }
+
+        // We need the delay for setSelection to properly work for IOS in bridgeless mode due to a react native
+        // internal bug of dispatching the event before the component is ready for it.
+        // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
+        const timeoutID = setTimeout(() => {
+            // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
+            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInput.current?.setSelection(selection.start, selection.start);
+        }, 0);
+
+        return () => clearTimeout(timeoutID);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
 
     /**
      * Set the TextInput Ref
@@ -121,7 +141,11 @@ function Composer(
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            autoFocus={autoFocus}
+            // /*
+            // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
+            // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
+            // */
+            autoFocus={getPlatform() !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}

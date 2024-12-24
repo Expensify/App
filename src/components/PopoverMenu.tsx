@@ -140,6 +140,10 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
     return <>{children}</>;
 };
 
+function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
+    return menuItems.findIndex((option) => option.isSelected);
+}
+
 function PopoverMenu({
     menuItems,
     onItemSelected,
@@ -178,7 +182,7 @@ function PopoverMenu({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
-    const currentMenuItemsFocusedIndex = currentMenuItems?.findIndex((option) => option.isSelected);
+    const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const {windowHeight} = useWindowDimensions();
 
@@ -304,7 +308,7 @@ function PopoverMenu({
     );
 
     const onModalHide = () => {
-        setFocusedIndex(-1);
+        setFocusedIndex(currentMenuItemsFocusedIndex);
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
@@ -316,7 +320,17 @@ function PopoverMenu({
         }
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
-    }, [menuItems]);
+
+        // Update the focused item to match the selected item, but only when the popover is not visible.
+        // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
+        // by external updates.
+        if (isVisible) {
+            return;
+        }
+        setFocusedIndex(getSelectedItemIndex(menuItems));
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [menuItems, setFocusedIndex]);
 
     return (
         <PopoverWithMeasuredContent

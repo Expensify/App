@@ -26,7 +26,7 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
  */
 function buildSubstitutionsMap(
     query: string,
-    personalDetails: OnyxTypes.PersonalDetailsList,
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     allTaxRates: Record<string, string[]>,
 ): SubstitutionMap {

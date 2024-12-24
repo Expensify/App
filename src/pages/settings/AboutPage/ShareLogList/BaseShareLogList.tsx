@@ -56,7 +56,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
             preferChatroomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });

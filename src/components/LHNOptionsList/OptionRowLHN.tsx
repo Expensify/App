@@ -312,6 +312,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                         {hasBrickError && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
+                                                    testID="RBR Icon"
                                                     src={Expensicons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
@@ -326,6 +327,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     {shouldShowGreenDotIndicator && (
                                         <View style={styles.ml2}>
                                             <Icon
+                                                testID="GBR Icon"
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.success}
                                             />

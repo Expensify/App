@@ -5,12 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -112,6 +112,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => TransactionUtils.isExpensifyCardTransaction(t) && TransactionUtils.isPending(t));
     const transactionIDs = allTransactions.map((t) => t.transactionID);
@@ -121,12 +122,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = TransactionUtils.isPayAtEndExpense(transaction);
     const isArchivedReport = ReportUtils.isArchivedRoomWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID ?? '-1'}`, {selector: ReportUtils.getArchiveReason});
-    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
+            IOU.canIOUBePaid(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
         [moneyRequestReport, chatReport, policy, transaction],
     );
+
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
 
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -136,8 +139,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID ?? '')));
 
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
+    const shouldShowApproveButton = useMemo(
+        () => (IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+    );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -176,16 +183,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAnyTransactionOnHold = ReportUtils.hasHeldExpenses(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
-    const {isDelegateAccessRestricted, delegatorEmail} = useDelegateUserDetails();
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const stopAnimation = useCallback(() => setIsPaidAnimationRunning(false), []);
-    const startAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
+
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type || !chatReport) {
@@ -215,6 +218,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
+            startApprovedAnimation();
             IOU.approveMoneyRequest(moneyRequestReport, true);
         }
     };
@@ -369,8 +373,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <AnimatedSettlementButton
+                            shouldUseSuccessStyle={!hasHeldExpenses}
                             isPaidAnimationRunning={isPaidAnimationRunning}
+                            isApprovedAnimationRunning={isApprovedAnimationRunning}
                             onAnimationFinish={stopAnimation}
+                            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -436,8 +443,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
                             <AnimatedSettlementButton
+                                shouldUseSuccessStyle={!hasHeldExpenses}
                                 isPaidAnimationRunning={isPaidAnimationRunning}
+                                isApprovedAnimationRunning={isApprovedAnimationRunning}
                                 onAnimationFinish={stopAnimation}
+                                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
@@ -501,12 +511,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
                     transactionCount={transactionIDs.length}
+                    startAnimation={() => {
+                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                            startApprovedAnimation();
+                        } else {
+                            startAnimation();
+                        }
+                    }}
                 />
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                delegatorEmail={delegatorEmail ?? ''}
             />
 
             <ConfirmModal
@@ -514,7 +530,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
-                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
+                onModalHide={() => ReportUtils.navigateBackOnDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

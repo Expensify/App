@@ -1,11 +1,11 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import * as CardUtils from '@libs/CardUtils';
@@ -26,7 +26,6 @@ type BankConnectionStepProps = {
 function BankConnection({policyID}: BankConnectionStepProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setWebViewOpen] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -40,7 +39,6 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     const handleBackButtonPress = () => {
-        setWebViewOpen(false);
         if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
             CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
@@ -51,10 +49,6 @@ function BankConnection({policyID}: BankConnectionStepProps) {
         }
         CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
-
-    useEffect(() => {
-        setWebViewOpen(true);
-    }, []);
 
     useEffect(() => {
         if (!url) {
@@ -69,11 +63,12 @@ function BankConnection({policyID}: BankConnectionStepProps) {
     }, [isNewFeedConnected, newFeed, policyID, url]);
 
     return (
-        <Modal
-            onClose={handleBackButtonPress}
-            fullscreen
-            isVisible={isWebViewOpen}
-            type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+        <ScreenWrapper
+            testID={BankConnection.displayName}
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
@@ -96,7 +91,7 @@ function BankConnection({policyID}: BankConnectionStepProps) {
                     />
                 )}
             </FullPageOfflineBlockingView>
-        </Modal>
+        </ScreenWrapper>
     );
 }
 

@@ -18,11 +18,12 @@ import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import GenericFeaturesView from './GenericFeaturesView';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
 };
@@ -33,6 +34,16 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
+
+    if (!feature) {
+        return (
+            <GenericFeaturesView
+                onUpgrade={onUpgrade}
+                buttonDisabled={buttonDisabled}
+                loading={loading}
+            />
+        );
+    }
 
     const isIllustration = feature.icon in Illustrations;
     const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
@@ -75,6 +86,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 <Button
                     isLoading={loading}
                     text={translate('common.upgrade')}
+                    testID="upgrade-button"
                     success
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}

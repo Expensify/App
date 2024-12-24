@@ -50,7 +50,7 @@ function useOptions() {
     });
 
     const defaultOptions = useMemo(() => {
-        const filteredOptions = OptionsListUtils.getOptions(
+        const filteredOptions = OptionsListUtils.getValidOptions(
             {
                 reports: listOptions.reports ?? [],
                 personalDetails: listOptions.personalDetails ?? [],
@@ -58,7 +58,6 @@ function useOptions() {
             {
                 betas: betas ?? [],
                 selectedOptions,
-                maxRecentReportsToShow: 0,
                 includeSelfDM: true,
             },
         );
@@ -66,7 +65,7 @@ function useOptions() {
     }, [betas, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });

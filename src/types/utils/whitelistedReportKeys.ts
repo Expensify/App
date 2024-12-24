@@ -26,7 +26,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         policyID: unknown;
         reportName: unknown;
         reportID: string;
-        reportActionID: unknown;
         chatReportID: unknown;
         stateNum: unknown;
         statusNum: unknown;
@@ -34,10 +33,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         type: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
-        lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
