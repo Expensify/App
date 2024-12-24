@@ -139,7 +139,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(moneyRequestReport?.reportID ?? '')));
 
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
 
     const shouldShowApproveButton = useMemo(
         () => (IOU.canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
@@ -377,7 +376,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             isPaidAnimationRunning={isPaidAnimationRunning}
                             isApprovedAnimationRunning={isApprovedAnimationRunning}
                             onAnimationFinish={stopAnimation}
-                            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -447,7 +445,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                 onAnimationFinish={stopAnimation}
-                                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}

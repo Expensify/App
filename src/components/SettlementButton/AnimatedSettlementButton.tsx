@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SettlementButton from '.';
 import type SettlementButtonProps from './types';
@@ -14,17 +13,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
     isApprovedAnimationRunning: boolean;
-    canIOUBePaid: boolean;
 };
 
-function AnimatedSettlementButton({
-    isPaidAnimationRunning,
-    onAnimationFinish,
-    isApprovedAnimationRunning,
-    isDisabled,
-    canIOUBePaid,
-    ...settlementButtonProps
-}: AnimatedSettlementButtonProps) {
+function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isApprovedAnimationRunning, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -67,12 +58,11 @@ function AnimatedSettlementButton({
 
         const spinnerTimer = setTimeout(() => {
             setIsLoading(false);
-            const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
 
             buttonScale.set(
                 withDelay(
                     CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY,
-                    withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
+                    withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
                 ),
             );
 
@@ -82,7 +72,7 @@ function AnimatedSettlementButton({
         return () => {
             clearTimeout(spinnerTimer);
         };
-    }, [isPaidAnimationRunning, onAnimationFinish, buttonScale, buttonOpacity, resetAnimation, isApprovedAnimationRunning, canIOUBePaid]);
+    }, [isPaidAnimationRunning, onAnimationFinish, buttonScale, buttonOpacity, resetAnimation, isApprovedAnimationRunning]);
 
     const handleLayout = useCallback(
         (event: LayoutChangeEvent) => {
