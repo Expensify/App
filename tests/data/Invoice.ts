@@ -269,7 +269,6 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     private_isArchived: '',
     reportID: '7605647250932303',
     reportName: 'Chat Report',
-    state: 'OPEN',
     stateNum: 0,
     statusNum: 0,
     total: 0,

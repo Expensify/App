@@ -136,10 +136,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** ID of the chat report */
         chatReportID?: string;
 
-        /** The state of the report */
-        state?: keyof typeof CONST.REPORT.STATE_NUM;
-
-        /** The state number of the report */
+        /** The state that the report is currently in */
         stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
         /** The status of the current report */
