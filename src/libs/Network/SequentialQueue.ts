@@ -232,6 +232,8 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
+    const isOffline = NetworkStore.isOffline();
+    const updatedRequest = {...newRequest, initiatedOffline: isOffline};
 
     if (checkAndFixConflictingRequest) {
         const requests = PersistedRequests.getAll();
@@ -240,15 +242,15 @@ function push(newRequest: OnyxRequest) {
 
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
-        delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
+        delete updatedRequest.checkAndFixConflictingRequest;
+        handleConflictActions(conflictAction, updatedRequest);
     } else {
         // Add request to Persisted Requests so that it can be retried if it fails
-        PersistedRequests.save(newRequest);
+        PersistedRequests.save(updatedRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
-    if (NetworkStore.isOffline()) {
+    if (isOffline) {
         return;
     }
 

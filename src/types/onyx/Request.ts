@@ -53,6 +53,9 @@ type RequestData = {
 
     /** Whether the app should skip the web proxy to connect to API endpoints */
     shouldSkipWebProxy?: boolean;
+
+    /** Whether the request is initiated offline */
+    initiatedOffline?: boolean;
 };
 
 /**

@@ -150,7 +150,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         });
 }
 
-function processFormData(data: Record<string, unknown>): Promise<FormData> {
+function processFormData(data: Record<string, unknown>, initiatedOffline: boolean): Promise<FormData> {
     const formData = new FormData();
     let promiseChain = Promise.resolve();
 
@@ -160,7 +160,7 @@ function processFormData(data: Record<string, unknown>): Promise<FormData> {
                 return Promise.resolve();
             }
 
-            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
+            if (key === CONST.SEARCH.TABLE_COLUMNS.RECEIPT && initiatedOffline) {
                 const {uri: path = '', source} = data[key] as File;
 
                 console.debug('[dev] 2. data[key]:', data[key]);
@@ -199,12 +199,12 @@ function processFormData(data: Record<string, unknown>): Promise<FormData> {
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
+function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
     if (command === 'RequestMoney') {
         console.debug('[dev] 1. data:', data);
     }
 
-    return processFormData(data).then((formData) => {
+    return processFormData(data, initiatedOffline).then((formData) => {
         if (command === 'RequestMoney') {
             console.debug('[dev] 7. formData:', formData);
             console.debug("[dev] 8. formData.getAll('receipt'):", formData.getAll('receipt'));
