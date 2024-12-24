@@ -460,7 +460,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'reportID':
         case 'chatReportID':
         case 'type':
-        case 'lastMessageTranslationKey':
         case 'parentReportID':
         case 'parentReportActionID':
         case 'lastVisibleActionLastModified':
@@ -600,7 +599,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                lastMessageTranslationKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -921,6 +919,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
+        case 'inserted':
         case 'posted':
             return validateDate(value);
         case 'isLoading':
@@ -1046,6 +1045,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1367,7 +1367,7 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtils.getTransactionID(report?.reportID ?? '-1');
+    const transactionID = TransactionUtils.getTransactionID(report?.reportID);
 
     return Number(transactionID) > 0
         ? transactionID

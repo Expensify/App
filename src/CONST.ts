@@ -514,6 +514,7 @@ const CONST = {
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
         ORDINAL_DAY_OF_MONTH: 'do',
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -900,13 +901,8 @@ const CONST = {
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     DEEP_DIVE_ERECEIPTS: 'https://community.expensify.com/discussion/5542/deep-dive-what-are-ereceipts/',
     DEEP_DIVE_PER_DIEM: 'https://community.expensify.com/discussion/4772/how-to-add-a-single-rate-per-diem',
+    SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive--practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
-    TERMS_URL: `${EXPENSIFY_URL}/terms`,
-    PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
-    LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
-    WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
-    BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
@@ -951,7 +947,14 @@ const CONST = {
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
     },
-
+    OLD_DOT_PUBLIC_URLS: {
+        TERMS_URL: `${EXPENSIFY_URL}/terms`,
+        PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
+        LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
+        ACH_TERMS_URL: `${EXPENSIFY_URL}/achterms`,
+        WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/expensify-payments-wallet-terms-of-service`,
+        BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
+    },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
@@ -1149,6 +1152,7 @@ const CONST = {
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                    TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1332,6 +1336,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
@@ -4451,7 +4458,7 @@ const CONST = {
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: 'https://travel.expensify.com',
     STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
-    TRIP_ID_PATH: (tripID: string) => `trips/${tripID}`,
+    TRIP_ID_PATH: (tripID?: string) => (tripID ? `trips/${tripID}` : undefined),
     SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
     STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
@@ -5952,6 +5959,7 @@ const CONST = {
         CAR: 'car',
         HOTEL: 'hotel',
         FLIGHT: 'flight',
+        TRAIN: 'train',
     },
 
     DOT_SEPARATOR: '•',
@@ -5980,6 +5988,7 @@ const CONST = {
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
     NEW_EXPENSIFY_PATH: '/New Expensify',
+    RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
     ENVIRONMENT_SUFFIX: {
         DEV: ' Dev',
@@ -6435,17 +6444,6 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
-
-    PRODUCT_TRAINING_TOOLTIP_NAMES: {
-        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
-        RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        QUICK_ACTION_BUTTON: 'quickActionButton',
-        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
-        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
-        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
-        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
-        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
-    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

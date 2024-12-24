@@ -14,6 +14,7 @@ import type {
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     DisablePolicyBillableModeParams,
+    DowngradeToTeamParams,
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
@@ -196,7 +197,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
-        sessionAccountID = val?.accountID ?? -1;
+        sessionAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -258,8 +259,8 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
  * Returns a primary invoice workspace for the user
  */
 function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID ?? '-1')) {
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID ?? '-1'}`];
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     }
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
@@ -725,7 +726,10 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
 }
 
-function leaveWorkspace(policyID: string) {
+function leaveWorkspace(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
@@ -1700,6 +1704,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
         },
@@ -1772,6 +1777,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     outputCurrency: null,
                     address: null,
                     description: null,
+                    type: null,
                 },
             },
         },
@@ -1862,7 +1868,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? '',
+            value: activePolicyID,
         });
     }
 
@@ -2234,7 +2240,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    if (!employeeAccountID) {
+    if (!employeeAccountID || !oldPersonalPolicyID) {
         return;
     }
 
@@ -2512,17 +2518,18 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview?.reportActionID ?? '-1']: null},
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview?.reportActionID ?? '-1']: reportPreview},
-    });
-
+    if (reportPreview?.reportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+            value: {[reportPreview?.reportActionID]: null},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+            value: {[reportPreview?.reportActionID]: reportPreview},
+        });
+    }
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -2559,14 +2566,16 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         });
     }
 
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
-        value: {[reportPreview?.reportActionID ?? '-1']: null},
-    });
+    if (reportPreview?.reportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
+            value: {[reportPreview?.reportActionID]: null},
+        });
+    }
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID ?? '-1', policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -3385,7 +3394,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
-function upgradeToCorporate(policyID: string, featureName: string) {
+function upgradeToCorporate(policyID: string, featureName?: string) {
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3437,9 +3446,48 @@ function upgradeToCorporate(policyID: string, featureName: string) {
         },
     ];
 
-    const parameters: UpgradeToCorporateParams = {policyID, featureName};
+    const parameters: UpgradeToCorporateParams = {policyID, ...(featureName ? {featureName} : {})};
 
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
+}
+
+function downgradeToTeam(policyID: string) {
+    const policy = getPolicy(policyID);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingDowngrade: true,
+                type: CONST.POLICY.TYPE.TEAM,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingDowngrade: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `policy_${policyID}`,
+            value: {
+                isPendingDowngrade: false,
+                type: policy?.type,
+            },
+        },
+    ];
+
+    const parameters: DowngradeToTeamParams = {policyID};
+
+    API.write(WRITE_COMMANDS.DOWNGRADE_TO_TEAM, parameters, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, category: string) {
@@ -4723,6 +4771,7 @@ export {
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
     getAssignedSupportData,
+    downgradeToTeam,
 };
 
 export type {NewCustomUnit};
