@@ -776,6 +776,14 @@ function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report>
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 }
 
+function getReportTransactions(reportID: string | undefined): Transaction[] {
+    if (!reportID) {
+        return [];
+    }
+
+    return reportsTransactions[reportID] ?? [];
+}
+
 /**
  * Check if a report is a draft report
  */
@@ -1647,11 +1655,7 @@ function isPolicyAdmin(policyID: string | undefined, policies: OnyxCollection<Po
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
 function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
-    if (!iouReportID) {
-        return false;
-    }
-
-    const transactions = reportsTransactions[iouReportID] ?? [];
+    const transactions = getReportTransactions(iouReportID);
 
     // Early return false in case not having any transaction
     if (!transactions || transactions.length === 0) {
@@ -1735,11 +1739,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchRepor
  * Checks if a report contains only Non-Reimbursable transactions
  */
 function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    if (!iouReportID) {
-        return false;
-    }
-
-    const transactions = reportsTransactions[iouReportID] ?? [];
+    const transactions = getReportTransactions(iouReportID);
     if (!transactions || transactions.length === 0) {
         return false;
     }
@@ -2906,11 +2906,7 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    if (!iouReportID) {
-        return false;
-    }
-
-    const transactions = reportsTransactions[iouReportID] ?? [];
+    const transactions = getReportTransactions(iouReportID);
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
@@ -3441,10 +3437,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, bac
  * Gets all transactions on an IOU report with a receipt
  */
 function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
-    if (!iouReportID) {
-        return [];
-    }
-    const transactions = reportsTransactions[iouReportID] ?? [];
+    const transactions = getReportTransactions(iouReportID);
     return transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
@@ -3484,7 +3477,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
  * Check if any of the transactions in the report has required missing fields
  */
 function hasMissingSmartscanFields(iouReportID: string): boolean {
-    const reportTransactions = reportsTransactions[iouReportID] ?? [];
+    const reportTransactions = getReportTransactions(iouReportID);
 
     return reportTransactions.some(TransactionUtils.hasMissingSmartscanFields);
 }
@@ -6457,7 +6450,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
  * Checks to see if a report contains a violation
  */
 function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = reportsTransactions[reportID] ?? [];
+    const transactions = getReportTransactions(reportID);
     return transactions.some((transaction) => TransactionUtils.hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
@@ -6465,7 +6458,7 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
  * Checks to see if a report contains a violation of type `warning`
  */
 function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = reportsTransactions[reportID] ?? [];
+    const transactions = getReportTransactions(reportID);
     return transactions.some((transaction) => TransactionUtils.hasWarningTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
@@ -6473,7 +6466,7 @@ function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxC
  * Checks to see if a report contains a violation of type `notice`
  */
 function hasNoticeTypeViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
-    const transactions = reportsTransactions[reportID] ?? [];
+    const transactions = getReportTransactions(reportID);
     return transactions.some((transaction) => TransactionUtils.hasNoticeTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
 }
 
@@ -7803,10 +7796,7 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
  * Get all held transactions of a iouReport
  */
 function getAllHeldTransactions(iouReportID?: string): Transaction[] {
-    if (!iouReportID) {
-        return [];
-    }
-    const transactions = reportsTransactions[iouReportID] ?? [];
+    const transactions = getReportTransactions(iouReportID);
     return transactions.filter((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
@@ -7814,7 +7804,7 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
-    const iouReportTransactions = iouReportID ? reportsTransactions[iouReportID] : undefined;
+    const iouReportTransactions = getReportTransactions(iouReportID);
     const transactions = allReportTransactions ?? iouReportTransactions ?? [];
     return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 }
@@ -7823,7 +7813,7 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTra
  * Check if all expenses in the Report are on hold
  */
 function hasOnlyHeldExpenses(iouReportID: string, allReportTransactions?: SearchTransaction[]): boolean {
-    const transactionsByIouReportID = iouReportID ? reportsTransactions[iouReportID] ?? [] : [];
+    const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
@@ -7844,7 +7834,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
         return true;
     }
 
-    const allReportTransactions = reportsTransactions[report.reportID] ?? [];
+    const allReportTransactions = getReportTransactions(report.reportID);
 
     const hasPendingTransaction = allReportTransactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = allReportTransactions.some((transaction) => transaction.currency !== report.currency);
@@ -8121,12 +8111,7 @@ function getTripTransactions(tripRoomReportID: string | undefined, reportFieldTo
     const tripTransactionReportIDs = Object.values(allReports ?? {})
         .filter((report) => report && report?.[reportFieldToCompare] === tripRoomReportID)
         .map((report) => report?.reportID);
-    return tripTransactionReportIDs.flatMap((reportID) => {
-        if (!reportID) {
-            return [];
-        }
-        return reportsTransactions[reportID] ?? [];
-    });
+    return tripTransactionReportIDs.flatMap((reportID) => getReportTransactions(reportID));
 }
 
 function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
