@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,6 +20,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import switchPolicyAfterInteractions from './switchPolicyAfterInteractions';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 
 type WorkspaceListItem = {
@@ -35,6 +37,7 @@ function WorkspaceSwitcherPage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const isFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -77,15 +80,20 @@ function WorkspaceSwitcherPage() {
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
+            if (!isFocused) {
+                return;
+            }
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             setActiveWorkspaceID(newPolicyID);
             Navigation.goBack();
             if (newPolicyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
+                // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
+                // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
+                switchPolicyAfterInteractions(newPolicyID);
             }
         },
-        [activeWorkspaceID, setActiveWorkspaceID],
+        [activeWorkspaceID, setActiveWorkspaceID, isFocused],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -97,7 +105,7 @@ function WorkspaceSwitcherPage() {
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
-                policyID: policy?.id ?? '-1',
+                policyID: policy?.id,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {

@@ -127,9 +127,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** ID of the report */
         reportID: string;
 
-        /** ID of the report action */
-        reportActionID?: string;
-
         /** ID of the chat report */
         chatReportID?: string;
 
@@ -150,9 +147,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
-
-        /** Translation key of the last message in the report */
-        lastMessageTranslationKey?: string;
 
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
