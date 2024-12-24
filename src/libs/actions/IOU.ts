@@ -713,7 +713,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
@@ -1189,7 +1188,6 @@ function buildOnyxDataForInvoice(
             value: {
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -6922,7 +6920,6 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        lastVisibleActionCreated: optimisticIOUReportAction.created,
         hasOutstandingChildRequest: false,
         iouReportID: null,
         lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
@@ -6958,6 +6955,7 @@ function getPayMoneyRequestParams(
                 ...iouReport,
                 lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 pendingFields: {
@@ -8742,27 +8740,23 @@ function resolveDuplicates(params: TransactionMergeParams) {
     });
 
     const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
-    const transactionThreadReportIDList = iouActionList.map((action) => action?.childReportID);
-    const orderedTransactionIDList = iouActionList
-        .map((action) => {
-            const message = ReportActionsUtils.getOriginalMessage(action);
-            return message?.IOUTransactionID;
-        })
-        .filter(Boolean) as string[];
+    const orderedTransactionIDList = iouActionList.map((action) => {
+        const message = ReportActionsUtils.getOriginalMessage(action);
+        return message?.IOUTransactionID ?? '';
+    });
 
     const optimisticHoldActions: OnyxUpdate[] = [];
     const failureHoldActions: OnyxUpdate[] = [];
     const reportActionIDList: string[] = [];
     const optimisticHoldTransactionActions: OnyxUpdate[] = [];
     const failureHoldTransactionActions: OnyxUpdate[] = [];
-    transactionThreadReportIDList.forEach((transactionThreadReportID) => {
-        if (!transactionThreadReportID) {
-            return;
-        }
-
+    iouActionList.forEach((action) => {
+        const transactionThreadReportID = action?.childReportID;
         const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = TransactionUtils.getTransactionID(transactionThreadReportID);
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action)
+            ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+            : CONST.DEFAULT_NUMBER_ID;
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
