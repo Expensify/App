@@ -537,7 +537,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     const optimisticReport: Partial<Report> = {
         lastVisibleActionCreated: lastAction?.created,
-        lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
@@ -605,17 +604,15 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     ];
 
     let failureReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
-    if (lastMessageText || lastMessageTranslationKey) {
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
@@ -1559,19 +1556,17 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     let optimisticReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
+    const {lastMessageText = ''} = ReportUtils.getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    if (lastMessageText || lastMessageTranslationKey) {
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         optimisticReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
             lastActorAccountID,
@@ -1778,7 +1773,6 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageTranslationKey: '',
             lastMessageText,
         };
         optimisticData.push({
@@ -3888,20 +3882,18 @@ function prepareOnboardingOptimisticData(
     }
 
     let failureReport: Partial<Report> = {
-        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
         hasOutstandingChildTask: false,
     };
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`];
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID, canUserPerformWriteAction);
-    if (lastMessageText || lastMessageTranslationKey) {
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID, canUserPerformWriteAction);
+    if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID, canUserPerformWriteAction);
         const prevLastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         failureReport = {
-            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated: prevLastVisibleActionCreated,
             lastActorAccountID,
@@ -4203,7 +4195,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,
         lastVisibleActionCreated: report?.lastVisibleActionCreated,
         lastActorAccountID: report?.lastActorAccountID,
@@ -4278,7 +4269,6 @@ function resolveActionableReportMentionWhisper(
     const reportUpdateDataWithPreviousLastMessage = ReportUtils.getReportLastMessage(reportId, optimisticReportActions as ReportActions);
 
     const reportUpdateDataWithCurrentLastMessage = {
-        lastMessageTranslationKey: report?.lastMessageTranslationKey,
         lastMessageText: report?.lastMessageText,
         lastVisibleActionCreated: report?.lastVisibleActionCreated,
         lastActorAccountID: report?.lastActorAccountID,

@@ -16,6 +16,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
@@ -44,7 +45,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`policy_${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 

@@ -1212,7 +1212,7 @@ function compareDuplicateTransactionFields(
 
 function getTransactionID(threadReportID: string | undefined): string | undefined {
     if (!threadReportID) {
-        return undefined;
+        return;
     }
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`];
