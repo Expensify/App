@@ -1,10 +1,11 @@
-import type {ReactNode, RefObject} from 'react';
-import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import React, {forwardRef, useState} from 'react';
+import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,7 @@ type SearchRouterInputProps = {
     value: string;
 
     /** Callback to update search in SearchRouter */
-    updateSearch: (searchTerm: string) => void;
+    onSearchQueryChange: (searchTerm: string) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
@@ -34,8 +35,11 @@ type SearchRouterInputProps = {
     /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
-    /** Whether the input should be focused */
-    autoFocus?: boolean;
+    /** Callback to call when the input gets focus */
+    onFocus?: () => void;
+
+    /** Callback to call when the input gets blur */
+    onBlur?: () => void;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -51,23 +55,29 @@ type SearchRouterInputProps = {
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
-};
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus'>;
 
-function SearchRouterInput({
-    value,
-    updateSearch,
-    onSubmit = () => {},
-    routerListRef,
-    isFullWidth,
-    disabled = false,
-    shouldShowOfflineMessage = false,
-    autoFocus = true,
-    wrapperStyle,
-    wrapperFocusedStyle,
-    outerWrapperStyle,
-    rightComponent,
-    isSearchingForReports,
-}: SearchRouterInputProps) {
+function SearchRouterInput(
+    {
+        value,
+        onSearchQueryChange,
+        onSubmit = () => {},
+        routerListRef,
+        isFullWidth,
+        disabled = false,
+        shouldShowOfflineMessage = false,
+        autoFocus = true,
+        onFocus,
+        onBlur,
+        caretHidden = false,
+        wrapperStyle,
+        wrapperFocusedStyle,
+        outerWrapperStyle,
+        rightComponent,
+        isSearchingForReports,
+    }: SearchRouterInputProps,
+    ref: ForwardedRef<BaseTextInputRef>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -83,9 +93,10 @@ function SearchRouterInput({
                     <TextInput
                         testID="search-router-text-input"
                         value={value}
-                        onChangeText={updateSearch}
+                        onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
+                        caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
@@ -102,12 +113,15 @@ function SearchRouterInput({
                         onFocus={() => {
                             setIsFocused(true);
                             routerListRef?.current?.updateExternalTextInputFocus(true);
+                            onFocus?.();
                         }}
                         onBlur={() => {
                             setIsFocused(false);
                             routerListRef?.current?.updateExternalTextInputFocus(false);
+                            onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
+                        ref={ref}
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
@@ -123,4 +137,4 @@ function SearchRouterInput({
 
 SearchRouterInput.displayName = 'SearchRouterInput';
 
-export default SearchRouterInput;
+export default forwardRef(SearchRouterInput);

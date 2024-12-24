@@ -392,6 +392,10 @@ function clearIssueNewCardFlow() {
     });
 }
 
+function clearIssueNewCardError() {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {errors: null});
+}
+
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -721,7 +725,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueNewCardData) {
+function issueExpensifyCard(policyID: string, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -768,6 +772,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, data?: IssueN
         limit,
         limitType,
         cardTitle,
+        validateCode,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
@@ -884,6 +889,7 @@ export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
     clearCardListErrors,
+    clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     updateSettlementFrequency,

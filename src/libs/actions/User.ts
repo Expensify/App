@@ -32,6 +32,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
@@ -285,6 +286,15 @@ function clearValidateCodeActionError(fieldName: string) {
 }
 
 /**
+ * Reset validateCodeSent on validate action code.
+ */
+function resetValidateActionCodeSent() {
+    Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
+        validateCodeSent: false,
+    });
+}
+
+/**
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
@@ -443,6 +453,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
+                contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
@@ -559,6 +570,16 @@ function validateLogin(accountID: number, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
                 isLoading: false,
             },
         },
@@ -566,14 +587,14 @@ function validateLogin(accountID: number, validateCode: string) {
 
     const parameters: ValidateLoginParams = {accountID, validateCode};
 
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
     Navigation.navigate(ROUTES.HOME);
 }
 
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string) {
+function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -719,6 +740,19 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
         },
     ];
 
+    // Sometimes we will also need to reset the validateCodeSent of ONYXKEYS.VALIDATE_ACTION_CODE in order to receive the magic code next time we open the ValidateCodeActionModal.
+    if (shouldResetActionCode) {
+        const optimisticResetActionCode = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        };
+        successData.push(optimisticResetActionCode);
+        failureData.push(optimisticResetActionCode);
+    }
+
     const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode};
 
     API.write(WRITE_COMMANDS.VALIDATE_SECONDARY_LOGIN, parameters, {optimisticData, successData, failureData});
@@ -762,9 +796,7 @@ const isChannelMuted = (reportId: string) =>
                 Onyx.disconnect(connection);
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
-                resolve(
-                    !notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                );
+                resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });
@@ -1402,4 +1434,5 @@ export {
     subscribeToActiveGuides,
     dismissGBRTooltip,
     setIsDebugModeEnabled,
+    resetValidateActionCodeSent,
 };

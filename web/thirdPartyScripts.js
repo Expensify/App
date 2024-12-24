@@ -153,3 +153,5 @@ window['_fs_namespace'] = 'FS';
             }),
         (g._v = '2.0.0'));
 })(window, document, window._fs_namespace, 'script', window._fs_script);
+
+console.log('thirdPartyScripts.js loaded');

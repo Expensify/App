@@ -1,13 +1,18 @@
+/* eslint-disable default-case */
+
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -35,48 +40,25 @@ class ObjectError extends SyntaxError {
     }
 }
 
-type ObjectType = Record<string, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
+type ObjectType<T extends Record<string, unknown>> = Record<keyof T, 'string' | 'number' | 'object' | 'array' | 'boolean' | ConstantEnum>;
 
-type ConstantEnum = Record<string, unknown>;
+type ConstantEnum = Record<string, string | number | boolean | Record<string, string | number | boolean>>;
 
 type PropertyTypes = Array<'string' | 'number' | 'object' | 'boolean' | 'undefined'>;
 
+type ArrayTypeFromOnyxDefinition<T> = T extends unknown[] ? NonNullable<T[number]> : never;
+
+type ArrayElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx> = ArrayTypeFromOnyxDefinition<Required<TOnyx>[K]>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+
+type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = Required<TOnyx>[K] extends Record<string | number, infer ValueType>
+    ? TCollectionKey extends string | number
+        ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
+        : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
+    : never;
+
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
-
-const REPORT_NUMBER_PROPERTIES: Array<keyof Report> = [
-    'lastMessageTimestamp',
-    'lastReadSequenceNumber',
-    'managerID',
-    'lastActorAccountID',
-    'ownerAccountID',
-    'total',
-    'unheldTotal',
-    'iouReportAmount',
-    'nonReimbursableTotal',
-] satisfies Array<keyof Report>;
-
-const REPORT_BOOLEAN_PROPERTIES: Array<keyof Report> = [
-    'hasOutstandingChildRequest',
-    'hasOutstandingChildTask',
-    'isOwnPolicyExpenseChat',
-    'isPolicyExpenseChat',
-    'isPinned',
-    'hasParentAccess',
-    'isDeletedParentAction',
-    'openOnAdminRoom',
-    'isOptimisticReport',
-    'isWaitingOnBankAccount',
-    'isCancelledIOU',
-    'isLastMessageDeletedParentAction',
-    'isHidden',
-    'isChatRoom',
-    'isLoadingPrivateNotes',
-    'selected',
-] satisfies Array<keyof Report>;
-
-const REPORT_DATE_PROPERTIES: Array<keyof Report> = ['lastVisibleActionCreated', 'lastReadCreated', 'lastReadTime', 'lastMentionedTime', 'lastVisibleActionLastModified'] satisfies Array<
-    keyof Report
->;
 
 const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
 
@@ -98,18 +80,9 @@ const REPORT_ACTION_NUMBER_PROPERTIES: Array<keyof ReportAction> = [
     'timestamp',
 ] satisfies Array<keyof ReportAction>;
 
-const REPORT_ACTION_BOOLEAN_PROPERTIES: Array<keyof ReportAction> = [
-    'isLoading',
-    'automatic',
-    'shouldShow',
-    'isFirstItem',
-    'isAttachmentOnly',
-    'isAttachmentWithText',
-    'isNewestReportAction',
-    'isOptimisticAction',
-] satisfies Array<keyof ReportAction>;
+const TRANSACTION_REQUIRED_PROPERTIES: Array<keyof Transaction> = ['transactionID', 'reportID', 'amount', 'created', 'currency', 'merchant'] satisfies Array<keyof Transaction>;
 
-const REPORT_ACTION_DATE_PROPERTIES: Array<keyof ReportAction> = ['created', 'lastModified'] satisfies Array<keyof ReportAction>;
+const TRANSACTION_VIOLATION_REQUIRED_PROPERTIES: Array<keyof TransactionViolation> = ['type', 'name'] satisfies Array<keyof TransactionViolation>;
 
 let isInFocusMode: OnyxEntry<boolean>;
 Onyx.connect({
@@ -184,6 +157,10 @@ type OnyxData<T extends OnyxDataType> = (T extends 'number' ? number : T extends
  * @throws {SyntaxError} if type is object but the provided string does not represent an object
  */
 function stringToOnyxData<T extends OnyxDataType = 'string'>(data: string, type?: T): OnyxData<T> {
+    if (isEmptyValue(data)) {
+        return data as OnyxData<T>;
+    }
+
     let onyxData;
 
     switch (type) {
@@ -246,10 +223,27 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 }
 
 /**
+ * Whether a string representation is an empty value
+ *
+ * @param value - string representantion
+ * @returns whether the value is an empty value
+ */
+function isEmptyValue(value: string): boolean {
+    switch (value) {
+        case 'undefined':
+        case 'null':
+        case '':
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
  * Validates if a string is a valid representation of a number.
  */
 function validateNumber(value: string) {
-    if (value === 'undefined' || value === '' || (!value.includes(' ') && !Number.isNaN(Number(value)))) {
+    if (isEmptyValue(value) || (!value.includes(' ') && !Number.isNaN(Number(value)))) {
         return;
     }
 
@@ -271,7 +265,7 @@ function validateBoolean(value: string) {
  * Validates if a string is a valid representation of a date.
  */
 function validateDate(value: string) {
-    if (value === 'undefined' || (isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) && isValid(new Date(value)))) {
+    if (isEmptyValue(value) || ((isMatch(value, CONST.DATE.FNS_DB_FORMAT_STRING) || isMatch(value, CONST.DATE.FNS_FORMAT_STRING)) && isValid(new Date(value)))) {
         return;
     }
 
@@ -289,7 +283,7 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
         return String(val);
     });
 
-    if (value === 'undefined' || value === '' || enumValues.includes(value)) {
+    if (isEmptyValue(value) || enumValues.includes(value)) {
         return;
     }
 
@@ -299,11 +293,15 @@ function validateConstantEnum(value: string, constEnum: ConstantEnum) {
 /**
  * Validates if a string is a valid representation of an array.
  */
-function validateArray(
+function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string, unknown> | 'constantEnum' = 'string'>(
     value: string,
-    arrayType: 'string' | 'number' | 'boolean' | ConstantEnum | Record<string, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>,
+    arrayType: T extends Record<string, unknown>
+        ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>
+        : T extends 'constantEnum'
+        ? ConstantEnum
+        : T,
 ) {
-    if (value === 'undefined') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -316,22 +314,22 @@ function validateArray(
     array.forEach((element) => {
         // Element is an object
         if (element && typeof element === 'object' && typeof arrayType === 'object') {
-            Object.entries(arrayType).forEach(([key, val]) => {
-                const property = element[key as keyof typeof element];
+            Object.entries(element).forEach(([key, val]) => {
+                const expectedType = arrayType[key as keyof typeof arrayType];
                 // Property is a constant enum, so we apply validateConstantEnum
-                if (typeof val === 'object' && !Array.isArray(val)) {
-                    return validateConstantEnum(property, val as ConstantEnum);
+                if (typeof expectedType === 'object' && !Array.isArray(expectedType)) {
+                    return validateConstantEnum(String(val), expectedType as ConstantEnum);
                 }
                 // Expected property type is array
-                if (val === 'array') {
+                if (expectedType === 'array') {
                     // Property type is not array
-                    if (!Array.isArray(property)) {
+                    if (!Array.isArray(val)) {
                         throw new ArrayError(arrayType);
                     }
                     return;
                 }
                 // Property type is not one of the valid types
-                if (Array.isArray(val) ? !val.includes(typeof property) : typeof property !== val) {
+                if (Array.isArray(expectedType) ? !expectedType.includes(typeof val as TupleToUnion<PropertyTypes>) : typeof val !== expectedType) {
                     throw new ArrayError(arrayType);
                 }
             });
@@ -355,8 +353,8 @@ function validateArray(
 /**
  * Validates if a string is a valid representation of an object.
  */
-function validateObject(value: string, type: ObjectType, collectionIndexType?: 'string' | 'number') {
-    if (value === 'undefined') {
+function validateObject<T extends Record<string, unknown>>(value: string, type: ObjectType<T>, collectionIndexType?: 'string' | 'number') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -366,7 +364,7 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
           }
         : type;
 
-    const object = parseJSON(value) as ObjectType;
+    const object = parseJSON(value) as ObjectType<T>;
 
     if (typeof object !== 'object' || Array.isArray(object)) {
         throw new ObjectError(expectedType);
@@ -391,12 +389,13 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
             throw new ObjectError(expectedType);
         }
 
-        Object.entries(type).forEach(([key, val]) => {
-            // test[key] is a constant enum
-            if (typeof val === 'object') {
-                return validateConstantEnum(test[key] as string, val);
+        Object.entries(test).forEach(([key, val]) => {
+            const expectedValueType = type[key];
+            // val is a constant enum
+            if (typeof expectedValueType === 'object') {
+                return validateConstantEnum(val as string, expectedValueType);
             }
-            if (val === 'array' ? !Array.isArray(test[key]) : typeof test[key] !== val) {
+            if (expectedValueType === 'array' ? !Array.isArray(val) : typeof val !== expectedValueType) {
                 throw new ObjectError(expectedType);
             }
         });
@@ -407,7 +406,7 @@ function validateObject(value: string, type: ObjectType, collectionIndexType?: '
  * Validates if a string is a valid representation of a string.
  */
 function validateString(value: string) {
-    if (value === 'undefined') {
+    if (isEmptyValue(value)) {
         return;
     }
 
@@ -426,90 +425,211 @@ function validateString(value: string) {
 }
 
 /**
+ * Execute validation of a union type (e.g. Record<string, string> | Array<string>)
+ */
+function unionValidation(firstValidation: () => void, secondValidation: () => void) {
+    try {
+        firstValidation();
+    } catch (e) {
+        secondValidation();
+    }
+}
+
+/**
  * Validates if a property of Report is of the expected type
  *
  * @param key - property key
  * @param value - value provided by the user
  */
 function validateReportDraftProperty(key: keyof Report, value: string) {
-    if (REPORT_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (REPORT_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (key === 'privateNotes') {
-        return validateObject(
-            value,
-            {
-                note: 'string',
-            },
-            'number',
-        );
+    switch (key) {
+        case 'avatarUrl':
+        case 'lastMessageText':
+        case 'lastVisibleActionCreated':
+        case 'lastReadTime':
+        case 'lastMentionedTime':
+        case 'policyAvatar':
+        case 'policyName':
+        case 'oldPolicyName':
+        case 'description':
+        case 'policyID':
+        case 'reportName':
+        case 'reportID':
+        case 'chatReportID':
+        case 'type':
+        case 'parentReportID':
+        case 'parentReportActionID':
+        case 'lastVisibleActionLastModified':
+        case 'lastMessageHtml':
+        case 'currency':
+        case 'iouReportID':
+        case 'preexistingReportID':
+        case 'private_isArchived':
+            return validateString(value);
+        case 'hasOutstandingChildRequest':
+        case 'hasOutstandingChildTask':
+        case 'isOwnPolicyExpenseChat':
+        case 'isPinned':
+        case 'hasParentAccess':
+        case 'isDeletedParentAction':
+        case 'isWaitingOnBankAccount':
+        case 'isCancelledIOU':
+            return validateBoolean(value);
+        case 'lastReadSequenceNumber':
+        case 'managerID':
+        case 'lastActorAccountID':
+        case 'ownerAccountID':
+        case 'total':
+        case 'unheldTotal':
+        case 'nonReimbursableTotal':
+        case 'unheldNonReimbursableTotal':
+            return validateNumber(value);
+        case 'chatType':
+            return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
+        case 'stateNum':
+            return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
+        case 'statusNum':
+            return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
+        case 'writeCapability':
+            return validateConstantEnum(value, CONST.REPORT.WRITE_CAPABILITIES);
+        case 'visibility':
+            return validateConstantEnum(value, CONST.REPORT.VISIBILITY);
+        case 'invoiceReceiver':
+            return validateObject<ObjectElement<Report, 'invoiceReceiver'>>(value, {
+                type: 'string',
+                policyID: 'string',
+                accountID: 'string',
+            });
+        case 'lastActionType':
+            return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
+        case 'participants':
+            return validateObject<ObjectElement<Report, 'participants', number>>(
+                value,
+                {
+                    role: CONST.REPORT.ROLE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    pendingFields: 'object',
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                },
+                'number',
+            );
+        case 'errorFields':
+            return validateObject<ObjectElement<Report, 'errorFields', string>>(value, {}, 'string');
+        case 'privateNotes':
+            return validateObject<ObjectElement<Report, 'privateNotes', number>>(
+                value,
+                {
+                    note: 'string',
+                    errors: 'string',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    pendingFields: 'object',
+                },
+                'number',
+            );
+        case 'pendingChatMembers':
+            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
+                accountID: 'string',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: 'object',
+            });
+        case 'fieldList':
+            return validateObject<ObjectElement<Report, 'fieldList'>>(
+                value,
+                {
+                    fieldID: 'string',
+                    type: 'string',
+                    name: 'string',
+                    keys: 'array',
+                    values: 'array',
+                    defaultValue: 'string',
+                    orderWeight: 'number',
+                    deletable: 'boolean',
+                    value: 'string',
+                    target: 'string',
+                    externalIDs: 'array',
+                    disabledOptions: 'array',
+                    isTax: 'boolean',
+                    externalID: 'string',
+                    origin: 'string',
+                    defaultExternalID: 'string',
+                },
+                'string',
+            );
+        case 'permissions':
+            return validateArray<'constantEnum'>(value, CONST.REPORT.PERMISSIONS);
+        case 'tripData':
+            return validateObject<ObjectElement<Report, 'tripData'>>(value, {
+                startDate: 'string',
+                endDate: 'string',
+                tripID: 'string',
+            });
+        case 'pendingAction':
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        case 'pendingFields':
+            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
+                description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasOutstandingChildTask: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOwnPolicyExpenseChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isPinned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastReadTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastReadSequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastMentionedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                policyAvatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                policyName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                oldPolicyName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                hasParentAccess: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isDeletedParentAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                chatReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                statusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastVisibleActionLastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastActionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                ownerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                unheldNonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                partial: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
     }
-    if (key === 'permissions') {
-        return validateArray(value, CONST.REPORT.PERMISSIONS);
-    }
-    if (key === 'pendingChatMembers') {
-        return validateArray(value, {
-            accountID: 'string',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-        });
-    }
-    if (key === 'participants') {
-        return validateObject(
-            value,
-            {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
-            },
-            'number',
-        );
-    }
-    if (REPORT_NUMBER_PROPERTIES.includes(key)) {
-        return validateNumber(value);
-    }
-    if (REPORT_BOOLEAN_PROPERTIES.includes(key)) {
-        return validateBoolean(value);
-    }
-    if (REPORT_DATE_PROPERTIES.includes(key)) {
-        return validateDate(value);
-    }
-    if (key === 'tripData') {
-        return validateObject(value, {
-            startDate: 'string',
-            endDate: 'string',
-            tripID: 'string',
-        });
-    }
-    if (key === 'lastActionType') {
-        return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
-    }
-    if (key === 'writeCapability') {
-        return validateConstantEnum(value, CONST.REPORT.WRITE_CAPABILITIES);
-    }
-    if (key === 'visibility') {
-        return validateConstantEnum(value, CONST.REPORT.VISIBILITY);
-    }
-    if (key === 'stateNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
-    }
-    if (key === 'statusNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
-    }
-    if (key === 'chatType') {
-        return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
-    }
-    if (key === 'errorFields') {
-        return validateObject(value, {});
-    }
-    if (key === 'pendingFields') {
-        return validateObject(value, {});
-    }
-    if (key === 'visibleChatMemberAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'participantAccountIDs') {
-        return validateArray(value, 'number');
-    }
-
-    validateString(value);
 }
 
 /**
@@ -519,49 +639,612 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
  * @param value - value provided by the user
  */
 function validateReportActionDraftProperty(key: keyof ReportAction, value: string) {
-    if (REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) && value === 'undefined') {
+    if (REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
-    if (REPORT_ACTION_NUMBER_PROPERTIES.includes(key)) {
-        return validateNumber(value);
+    switch (key) {
+        case 'reportID':
+        case 'reportActionID':
+        case 'parentReportID':
+        case 'childReportID':
+        case 'childReportName':
+        case 'childType':
+        case 'childOldestFourAccountIDs':
+        case 'childLastVisibleActionCreated':
+        case 'actor':
+        case 'avatar':
+        case 'childLastMoneyRequestComment':
+        case 'reportActionTimestamp':
+        case 'timestamp':
+        case 'error':
+            return validateString(value);
+        case 'actorAccountID':
+        case 'sequenceNumber':
+        case 'accountID':
+        case 'childCommenterCount':
+        case 'childVisibleActionCount':
+        case 'childManagerAccountID':
+        case 'childOwnerAccountID':
+        case 'childLastActorAccountID':
+        case 'childMoneyRequestCount':
+        case 'adminAccountID':
+        case 'delegateAccountID':
+            return validateNumber(value);
+        case 'isLoading':
+        case 'automatic':
+        case 'shouldShow':
+        case 'isFirstItem':
+        case 'isAttachmentOnly':
+        case 'isAttachmentWithText':
+        case 'isNewestReportAction':
+        case 'isOptimisticAction':
+            return validateBoolean(value);
+        case 'created':
+        case 'lastModified':
+            return validateDate(value);
+        case 'errors':
+            return validateObject<ObjectElement<ReportAction, 'errors'>>(value, {});
+        case 'pendingAction':
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        case 'pendingFields':
+            return validateObject<ObjectElement<ReportAction, 'pendingFields'>>(value, {
+                reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                sequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actionName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                actor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                person: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                automatic: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                shouldShow: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                accountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childOldestFourAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childCommenterCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childVisibleActionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childManagerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childOwnerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childStatusNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childStateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastMoneyRequestComment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childLastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childMoneyRequestCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isFirstItem: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isAttachmentOnly: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isAttachmentWithText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                delegateAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                error: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childRecentReceiptTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                linkMetadata: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                childReportNotificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isNewestReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOptimisticAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                adminAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                timestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+            });
+        case 'actionName':
+            return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
+        case 'person':
+            return validateArray<ArrayElement<ReportAction, 'person'>>(value, {
+                type: 'string',
+                text: 'string',
+                style: 'string',
+            });
+        case 'childStatusNum':
+            return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
+        case 'childStateNum':
+            return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
+        case 'receipt':
+            return validateObject<ObjectElement<ReportAction, 'receipt'>>(value, {
+                state: 'string',
+                type: 'string',
+                name: 'string',
+                receiptID: 'string',
+                source: 'string',
+                filename: 'string',
+                reservationList: 'string',
+            });
+        case 'childRecentReceiptTransactionIDs':
+            return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
+        case 'linkMetadata':
+            return validateArray<ArrayElement<ReportAction, 'linkMetadata'>>(value, {
+                url: 'string',
+                image: 'object',
+                description: 'string',
+                title: 'string',
+                publisher: 'string',
+                logo: 'object',
+            });
+        case 'childReportNotificationPreference':
+            return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
+        case 'whisperedToAccountIDs':
+            return validateArray(value, 'number');
+        case 'message':
+            return unionValidation(
+                () =>
+                    validateArray<ArrayElement<ReportAction, 'message'>>(value, {
+                        text: 'string',
+                        html: 'string',
+                        type: 'string',
+                        isDeletedParentAction: 'boolean',
+                        policyID: 'string',
+                        reportID: 'string',
+                        currency: 'string',
+                        amount: 'number',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'object',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: {
+                            ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                            ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+                        },
+                        deleted: 'string',
+                    }),
+                () =>
+                    validateObject<ObjectElement<ReportAction, 'message'>>(value, {
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        reportID: 'string',
+                        isDeletedParentAction: 'boolean',
+                        target: 'string',
+                        style: 'string',
+                        href: 'string',
+                        iconUrl: 'boolean',
+                        isEdited: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'object',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: {
+                            ...CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION,
+                            ...CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION,
+                        },
+                        deleted: 'string',
+                    }),
+            );
+        case 'originalMessage':
+            return validateObject<ObjectElement<ReportAction, 'originalMessage'>>(value, {});
+        case 'previousMessage':
+            return unionValidation(
+                () =>
+                    validateObject<ObjectElement<ReportAction, 'previousMessage'>>(value, {
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        reportID: 'string',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'boolean',
+                        isDeletedParentAction: 'boolean',
+                        isReversedTransaction: 'boolean',
+                        whisperedTo: 'array',
+                        moderationDecision: 'string',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: 'string',
+                        deleted: 'string',
+                    }),
+                () =>
+                    validateArray<ArrayElement<ReportAction, 'previousMessage'>>(value, {
+                        reportID: 'string',
+                        html: 'string',
+                        text: 'string',
+                        amount: 'string',
+                        currency: 'string',
+                        type: 'string',
+                        policyID: 'string',
+                        style: 'string',
+                        target: 'string',
+                        href: 'string',
+                        iconUrl: 'string',
+                        isEdited: 'string',
+                        isDeletedParentAction: 'string',
+                        isReversedTransaction: 'string',
+                        whisperedTo: 'string',
+                        moderationDecision: 'string',
+                        translationKey: 'string',
+                        taskReportID: 'string',
+                        cancellationReason: 'string',
+                        expenseReportID: 'string',
+                        resolution: 'string',
+                        deleted: 'string',
+                    }),
+            );
     }
-    if (REPORT_ACTION_BOOLEAN_PROPERTIES.includes(key)) {
-        return validateBoolean(value);
+}
+
+/**
+ * Validates if a property of Transaction is of the expected type
+ *
+ * @param key - property key
+ * @param value - value provided by the user
+ */
+function validateTransactionDraftProperty(key: keyof Transaction, value: string) {
+    if (TRANSACTION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
+        throw SyntaxError('debug.missingValue');
     }
-    if (key === 'actionName') {
-        return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
+    switch (key) {
+        case 'reportID':
+        case 'currency':
+        case 'tag':
+        case 'category':
+        case 'merchant':
+        case 'taxCode':
+        case 'filename':
+        case 'modifiedCurrency':
+        case 'modifiedMerchant':
+        case 'transactionID':
+        case 'parentTransactionID':
+        case 'originalCurrency':
+        case 'actionableWhisperReportActionID':
+        case 'linkedTrackedExpenseReportID':
+        case 'bank':
+        case 'cardName':
+        case 'cardNumber':
+            return validateString(value);
+        case 'created':
+        case 'modifiedCreated':
+        case 'inserted':
+        case 'posted':
+            return validateDate(value);
+        case 'isLoading':
+        case 'billable':
+        case 'reimbursable':
+        case 'participantsAutoAssigned':
+        case 'isFromGlobalCreate':
+        case 'hasEReceipt':
+        case 'shouldShowOriginalAmount':
+        case 'managedCard':
+            return validateBoolean(value);
+        case 'amount':
+        case 'taxAmount':
+        case 'modifiedAmount':
+        case 'cardID':
+        case 'originalAmount':
+            return validateNumber(value);
+        case 'iouRequestType':
+            return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+        case 'participants':
+            return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
+                accountID: 'number',
+                login: 'string',
+                displayName: 'string',
+                isPolicyExpenseChat: 'boolean',
+                isInvoiceRoom: 'boolean',
+                isOwnPolicyExpenseChat: 'boolean',
+                chatType: CONST.REPORT.CHAT_TYPE,
+                reportID: 'string',
+                policyID: 'string',
+                selected: 'boolean',
+                searchText: 'string',
+                alternateText: 'string',
+                firstName: 'string',
+                keyForList: 'string',
+                lastName: 'string',
+                phoneNumber: 'string',
+                text: 'string',
+                isSelected: 'boolean',
+                isSelfDM: 'boolean',
+                isSender: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                ownerAccountID: 'number',
+                icons: 'array',
+                item: 'string',
+            });
+        case 'errors':
+            return validateObject<ObjectElement<Transaction, 'errors'>>(value, {});
+        case 'errorFields':
+            return validateObject<ObjectElement<Transaction, 'errorFields'>>(
+                value,
+                {
+                    route: 'object',
+                },
+                'string',
+            );
+        case 'pendingAction':
+            return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
+        case 'pendingFields':
+            return validateObject<ObjectElement<Transaction, 'pendingFields'>>(
+                value,
+                {
+                    comment: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    source: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splits: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    dismissedViolations: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnitID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    customUnitRateID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    category: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    filename: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    iouRequestType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedAttendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    originalCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitShares: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitPayerAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    shouldShowOriginalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    actionableWhisperReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                },
+                'string',
+            );
+        case 'receipt':
+            return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
+                type: 'string',
+                source: 'string',
+                name: 'string',
+                filename: 'string',
+                state: CONST.IOU.RECEIPT_STATE,
+                receiptID: 'number',
+                reservationList: 'array',
+            });
+        case 'taxRate':
+            return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
+                keyForList: 'string',
+                text: 'string',
+                data: 'object',
+            });
+        case 'status':
+            return validateConstantEnum(value, CONST.TRANSACTION.STATUS);
+        case 'comment':
+            return validateObject<ObjectElement<Transaction, 'comment'>>(value, {
+                comment: 'string',
+                hold: 'string',
+                waypoints: 'object',
+                isLoading: 'boolean',
+                type: CONST.TRANSACTION.TYPE,
+                customUnit: 'object',
+                source: 'string',
+                originalTransactionID: 'string',
+                splits: 'array',
+                dismissedViolations: 'object',
+            });
+        case 'attendees':
+            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+                email: 'string',
+                displayName: 'string',
+                avatarUrl: 'string',
+                accountID: 'number',
+                text: 'string',
+                login: 'string',
+                searchText: 'string',
+                selected: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                reportID: 'string',
+            });
+        case 'modifiedAttendees':
+            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+                email: 'string',
+                displayName: 'string',
+                avatarUrl: 'string',
+                accountID: 'number',
+                text: 'string',
+                login: 'string',
+                searchText: 'string',
+                selected: 'boolean',
+                iouType: CONST.IOU.TYPE,
+                reportID: 'string',
+            });
+        case 'modifiedWaypoints':
+            return validateObject<ObjectElement<Transaction, 'modifiedWaypoints'>>(
+                value,
+                {
+                    name: 'string',
+                    address: 'string',
+                    lat: 'number',
+                    lng: 'number',
+                    keyForList: 'string',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    street: 'string',
+                    city: 'string',
+                    state: 'string',
+                    zipCode: 'string',
+                    country: 'string',
+                    street2: 'string',
+                },
+                'string',
+            );
+        case 'routes':
+            return validateObject<ObjectElement<Transaction, 'routes'>>(
+                value,
+                {
+                    distance: 'number',
+                    geometry: 'object',
+                },
+                'string',
+            );
+        case 'mccGroup':
+            return validateConstantEnum(value, CONST.MCC_GROUPS);
+        case 'modifiedMCCGroup':
+            return validateConstantEnum(value, CONST.MCC_GROUPS);
+        case 'splitShares':
+            return validateObject<ObjectElement<Transaction, 'splitShares', number>>(
+                value,
+                {
+                    amount: 'number',
+                    isModified: 'boolean',
+                },
+                'number',
+            );
+        case 'splitPayerAccountIDs':
+            return validateArray(value, 'number');
+        case 'linkedTrackedExpenseReportAction':
+            return validateObject<ReportAction>(value, {
+                accountID: 'number',
+                message: 'string',
+                created: 'string',
+                error: 'string',
+                avatar: 'string',
+                receipt: 'object',
+                reportID: 'string',
+                automatic: 'boolean',
+                reportActionID: 'string',
+                parentReportID: 'string',
+                errors: 'object',
+                isLoading: 'boolean',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                pendingFields: 'object',
+                sequenceNumber: 'number',
+                actionName: CONST.REPORT.ACTIONS.TYPE,
+                actorAccountID: 'number',
+                actor: 'string',
+                person: 'array',
+                shouldShow: 'boolean',
+                childReportID: 'string',
+                childReportName: 'string',
+                childType: 'string',
+                childOldestFourAccountIDs: 'string',
+                childCommenterCount: 'number',
+                childLastVisibleActionCreated: 'string',
+                childVisibleActionCount: 'number',
+                childManagerAccountID: 'number',
+                childOwnerAccountID: 'number',
+                childStatusNum: CONST.REPORT.STATUS_NUM,
+                childStateNum: CONST.REPORT.STATE_NUM,
+                childLastMoneyRequestComment: 'string',
+                childLastActorAccountID: 'number',
+                childMoneyRequestCount: 'number',
+                isFirstItem: 'boolean',
+                isAttachmentOnly: 'boolean',
+                isAttachmentWithText: 'boolean',
+                lastModified: 'string',
+                delegateAccountID: 'number',
+                childRecentReceiptTransactionIDs: 'object',
+                linkMetadata: 'array',
+                childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
+                isNewestReportAction: 'boolean',
+                isOptimisticAction: 'boolean',
+                adminAccountID: 'number',
+                whisperedToAccountIDs: 'array',
+                reportActionTimestamp: 'string',
+                timestamp: 'string',
+                originalMessage: 'object',
+                previousMessage: 'object',
+            });
     }
-    if (key === 'childStatusNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATUS_NUM);
+}
+
+function validateTransactionViolationDraftProperty(key: keyof TransactionViolation, value: string) {
+    if (TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
+        throw SyntaxError('debug.missingValue');
     }
-    if (key === 'childStateNum') {
-        return validateConstantEnum(value, CONST.REPORT.STATE_NUM);
+    switch (key) {
+        case 'type':
+            return validateConstantEnum(value, CONST.VIOLATION_TYPES);
+
+        case 'name':
+            return validateConstantEnum(value, CONST.VIOLATIONS);
+
+        case 'data':
+            return validateObject<ObjectElement<TransactionViolation, 'data'>>(value, {
+                rejectedBy: 'string',
+                rejectReason: 'string',
+                formattedLimit: 'string',
+                surcharge: 'number',
+                invoiceMarkup: 'number',
+                maxAge: 'number',
+                tagName: 'string',
+                category: 'string',
+                brokenBankConnection: 'boolean',
+                isAdmin: 'boolean',
+                email: 'string',
+                isTransactionOlderThan7Days: 'boolean',
+                member: 'string',
+                taxName: 'string',
+                tagListIndex: 'number',
+                tagListName: 'string',
+                errorIndexes: 'array',
+                pendingPattern: 'string',
+                type: CONST.MODIFIED_AMOUNT_VIOLATION_DATA,
+                displayPercentVariance: 'number',
+                duplicates: 'array',
+                rterType: CONST.RTER_VIOLATION_TYPES,
+                tooltip: 'string',
+            });
+        case 'showInReview':
+            return validateBoolean(value);
     }
-    if (key === 'childReportNotificationPreference') {
-        return validateConstantEnum(value, CONST.REPORT.NOTIFICATION_PREFERENCE);
-    }
-    if (REPORT_ACTION_DATE_PROPERTIES.includes(key)) {
-        return validateDate(value);
-    }
-    if (key === 'whisperedToAccountIDs') {
-        return validateArray(value, 'number');
-    }
-    if (key === 'message') {
-        return validateArray(value, {text: 'string', html: ['string', 'undefined'], type: 'string'});
-    }
-    if (key === 'person') {
-        return validateArray(value, {});
-    }
-    if (key === 'errors') {
-        return validateObject(value, {});
-    }
-    if (key === 'originalMessage') {
-        return validateObject(value, {});
-    }
-    if (key === 'childRecentReceiptTransactionIDs') {
-        return validateObject(value, {}, 'string');
-    }
-    validateString(value);
 }
 
 /**
@@ -578,10 +1261,29 @@ function validateReportActionJSON(json: string) {
     });
     Object.entries(parsedReportAction).forEach(([key, val]) => {
         try {
-            if (val !== 'undefined' && REPORT_ACTION_NUMBER_PROPERTIES.includes(key as keyof ReportAction) && typeof val !== 'number') {
+            if (!isEmptyValue(val as string) && REPORT_ACTION_NUMBER_PROPERTIES.includes(key as keyof ReportAction) && typeof val !== 'number') {
                 throw new NumberError();
             }
             validateReportActionDraftProperty(key as keyof ReportAction, onyxDataToString(val));
+        } catch (e) {
+            const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
+            throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
+        }
+    });
+}
+
+function validateTransactionViolationJSON(json: string) {
+    const parsedTransactionViolation = parseJSON(json) as TransactionViolation;
+    TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.forEach((key) => {
+        if (parsedTransactionViolation[key] !== undefined) {
+            return;
+        }
+
+        throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
+    });
+    Object.entries(parsedTransactionViolation).forEach(([key, val]) => {
+        try {
+            validateTransactionViolationDraftProperty(key as keyof TransactionViolation, onyxDataToString(val));
         } catch (e) {
             const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
             throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
@@ -597,7 +1299,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         return null;
     }
 
-    const doesReportHaveViolations = ReportUtils.shouldShowViolations(report, transactionViolations);
+    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
     const reason = ReportUtils.reasonForReportToBeInOptionList({
         report,
@@ -664,6 +1366,16 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
     return null;
 }
 
+function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
+    const transactionID = TransactionUtils.getTransactionID(report?.reportID);
+
+    return Number(transactionID) > 0
+        ? transactionID
+        : Object.values(reportActions ?? {})
+              .map((reportAction) => ReportActionsUtils.getLinkedTransactionID(reportAction))
+              .find(Boolean);
+}
+
 const DebugUtils = {
     stringifyJSON,
     onyxDataToDraftData,
@@ -680,12 +1392,17 @@ const DebugUtils = {
     validateString,
     validateReportDraftProperty,
     validateReportActionDraftProperty,
+    validateTransactionDraftProperty,
+    validateTransactionViolationDraftProperty,
     validateReportActionJSON,
+    validateTransactionViolationJSON,
     getReasonForShowingRowInLHN,
     getReasonAndReportActionForGBRInLHNRow,
     getReasonAndReportActionForRBRInLHNRow,
+    getTransactionID,
     REPORT_ACTION_REQUIRED_PROPERTIES,
     REPORT_REQUIRED_PROPERTIES,
+    TRANSACTION_REQUIRED_PROPERTIES,
 };
 
 export type {ObjectType, OnyxDataType};

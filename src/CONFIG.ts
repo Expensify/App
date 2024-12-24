@@ -103,4 +103,5 @@ export default {
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
+    ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
 } as const;

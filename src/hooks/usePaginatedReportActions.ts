@@ -2,6 +2,7 @@ import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import PaginationUtils from '@libs/PaginationUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -11,10 +12,12 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     // Use `||` instead of `??` to handle empty string.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportIDWithDefault = reportID || '-1';
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithDefault}`);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
         canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 

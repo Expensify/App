@@ -27,6 +27,8 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getGraphiteString/getGraphiteString.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
     "$ACTIONS_DIR/proposalPoliceComment/proposalPoliceComment.ts"
+    "$ACTIONS_DIR/checkAndroidStatus/checkAndroidStatus.ts"
+    "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

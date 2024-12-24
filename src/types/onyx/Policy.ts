@@ -1,3 +1,4 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -42,7 +43,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         currency?: string;
 
         /** Generated ID to identify the rate */
-        customUnitRateID?: string;
+        customUnitRateID: string;
 
         /** Whether this rate is currently enabled */
         enabled?: boolean;
@@ -1008,6 +1009,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
+        /** The accounting Method for NetSuite conenction config */
+        accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
@@ -1818,6 +1822,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the policy is pending an upgrade */
         isPendingUpgrade?: boolean;
 
+        /** Indicates if the policy is pending a downgrade */
+        isPendingDowngrade?: boolean;
+
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
 
@@ -1838,6 +1845,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Setup specialist guide assigned for the policy */
+        assignedGuide?: {
+            /** The guide's email */
+            email: string;
+        };
+
+        /** Indicate whether the Workspace plan can be downgraded */
+        canDowngrade?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1919,4 +1935,5 @@ export type {
     ApprovalRule,
     ExpenseRule,
     NetSuiteConnectionConfig,
+    MccGroup,
 };

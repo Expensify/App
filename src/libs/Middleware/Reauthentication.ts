@@ -1,31 +1,59 @@
+import redirectToSignIn from '@libs/actions/SignInRedirect';
 import * as Authentication from '@libs/Authentication';
 import Log from '@libs/Log';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import type {RequestError} from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Request from '@libs/Request';
+import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
 
+const reauthThrottle = new RequestThrottle('Re-authentication');
+
 function reauthenticate(commandName?: string): Promise<void> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
 
-    isAuthenticating = Authentication.reauthenticate(commandName)
+    isAuthenticating = retryReauthenticate(commandName)
         .then((response) => {
-            isAuthenticating = null;
             return response;
         })
         .catch((error) => {
-            isAuthenticating = null;
             throw error;
+        })
+        .finally(() => {
+            isAuthenticating = null;
         });
 
     return isAuthenticating;
+}
+
+function retryReauthenticate(commandName?: string): Promise<void> {
+    return Authentication.reauthenticate(commandName).catch((error: RequestError) => {
+        return reauthThrottle
+            .sleep(error, 'Authenticate')
+            .then(() => retryReauthenticate(commandName))
+            .catch(() => {
+                NetworkStore.setIsAuthenticating(false);
+                Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
+                redirectToSignIn('passwordForm.error.fallback');
+            });
+    });
+}
+
+// Used in tests to reset the reauthentication state
+function resetReauthentication(): void {
+    // Resets the authentication state flag to allow new reauthentication flows to start fresh
+    isAuthenticating = null;
+
+    // Clears any pending reauth timeouts set by reauthThrottle.sleep()
+    reauthThrottle.clear();
 }
 
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
@@ -118,3 +146,4 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         });
 
 export default Reauthentication;
+export {reauthenticate, resetReauthentication, reauthThrottle};

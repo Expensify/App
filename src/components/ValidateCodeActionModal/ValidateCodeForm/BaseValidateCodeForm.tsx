@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as User from '@userActions/User';
@@ -63,8 +64,14 @@ type ValidateCodeFormProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
+    /** Whether to show the verify button  */
+    hideSubmitButton?: boolean;
+
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
+
+    /** Whether the form is loading or not */
+    isLoading?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -78,6 +85,8 @@ function BaseValidateCodeForm({
     clearError,
     sendValidateCode,
     buttonStyles,
+    hideSubmitButton,
+    isLoading,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -120,9 +129,16 @@ function BaseValidateCodeForm({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            focusTimeoutRef.current = setTimeout(() => {
+
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!Browser.isMobileSafari()) {
+                focusTimeoutRef.current = setTimeout(() => {
+                    inputValidateCodeRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
                 inputValidateCodeRef.current?.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
+            }
+
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -167,7 +183,7 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (validateError) {
+            if (!isEmptyObject(validateError)) {
                 clearError();
                 User.clearValidateCodeActionError('actionVerified');
             }
@@ -205,7 +221,7 @@ function BaseValidateCodeForm({
                 errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
+                autoFocus={false}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
@@ -252,15 +268,18 @@ function BaseValidateCodeForm({
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
-                <Button
-                    isDisabled={isOffline}
-                    text={translate('common.verify')}
-                    onPress={validateAndSubmitForm}
-                    style={[styles.mt4]}
-                    success
-                    large
-                    isLoading={account?.isLoading}
-                />
+                {!hideSubmitButton && (
+                    <Button
+                        isDisabled={isOffline}
+                        text={translate('common.verify')}
+                        onPress={validateAndSubmitForm}
+                        style={[styles.mt4]}
+                        success
+                        large
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        isLoading={account?.isLoading || isLoading}
+                    />
+                )}
             </OfflineWithFeedback>
         </>
     );

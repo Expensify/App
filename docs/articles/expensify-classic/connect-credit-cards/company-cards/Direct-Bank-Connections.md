@@ -56,7 +56,7 @@ To completely remove the card connection, unassign every card from the list and 
 # Deep Dive 
 ## Configure card settings
 Once you’ve imported your company cards, the next step is configuring the cards’ settings. 
-If you're using a connected accounting system such as NetSuite, Xero, Sage Intacct, Quickbooks Desktop, or QuickBooks Online. In that case, you can connect the card to export to a specific credit card GL account.
+If you're using a connected accounting system such as NetSuite, Xero, Sage Intacct, QuickBooks Desktop, or QuickBooks Online. In that case, you can connect the card to export to a specific credit card GL account.
 1. Go to **Settings > Domains > _Domain Name_ > Company Cards**
 2. Click **Edit Exports** on the right-hand side of the card table and select the GL account you want to export expenses to 
 3. You're all done. After the account is set, exported expenses will be mapped to the specific account selected when exported by a Domain Admin.

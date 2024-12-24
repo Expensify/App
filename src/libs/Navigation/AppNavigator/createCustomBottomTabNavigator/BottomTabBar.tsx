@@ -74,7 +74,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(() =>
         getChatTabBrickRoad(activeWorkspaceID, currentReportID, reports, betas, policies, priorityMode, transactionViolations),
     );
 
@@ -163,7 +163,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 <PressableWithFeedback
                     onPress={navigateToSearch}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
+                    accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
@@ -184,7 +184,7 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                             styles.bottomTabBarLabel,
                         ]}
                     >
-                        {translate('common.search')}
+                        {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
                 <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />

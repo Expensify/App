@@ -4,7 +4,7 @@ description: Submit a report for reimbursement or retract a submitted report to 
 ---
 <div id="expensify-classic" markdown="1">
 
-Once your report is ready to send, you can submit your expenses for approval. Depending on your workspace settings, your reports may be automatically submitted for you, or you may have to manually submit them. 
+Once your report is ready to send, you can submit your expenses for approval.
 
 {% include info.html %}
 Depending on your workspace settings, your reports may be automatically submitted or approved. In this case, you will not need to manually submit your reports. 
@@ -41,9 +41,27 @@ Depending on your workspace settings, your reports may be automatically submitte
 
 {% include end-selector.html %}
 
+# Submit a report via guided review (Desktop Only)
+
+{% include selector.html values="desktop" %}
+
+{% include option.html value="desktop" %}
+1. Click the **Reports** tab on the Expensify website.
+2. Click a report to open it.
+3. Click the **Review** button at top of the report.
+4. Follow guided review to check each expense. If the expense looks ready to submit, click **Submit**.
+5. Once you've clicked Submit on all expenses on the report, the report will be submitted.
+{% include end-option.html %}
+
+{% include end-selector.html %}
+
 # Retract a report
 
 You can retract a submitted report to edit the reported expenses and re-submit the report. 
+
+{% include info.html %}
+**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
+{% include end-info.html %}
 
 {% include selector.html values="desktop, mobile" %}
 
@@ -59,8 +77,6 @@ You can retract a submitted report to edit the reported expenses and re-submit t
 3. Tap a report to open it. 
 4. Tap **Retract** at the top of the report.
 {% include end-option.html %}
-
-**Note:** Workspaces with Instant Submit set as the Scheduled Submit frequency won’t have the option to Retract entire reports, only individual expenses.
 
 {% include end-selector.html %}
 

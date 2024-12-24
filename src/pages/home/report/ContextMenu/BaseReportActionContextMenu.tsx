@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -76,6 +77,12 @@ type BaseReportActionContextMenuProps = {
     /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
     isUnreadChat?: boolean;
 
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
+    isThreadReportParentAction?: boolean;
+
     /** Content Ref */
     contentRef?: RefObject<View>;
 
@@ -101,6 +108,7 @@ function BaseReportActionContextMenu({
     isVisible = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    isThreadReportParentAction = false,
     selection = '',
     draftMessage = '',
     reportActionID,
@@ -127,7 +135,8 @@ function BaseReportActionContextMenu({
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
-    const policyID = ReportUtils.getReport(reportID)?.policyID;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const policyID = report?.policyID;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
@@ -143,7 +152,7 @@ function BaseReportActionContextMenu({
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
-    const childReport = ReportUtils.getReport(reportAction?.childReportID ?? '-1');
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(childReport?.parentReportID ?? '', childReport?.parentReportActionID ?? '');
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID ?? '-1');
 
@@ -170,7 +179,7 @@ function BaseReportActionContextMenu({
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
 
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID ?? '-1'}`);
-    const parentReport = ReportUtils.getReport(childReport?.parentReportID ?? '-1');
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
 
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(childReport);
@@ -194,6 +203,7 @@ function BaseReportActionContextMenu({
                 reportID,
                 isPinnedChat,
                 isUnreadChat,
+                isThreadReportParentAction,
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
@@ -260,6 +270,7 @@ function BaseReportActionContextMenu({
         },
         {isActive: shouldEnableArrowNavigation && shouldEnableContextMenuEnterShortcut, shouldPreventDefault: false},
     );
+    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
         showContextMenu(
@@ -284,6 +295,7 @@ function BaseReportActionContextMenu({
             true,
             () => {},
             true,
+            isThreadReportParentAction,
         );
     };
 
@@ -312,6 +324,7 @@ function BaseReportActionContextMenu({
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
+                            report,
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),

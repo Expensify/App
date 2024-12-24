@@ -102,12 +102,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Whether the input is disabled */
     disabled: boolean;
 
-    /** Whether the full composer is available */
-    isFullComposerAvailable: boolean;
-
-    /** Function to set whether the full composer is available */
-    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
     /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
@@ -227,8 +221,6 @@ function ComposerWithSuggestions(
         displayFileInModal,
         isBlockedFromConcierge,
         disabled,
-        isFullComposerAvailable,
-        setIsFullComposerAvailable,
         setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
@@ -511,12 +503,12 @@ function ComposerWithSuggestions(
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
+            setSelection(e.nativeEvent.selection);
+
             if (!textInputRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
-
-            setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
@@ -709,20 +701,19 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+    }, [tag]);
 
-        tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
                 'worklet';
 
-                if (event.target === tag.value) {
-                    cursorPositionValue.value = {
+                if (event.target === tag.get()) {
+                    cursorPositionValue.set({
                         x: event.selection.end.x,
                         y: event.selection.end.y,
-                    };
+                    });
                 }
             },
         },
@@ -731,7 +722,7 @@ function ComposerWithSuggestions(
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
             const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
@@ -776,8 +767,6 @@ function ComposerWithSuggestions(
                     isDisabled={isBlockedFromConcierge || disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
-                    isFullComposerAvailable={isFullComposerAvailable}
-                    setIsFullComposerAvailable={setIsFullComposerAvailable}
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"

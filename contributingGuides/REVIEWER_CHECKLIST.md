@@ -30,7 +30,7 @@
 - [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` have been tested & I retested again)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
-- [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified any variables that can be defined as constants (ie. in CONST.ts or at the top of the file that uses the constant) are defined as such
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -54,6 +54,7 @@
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
+- [ ] For any bug fix or new feature in this PR, I verified that sufficient [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) are included to prevent regressions in this flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 

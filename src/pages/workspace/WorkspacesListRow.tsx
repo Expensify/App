@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -12,11 +12,13 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -115,17 +117,6 @@ function WorkspacesListRow({
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
 
-    const userFriendlyWorkspaceType = useMemo(() => {
-        switch (workspaceType) {
-            case CONST.POLICY.TYPE.CORPORATE:
-                return translate('workspace.type.control');
-            case CONST.POLICY.TYPE.TEAM:
-                return translate('workspace.type.collect');
-            default:
-                return translate('workspace.type.free');
-        }
-    }, [workspaceType, translate]);
-
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
         // isWide is undefined we don't assume anything and simply return null.
@@ -213,12 +204,10 @@ function WorkspacesListRow({
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
                             <View style={styles.flex1}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                                >
-                                    {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
-                                </Text>
+                                <WorkspacesListRowDisplayName
+                                    isDeleted={isDeleted}
+                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                />
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
@@ -237,12 +226,14 @@ function WorkspacesListRow({
                         additionalStyles={styles.workspaceTypeWrapper}
                     />
                     <View>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        >
-                            {userFriendlyWorkspaceType}
-                        </Text>
+                        {!!workspaceType && (
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            >
+                                {getUserFriendlyWorkspaceType(workspaceType)}
+                            </Text>
+                        )}
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}

@@ -21,7 +21,7 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !shouldUseNarrowLayout}
             isVideoHovered={isHovered}
             videoDuration={duration}
-            style={[styles.w100, styles.h100]}
+            style={[styles.w100, styles.h100, styles.pb5]}
         />
     );
 }
