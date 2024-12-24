@@ -3479,7 +3479,7 @@ function downgradeToTeam(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `policy_${policyID}`,
             value: {
-                isPendingUpgrade: false,
+                isPendingDowngrade: false,
                 type: policy?.type,
             },
         },
