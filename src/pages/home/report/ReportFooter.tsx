@@ -63,7 +63,7 @@ type ReportFooterProps = {
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
 
-    /** Whether the soft keyboard is open */
+    /** Whether to show the keyboard on focus */
     showSoftInputOnFocus: boolean;
 
     /** A method to update showSoftInputOnFocus */

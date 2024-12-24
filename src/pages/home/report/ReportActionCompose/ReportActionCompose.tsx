@@ -92,7 +92,7 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
 
-    /** Whether the soft keyboard is open */
+    /** Whether to show the keyboard on focus */
     showSoftInputOnFocus: boolean;
 
     /** A method to update showSoftInputOnFocus */
