@@ -1040,7 +1040,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(reportID: string): boolean {
+function isCurrentUserSubmitter(reportID: string | undefined): boolean {
     if (!allReports || !reportID) {
         return false;
     }
@@ -2387,13 +2387,13 @@ function getIcons(
     if (isExpenseRequest(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const workspaceIcon = getWorkspaceIcon(report, policy);
-        const actorAccountDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
+        const actorDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
         const memberIcon = {
-            source: actorAccountDetails?.avatar ?? FallbackAvatar,
+            source: actorDetails?.avatar ?? FallbackAvatar,
             id: parentReportAction?.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: actorAccountDetails?.displayName ?? '',
-            fallbackIcon: actorAccountDetails?.fallbackIcon,
+            name: actorDetails?.displayName ?? '',
+            fallbackIcon: actorDetails?.fallbackIcon,
         };
 
         return [memberIcon, workspaceIcon];
@@ -2903,11 +2903,14 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 }
 
 /**
- * Returns number of transactions that are nonReimbursable
- *
+ * Checks if the report contains at least one Non-Reimbursable transaction
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const transactions = iouReportID ? reportsTransactions[iouReportID] ?? [] : [];
+    if (!iouReportID) {
+        return false;
+    }
+
+    const transactions = reportsTransactions[iouReportID] ?? [];
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
