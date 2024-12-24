@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {LayoutChangeEvent} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,7 +21,6 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
     const buttonScale = useSharedValue(1);
     const buttonOpacity = useSharedValue(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [buttonWidth, setButtonWidth] = useState<number | undefined>(undefined);
 
     const buttonStyles = useAnimatedStyle(() => ({
         transform: [{scale: buttonScale.get()}],
@@ -74,22 +72,12 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
         };
     }, [isPaidAnimationRunning, onAnimationFinish, buttonScale, buttonOpacity, resetAnimation, isApprovedAnimationRunning]);
 
-    const handleLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const newWidth = event.nativeEvent.layout.width;
-            if (newWidth !== buttonWidth) {
-                setButtonWidth(newWidth);
-            }
-        },
-        [buttonWidth],
-    );
-
     return (
         <Animated.View style={containerStyles}>
             {isPaidAnimationRunning || isApprovedAnimationRunning ? (
                 <Animated.View style={buttonStyles}>
                     <Button
-                        style={[styles.buttonMediumText, {width: buttonWidth}]}
+                        style={[styles.buttonMediumText]}
                         text={isPaidAnimationRunning ? translate('iou.paymentComplete') : translate('iou.approved')}
                         isLoading={isLoading}
                         success
@@ -97,10 +85,7 @@ function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, is
                     />
                 </Animated.View>
             ) : (
-                <Animated.View
-                    style={buttonStyles}
-                    onLayout={handleLayout}
-                >
+                <Animated.View style={buttonStyles}>
                     <SettlementButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...settlementButtonProps}
