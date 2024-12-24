@@ -47,7 +47,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const {canUseSpotnanaTravel, canUseWorkspaceDowngrade} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -184,7 +184,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            icon={Illustrations.House}
+            icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
@@ -253,7 +253,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
-                                description={translate('workspace.editor.nameInputLabel')}
+                                description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
@@ -328,7 +328,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             </OfflineWithFeedback>
                         )}
 
-                        {!!canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
+                        {!readOnly && !!policy?.type && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription

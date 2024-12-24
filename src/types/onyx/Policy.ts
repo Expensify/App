@@ -1831,6 +1831,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the policy is pending an upgrade */
         isPendingUpgrade?: boolean;
 
+        /** Indicates if the policy is pending a downgrade */
+        isPendingDowngrade?: boolean;
+
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
 
