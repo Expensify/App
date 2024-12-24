@@ -330,6 +330,24 @@ const resizeImageIfNeeded = (file: FileObject) => {
     }
     return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
+
+const createFile = (file: File): FileObject => {
+    if (Platform.OS === 'web') {
+        // Use the File API for web
+        return new File([file], file.name, {
+            type: file.type,
+            lastModified: file.lastModified,
+        });
+    }
+
+    // Use a React Native-specific solution
+    return {
+        uri: file.uri, // Use the file's URI (if available)
+        name: file.name,
+        type: file.type,
+    };
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -350,4 +368,5 @@ export {
     verifyFileFormat,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
+    createFile,
 };

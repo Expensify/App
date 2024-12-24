@@ -63,6 +63,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
@@ -1903,12 +1904,7 @@ function buildPolicyData(
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    const clonedFile = file
-        ? new File([file], file.name, {
-              type: file.type,
-              lastModified: file.lastModified,
-          })
-        : undefined;
+    const clonedFile = file ? (createFile(file) as File) : undefined;
 
     const params: CreateWorkspaceParams = {
         policyID,
@@ -2039,12 +2035,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         },
     ];
 
-    const clonedFile = file
-        ? new File([file], file.name, {
-              type: file.type,
-              lastModified: file.lastModified,
-          })
-        : undefined;
+    const clonedFile = file ? (createFile(file) as File) : undefined;
 
     const params: CreateWorkspaceParams = {
         policyID,
