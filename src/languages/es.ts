@@ -4324,11 +4324,11 @@ const translations = {
         planTypePage: {
             planTypes: {
                 team: {
-                    label: 'Collect',
+                    label: 'Recopilar',
                     description: 'Para equipos que buscan automatizar sus procesos.',
                 },
                 corporate: {
-                    label: 'Recolectar',
+                    label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
                 },
             },
