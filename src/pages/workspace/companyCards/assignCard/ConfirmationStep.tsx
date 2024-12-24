@@ -21,7 +21,7 @@ import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type ConfirmationStepProps = {
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Route to go back to */
     backTo?: Route;

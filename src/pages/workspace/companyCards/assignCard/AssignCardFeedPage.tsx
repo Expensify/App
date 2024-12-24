@@ -25,7 +25,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     const feed = route.params?.feed;
     const backTo = route.params?.backTo;
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
