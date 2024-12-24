@@ -296,7 +296,7 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(ROUTES.HOME, false, true);
+        Navigation.goBack(undefined, false, true);
     }, [isInNarrowPaneModal]);
 
     let headerView = (
