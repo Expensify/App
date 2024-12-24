@@ -787,7 +787,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 /**
  * Returns the report
  */
-function getReport(reportID: string): OnyxEntry<Report> {
+function getReport(reportID: string | undefined): OnyxEntry<Report> {
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
@@ -3030,11 +3030,11 @@ function getReportFieldKey(reportFieldId: string) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyReportField> {
+function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
     const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
     const fieldList = policyReportFields?.[1]?.fieldList;
 
-    if (!policyReportFields || !fieldList) {
+    if (!policyReportFields || !fieldList || !policyID) {
         return {};
     }
 
@@ -4587,7 +4587,7 @@ function buildOptimisticIOUReport(
     payeeAccountID: number,
     payerAccountID: number,
     total: number,
-    chatReportID: string,
+    chatReportID: string | undefined,
     currency: string,
     isSendingMoney = false,
     parentReportActionID?: string,
@@ -4659,7 +4659,14 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 }
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
-function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
+function buildOptimisticInvoiceReport(
+    chatReportID: string,
+    policyID: string | undefined,
+    receiverAccountID: number,
+    receiverName: string,
+    total: number,
+    currency: string,
+): OptimisticExpenseReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
 
     return {
@@ -4729,8 +4736,8 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>) {
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  */
 function buildOptimisticExpenseReport(
-    chatReportID: string,
-    policyID: string,
+    chatReportID: string | undefined,
+    policyID: string | undefined,
     payeeAccountID: number,
     total: number,
     currency: string,
@@ -5323,7 +5330,7 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param transactionThreadID - The reportID of the transaction thread
  * @param movedToReportID - The reportID of the report the transaction is moved to
  */
-function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string | undefined, movedToReportID: string | undefined): OptimisticModifiedExpenseReportAction {
     const delegateAccountDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
 
     return {
@@ -6751,7 +6758,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
 /**
  * Attempts to find an invoice chat report in onyx with the provided policyID and receiverID.
  */
-function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getInvoiceChatByParticipants(policyID: string | undefined, receiverID: string | number, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     return Object.values(reports ?? {}).find((report) => {
         if (!report || !isInvoiceRoom(report) || isArchivedRoom(report)) {
             return false;

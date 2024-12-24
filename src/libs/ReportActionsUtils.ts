@@ -1126,7 +1126,7 @@ function doesReportHaveVisibleActions(reportID: string, canUserPerformWriteActio
     return visibleReportActionsWithoutTaskSystemMessage.length > 0;
 }
 
-function getAllReportActions(reportID: string): ReportActions {
+function getAllReportActions(reportID: string | undefined): ReportActions {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
 }
 
