@@ -49,6 +49,10 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
         OpenWorkspacePlanPage(policyID);
     }, [policyID]);
 
+    useEffect(() => {
+        setCurrentPlan(policy?.type);
+    }, [policy?.type]);
+
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
         .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
