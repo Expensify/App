@@ -38,6 +38,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const submit = () => {
+        if (!policyID) {
+            return;
+        }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();
