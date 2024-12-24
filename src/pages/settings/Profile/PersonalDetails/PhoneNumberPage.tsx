@@ -29,10 +29,9 @@ function PhoneNumberPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
-
     const {inputCallbackRef} = useAutoFocusInput();
-
+    const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
+    
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
