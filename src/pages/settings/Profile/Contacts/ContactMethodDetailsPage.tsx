@@ -152,7 +152,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
 
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+	//useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
@@ -304,7 +304,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 		}
 
 
-
+                {isValidateCodeActionModalVisible &&
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb7, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{translate('contacts.enterMagicCode', {contactMethod})}</Text>
                     <ValidateCodeForm
@@ -319,7 +319,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     />
                 </View>
-
+                }
 
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}
