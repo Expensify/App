@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -25,6 +26,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
@@ -73,6 +75,180 @@ describe('actions/IOU', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+    describe('trackExpense', () => {
+        it('categorize the tracked expense self DM', async () => {
+            // Setup fake data
+            const participant = {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID};
+            const fakeWayPoints = {
+                waypoint0: {
+                    keyForList: '88 Kearny Street_1735023533854',
+                    lat: 37.7886378,
+                    lng: -122.4033442,
+                    address: '88 Kearny Street, San Francisco, CA, USA',
+                    name: '88 Kearny Street',
+                },
+                waypoint1: {
+                    keyForList: 'Golden Gate Bridge Vista Point_1735023537514',
+                    lat: 37.8077876,
+                    lng: -122.4752007,
+                    address: 'Golden Gate Bridge Vista Point, San Francisco, CA, USA',
+                    name: 'Golden Gate Bridge Vista Point',
+                },
+            };
+            const selfDMReport = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const expenseReport = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const fakeCategories = createRandomPolicyCategories(3);
+            const fakePolicy = createRandomPolicy(1);
+            const fakeTransaction = {
+                ...createRandomTransaction(1),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                    waypoints: fakeWayPoints,
+                },
+            };
+
+            // Save the transaction draft in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeTransaction.transactionID}`, fakeTransaction);
+            mockFetch?.pause?.();
+            //  Submit the tracked expense
+            IOU.trackExpense(
+                selfDMReport,
+                fakeTransaction.amount,
+                fakeTransaction.currency,
+                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                fakeTransaction.merchant,
+                participant.login,
+                participant.accountID,
+                participant,
+                '',
+                true,
+                undefined,
+                '',
+                undefined,
+                '',
+                0,
+                false,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                fakeWayPoints,
+                CONST.IOU.ACTION.CREATE,
+                fakeTransaction?.actionableWhisperReportActionID,
+                fakeTransaction?.linkedTrackedExpenseReportAction,
+                fakeTransaction?.linkedTrackedExpenseReportID,
+                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            );
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            const transaction = await new Promise<OnyxEntry<OnyxTypes.Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(transactions ?? {}).at(0));
+                    },
+                });
+            });
+            const allReportActions = await new Promise<OnyxCollection<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportActions);
+                    },
+                });
+            });
+            const selfDMReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`];
+
+            // The IOU report should have a ACTIONABLE_TRACK_EXPENSE_WHISPER action and IOU action
+            expect(Object.values(selfDMReportActions ?? {}).length).toBe(2);
+
+            // Simulate step clear cache, then the local flag iouRequestType is removed
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
+                iouRequestType: null,
+            });
+
+            // Simulate step create draft transaction in the report screen
+            const reportAction = Object.values(selfDMReportActions ?? {}).find((reportAction) => ReportActionsUtils.isActionableTrackExpense(reportAction));
+            ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(
+                transaction?.transactionID ?? '',
+                selfDMReport.reportID,
+                CONST.IOU.ACTION.CATEGORIZE,
+                reportAction?.reportActionID,
+            );
+            await waitForBatchedUpdates();
+            const allTransactionsDraft = await new Promise<OnyxCollection<OnyxTypes.Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                    waitForCollectionCallback: true,
+                    callback: (transactionDrafts) => {
+                        Onyx.disconnect(connection);
+                        resolve(transactionDrafts);
+                    },
+                });
+            });
+            const transactionDraft = allTransactionsDraft?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`];
+            // Categorize the tracked expense
+            IOU.trackExpense(
+                expenseReport,
+                transactionDraft?.amount ?? fakeTransaction.amount,
+                transactionDraft?.currency ?? fakeTransaction.currency,
+                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                transactionDraft?.merchant ?? fakeTransaction.merchant,
+                participant.login,
+                participant.accountID,
+                {...participant, isPolicyExpenseChat: true},
+                '',
+                false,
+                undefined,
+                Object.keys(fakeCategories).at(0) ?? '',
+                '',
+                '',
+                0,
+                undefined,
+                fakePolicy,
+                undefined,
+                fakeCategories,
+                undefined,
+                Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
+                CONST.IOU.ACTION.CATEGORIZE,
+                transactionDraft?.actionableWhisperReportActionID,
+                transactionDraft?.linkedTrackedExpenseReportAction,
+                transactionDraft?.linkedTrackedExpenseReportID,
+                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+            );
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+
+            // Verify the transaction remains a distance request
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const isDistanceRequest = TransactionUtils.isDistanceRequest(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`]);
+                        expect(isDistanceRequest).toBe(true);
+                        resolve();
+                    },
+                });
+            });
+        });
     });
 
     describe('requestMoney', () => {
