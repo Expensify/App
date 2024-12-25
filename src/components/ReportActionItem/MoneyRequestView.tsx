@@ -1,7 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import mapValues from 'lodash/mapValues';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -20,6 +22,7 @@ import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -437,6 +440,23 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         );
     });
 
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+
+    const dismissReceiptError = useCallback(() => {
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+                Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                return;
+            }
+            if (parentReportAction) {
+                IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                return;
+            }
+        }
+        Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
+        ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -459,18 +479,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 return;
                             }
 
-                            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                if (chatReport?.reportID && ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
-                                    Report.navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
-                                    return;
-                                }
-                                if (parentReportAction) {
-                                    IOU.cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                    return;
-                                }
+                            const errorEntries = Object.entries(errors ?? {});
+                            const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+                            const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
+
+                            if (hasReceiptError) {
+                                setShowConfirmDismissReceiptError(true);
+                            } else {
+                                dismissReceiptError();
                             }
-                            Transaction.clearError(transaction?.transactionID ?? linkedTransactionID);
-                            ReportActions.clearAllRelatedReportActionErrors(report?.reportID ?? '-1', parentReportAction);
                         }}
                     >
                         {hasReceipt && (
@@ -747,6 +764,22 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </View>
                 )}
             </>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissReceiptError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </View>
     );
 }

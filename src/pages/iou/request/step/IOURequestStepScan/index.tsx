@@ -270,19 +270,19 @@ function IOURequestStepScan({
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                IOU.trackExpense(
+                IOU.trackExpense({
                     report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
+                    amount: 0,
+                    currency: transaction?.currency ?? 'USD',
+                    created: transaction?.created ?? '',
+                    merchant: '',
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
                     participant,
-                    '',
-                    false,
+                    comment: '',
+                    isDraftPolicy: false,
                     receipt,
-                );
+                });
             } else {
                 IOU.requestMoney({
                     report,
@@ -359,31 +359,31 @@ function IOURequestStepScan({
                         (successData) => {
                             playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                IOU.trackExpense(
+                                IOU.trackExpense({
                                     report,
-                                    0,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
+                                    amount: 0,
+                                    currency: transaction?.currency ?? 'USD',
+                                    created: transaction?.created ?? '',
+                                    merchant: '',
+                                    payeeEmail: currentUserPersonalDetails.login,
+                                    payeeAccountID: currentUserPersonalDetails.accountID,
                                     participant,
-                                    '',
-                                    false,
+                                    comment: '',
+                                    isDraftPolicy: false,
                                     receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
+                                    category: '',
+                                    tag: '',
+                                    taxCode: '',
+                                    taxAmount: 0,
+                                    billable: false,
                                     policy,
-                                    {},
-                                    {},
-                                    {
+                                    policyTagList: {},
+                                    policyCategories: {},
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                });
                             } else {
                                 IOU.requestMoney({
                                     report,
@@ -455,7 +455,7 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            IOU.replaceReceipt(transactionID, file as File, source);
+            IOU.replaceReceipt({transactionID, file: file as File, source});
             navigateBack();
         },
         [transactionID, navigateBack],
