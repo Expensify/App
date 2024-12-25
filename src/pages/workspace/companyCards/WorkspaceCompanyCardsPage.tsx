@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -43,6 +44,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {cardList, ...cards} = cardsList ?? {};
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
     const filteredCardList = CardUtils.getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
     const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
@@ -69,6 +73,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     }, [selectedFeed, isLoading, policyID, isPending]);
 
     const handleAssignCard = () => {
+        if (isActingAsDelegate) {
+            setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
         if (!selectedFeed) {
             return;
         }
@@ -141,6 +149,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     )}
                 </WorkspacePageWithSections>
             )}
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }

@@ -5,14 +5,33 @@ description: Get started with Expensify by joining your company's workspace
 
 <div id="new-expensify" markdown="1">
 
-Welcome to Expensify! If you received an invitation to join your company’s Expensify workspace, follow the 5 steps below to get started.
+Welcome to Expensify! If you received an invitation to join your company’s Expensify workspace, follow the steps below to get started.
 
-# 1. Download the mobile app
+# 1. Access Expensify on your preferred device or browser
 
-Upload your expenses and check your reports right from your phone by downloading the Expensify mobile app. You can search for “Expensify” in the app store, or tap one of the links below.
+Get started by downloading Expensify mobile or desktop apps and ensure you’re using a supported web browser. Here’s how:
 
-[iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) 
-| [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
+## Download the Expensify Apps:
+
+- **Mobile Devices:** Download the Expensify app for [Android](https://play.google.com/store/apps/details?id=com.expensify.chat) or [iOS](https://apps.apple.com/us/app/expensify-cash/id1530278510).
+- **Desktop Devices:** Download the Expensify app for [macOS](https://new.expensify.com/NewExpensify.dmg).
+
+## Use Expensify on the Web: 
+
+Expensify is also accessible via the web and supports the following browsers: 
+
+- [Google Chrome](https://www.google.com/chrome/)
+- [Mozilla Firefox](https://www.mozilla.com/firefox)
+- [Microsoft Edge](https://www.microsoft.com/edge)
+- [Apple Safari](https://www.apple.com/safari) (Apple devices only)
+- [Opera](https://www.opera.com/)
+- [Microsoft Internet Explorer](https://www.microsoft.com/ie) (Version 11 only)
+
+{% include info.html %}
+Note: Microsoft no longer provides support or security updates for Internet Explorer versions below 11. To avoid accessibility and security issues, we recommend updating your IE version or switching to a different browser.
+{% include end-info.html %}
+
+By using a compatible device or browser, you’ll ensure the best experience with Expensify.
 
 # 2. Add your name, photo, and preferences
 

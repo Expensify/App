@@ -1,5 +1,7 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import ScreenWrapper from '@components/ScreenWrapper';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -26,15 +28,11 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id ?? '-1';
     const backTo = route?.params?.backTo;
 
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+
     useEffect(() => {
         Card.startIssueNewCardFlow(policyID);
     }, [policyID]);
-
-    useEffect(() => {
-        return () => {
-            Card.clearIssueNewCardFlow();
-        };
-    }, []);
 
     const getCurrentStep = () => {
         switch (currentStep) {
@@ -59,6 +57,18 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return <AssigneeStep policy={policy} />;
         }
     };
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={IssueNewCardPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <AccessOrNotFoundWrapper
