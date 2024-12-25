@@ -108,7 +108,7 @@ function BaseListItem<TItem extends ListItem>({
                 wrapperStyle={pressableWrapperStyle}
             >
                 <View
-                    testID={`base-list-item-${item.keyForList}`}
+                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,

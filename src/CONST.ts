@@ -6448,6 +6448,8 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
+
+    BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

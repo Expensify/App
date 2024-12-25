@@ -3,6 +3,7 @@ import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 
 type BaseSelectionListSections<TItem extends ListItem> = {
     sections: TItem[];
@@ -42,7 +43,7 @@ describe('BaseSelectionList', () => {
 
     it('should handle item press correctly', () => {
         render(<BaseListItemRenderer sections={mockSections} />);
-        fireEvent.press(screen.getByTestId('base-list-item-1'));
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledWith({
             ...mockSections.at(1),
             shouldAnimateInHighlight: false,
@@ -55,11 +56,11 @@ describe('BaseSelectionList', () => {
             isSelected: section.keyForList === '2',
         }));
         const {rerender} = render(<BaseListItemRenderer sections={mockSections} />);
-        expect(screen.getByTestId('base-list-item-1')).toHaveAccessibilityState({
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveAccessibilityState({
             selected: true,
         });
         rerender(<BaseListItemRenderer sections={updatedMockSections} />);
-        expect(screen.getByTestId('base-list-item-2')).toHaveAccessibilityState({
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toHaveAccessibilityState({
             selected: true,
         });
     });
