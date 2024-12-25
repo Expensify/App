@@ -7845,6 +7845,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.dismissModal();
     Report.notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
