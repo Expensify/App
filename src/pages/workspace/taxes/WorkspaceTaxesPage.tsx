@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -89,6 +90,25 @@ function WorkspaceTaxesPage({
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+    const updateNewSelectedOptions = useCallback(
+        (newSelectedOptions: string[]) => {
+            if (!canSelectMultiple) {
+                return;
+            }
+            setSelectedTaxesIDs(newSelectedOptions);
+        },
+        [canSelectMultiple],
+    );
+    const availableOptions = useMemo(
+        () =>
+            canSelectMultiple && policy
+                ? Object.keys(policy?.taxRates?.taxes ?? {})?.filter(
+                      (key) => (policy?.taxRates?.taxes ?? {})?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && PolicyUtils.canEditTaxRate(policy, key),
+                  )
+                : [],
+        [policy, canSelectMultiple],
+    );
+    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedTaxesIDs : {}, updateNewSelectedOptions);
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {
@@ -126,7 +146,6 @@ function WorkspaceTaxesPage({
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate]);
-
     const isLoading = !isOffline && taxesList === undefined;
 
     const toggleTax = (tax: ListItem) => {

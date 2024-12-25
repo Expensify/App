@@ -22,6 +22,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -89,6 +90,30 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+    const updateNewSelectedOptions = useCallback(
+        (newSelectedOptions: string[]) => {
+            if (!canSelectMultiple) {
+                return;
+            }
+            setSelectedTags(
+                newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
+                    acc[key] = true;
+                    return acc;
+                }, {} as Record<string, boolean>),
+            );
+        },
+        [canSelectMultiple],
+    );
+    const availableOptions = useMemo(
+        () =>
+            canSelectMultiple && policyTagLists
+                ? Object.values(policyTagLists.at(0)?.tags ?? {})
+                      ?.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                      .map((o) => o.name)
+                : [],
+        [policyTagLists, canSelectMultiple],
+    );
+    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedTags : {}, updateNewSelectedOptions);
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
         if (!policyTagList) {

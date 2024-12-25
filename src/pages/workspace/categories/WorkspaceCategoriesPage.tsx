@@ -23,6 +23,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -100,6 +101,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+    const updateNewSelectedOptions = useCallback((newSelectedOptions: string[]) => {
+        setSelectedCategories(
+            newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
+                acc[key] = true;
+                return acc;
+            }, {} as Record<string, boolean>),
+        );
+    }, []);
+    const availableOptions = useMemo(
+        () =>
+            canSelectMultiple
+                ? Object.values(policyCategories ?? {})
+                      ?.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                      .map((o) => o.name)
+                : [],
+        [policyCategories, canSelectMultiple],
+    );
+    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedCategories : {}, updateNewSelectedOptions);
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
