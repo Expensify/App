@@ -141,8 +141,6 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
         />
     );
 
-    const freeTrialButton = <FreeTrial pressable />;
-
     const renderAdditionalText = () => {
         if (shouldShowSubtitle() || isPersonalExpenseChat || !policyName || !isEmptyObject(parentNavigationSubtitleData) || isSelfDM) {
             return null;
@@ -315,7 +313,7 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                 {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
-                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && freeTrialButton}
+                                {!shouldUseNarrowLayout && isChatUsedForOnboarding && <FreeTrial pressable />}
                                 {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                 {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                             </View>
@@ -339,7 +337,12 @@ function HeaderView({report, parentReportAction, reportID, onNavigationMenuButto
                 )}
             </View>
             {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{freeTrialButton}</View>}
+            {!isLoading && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                <FreeTrial
+                    pressable
+                    addSpacing
+                />
+            )}
             {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={[styles.pb3, styles.ph5]}>{guideBookingButton}</View>}
         </View>
     );
