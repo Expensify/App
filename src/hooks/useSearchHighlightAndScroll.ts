@@ -27,7 +27,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
-    const hasItemBeenAddedRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
@@ -51,11 +50,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         }
         const hasTransactionChange = !isEqual(transactionIDList, previousTransactionIDList);
         const hasReportActionChange = !isEqual(reportActionIDList, previousReportActionIDList);
-
-        // We only want to highlight new items only if addition of transactions or report actions triggered the search.
-        // This is because on deletion of items sometimes the BE returns old items in place of the deleted ones
-        // but we don't want to highlight these old items although they are new to the current search result.
-        hasItemBeenAddedRef.current = isChat ? reportActionIDList.length > previousReportActionIDList.length : transactionIDList.length > previousTransactionIDList.length;
 
         // Check if there is a change in transaction or report action list
         if ((!isChat && hasTransactionChange) || (isChat && hasReportActionChange)) {
@@ -98,7 +92,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
             const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasItemBeenAddedRef.current) {
+            if (!triggeredByHookRef.current || newReportActionIDs.length === 0) {
                 return;
             }
 
@@ -114,7 +108,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
             const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasItemBeenAddedRef.current) {
+            if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
                 return;
             }
 
