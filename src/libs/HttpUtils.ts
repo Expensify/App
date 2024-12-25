@@ -160,16 +160,37 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-        if (typeof data[key] === 'undefined') {
+        const value = data[key];
+        if (value === undefined) {
             return;
         }
-        formData.append(key, data[key] as string | Blob);
+        validateFormDataParameter(command, key, value);
+        formData.append(key, value as string | Blob);
     });
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
 
     const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
     return processHTTPRequest(url, type, formData, abortSignalController?.signal);
+}
+
+/**
+ * Ensures no value of type `object` other than Blob or its subclasses is passed to XMLHttpRequest.
+ * Otherwise, it will be incorrectly serialized as `[object Object]` and cause an error on Android.
+ * See https://github.com/Expensify/App/issues/45086
+ */
+function validateFormDataParameter(command: string, key: string, value: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const isValid = (value: unknown) => value === null || typeof value !== 'object' || value instanceof Blob;
+    if (Array.isArray(value)) {
+        if (value.every(isValid)) {
+            return;
+        }
+    } else if (isValid(value)) {
+        return;
+    }
+    // eslint-disable-next-line no-console
+    console.warn(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`);
 }
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
