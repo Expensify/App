@@ -156,6 +156,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
+        User.requestContactMethodValidateCode(contactMethod)
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
