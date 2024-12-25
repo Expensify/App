@@ -49,6 +49,10 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
         OpenWorkspacePlanPage(policyID);
     }, [policyID]);
 
+    useEffect(() => {
+        setCurrentPlan(policy?.type);
+    }, [policy?.type]);
+
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
         .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
@@ -76,13 +80,18 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
-        if (policy?.type === currentPlan) {
-            Navigation.goBack();
+        if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;
         }
 
-        if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+        if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            return;
+        }
+
+        if (policy?.type === currentPlan) {
+            Navigation.goBack();
         }
     };
 
