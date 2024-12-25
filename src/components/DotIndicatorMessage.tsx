@@ -117,8 +117,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
                                             case 'moneyRequest': {
                                                 dismissError();
-                                                const requestMoneyParams = {...message.retryParams} as IOU.RequestMoney;
-                                                requestMoneyParams.receipt = reconstructedFile;
+                                                const requestMoneyParams = {...message.retryParams} as IOU.RequestMoneyInformation;
+                                                requestMoneyParams.transactionParams.receipt = reconstructedFile;
                                                 requestMoneyParams.isRetry = true;
                                                 IOU.requestMoney(requestMoneyParams);
                                                 break;
@@ -140,7 +140,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                         <TextLink
                             style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                             onPress={() => {
-                                fileDownload(message.source, message.filename);
+                                fileDownload(message.source, message.filename).finally(() => dismissError());
                             }}
                         >
                             {Localize.translateLocal('iou.error.saveFileMessage')}

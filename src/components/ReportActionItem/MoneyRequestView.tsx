@@ -489,6 +489,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 dismissReceiptError();
                             }
                         }}
+                        dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
                             <View style={styles.moneyRequestViewImage}>

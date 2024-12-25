@@ -81,6 +81,8 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import { mapValues } from 'lodash';
+import ConfirmModal from '@components/ConfirmModal';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -346,6 +348,16 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
+
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const dismissError = useCallback(() => {
+        console.log("dismiss error pure")
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (transactionID) {
+            clearError(transactionID);
+        }
+        clearAllRelatedReportActionErrors(reportID, action);
+    }, [reportID, action]);
 
     useEffect(
         () => () => {
@@ -1117,12 +1129,18 @@ function PureReportActionItem({
                         >
                             <OfflineWithFeedback
                                 onClose={() => {
-                                    const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : undefined;
-                                    if (transactionID) {
-                                        clearError(transactionID);
+                                    const errors = linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors);
+                                    const errorEntries = Object.entries(errors ?? {});
+                                    const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+                                    const hasReceiptError = Object.values(errorMessages).some((error) => ErrorUtils.isReceiptError(error));
+
+                                    if (hasReceiptError) {
+                                        setShowConfirmDismissReceiptError(true);
+                                    } else {
+                                        dismissError();
                                     }
-                                    clearAllRelatedReportActionErrors(reportID, action);
                                 }}
+                                dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
@@ -1165,6 +1183,22 @@ function PureReportActionItem({
             <View style={styles.reportActionSystemMessageContainer}>
                 <InlineSystemMessage message={action.error} />
             </View>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </PressableWithSecondaryInteraction>
     );
 }
