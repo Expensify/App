@@ -721,6 +721,8 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
+        WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
+        WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
     },
 } as const;
 
@@ -814,6 +816,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
+    [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -874,8 +877,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
 
-    // NVP_ONBOARDING is an array for old users.
-    [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
+    [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
     // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
     [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;

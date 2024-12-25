@@ -33,7 +33,6 @@ import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
-    lastMessageTranslationKey?: string;
     lastMessageText: string;
     lastMessageHtml?: string;
 };
@@ -812,7 +811,6 @@ function getLastVisibleMessage(
 
     if (message && isReportMessageAttachment(message)) {
         return {
-            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
             lastMessageText: CONST.ATTACHMENT_MESSAGE_TEXT,
             lastMessageHtml: CONST.TRANSLATION_KEYS.ATTACHMENT,
         };
@@ -929,7 +927,11 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return getOriginalMessage(reportAction)?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | undefined {
+function getReportAction(reportID: string | undefined, reportActionID: string | undefined): ReportAction | undefined {
+    if (!reportID || !reportActionID) {
+        return undefined;
+    }
+
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
 }
 
@@ -975,7 +977,11 @@ function getMostRecentReportActionLastModified(): string {
 /**
  * @returns The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+    if (!chatReportID || !iouReportID) {
+        return;
+    }
+
     return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
             reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
@@ -1597,7 +1603,11 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
 /**
  * Get the track expense actionable whisper of the corresponding track expense
  */
-function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
+function getTrackExpenseActionableWhisper(transactionID: string | undefined, chatReportID: string | undefined) {
+    if (!transactionID || !chatReportID) {
+        return undefined;
+    }
+
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }

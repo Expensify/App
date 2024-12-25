@@ -7,7 +7,6 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
@@ -158,18 +157,11 @@ function ScreenWrapper(
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const keyboardState = useKeyboardState();
     const {isDevelopment} = useEnvironment();
     const {isOffline} = useNetwork();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
-
-    const isKeyboardShownRef = useRef<boolean>(false);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    isKeyboardShownRef.current = keyboardState?.isKeyboardShown ?? false;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
@@ -191,7 +183,7 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
@@ -221,7 +213,7 @@ function ScreenWrapper(
         // described here https://reactnavigation.org/docs/preventing-going-back/#limitations
         const beforeRemoveSubscription = shouldDismissKeyboardBeforeClose
             ? navigation.addListener('beforeRemove', () => {
-                  if (!isKeyboardShownRef.current) {
+                  if (!Keyboard.isVisible()) {
                       return;
                   }
                   Keyboard.dismiss();
