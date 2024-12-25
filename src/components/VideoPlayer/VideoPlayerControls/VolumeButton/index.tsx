@@ -33,7 +33,7 @@ const getVolumeIcon = (volume: number) => {
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateVolume, volume} = useVolumeContext();
+    const {updateVolume, volume, toggleMute} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
@@ -95,7 +95,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
 
                     <IconButton
                         tooltipText={volume.get() === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
-                        onPress={() => updateVolume(volume.get() === 0 ? 1 : 0)}
+                        onPress={toggleMute}
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow

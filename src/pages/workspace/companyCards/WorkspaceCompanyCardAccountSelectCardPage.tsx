@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardAccountSelectCardProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
+type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
 
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
@@ -40,6 +40,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
         return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
@@ -81,15 +82,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                     {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {!!exportMenuItem && (
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={exportMenuItem.onExportPagePress}
-                                >
-                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
-                                </TextLink>
+                            {!!exportMenuItem && !isXeroConnection && (
+                                <>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitlePart')}{' '}
+                                    <TextLink
+                                        style={styles.link}
+                                        onPress={exportMenuItem.onExportPagePress}
+                                    >
+                                        {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
+                                    </TextLink>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
+                                </>
                             )}
-                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
                         </Text>
                     )}
                 </View>

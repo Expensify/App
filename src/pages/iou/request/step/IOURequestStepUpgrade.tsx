@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,6 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
@@ -16,7 +16,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type IOURequestStepUpgradeProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
+type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
 function IOURequestStepUpgrade({
     route: {

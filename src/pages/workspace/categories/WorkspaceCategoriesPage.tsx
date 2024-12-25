@@ -1,5 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -24,6 +23,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -38,6 +38,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -56,7 +57,7 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -70,7 +71,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
-    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '-1';
     const backTo = route.params?.backTo;
@@ -84,7 +84,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
 
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -98,12 +98,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, [fetchCategories]),
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedCategories({});
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
@@ -151,6 +147,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategorySettings = (category: PolicyOption) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleCategory(category);
+            return;
+        }
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
@@ -182,7 +182,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
@@ -359,6 +359,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedCategories({});
@@ -408,7 +409,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         sections={[{data: categoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}

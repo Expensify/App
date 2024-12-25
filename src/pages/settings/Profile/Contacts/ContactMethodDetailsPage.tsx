@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
@@ -23,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import * as User from '@userActions/User';
@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
+type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -272,7 +272,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     sendValidateCode={() => User.requestContactMethodValidateCode(contactMethod)}
-                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}
+                    descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                 />
 
                 {!isValidateCodeActionModalVisible && getMenuItems()}

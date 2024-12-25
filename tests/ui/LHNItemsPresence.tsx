@@ -1,11 +1,15 @@
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
+import FontUtils from '@styles/utils/FontUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -48,6 +52,7 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
 const betas = [CONST.BETAS.DEFAULT_ROOMS];
+const TEST_POLICY_ID = '1';
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -64,11 +69,24 @@ const getDisplayNames = () => {
 };
 
 // Reusable function to setup a mock report. Feel free to add more parameters as needed.
-const createReport = (isPinned = false, participants = [1, 2], messageCount = 1) => {
+const createReport = (
+    isPinned = false,
+    participants = [1, 2],
+    messageCount = 1,
+    chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined = undefined,
+    policyID: string = CONST.POLICY.ID_FAKE,
+    isUnread = false,
+) => {
     return {
-        ...LHNTestUtils.getFakeReport(participants, messageCount),
+        ...LHNTestUtils.getFakeReport(participants, messageCount, isUnread),
         isPinned,
+        chatType,
+        policyID,
     };
+};
+
+const createFakeTransactionViolation = (violationName: ViolationName = CONST.VIOLATIONS.HOLD, showInReview = true) => {
+    return LHNTestUtils.getFakeTransactionViolation(violationName, showInReview);
 };
 
 describe('SidebarLinksData', () => {
@@ -80,14 +98,15 @@ describe('SidebarLinksData', () => {
     });
 
     // Helper to initialize common state
-    const initializeState = async (reportData: ReportCollectionDataSet) => {
+    const initializeState = async (reportData?: ReportCollectionDataSet, otherData?: OnyxMultiSetInput) => {
         await waitForBatchedUpdates();
         await Onyx.multiSet({
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
             [ONYXKEYS.BETAS]: betas,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.IS_LOADING_APP]: false,
-            ...reportData,
+            ...(reportData ?? {}),
+            ...(otherData ?? {}),
         });
     };
 
@@ -172,7 +191,141 @@ describe('SidebarLinksData', () => {
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
 
-            // TODO add the proper assertion for the pinned report.
+            // And the pin icon should be shown
+            expect(screen.getByTestId('Pin Icon')).toBeOnTheScreen();
+        });
+
+        it('should display the report with violations', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // And the report is initialized in Onyx.
+            const report: Report = {
+                ...createReport(true, undefined, undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, TEST_POLICY_ID),
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // The report should appear in the sidebar because it’s pinned.
+            expect(getOptionRows()).toHaveLength(1);
+            await waitForBatchedUpdatesWithAct();
+
+            const expenseReport: Report = {
+                ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
+            const transactionViolation = createFakeTransactionViolation();
+
+            // When the report has outstanding violations
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
+
+            // The RBR icon should be shown
+            expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
+        });
+
+        it('should display the report awaiting user action', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(false),
+                hasOutstandingChildRequest: true,
+            };
+
+            // And the report is initialized in Onyx.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // Then the report should appear in the sidebar because it requires attention from the user
+            expect(getOptionRows()).toHaveLength(1);
+
+            // And a green dot icon should be shown
+            expect(screen.getByTestId('GBR Icon')).toBeOnTheScreen();
+        });
+
+        it('should display the archived report in the default mode', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const archivedReport: Report = {
+                ...createReport(false),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            const reportNameValuePairs = {
+                type: 'chat',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_isArchived: true,
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in the default mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            // The report should appear in the sidebar because it's archived
+            expect(getOptionRows()).toHaveLength(1);
+        });
+
+        it('should display the selfDM report by default', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report = createReport(true, undefined, undefined, undefined, CONST.REPORT.CHAT_TYPE.SELF_DM, undefined);
+
+            // And the selfDM is initialized in Onyx
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // The selfDM report should appear in the sidebar by default
+            expect(getOptionRows()).toHaveLength(1);
+        });
+
+        it('should display the unread report in the focus mode with the bold text', async () => {
+            // When the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const report: Report = {
+                ...createReport(undefined, undefined, undefined, undefined, undefined, true),
+                lastMessageText: 'fake last message',
+                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+            };
+
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user is in focus mode
+            await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+
+            // The report should appear in the sidebar because it's unread
+            expect(getOptionRows()).toHaveLength(1);
+
+            // And the text is bold
+            const displayNameText = getDisplayNames()?.at(0);
+            expect(displayNameText).toHaveStyle({fontWeight: FontUtils.fontWeight.bold});
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the report is marked as read
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                lastReadTime: report.lastVisibleActionCreated,
+            });
+
+            // The report should not disappear in the sidebar because we are in the focus mode
+            expect(getOptionRows()).toHaveLength(0);
         });
     });
 

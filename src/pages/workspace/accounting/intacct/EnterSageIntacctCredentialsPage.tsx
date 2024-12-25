@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,22 +7,25 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
-type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
 function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
 
     const confirmCredentials = useCallback(
@@ -51,7 +53,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     );
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
         >
@@ -70,7 +72,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 shouldValidateOnChange
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
-                {formItems.map((formItem) => (
+                {formItems.map((formItem, index) => (
                     <View
                         style={styles.mb4}
                         key={formItem}
@@ -78,6 +80,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={formItem}
+                            ref={index === 0 ? inputCallbackRef : undefined}
                             label={translate(`common.${formItem}`)}
                             aria-label={translate(`common.${formItem}`)}
                             role={CONST.ROLE.PRESENTATION}

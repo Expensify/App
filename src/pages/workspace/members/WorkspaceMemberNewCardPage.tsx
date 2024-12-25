@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
@@ -12,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -33,7 +33,7 @@ type CardFeedListItem = ListItem & {
     value: string;
 };
 
-type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
+type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
@@ -99,7 +99,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const companyCardFeeds: CardFeedListItem[] = (Object.keys(availableCompanyCards) as CompanyCardFeed[]).map((key) => ({
         value: key,
-        text: cardFeeds?.settings?.companyCardNicknames?.[key] ?? CardUtils.getCardFeedName(key),
+        text: CardUtils.getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
         keyForList: key,
         isSelected: selectedFeed === key,
         leftElement: (

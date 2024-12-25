@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
@@ -14,28 +16,50 @@ type ReceiptEmptyStateProps = {
     onPress?: () => void;
 
     disabled?: boolean;
+
+    isThumbnail?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
+
+    const Wrapper = onPress ? PressableWithoutFeedback : View;
 
     return (
-        <PressableWithoutFeedback
+        <Wrapper
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
             disabled={disabled}
             disabledStyle={styles.cursorDefault}
-            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
+            style={[
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                styles.moneyRequestViewImage,
+                isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+                hasError && styles.borderColorDanger,
+            ]}
         >
-            <Icon
-                src={Expensicons.EmptyStateAttachReceipt}
-                width={variables.eReceiptEmptyIconWidth}
-                height={variables.eReceiptIconHeight}
-            />
-        </PressableWithoutFeedback>
+            <View>
+                <Icon
+                    fill={theme.border}
+                    src={Expensicons.Receipt}
+                    width={variables.eReceiptEmptyIconWidth}
+                    height={variables.eReceiptEmptyIconWidth}
+                />
+                {!isThumbnail && (
+                    <Icon
+                        src={Expensicons.ReceiptPlaceholderPlus}
+                        width={variables.avatarSizeSmall}
+                        height={variables.avatarSizeSmall}
+                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
+                    />
+                )}
+            </View>
+        </Wrapper>
     );
 }
 

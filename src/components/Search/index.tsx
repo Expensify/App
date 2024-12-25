@@ -1,5 +1,4 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -21,6 +20,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
@@ -41,6 +41,7 @@ type SearchProps = {
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
     isSearchScreenFocused?: boolean;
+    onContentSizeChange?: (w: number, h: number) => void;
 };
 
 const transactionItemMobileHeight = 100;
@@ -77,7 +78,10 @@ function mapToItemWithSelectionInfo(
     shouldAnimateInHighlight: boolean,
 ) {
     if (SearchUIUtils.isReportActionListItemType(item)) {
-        return item;
+        return {
+            ...item,
+            shouldAnimateInHighlight,
+        };
     }
 
     return SearchUIUtils.isTransactionListItemType(item)
@@ -113,14 +117,14 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle, onContentSizeChange}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
+    const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const isFocused = useIsFocused();
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
     const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
@@ -133,6 +137,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const previousReportActions = usePrevious(reportActions);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -210,6 +216,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         previousTransactions,
         queryJSON,
         offset,
+        reportActions,
+        previousReportActions,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
@@ -322,15 +330,20 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const ListItem = SearchUIUtils.getListItem(type, status);
     const sortedData = SearchUIUtils.getSortedSections(type, status, data, sortBy, sortOrder);
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
-        const baseKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+        const baseKey = isChat
+            ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+            : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
         // Check if the base key matches the newSearchResultKey (TransactionListItemType)
         const isBaseKeyMatch = baseKey === newSearchResultKey;
         // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
-        const isAnyTransactionMatch = (item as ReportListItemType)?.transactions?.some((transaction) => {
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-            return transactionKey === newSearchResultKey;
-        });
+        const isAnyTransactionMatch =
+            !isChat &&
+            (item as ReportListItemType)?.transactions?.some((transaction) => {
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                return transactionKey === newSearchResultKey;
+            });
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
@@ -342,7 +355,10 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     if (shouldShowEmptyState) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <EmptySearchView type={type} />
+                <EmptySearchView
+                    type={type}
+                    hasResults={searchResults.search.hasResults}
+                />
             </View>
         );
     }
@@ -467,6 +483,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             }
             shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
+            onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,

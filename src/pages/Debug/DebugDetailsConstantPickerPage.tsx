@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import CategoryPicker from '@components/CategoryPicker';
@@ -9,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import ConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
 
-type DebugDetailsConstantPickerPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
+type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
 function DebugDetailsConstantPickerPage({
     route: {

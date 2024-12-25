@@ -99,7 +99,7 @@ function SelectBankStep() {
                     <View style={[styles.ph5, styles.mb3]}>
                         <FormHelpMessage
                             isError={hasError}
-                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBankAccount')}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
                         />
                     </View>
                 )}

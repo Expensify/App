@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,6 +12,7 @@ import * as PerDiem from '@libs/actions/Policy/PerDiem';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -43,7 +43,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
     return Object.values(perDiemUnits);
 }
 
-type ImportedPerDiemPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
+type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
