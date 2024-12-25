@@ -1,14 +1,14 @@
-import { Portal } from '@gorhom/portal';
-import React, { useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import {Portal} from '@gorhom/portal';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type { View as RNView } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import type {View as RNView} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
-import type { BaseGenericTooltipProps } from './types';
+import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -35,7 +35,7 @@ function BaseGenericTooltip({
     },
     wrapperStyle = {},
     shouldUseOverlay = false,
-    onHideTooltip = () => { },
+    onHideTooltip = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -49,7 +49,7 @@ function BaseGenericTooltip({
     const rootWrapper = useRef<RNView>(null);
 
     const StyleUtils = useStyleUtils();
-    const { rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle } = useMemo(
+    const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
                 // eslint-disable-next-line react-compiler/react-compiler
@@ -88,7 +88,11 @@ function BaseGenericTooltip({
     );
 
     const animationStyle = useAnimatedStyle(() => {
-        return StyleUtils.getTooltipAnimatedStyles({ tooltipContentWidth: contentMeasuredWidthAnimated.get(), tooltipWrapperHeight: wrapperMeasuredHeightAnimated.get(), currentSize: animation });
+        return StyleUtils.getTooltipAnimatedStyles({
+            tooltipContentWidth: contentMeasuredWidthAnimated.get(),
+            tooltipWrapperHeight: wrapperMeasuredHeightAnimated.get(),
+            currentSize: animation,
+        });
     });
 
     let content;
@@ -112,7 +116,7 @@ function BaseGenericTooltip({
                 ref={rootWrapper}
                 style={[rootWrapperStyle, animationStyle]}
                 onLayout={(e) => {
-                    const { height, width } = e.nativeEvent.layout;
+                    const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {
                         return;
                     }
