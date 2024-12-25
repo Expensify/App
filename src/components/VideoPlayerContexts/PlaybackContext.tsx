@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import usePrevious from '@hooks/usePrevious';
+import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
 import Visibility from '@libs/Visibility';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
@@ -100,7 +101,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         // This prevents the video that plays when the app opens from being interrupted when currentReportID
         // is initially empty or '-1', or when it changes from empty/'-1' to another value
         // after the report screen in the central pane is mounted on the large screen.
-        if (!currentReportID || !prevCurrentReportID || currentReportID === '-1' || prevCurrentReportID === '-1' || currentReportID === prevCurrentReportID) {
+        if (
+            !currentReportID ||
+            !prevCurrentReportID ||
+            (currentReportID === '-1' && isReportScreenTopmostCentralPane()) ||
+            (prevCurrentReportID === '-1' && !isReportScreenTopmostCentralPane()) ||
+            currentReportID === prevCurrentReportID
+        ) {
             return;
         }
         resetVideoPlayerData();
