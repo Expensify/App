@@ -102,7 +102,7 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
+function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -127,7 +127,21 @@ function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finall
         },
     ];
 
-    return {optimisticData, finallyData};
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: [],
+                search: {
+                    status: queryJSON?.status,
+                    type: queryJSON?.type,
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, finallyData, failureData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
@@ -209,7 +223,7 @@ function deleteSavedSearch(hash: number) {
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
-    const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
         ...queryJSONWithoutFlatFilters,
@@ -217,7 +231,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -380,14 +394,6 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
-function showSavedSearchRenameTooltip() {
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, true);
-}
-
-function dismissSavedSearchRenameTooltip() {
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP, false);
-}
-
 export {
     saveSearch,
     search,
@@ -400,8 +406,6 @@ export {
     clearAllFilters,
     clearAdvancedFilters,
     deleteSavedSearch,
-    dismissSavedSearchRenameTooltip,
-    showSavedSearchRenameTooltip,
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
