@@ -31,7 +31,7 @@ function PhoneNumberPage() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
-    
+
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
