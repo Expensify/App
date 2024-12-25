@@ -249,7 +249,7 @@ type MoneyRequestInformationParams = {
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
-    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -284,7 +284,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     existingTransactionThreadReportID?: string;
     policyParams?: RequestMoneyPolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
-    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt,
+    retryParams?: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt;
 };
 
 type DistanceRequestTransactionParams = {
@@ -746,7 +746,15 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
 
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const {isNewChatReport, shouldCreateNewMoneyRequestReport, isOneOnOneSplit = false, existingTransactionThreadReportID, policyParams = {}, optimisticParams, retryParams} = moneyRequestParams;
+    const {
+        isNewChatReport,
+        shouldCreateNewMoneyRequestReport,
+        isOneOnOneSplit = false,
+        existingTransactionThreadReportID,
+        policyParams = {},
+        optimisticParams,
+        retryParams,
+    } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
         chat,
@@ -2292,7 +2300,16 @@ function getSendInvoiceInformation(
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = '', retryParams} = moneyRequestInformation;
+    const {
+        parentChatReport,
+        transactionParams,
+        participantParams,
+        policyParams = {},
+        existingTransaction,
+        existingTransactionID,
+        moneyRequestReportID = '',
+        retryParams,
+    } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {attendees, amount, comment = '', currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
@@ -2481,7 +2498,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
         },
-        retryParams
+        retryParams,
     });
 
     return {
@@ -3866,7 +3883,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         ...requestMoneyInformation,
         participantParams: {
             ...requestMoneyInformation.participantParams,
-            participant: (({ icons, ...rest }) => rest)(requestMoneyInformation.participantParams.participant),
+            participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
         },
         transactionParams: {
             ...requestMoneyInformation.transactionParams,
@@ -5073,7 +5090,7 @@ function startSplitBill({
     ];
 
     const retryParams = {
-        participants: participants.map(({ icons, ...rest }) => rest),
+        participants: participants.map(({icons, ...rest}) => rest),
         currentUserLogin,
         currentUserAccountID,
         comment,
