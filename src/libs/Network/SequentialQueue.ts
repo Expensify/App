@@ -199,8 +199,8 @@ function unpause() {
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
 
-    // A READ request will wait until all the WRITE requests are done, using isReadyPromise promise.
-    // When the queue is paused and then unpaused, we call flush which by defaults recreate the isReadyPromise.
+    // A READ request will wait until all the WRITE requests are done, using the isReadyPromise promise.
+    // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
     // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
     // the pending READ request never received the resolved callback. That's why we don't want to recreate
     // the promise when unpausing the queue.
