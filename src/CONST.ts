@@ -1152,6 +1152,7 @@ const CONST = {
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                    TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1335,6 +1336,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
+        SEARCH_CONVERT_SEARCH_VALUES: 'search_convert_search_values',
+        SEARCH_MAKE_TREE: 'search_make_tree',
+        SEARCH_BUILD_TREE: 'search_build_tree',
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
@@ -6435,14 +6439,6 @@ const CONST = {
         },
     },
 
-    DEVICE_CONTACT: {
-        FIRST_NAME: 'FIRST_NAME',
-        LAST_NAME: 'LAST_NAME',
-        PHONE_NUMBERS: 'PHONE_NUMBERS',
-        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
-        IMAGE_DATA: 'IMAGE_DATA',
-    },
-
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
     },
@@ -6450,6 +6446,16 @@ const CONST = {
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
+    PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        RENAME_SAVED_SEARCH: 'renameSavedSearch',
+        QUICK_ACTION_BUTTON: 'quickActionButton',
+        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
+        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
+        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
+        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
+        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
