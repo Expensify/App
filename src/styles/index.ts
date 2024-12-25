@@ -4002,19 +4002,15 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        quickActionTooltipWrapper: {
+        productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        quickActionTooltipTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            color: theme.tooltipHighlightText,
-        },
-
-        quickActionTooltipSubtitle: {
+        productTrainingTooltipText: {
             fontSize: variables.fontSizeLabel,
             color: theme.textDark,
+            lineHeight: variables.lineHeightLarge,
         },
 
         quickReactionsContainer: {
