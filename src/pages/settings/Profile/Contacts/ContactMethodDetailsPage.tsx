@@ -153,10 +153,15 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo, loginData]);
 
 	//useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+    useBeforeRemove(() => {
+        User.clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')
+    });
 
     useEffect(() => {
         setIsValidateCodeActionModalVisible(!loginData?.validatedDate);
-        User.requestContactMethodValidateCode(contactMethod)
+        if (!loginData?.validatedDate && !loginData?.validateCodeSent) {  
+            User.requestContactMethodValidateCode(contactMethod)
+        }
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
