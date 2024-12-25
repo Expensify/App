@@ -265,7 +265,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 title={formattedContactMethod}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
             />
-            <ScrollView keyboardShouldPersistTaps="handled">
+	    <ScrollView
+                contentContainerStyle={themeStyles.flex1} 
+		keyboardShouldPersistTaps="handled"
+            >
                 {isFailedAddContactMethod && (
                     <ErrorMessageRow
                         errors={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
