@@ -1051,7 +1051,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
 /**
  * Whether the current user is the submitter of the report
  */
-function isCurrentUserSubmitter(reportID: string): boolean {
+function isCurrentUserSubmitter(reportID: string | undefined): boolean {
     if (!allReports) {
         return false;
     }
@@ -7820,7 +7820,7 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTra
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string, allReportTransactions?: SearchTransaction[]): boolean {
+function hasOnlyHeldExpenses(iouReportID: string | undefined, allReportTransactions?: SearchTransaction[]): boolean {
     const reportTransactions = allReportTransactions ?? reportsTransactions[iouReportID ?? ''] ?? [];
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }

@@ -15,6 +15,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as TransactionActions from '@userActions/Transaction';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -48,10 +49,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
-            ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? -1 : -1
+            ReportActionsUtils.isMoneyRequestAction(parentReportAction)
+                ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID
+                : CONST.DEFAULT_NUMBER_ID
         }`,
     );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -61,21 +64,21 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const theme = useTheme();
     const {translate} = useLocalize();
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID);
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation(transaction ? [transaction?.transactionID] : undefined);
 
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', parentReport, policy);
+    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID, parentReport, policy);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(parentReport?.reportID ?? '')));
+        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(parentReport?.reportID)));
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
+        TransactionActions.markAsCash(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -102,14 +105,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
                     <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID ?? '-1'}
+                        transactionID={transaction?.transactionID}
                         report={report}
                         policy={policy}
                     />
                 ),
             };
         }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
+        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID, transactionViolations))) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
@@ -134,11 +137,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldShowReportAvatarWithDisplay
                 shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
-                report={{
-                    ...report,
-                    reportID: reportID ?? '',
-                    ownerAccountID: parentReport?.ownerAccountID,
-                }}
+                report={
+                    reportID
+                        ? {
+                              ...report,
+                              reportID,
+                              ownerAccountID: parentReport?.ownerAccountID,
+                          }
+                        : undefined
+                }
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
@@ -158,7 +165,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         text={translate('iou.reviewDuplicates')}
                         style={[styles.p0, styles.ml2]}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                            if (!reportID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 )}
@@ -180,7 +190,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         text={translate('iou.reviewDuplicates')}
                         style={[styles.w100, styles.pr0]}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
+                            if (!reportID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
                         }}
                     />
                 </View>
