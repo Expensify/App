@@ -40,13 +40,18 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.brokenConnection530Error');
     }
 
-    if (isPolicyAdmin && !ReportUtils.isCurrentUserSubmitter(report?.reportID ?? '')) {
+    if (isPolicyAdmin && !ReportUtils.isCurrentUserSubmitter(report?.reportID)) {
         return (
             <>
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id ?? '-1'))}
+                    onPress={() => {
+                        if (!policy) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id));
+                    }}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
                 .
             </>
