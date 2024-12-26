@@ -781,26 +781,34 @@ function leaveWorkspace(policyID?: string) {
             return;
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
-            value: {
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                oldPolicyName: policy?.name ?? '',
-                pendingChatMembers,
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    oldPolicyName: policy?.name ?? '',
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                value: {
+                    pendingChatMembers,
+                },
+            },
+        );
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
             value: {
                 pendingChatMembers: null,
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
             value: {
                 pendingChatMembers: null,
             },
@@ -994,12 +1002,6 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     hasOutstandingChildRequest,
-                    pendingChatMembers: [
-                        {
-                            accountID: accountID.toString(),
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    ],
                 },
             },
             {
@@ -1007,6 +1009,12 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
                 value: {
                     isOptimisticReport: true,
+                    pendingChatMembers: [
+                        {
+                            accountID: accountID.toString(),
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    ],
                 },
             },
         );
@@ -1027,7 +1035,6 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                     errorFields: {
                         createChat: null,
                     },
-                    pendingChatMembers: null,
                     participants: {
                         [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
                     },
@@ -1038,6 +1045,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReport.reportID}`,
                 value: {
                     isOptimisticReport: false,
+                    pendingChatMembers: null,
                 },
             },
         );
@@ -1674,6 +1682,7 @@ function buildPolicyData(
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID,
+        pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, expenseReportId);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
@@ -1736,6 +1745,13 @@ function buildPolicyData(
                     addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 ...adminsChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                pendingChatMembers,
             },
         },
         {
@@ -1809,7 +1825,6 @@ function buildPolicyData(
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
-                pendingChatMembers: [],
             },
         },
         {
@@ -1817,6 +1832,7 @@ function buildPolicyData(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
             value: {
                 isOptimisticReport: false,
+                pendingChatMembers: [],
             },
         },
         {
@@ -2276,6 +2292,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         expenseChatData: workspaceChatData,
         expenseReportActionData: workspaceChatReportActionData,
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
+        pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     if (!employeeAccountID || !oldPersonalPolicyID) {
@@ -2348,6 +2365,13 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
                     addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 ...adminsChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                pendingChatMembers,
             },
         },
         {
