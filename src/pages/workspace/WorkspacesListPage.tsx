@@ -428,7 +428,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
@@ -463,7 +463,7 @@ function WorkspacesListPage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     onBackButtonPress={() => Navigation.goBack()}
-                    icon={Illustrations.BigRocket}
+                    icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && getHeaderButton()}
