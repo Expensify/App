@@ -52,8 +52,9 @@ import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/Ony
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
+import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -384,6 +385,7 @@ type OptimisticWorkspaceChats = {
     expenseChatData: OptimisticChatReport;
     expenseReportActionData: Record<string, OptimisticCreatedReportAction>;
     expenseCreatedReportActionID: string;
+    pendingChatMembers: PendingChatMember[];
 };
 
 type OptimisticModifiedExpenseReportAction = Pick<
@@ -701,6 +703,7 @@ Onyx.connect({
 });
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
+const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
@@ -709,6 +712,15 @@ Onyx.connect({
             return;
         }
         allReportMetadata = value;
+
+        Object.entries(value).forEach(([reportID, reportMetadata]) => {
+            if (!reportMetadata) {
+                return;
+            }
+
+            const [, id] = reportID.split('_');
+            allReportMetadataKeyValue[id] = reportMetadata;
+        });
     },
 });
 
@@ -1759,7 +1771,11 @@ function isPayAtEndExpenseReport(reportID: string, transactions: Transaction[] |
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
-function isOneTransactionThread(reportID: string, parentReportID: string, threadParentReportAction: OnyxEntry<ReportAction>): boolean {
+function isOneTransactionThread(reportID: string | undefined, parentReportID: string | undefined, threadParentReportAction: OnyxEntry<ReportAction>): boolean {
+    if (!reportID || !parentReportID) {
+        return false;
+    }
+
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportID, parentReportActions);
     return reportID === transactionThreadReportID && !ReportActionsUtils.isSentMoneyReportAction(threadParentReportAction);
@@ -2213,6 +2229,7 @@ function getDisplayNameForParticipant(
 
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldForceExcludeCurrentUser = false): number[] {
     const reportParticipants = report?.participants ?? {};
+    const reportMetadata = getReportMetadata(report?.reportID);
     let participantsEntries = Object.entries(reportParticipants);
 
     // We should not show participants that have an optimistic entry with the same login in the personal details
@@ -2252,7 +2269,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
 
             if (
                 shouldExcludeDeleted &&
-                report?.pendingChatMembers?.findLast((member) => Number(member.accountID) === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                reportMetadata?.pendingChatMembers?.findLast((member) => Number(member.accountID) === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             ) {
                 return false;
             }
@@ -2313,8 +2330,10 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         return report.reportName;
     }
 
+    const reportMetadata = getReportMetadata(report?.reportID);
+
     const pendingMemberAccountIDs = new Set(
-        report?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
+        reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
     );
     let participantAccountIDs =
         participants?.map((participant) => participant.accountID) ??
@@ -3017,7 +3036,11 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 /**
  * Get the key for a report field
  */
-function getReportFieldKey(reportFieldId: string) {
+function getReportFieldKey(reportFieldId: string | undefined) {
+    if (!reportFieldId) {
+        return '';
+    }
+
     // We don't need to add `expensify_` prefix to the title field key, because backend stored title under a unique key `text_title`,
     // and all the other report field keys are stored under `expensify_FIELD_ID`.
     if (reportFieldId === CONST.REPORT_FIELD_TITLE_FIELD_ID) {
@@ -6071,7 +6094,6 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
             false,
             policyName,
         ),
-        pendingChatMembers,
     };
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -6111,6 +6133,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID: expenseReportCreatedAction.reportActionID,
+        pendingChatMembers,
     };
 }
 
@@ -7797,7 +7820,7 @@ function hasHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTra
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string, allReportTransactions?: SearchTransaction[]): boolean {
+function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
     const reportTransactions = allReportTransactions ?? reportsTransactions[iouReportID ?? ''] ?? [];
     return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
@@ -8225,7 +8248,16 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
     }
 }
 
-function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string): void {
+function createDraftTransactionAndNavigateToParticipantSelector(
+    transactionID: string | undefined,
+    reportID: string | undefined,
+    actionName: IOUAction,
+    reportActionID: string | undefined,
+): void {
+    if (!transactionID || !reportID || !reportActionID) {
+        return;
+    }
+
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
 
@@ -8538,7 +8570,7 @@ function hasInvoiceReports() {
 }
 
 function getReportMetadata(reportID?: string) {
-    return allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+    return allReportMetadataKeyValue[reportID ?? '-1'];
 }
 
 export {

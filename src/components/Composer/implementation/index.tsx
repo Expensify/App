@@ -5,7 +5,7 @@ import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {DeviceEventEmitter, StyleSheet} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -50,6 +50,7 @@ function Composer(
         isComposerFullSize = false,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
+        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -74,6 +75,11 @@ function Composer(
     });
     const [hasMultipleLines, setHasMultipleLines] = useState(false);
     const [isRendered, setIsRendered] = useState(false);
+
+    // On mobile safari, the cursor will move from right to left with inputMode set to none during report transition
+    // To avoid that we should hide the cursor util the transition is finished
+    const [shouldTransparentCursor, setShouldTransparentCursor] = useState(!showSoftInputOnFocus && Browser.isMobileSafari());
+
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
     const [prevHeight, setPrevHeight] = useState<number | undefined>();
@@ -260,6 +266,15 @@ function Composer(
         setIsRendered(true);
     }, []);
 
+    useEffect(() => {
+        if (!shouldTransparentCursor) {
+            return;
+        }
+        InteractionManager.runAfterInteractions(() => {
+            setShouldTransparentCursor(false);
+        });
+    }, [shouldTransparentCursor]);
+
     const clear = useCallback(() => {
         if (!textInput.current) {
             return;
@@ -347,11 +362,12 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={(el) => (textInput.current = el)}
             selection={selection}
-            style={[inputStyleMemo]}
+            style={[inputStyleMemo, shouldTransparentCursor ? {caretColor: 'transparent'} : undefined]}
             markdownStyle={markdownStyle}
             value={value}
             defaultValue={defaultValue}
             autoFocus={autoFocus}
+            inputMode={showSoftInputOnFocus ? 'text' : 'none'}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
