@@ -348,7 +348,7 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {(shouldShowReceiptEmptyState || hasReceipt) && (
+                    {(shouldShowReceiptEmptyState || hasReceipt) && !isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}

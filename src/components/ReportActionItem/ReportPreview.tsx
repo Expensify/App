@@ -501,7 +501,7 @@ function ReportPreview({
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {!!lastThreeReceipts.length && (
+                        {lastThreeReceipts.length > 0 && (
                             <ReportActionItemImages
                                 images={lastThreeReceipts}
                                 total={allTransactions.length}
