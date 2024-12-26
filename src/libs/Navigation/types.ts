@@ -1234,7 +1234,9 @@ type MoneyRequestNavigatorParamList = {
 };
 
 type WorkspaceConfirmationNavigatorParamList = {
-    [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: undefined;
+    [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
+        backTo?: Routes;
+    };
 };
 
 type NewTaskNavigatorParamList = {
