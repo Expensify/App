@@ -22,7 +22,10 @@ function ImportMembersPage({policy}: ImportMembersPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreadsheet goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)} />
+            <ImportSpreadsheet
+                backTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
+                goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
