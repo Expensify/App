@@ -144,6 +144,7 @@ describe('TransactionUtils', () => {
                     foreignTaxDefault: 'id_TAX_RATE_2',
                     taxes: {
                         ...CONST.DEFAULT_TAX.taxes,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         id_TAX_RATE_2: {
                             name: 'Tax rate 2',
                             value: '10%',
