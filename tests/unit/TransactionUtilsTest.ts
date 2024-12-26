@@ -133,22 +133,45 @@ describe('TransactionUtils', () => {
             expect(categoryTaxAmount).toBe(0);
         });
 
-        it('should return and undefined tax when there are no policy tax expense rules', () => {
-            // Given a policy without tax expense rules
-            const category = 'Advertising';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {},
-            };
+        describe('should return undefined tax', () => {
+            it('if the transaction type is distance', () => {
+                // Given a policy with tax expense rules associated with a category
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(0),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                };
 
-            // When retrieving the tax from a category
-            const transaction = generateTransaction();
-            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+                // When retrieving the tax from the associated category
+                const transaction: Transaction = {
+                    ...generateTransaction(),
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                };
+                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
 
-            // Then it should return undefined for both the tax code and the tax amount
-            expect(categoryTaxCode).toBe(undefined);
-            expect(categoryTaxAmount).toBe(undefined);
+                // Then it should return undefined for both the tax code and the tax amount
+                expect(categoryTaxCode).toBe(undefined);
+                expect(categoryTaxAmount).toBe(undefined);
+            });
+
+            it('if there are no policy tax expense rules', () => {
+                // Given a policy without tax expense rules
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(0),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {},
+                };
+
+                // When retrieving the tax from a category
+                const transaction = generateTransaction();
+                const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
+
+                // Then it should return undefined for both the tax code and the tax amount
+                expect(categoryTaxCode).toBe(undefined);
+                expect(categoryTaxAmount).toBe(undefined);
+            });
         });
     });
 });
