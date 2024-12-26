@@ -26,11 +26,14 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreedsheetProps = {
+    // The route to navigate to when the back button is pressed.
+    backTo?: Routes;
+
     // The route to navigate to after the file import is completed.
     goTo: Routes;
 };
 
-function ImportSpreadsheet({goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({goTo, backTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
@@ -168,7 +171,7 @@ function ImportSpreadsheet({goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.closeRHPFlow()}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>

@@ -24,7 +24,10 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreadsheet goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)} />
+            <ImportSpreadsheet
+                backTo={backTo}
+                goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORTED.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORTED.getRoute(policyID)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }

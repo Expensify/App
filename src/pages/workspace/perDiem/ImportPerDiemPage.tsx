@@ -22,7 +22,10 @@ function ImportPerDiemPage({route}: ImportPerDiemPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreadsheet goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)} />
+            <ImportSpreadsheet
+                backTo={ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)}
+                goTo={ROUTES.WORKSPACE_PER_DIEM_IMPORTED.getRoute(policyID)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
