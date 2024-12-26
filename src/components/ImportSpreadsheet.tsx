@@ -33,7 +33,7 @@ type ImportSpreedsheetProps = {
     goTo: Routes;
 };
 
-function ImportSpreadsheet({goTo, backTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
