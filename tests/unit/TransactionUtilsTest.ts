@@ -104,9 +104,9 @@ describe('TransactionUtils', () => {
                 taxRates: CONST.DEFAULT_TAX,
                 rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
             };
+            const transaction = generateTransaction();
 
             // When retrieving the tax from the associated category
-            const transaction = generateTransaction();
             const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
 
             // Then it should return the associated tax code and amount
@@ -123,9 +123,9 @@ describe('TransactionUtils', () => {
                 taxRates: CONST.DEFAULT_TAX,
                 rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
             };
+            const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const transaction = generateTransaction();
             const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
 
             // Then it should return the default tax code and amount
@@ -134,7 +134,7 @@ describe('TransactionUtils', () => {
         });
 
         it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
-            // Given a policy with tax expense rules associated with a category
+            // Given a policy with tax expense rules associated with a category and a transaction with a foreign currency
             const ruleCategory = 'Advertising';
             const selectedCategory = 'Benefits';
             const fakePolicy: Policy = {
@@ -154,9 +154,9 @@ describe('TransactionUtils', () => {
                 outputCurrency: 'IDR',
                 rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
             };
+            const transaction = generateTransaction();
 
             // When retrieving the tax from a category that is not associated with the tax expense rules
-            const transaction = generateTransaction();
             const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
 
             // Then it should return the default tax code and amount
@@ -173,12 +173,12 @@ describe('TransactionUtils', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
                 };
-
-                // When retrieving the tax from the associated category
                 const transaction: Transaction = {
                     ...generateTransaction(),
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 };
+
+                // When retrieving the tax from the associated category
                 const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
 
                 // Then it should return undefined for both the tax code and the tax amount
@@ -194,9 +194,9 @@ describe('TransactionUtils', () => {
                     taxRates: CONST.DEFAULT_TAX,
                     rules: {},
                 };
+                const transaction = generateTransaction();
 
                 // When retrieving the tax from a category
-                const transaction = generateTransaction();
                 const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(category, transaction, fakePolicy);
 
                 // Then it should return undefined for both the tax code and the tax amount
