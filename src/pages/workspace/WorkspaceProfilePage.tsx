@@ -47,13 +47,14 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const {canUseSpotnanaTravel, canUseWorkspaceDowngrade} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const outputCurrency = policy?.outputCurrency ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.currency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -184,7 +185,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            icon={Illustrations.House}
+            icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
@@ -253,7 +254,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             <MenuItemWithTopDescription
                                 title={policyName}
                                 titleStyle={styles.workspaceTitleStyle}
-                                description={translate('workspace.editor.nameInputLabel')}
+                                description={translate('workspace.common.workspaceName')}
                                 shouldShowRightIcon={!readOnly}
                                 disabled={readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
@@ -328,7 +329,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                             </OfflineWithFeedback>
                         )}
 
-                        {!!canUseWorkspaceDowngrade && !readOnly && !!policy?.type && (
+                        {!readOnly && !!policy?.type && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                                 <View>
                                     <MenuItemWithTopDescription
@@ -346,6 +347,15 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                         )}
                         {!readOnly && (
                             <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
+                                {isPolicyAdmin && (
+                                    <Button
+                                        accessibilityLabel={translate('common.invite')}
+                                        text={translate('common.invite')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()))}
+                                        icon={Expensicons.UserPlus}
+                                        style={[styles.mr2]}
+                                    />
+                                )}
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}

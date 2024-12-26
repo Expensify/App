@@ -1,7 +1,8 @@
 import isEqual from 'lodash/isEqual';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -19,6 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -3397,6 +3400,56 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('resolveDuplicate', () => {
+        test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
+            // Given two duplicate transactions
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+            const transaction2 = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const iouActions: OnyxTypes.ReportAction[] = [];
+            [transaction1, transaction2].forEach((transaction) =>
+                iouActions.push(ReportUtils.buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+            );
+            const actions: OnyxInputValue<OnyxTypes.ReportActions> = {};
+            iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() => {
+                    // When resolving duplicates with transaction thread reports no existing in onyx
+                    IOU.resolveDuplicates({
+                        ...transaction1,
+                        receiptID: 1,
+                        category: '',
+                        comment: '',
+                        billable: false,
+                        reimbursable: true,
+                        tag: '',
+                        transactionIDList: [transaction2.transactionID],
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
+                            callback: (transaction) => {
+                                Onyx.disconnect(connection);
+                                // Then the duplicate transaction should correctly be set on hold.
+                                expect(transaction?.comment?.hold).toBeDefined();
+                                resolve();
+                            },
+                        });
+                    });
+                });
         });
     });
 
