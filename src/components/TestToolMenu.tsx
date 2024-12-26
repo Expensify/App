@@ -111,6 +111,15 @@ function TestToolMenu() {
                 />
             </TestToolRow>
 
+            {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.expiredSession')}>
+                <Button
+                    small
+                    text={translate('initialSettingsPage.troubleshoot.expireSessionWithDelay')}
+                    onPress={() => Session.expireSessionWithDelay()}
+                />
+            </TestToolRow>
+
             <TestCrash />
         </>
     );

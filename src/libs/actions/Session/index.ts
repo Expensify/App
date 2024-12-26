@@ -776,7 +776,18 @@ function invalidateCredentials() {
 
 function invalidateAuthToken() {
     NetworkStore.setAuthToken('pizza');
-    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza', creationDate: new Date().getTime() - CONST.SESSION_EXPIRATION_TIME_MS});
+    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza'});
+}
+
+/**
+ * Send an expired session to FE and invalidate the session in the BE. Action is delayed for 15s
+ */
+function expireSessionWithDelay() {
+    // expires the session after 15s
+    setTimeout(() => {
+        NetworkStore.setAuthToken('pizza');
+        Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza', creationDate: new Date().getTime() - CONST.SESSION_EXPIRATION_TIME_MS});
+    }, 15000);
 }
 
 /**
@@ -1238,6 +1249,7 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    expireSessionWithDelay,
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,

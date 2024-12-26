@@ -1250,6 +1250,8 @@ const translations = {
             debugMode: 'Modo depuración',
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que estás intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            expiredSession: 'Enviar sesión caducada',
+            expireSessionWithDelay: 'Enviar con retraso',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
