@@ -1262,7 +1262,8 @@ function getCategoryTaxCodeAndAmount(category: string, transaction: OnyxEntry<Tr
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
 
-    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, policy?.taxRates?.defaultExternalID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
+    const categoryTaxCode = getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
     const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode ?? '');
     let categoryTaxAmount;
 

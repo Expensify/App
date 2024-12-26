@@ -133,6 +133,36 @@ describe('TransactionUtils', () => {
             expect(categoryTaxAmount).toBe(0);
         });
 
+        it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
+            // Given a policy with tax expense rules associated with a category
+            const ruleCategory = 'Advertising';
+            const selectedCategory = 'Benefits';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    foreignTaxDefault: 'id_TAX_RATE_2',
+                    taxes: {
+                        ...CONST.DEFAULT_TAX.taxes,
+                        id_TAX_RATE_2: {
+                            name: 'Tax rate 2',
+                            value: '10%',
+                        },
+                    },
+                },
+                outputCurrency: 'IDR',
+                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
+            };
+
+            // When retrieving the tax from a category that is not associated with the tax expense rules
+            const transaction = generateTransaction();
+            const {categoryTaxCode, categoryTaxAmount} = TransactionUtils.getCategoryTaxCodeAndAmount(selectedCategory, transaction, fakePolicy);
+
+            // Then it should return the default tax code and amount
+            expect(categoryTaxCode).toBe('id_TAX_RATE_2');
+            expect(categoryTaxAmount).toBe(9);
+        });
+
         describe('should return undefined tax', () => {
             it('if the transaction type is distance', () => {
                 // Given a policy with tax expense rules associated with a category
