@@ -43,7 +43,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         currency?: string;
 
         /** Generated ID to identify the rate */
-        customUnitRateID?: string;
+        customUnitRateID: string;
 
         /** Whether this rate is currently enabled */
         enabled?: boolean;
@@ -1822,6 +1822,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the policy is pending an upgrade */
         isPendingUpgrade?: boolean;
 
+        /** Indicates if the policy is pending a downgrade */
+        isPendingDowngrade?: boolean;
+
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
 
@@ -1848,6 +1851,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
+
+        /** Indicate whether the Workspace plan can be downgraded */
+        canDowngrade?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
