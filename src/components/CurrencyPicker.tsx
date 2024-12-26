@@ -1,6 +1,7 @@
 import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -15,10 +16,11 @@ import type {ValuePickerItem, ValuePickerProps} from './ValuePicker/types';
 type CurrencyPickerProps = {
     selectedCurrency?: string;
 };
-function CurrencyPicker({selectedCurrency, label, errorText = '', value, onInputChange, furtherDetails}: ValuePickerProps & CurrencyPickerProps, forwardedRef: ForwardedRef<View>) {
+function CurrencyPicker({selectedCurrency, label = '', errorText = '', value, onInputChange, furtherDetails}: ValuePickerProps & CurrencyPickerProps, forwardedRef: ForwardedRef<View>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const {translate} = useLocalize();
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -65,7 +67,7 @@ function CurrencyPicker({selectedCurrency, label, errorText = '', value, onInput
                     style={styles.pb0}
                     includePaddingTop={false}
                     includeSafeAreaPaddingBottom={false}
-                    testID={label ?? 'TEST'}
+                    testID={label}
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -73,7 +75,7 @@ function CurrencyPicker({selectedCurrency, label, errorText = '', value, onInput
                     />
                     <CurrencySelectionListWithOnyx
                         onSelect={(item) => updateInput({value: item.currencyCode})}
-                        searchInputLabel="Currency"
+                        searchInputLabel={translate('common.currency')}
                         initiallySelectedCurrencyCode={selectedCurrency}
                     />
                 </ScreenWrapper>

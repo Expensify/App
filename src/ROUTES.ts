@@ -1428,7 +1428,10 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    WORKSPACE_CONFIRMATION: 'workspace/confirmation',
+    WORKSPACE_CONFIRMATION: {
+        route: 'workspace/confirmation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
+    },
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
     TRANSACTION_RECEIPT: {

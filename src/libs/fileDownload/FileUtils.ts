@@ -3,6 +3,7 @@ import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
@@ -332,17 +333,14 @@ const resizeImageIfNeeded = (file: FileObject) => {
 };
 
 const createFile = (file: File): FileObject => {
-    if (Platform.OS === 'web') {
-        // Use the File API for web
+    if (getPlatform() === 'web') {
         return new File([file], file.name, {
             type: file.type,
             lastModified: file.lastModified,
         });
     }
-
-    // Use a React Native-specific solution
     return {
-        uri: file.uri, // Use the file's URI (if available)
+        uri: file.uri,
         name: file.name,
         type: file.type,
     };

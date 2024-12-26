@@ -22,7 +22,7 @@ function WorkspaceCardCreateAWorkspace() {
         >
             <Button
                 onPress={() => {
-                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION);
+                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
                 }}
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}
@@ -31,7 +31,6 @@ function WorkspaceCardCreateAWorkspace() {
         </Section>
     );
 }
-
 WorkspaceCardCreateAWorkspace.displayName = 'WorkspaceCardNoVBAView';
 
 export default WorkspaceCardCreateAWorkspace;
