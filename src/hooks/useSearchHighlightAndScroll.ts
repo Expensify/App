@@ -52,13 +52,13 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const hasTransactionChange = !isEqual(transactionIDList, previousTransactionIDList);
         const hasReportActionChange = !isEqual(reportActionIDList, previousReportActionIDList);
 
-        // We only want to highlight new items only if addition of transactions or report actions triggered the search.
-        // This is because on deletion of items sometimes the BE returns old items in place of the deleted ones
-        // but we don't want to highlight these old items although they are new to the current search result.
-        hasItemBeenAddedRef.current = isChat ? reportActionIDList.length > previousReportActionIDList.length : transactionIDList.length > previousTransactionIDList.length;
-
         // Check if there is a change in transaction or report action list
         if ((!isChat && hasTransactionChange) || (isChat && hasReportActionChange)) {
+            // We only want to highlight new items only if addition of transactions or report actions triggered the search.
+            // This is because on deletion of items sometimes the BE returns old items in place of the deleted ones
+            // but we don't want to highlight these old items although they are new to the current search result.
+            hasItemBeenAddedRef.current = isChat ? reportActionIDList.length > previousReportActionIDList.length : transactionIDList.length > previousTransactionIDList.length;
+
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
