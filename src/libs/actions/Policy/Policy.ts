@@ -1920,6 +1920,7 @@ function buildPolicyData(
         successData.push(...optimisticCategoriesData.successData);
     }
 
+    // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
     const params: CreateWorkspaceParams = {
@@ -2051,6 +2052,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         },
     ];
 
+    // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
     const params: CreateWorkspaceParams = {
