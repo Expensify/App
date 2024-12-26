@@ -5,6 +5,7 @@ import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -65,6 +66,7 @@ function SecuritySettingsPage() {
     });
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -92,6 +94,9 @@ function SecuritySettingsPage() {
         setSelectedEmail(delegate.email);
     };
 
+    const showDelegateNoAccessMenu = () => {
+        setIsNoDelegateAccessMenuVisible(true);
+    };
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
@@ -110,12 +115,12 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',
                 icon: Expensicons.ClosedSign,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
             },
         ];
 
@@ -128,7 +133,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -161,7 +166,7 @@ function SecuritySettingsPage() {
                         title: personalDetail?.displayName ?? formattedEmail,
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
-                        avatarID: personalDetail?.accountID ?? -1,
+                        avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         icon: personalDetail?.avatar ?? FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
@@ -190,7 +195,7 @@ function SecuritySettingsPage() {
                     title: personalDetail?.displayName ?? formattedEmail,
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
-                    avatarID: personalDetail?.accountID ?? -1,
+                    avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     icon: personalDetail?.avatar ?? FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
@@ -207,6 +212,10 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: Expensicons.Pencil,
             onPress: () => {
+                if (isActingAsDelegate) {
+                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
+                    return;
+                }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
                 setSelectedDelegate(undefined);
@@ -216,12 +225,17 @@ function SecuritySettingsPage() {
         {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
-            onPress: () =>
+            onPress: () => {
+                if (isActingAsDelegate) {
+                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
+                    return;
+                }
                 Modal.close(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
-                }),
+                });
+            },
         },
     ];
 
@@ -239,6 +253,7 @@ function SecuritySettingsPage() {
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={() => Navigation.goBack()}
                         icon={Illustrations.LockClosed}
+                        shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
@@ -288,7 +303,7 @@ function SecuritySettingsPage() {
                                             icon={Expensicons.UserPlus}
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                             shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />
                                     )}
                                     {hasDelegators && (
@@ -336,6 +351,10 @@ function SecuritySettingsPage() {
                             />
                         </View>
                     </ScrollView>
+                    <DelegateNoAccessModal
+                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    />
                 </>
             )}
         </ScreenWrapper>

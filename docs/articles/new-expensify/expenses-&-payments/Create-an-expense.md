@@ -51,6 +51,11 @@ When an expense is submitted to a workspace, your approver will receive an email
 
 {% include end-selector.html %}
 
+![Click Global Create]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-1.png){:width="100%"}
+![Click Create Expense]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-2.png){:width="100%"}
+![Click Scan]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-3.png){:width="100%"}
+![Enter workspace or individual's name]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-4.png){:width="100%"}
+
 {% include info.html %}
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
 {% include end-info.html %}

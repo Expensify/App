@@ -90,7 +90,7 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
-    const {updateVolume} = useVolumeContext();
+    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
@@ -187,9 +187,8 @@ function BaseVideoPlayer({
         },
         [playVideo, videoResumeTryNumberRef],
     );
-
-    const prevIsMutedRef = useRef(false);
-    const prevVolumeRef = useRef(0);
+    const prevIsMuted = useSharedValue(true);
+    const prevVolume = useSharedValue(0);
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
@@ -211,14 +210,17 @@ function BaseVideoPlayer({
                 setIsEnded(false);
             }
 
-            if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
-                updateVolume(0.25);
+            // These two conditions are essential for the mute and unmute functionality to work properly during
+            // fullscreen playback on the web
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+                updateVolume(lastNonZeroVolume.get());
             }
-            if (isFullScreenRef.current && prevVolumeRef.current !== 0 && status.volume === 0 && !status.isMuted) {
+
+            if (isFullScreenRef.current && prevVolume.get() !== 0 && status.volume === 0 && !status.isMuted) {
                 currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
             }
-            prevIsMutedRef.current = status.isMuted;
-            prevVolumeRef.current = status.volume;
+            prevIsMuted.set(status.isMuted);
+            prevVolume.set(status.volume);
 
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -266,7 +268,6 @@ function BaseVideoPlayer({
                     if (!('isMuted' in status)) {
                         return;
                     }
-
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
 

@@ -26,7 +26,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         policyID: unknown;
         reportName: unknown;
         reportID: string;
-        reportActionID: unknown;
         chatReportID: unknown;
         stateNum: unknown;
         statusNum: unknown;
@@ -34,10 +33,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         type: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
-        lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
@@ -56,7 +53,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
         privateNotes: unknown;
-        pendingChatMembers: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
@@ -66,6 +62,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
+        welcomeMessage: unknown;
     },
     PolicyReportField['fieldID']
 >;
