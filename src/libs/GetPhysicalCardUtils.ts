@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -7,19 +6,16 @@ import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PhoneNumberUtils from './PhoneNumber';
 import * as UserUtils from './UserUtils';
 
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Route {
     const {legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
     const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
-    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber ?? '');
-    const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
     }
-    if (!phoneNumber || !parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
+    if (!phoneNumber || !LoginUtils.validateNumber(phoneNumber)) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain);
     }
     if (!(address?.street && address?.city && address?.state && address?.country && address?.zip)) {
