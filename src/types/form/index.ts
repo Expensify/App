@@ -88,3 +88,4 @@ export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
+export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
