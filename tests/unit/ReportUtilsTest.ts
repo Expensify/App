@@ -563,7 +563,7 @@ describe('ReportUtils', () => {
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [
                         currentUserAccountID,
-                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                        participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID,
                     ]);
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                 });
@@ -611,7 +611,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -624,7 +624,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -675,7 +675,7 @@ describe('ReportUtils', () => {
                     } as const;
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [
                         currentUserAccountID,
-                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                        participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID,
                     ]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -691,7 +691,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -704,7 +704,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -749,7 +749,7 @@ describe('ReportUtils', () => {
                     };
                     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, paidPolicy, [
                         currentUserAccountID,
-                        participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID,
+                        participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID,
                     ]);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -764,7 +764,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
-                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0)  CONST.DEFAULT_NUMBER_ID]);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -914,7 +914,7 @@ describe('ReportUtils', () => {
             const reportActionCollectionDataSet = toCollectionDataSet(
                 ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                 reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID ?? '',
+                (actions) => Object.values(actions).at(0)?.reportActionID,
             );
             Onyx.multiSet({
                 ...reportCollectionDataSet,
