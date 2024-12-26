@@ -19,6 +19,7 @@ import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
+import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
@@ -97,6 +98,7 @@ function App({url}: AppProps) {
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
                                 SearchRouterContextProvider,
+                                ProductTrainingContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />
