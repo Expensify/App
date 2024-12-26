@@ -267,7 +267,6 @@ function BaseModal(
                     statusBarTranslucent={statusBarTranslucent}
                     navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}
-                    avoidKeyboard={false}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
                     <ModalContent
