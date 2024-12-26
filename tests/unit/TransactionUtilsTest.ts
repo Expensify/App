@@ -205,4 +205,31 @@ describe('TransactionUtils', () => {
             });
         });
     });
+
+    describe('getUpdatedTransaction', () => {
+        it('should return updated category and tax when updating category with a category tax rules', () => {
+            // Given a policy with tax expense rules associated with a category
+            const category = 'Advertising';
+            const taxCode = 'id_TAX_RATE_1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
+            };
+            const transaction = generateTransaction();
+
+            // When updating the transaction category to the category associated with the rule
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                policy: fakePolicy,
+                transactionChanges: {category},
+            });
+
+            // Then the updated transaction should contain the tax from the matched rule
+            expect(updatedTransaction.category).toBe(category);
+            expect(updatedTransaction.taxCode).toBe(taxCode);
+            expect(updatedTransaction.taxAmount).toBe(5);
+        });
+    });
 });

@@ -376,6 +376,11 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
+        const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
+        if (categoryTaxCode && categoryTaxAmount !== undefined) {
+            updatedTransaction.taxCode = categoryTaxCode;
+            updatedTransaction.taxAmount = categoryTaxAmount;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {

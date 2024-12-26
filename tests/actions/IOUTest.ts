@@ -3635,6 +3635,7 @@ describe('actions/IOU', () => {
             // Given a policy with tax expense rules associated with category
             const transactionID = '1';
             const policyID = '2';
+            const transactionThreadReportID = '3';
             const category = 'Advertising';
             const taxCode = 'id_TAX_EXEMPT';
             const ruleTaxCode = 'id_TAX_RATE_1';
@@ -3649,9 +3650,10 @@ describe('actions/IOU', () => {
                 amount: 100,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            IOU.updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined);
+            IOU.updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -3664,6 +3666,25 @@ describe('actions/IOU', () => {
                         expect(transaction?.taxCode).toBe(ruleTaxCode);
                         expect(transaction?.taxAmount).toBe(5);
                         resolve();
+                    },
+                });
+            });
+
+            // But the original message should only contains the old and new category data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        const reportAction = Object.values(reportActions ?? {}).at(0);
+                        if (ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE)) {
+                            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+                            expect(originalMessage?.oldCategory).toBe('');
+                            expect(originalMessage?.category).toBe(category);
+                            expect(originalMessage?.oldTaxRate).toBeUndefined();
+                            expect(originalMessage?.oldTaxAmount).toBeUndefined();
+                            resolve();
+                        }
                     },
                 });
             });
