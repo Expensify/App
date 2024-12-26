@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -188,25 +189,27 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    title={getHeaderButtonText()}
-                />
-                {isInVerificationState && renderVerificationStateView()}
-                {!isInVerificationState && (
-                    <FullPageOfflineBlockingView>
-                        <View style={styles.flex1}>
-                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                            {renderBankOptions()}
-                            <MenuItem
-                                icon={Expensicons.Plus}
-                                title={translate('workspace.expensifyCard.addNewBankAccount')}
-                                onPress={handleAddBankAccount}
-                            />
-                        </View>
-                    </FullPageOfflineBlockingView>
-                )}
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                        title={getHeaderButtonText()}
+                    />
+                    {isInVerificationState && renderVerificationStateView()}
+                    {!isInVerificationState && (
+                        <FullPageOfflineBlockingView>
+                            <View style={styles.flex1}>
+                                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                                {renderBankOptions()}
+                                <MenuItem
+                                    icon={Expensicons.Plus}
+                                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                    onPress={handleAddBankAccount}
+                                />
+                            </View>
+                        </FullPageOfflineBlockingView>
+                    )}
+                </DelegateNoAccessWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

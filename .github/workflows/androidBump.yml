@@ -25,7 +25,7 @@ jobs:
         run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
         working-directory: android/app
 
-      - name: Generate version
+      - name: Get status from Google Play and generate next rollout percentage
         id: checkAndroidStatus
         uses: ./.github/actions/javascript/checkAndroidStatus
         with:

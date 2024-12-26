@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -58,6 +59,9 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -91,23 +95,47 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
-            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
+            action: () => {
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
+            },
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
-            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
+            action: () => {
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
+            },
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
-            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            action: () => {
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
+            },
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
-            pageRoute: ROUTES.SETTINGS_ADDRESS,
+            action: () => {
+                if (isActingAsDelegate) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
+            },
         },
     ];
 
@@ -123,6 +151,7 @@ function ProfilePage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
+                shouldUseHeadlineHeader
             />
             <ScrollView
                 style={styles.pt3}
@@ -196,7 +225,7 @@ function ProfilePage() {
                             {isLoadingApp ? (
                                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                             ) : (
-                                <>
+                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
                                     {privateOptions.map((detail, index) => (
                                         <MenuItemWithTopDescription
                                             // eslint-disable-next-line react/no-array-index-key
@@ -205,16 +234,20 @@ function ProfilePage() {
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
                                         />
                                     ))}
-                                </>
+                                </MenuItemGroup>
                             )}
                         </Section>
                     </View>
                 </MenuItemGroup>
             </ScrollView>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }
