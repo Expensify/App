@@ -32,19 +32,23 @@ function stripDecimalsFromAmount(amount: string): string {
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
  * @param amount - Changed amount from user input
+ * @param shouldAllowNegative - Should allow negative numbers
  */
-function addLeadingZero(amount: string): string {
+function addLeadingZero(amount: string, shouldAllowNegative = false): string {
+    if (shouldAllowNegative && amount.startsWith('-.')) {
+        return `-0${amount}`;
+    }
     return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative = false): boolean {
     const regexString =
         decimals === 0
-            ? `^\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
-            : `^\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+            ? `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
     return amount === '' || decimalNumberRegex.test(amount);
 }
