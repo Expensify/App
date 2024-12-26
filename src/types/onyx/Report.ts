@@ -23,18 +23,6 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
-/** The pending member of report */
-type PendingChatMember = {
-    /** Account ID of the pending member */
-    accountID: string;
-
-    /** Action to be applied to the pending member of report */
-    pendingAction: OnyxCommon.PendingAction;
-
-    /** Collection of errors to show to the user */
-    errors?: OnyxCommon.Errors;
-};
-
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** What is the role of the participant in the report */
@@ -214,9 +202,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
-        /** Pending members of the report */
-        pendingChatMembers?: PendingChatMember[];
-
         /** Collection of policy report fields, indexed by their fieldID */
         fieldList?: Record<string, PolicyReportField>;
 
@@ -250,4 +235,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};

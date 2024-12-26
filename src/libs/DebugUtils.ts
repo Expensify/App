@@ -531,12 +531,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 },
                 'number',
             );
-        case 'pendingChatMembers':
-            return validateArray<ArrayElement<Report, 'pendingChatMembers'>>(value, {
-                accountID: 'string',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                errors: 'object',
-            });
         case 'fieldList':
             return validateObject<ObjectElement<Report, 'fieldList'>>(
                 value,
@@ -618,7 +612,6 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                pendingChatMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 fieldList: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 permissions: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 tripData: CONST.RED_BRICK_ROAD_PENDING_ACTION,

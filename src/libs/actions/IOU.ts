@@ -5770,7 +5770,11 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+    if (!transactionID) {
+        return undefined;
+    }
+
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     // Determine which report to navigate back to
@@ -5793,7 +5797,16 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string, reportActio
  * @param isSingleTransactionView - Whether we're in single transaction view
  * @returns The URL to navigate to
  */
-function getNavigationUrlAfterTrackExpenseDelete(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+function getNavigationUrlAfterTrackExpenseDelete(
+    chatReportID: string | undefined,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+): Route | undefined {
+    if (!chatReportID || !transactionID) {
+        return undefined;
+    }
+
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
 
     // If not a self DM, handle it as a regular money request
@@ -5968,7 +5981,11 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!transactionID) {
+        return;
+    }
+
     // STEP 1: Calculate and prepare the data
     const {
         shouldDeleteTransactionThread,
@@ -6229,7 +6246,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteTrackExpense(chatReportID: string | undefined, transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!chatReportID || !transactionID) {
+        return;
+    }
+
     const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
 
     // STEP 1: Get all collections we're updating
