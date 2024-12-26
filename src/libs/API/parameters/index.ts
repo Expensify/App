@@ -254,6 +254,7 @@ export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscription
 export type {default as ReportExportParams} from './ReportExportParams';
 export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
+export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
@@ -347,10 +348,14 @@ export type {default as ConnectPolicyToQuickBooksDesktopParams} from './ConnectP
 export type {default as UpdateInvoiceCompanyNameParams} from './UpdateInvoiceCompanyNameParams';
 export type {default as UpdateInvoiceCompanyWebsiteParams} from './UpdateInvoiceCompanyWebsiteParams';
 export type {default as UpdateQuickbooksDesktopExpensesExportDestinationTypeParams} from './UpdateQuickbooksDesktopExpensesExportDestinationTypeParams';
+export type {default as ValidateUserAndGetAccessiblePoliciesParams} from './ValidateUserAndGetAccessiblePoliciesParams';
 export type {default as UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams} from './UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams';
 export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemParams';
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
+export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
+export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
+export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';

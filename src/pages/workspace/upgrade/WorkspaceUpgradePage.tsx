@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
@@ -37,26 +38,26 @@ function getFeatureNameAlias(featureName: string) {
 }
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
-    const navigation = useNavigation();
     const styles = useThemeStyles();
     const policyID = route.params.policyID;
 
-    const featureNameAlias = getFeatureNameAlias(route.params.featureName);
+    const featureNameAlias = route.params.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias);
+    const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`policy_${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = !!feature && !!policy && PolicyUtils.isPolicyAdmin(policy);
-    const isUpgraded = React.useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
+    const canPerformUpgrade = !!policy && PolicyUtils.isPolicyAdmin(policy);
+    const isUpgraded = useMemo(() => PolicyUtils.isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = PolicyUtils.getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
     const goBack = useCallback(() => {
         if (!feature) {
+            Navigation.dismissModal();
             return;
         }
         switch (feature.id) {
@@ -155,16 +156,16 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         route.params.featureName,
     ]);
 
-    useEffect(() => {
-        const unsubscribeListener = navigation.addListener('blur', () => {
-            if (!isUpgraded || !canPerformUpgrade) {
-                return;
-            }
-            confirmUpgrade();
-        });
-
-        return unsubscribeListener;
-    }, [isUpgraded, canPerformUpgrade, confirmUpgrade, navigation]);
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!isUpgraded || !canPerformUpgrade) {
+                    return;
+                }
+                confirmUpgrade();
+            };
+        }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
+    );
 
     if (!canPerformUpgrade) {
         return <NotFoundPage />;

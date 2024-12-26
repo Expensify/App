@@ -190,6 +190,15 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+/** This represents the details of the traveler */
+type TravelerPersonalDetails = {
+    /** Email of the traveler */
+    email: string;
+
+    /** Name of the traveler */
+    name: string;
+};
+
 /** Model of reservation */
 type Reservation = {
     /** ID of the reservation */
@@ -207,14 +216,26 @@ type Reservation = {
     /** In flight reservations, this represents the details of the airline company */
     company?: Company;
 
+    /** In car and hotel reservations, this represents the cancellation policy */
+    cancellationPolicy?: string;
+
+    /** In car and hotel reservations, this represents the cancellation deadline */
+    cancellationDeadline?: string;
+
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
 
     /** In flight and car reservations, this represents the number of passengers */
     numPassengers?: number;
 
+    /** In flight reservations, this represents the flight duration in seconds */
+    duration: number;
+
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
+
+    /** In hotel reservations, this represents the room class */
+    roomClass?: string;
 
     /** In flight reservations, this represents the details of the route */
     route?: {
@@ -226,6 +247,9 @@ type Reservation = {
 
         /** Passenger seat number */
         number: string;
+
+        /** Rail route name */
+        name?: string;
     };
 
     /** In car reservations, this represents the car dealership name */
@@ -236,6 +260,21 @@ type Reservation = {
 
     /** Payment type of the reservation */
     paymentType?: string;
+
+    /** Arrival gate details */
+    arrivalGate?: {
+        /** Arrival terminal number */
+        terminal: string;
+    };
+
+    /** Coach number for rail */
+    coachNumber?: string;
+
+    /** Seat number for rail */
+    seatNumber?: string;
+
+    /** This represents the details of the traveler */
+    travelerPersonalInfo?: TravelerPersonalDetails;
 };
 
 /** Model of trip reservation time details */
@@ -257,6 +296,9 @@ type ReservationTimeDetails = {
 
     /** Timezone offset */
     timezoneOffset?: string;
+
+    /** City name */
+    cityName?: string;
 };
 
 /** Model of airline company details */
@@ -338,7 +380,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors | ReceiptErrors;
 
         /** Server side errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields<'route'>;
+        errorFields?: OnyxCommon.ErrorFields;
 
         /** The name of the file used for a receipt (formerly receiptFilename) */
         filename?: string;
@@ -461,6 +503,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The card transaction's posted date */
         posted?: string;
+
+        /** The inserted time of the transaction */
+        inserted?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;
