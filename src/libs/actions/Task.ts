@@ -1256,7 +1256,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     const parentReport = getParentReport(taskReport);
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedRoom(parentReport, reportNameValuePairs)) {
+    if (ReportUtils.isArchivedRoom(reportNameValuePairs)) {
         return false;
     }
 
