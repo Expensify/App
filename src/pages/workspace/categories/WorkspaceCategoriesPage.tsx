@@ -105,24 +105,28 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories({});
     }, [isFocused]);
 
-    const categoryList = useMemo<PolicyOption[]>(
-        () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[])
-                .filter((value) => (isOffline ? value : value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
-                .map((value) => {
-                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    return {
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                        isDisabled,
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                    };
-                }),
-        [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate],
-    );
+    const categoryList = useMemo<PolicyOption[]>(() => {
+        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        return categories.reduce<PolicyOption[]>((acc, value) => {
+            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            if (!isOffline && isDisabled) {
+                return acc;
+            }
+
+            acc.push({
+                text: value.name,
+                keyForList: value.name,
+                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isDisabled,
+                pendingAction: value.pendingAction,
+                errors: value.errors ?? undefined,
+                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+            });
+
+            return acc;
+        }, []);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
