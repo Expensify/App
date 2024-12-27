@@ -78,7 +78,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, 'Please enter a valid work email from a private domain e.g. mitch@company.com');
         }
 
-        if (isOffline) {
+        if (isOffline ?? false) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, "We couldn't add your work email as you appear to be offline");
         }
 
