@@ -72,7 +72,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? '-1'}
+            policyID={policy?.id}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
