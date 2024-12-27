@@ -124,7 +124,6 @@ function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: n
 
 function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number, policyID: string, bankName: CompanyCardFeed, liabilityType: string) {
     const authToken = NetworkStore.getAuthToken();
-    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const feedUpdates = {
         [bankName]: {liabilityType},
     };
@@ -135,7 +134,7 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
                 value: {
-                    settings: isCustomFeed ? {companyCards: feedUpdates} : {oAuthAccountDetails: feedUpdates},
+                    settings: {companyCards: feedUpdates},
                 },
             },
         ],
@@ -151,10 +150,14 @@ function setWorkspaceCompanyCardTransactionLiability(workspaceAccountID: number,
     API.write(WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY, parameters, onyxData);
 }
 
-function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: CompanyCardFeed, feedToOpen?: CompanyCardFeed) {
+function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: number, bankName: CompanyCardFeed, cardIDs: string[], feedToOpen?: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
     const isCustomFeed = CardUtils.isCustomFeed(bankName);
-    const feedUpdates = {[bankName]: null};
+    const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+    const successFeedUpdates = {[bankName]: null};
+    const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
+    const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
+    const successAndFailureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -162,22 +165,74 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 settings: {
-                    ...(isCustomFeed ? {companyCards: feedUpdates} : {oAuthAccountDetails: feedUpdates}),
+                    companyCards: optimisticFeedUpdates,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            value: optimisticCardUpdates,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: optimisticCardUpdates,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    ...(isCustomFeed ? {companyCards: successFeedUpdates} : {oAuthAccountDetails: successFeedUpdates, companyCards: successFeedUpdates}),
                     companyCardNicknames: {
                         [bankName]: null,
                     },
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            value: successAndFailureCardUpdates,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: successAndFailureCardUpdates,
+        },
     ];
 
-    if (feedToOpen) {
-        optimisticData.push({
+    const failureData: OnyxUpdate[] = [
+        {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: feedToOpen,
-        });
-    }
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    companyCards: failureFeedUpdates,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bankName}`,
+            value: successAndFailureCardUpdates,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: successAndFailureCardUpdates,
+        },
+    ];
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+        value: feedToOpen ?? null,
+    });
 
     const parameters = {
         authToken,
@@ -185,7 +240,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, workspaceAccountID: nu
         bankName,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData, successData, failureData});
 }
 
 function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardData>) {
@@ -194,7 +249,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     }
     const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? -1);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 
     const parameters: AssignCompanyCardParams = {
         policyID,
@@ -206,7 +261,7 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
         reportActionID: optimisticCardAssignedReportAction.reportActionID,
     };
     const policy = PolicyUtils.getPolicy(policyID);
-    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? -1, policyID);
+    const policyExpenseChat = ReportUtils.getPolicyExpenseChat(policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, policyID);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -242,9 +297,9 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
     API.write(WRITE_COMMANDS.ASSIGN_COMPANY_CARD, parameters, onyxData);
 }
 
-function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card?: Card) {
+function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: string, card: Card) {
     const authToken = NetworkStore.getAuthToken();
-    const cardID = card?.cardID ?? '-1';
+    const cardID = card.cardID;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -319,7 +374,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
 
 function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const optimisticFeedUpdates = {[bankName]: {errors: null}};
     const failureFeedUpdates = {[bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}}};
 
@@ -358,7 +412,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: isCustomFeed ? {companyCards: optimisticFeedUpdates} : {oAuthAccountDetails: optimisticFeedUpdates},
+                settings: {companyCards: optimisticFeedUpdates},
             },
         },
     ];
@@ -425,7 +479,7 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
-                settings: isCustomFeed ? {companyCards: failureFeedUpdates} : {oAuthAccountDetails: failureFeedUpdates},
+                settings: {companyCards: failureFeedUpdates},
             },
         },
     ];
