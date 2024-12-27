@@ -15,7 +15,7 @@ const searchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
             [accountID]: {
-                accountID: accountID,
+                accountID,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                 displayName: 'test',
                 login: 'test1234@gmail.com',
@@ -36,7 +36,7 @@ const searchResults: OnyxTypes.SearchResults = {
             type: 'team',
         },
         [`report_${reportID}`]: {
-            accountID: accountID,
+            accountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -47,8 +47,8 @@ const searchResults: OnyxTypes.SearchResults = {
             managerID: accountID,
             nonReimbursableTotal: 0,
             ownerAccountID: accountID,
-            policyID: policyID,
-            reportID: reportID,
+            policyID,
+            reportID,
             reportName: 'Expense Report #123',
             stateNum: 1,
             statusNum: 1,
@@ -57,7 +57,7 @@ const searchResults: OnyxTypes.SearchResults = {
             unheldTotal: -5000,
         },
         [`transactions_${transactionID}`]: {
-            accountID: accountID,
+            accountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -80,11 +80,11 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
             parentTransactionID: '',
-            policyID: policyID,
-            reportID: reportID,
+            policyID,
+            reportID,
             reportType: 'expense',
             tag: '',
-            transactionID: transactionID,
+            transactionID,
             transactionThreadReportID: '456',
             transactionType: 'cash',
         },
