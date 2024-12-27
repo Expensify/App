@@ -73,7 +73,6 @@ function ReportFooter({
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
-    workspaceTooltip,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
