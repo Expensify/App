@@ -53,7 +53,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
         privateNotes: unknown;
-        pendingChatMembers: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
@@ -63,6 +62,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
         // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
+        welcomeMessage: unknown;
     },
     PolicyReportField['fieldID']
 >;

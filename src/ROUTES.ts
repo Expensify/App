@@ -702,11 +702,11 @@ const ROUTES = {
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
     },
     WORKSPACE_INVITE_MESSAGE: {
         route: 'settings/workspaces/:policyID/invite-message',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite-message` as const,
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
