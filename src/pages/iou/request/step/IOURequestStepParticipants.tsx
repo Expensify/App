@@ -5,7 +5,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
+import * as Browser from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,9 +17,11 @@ import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestPar
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -69,6 +73,8 @@ function IOURequestStepParticipants({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const isMobileSafari = Browser.isMobileSafari();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -106,7 +112,7 @@ function IOURequestStepParticipants({
                 return;
             }
 
-            const firstParticipantReportID = val.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+            const firstParticipantReportID = val.at(0)?.reportID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
@@ -122,9 +128,22 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = firstParticipantReportID || reportID;
+            selectedReportID.current = firstParticipantReportID ?? reportID;
         },
         [iouType, reportID, trackExpense, transactionID],
+    );
+
+    const handleNavigation = useCallback(
+        (route: Route) => {
+            if (isAndroidNative || isMobileSafari) {
+                KeyboardUtils.dismiss().then(() => {
+                    Navigation.navigate(route);
+                });
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isAndroidNative, isMobileSafari],
     );
 
     const goToNextStep = useCallback(() => {
@@ -152,12 +171,13 @@ function IOURequestStepParticipants({
             transactionID,
             selectedReportID.current || reportID,
         );
-        if (isCategorizing) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
-    }, [iouType, transactionID, transaction, reportID, action, participants]);
+
+        const route = isCategorizing
+            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            : iouConfirmationPageRoute;
+
+        handleNavigation(route);
+    }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
