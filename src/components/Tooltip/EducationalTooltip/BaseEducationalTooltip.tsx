@@ -55,6 +55,10 @@ function BaseEducationalTooltip({children, shouldRender = false, ...props}: Educ
         [],
     );
 
+    if (!shouldRender) {
+        return children as React.ReactElement;
+    }
+
     return (
         <GenericTooltip
             shouldForceAnimate
