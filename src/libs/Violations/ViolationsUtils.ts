@@ -2,6 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -187,6 +188,14 @@ const ViolationsUtils = {
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const categoryKey = updatedTransaction.category;
             const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
+            const inputDate = new Date(updatedTransaction.created);
+            const currentDate = new Date();
+            const normalizedInputDate = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+            const normalizedCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+            const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
+            const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
+            const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+            const policyMaxExpenseAmount = policy.maxExpenseAmount;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
@@ -205,7 +214,48 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+            }
+
+            // Add 'futureDate' violation if transaction date is in the future
+            if (!hasFutureDateViolation && normalizedInputDate > normalizedCurrentDate) {
+                newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+            }
+
+            if (hasFutureDateViolation && normalizedInputDate <= normalizedCurrentDate) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
+            }
+
+            if (!hasReceiptRequiredViolation && policy.maxExpenseAmountNoReceipt && !updatedTransaction.receipt?.receiptID) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                    data: {
+                        formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt),
+                    },
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
+
+            if (hasReceiptRequiredViolation && !!updatedTransaction.receipt?.receiptID) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
+            }
+
+            console.log('policyMaxExpenseAmount', policyMaxExpenseAmount, updatedTransaction.amount);
+
+            if (!hasOverLimitViolation && policyMaxExpenseAmount && -updatedTransaction.amount > policyMaxExpenseAmount) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.OVER_LIMIT,
+                    data: {
+                        formattedLimit: CurrencyUtils.convertAmountToDisplayString(policyMaxExpenseAmount),
+                    },
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
+
+            if (hasOverLimitViolation && (!policyMaxExpenseAmount || -updatedTransaction.amount <= policyMaxExpenseAmount)) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
             }
         }
 
