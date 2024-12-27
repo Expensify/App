@@ -18,7 +18,7 @@ type PersonalBankAccount = {
     /** The account ID of the selected bank account from Plaid */
     plaidAccountID?: string;
 
-    /** Whether the added bank account is linked to the workspace invoices */
+    /** Whether the bank account being added is linked to the workspace invoices */
     isInvoiceBankAccount?: boolean;
 
     /** Any reportID we should redirect to at the end of the flow */
