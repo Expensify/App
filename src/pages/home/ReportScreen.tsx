@@ -856,7 +856,6 @@ function ReportScreen({route, currentReportID = '', navigation}: ReportScreenPro
                                         isComposerFullSize={!!isComposerFullSize}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
-                                        workspaceTooltip={workspaceTooltip}
                                     />
                                 ) : null}
                             </View>

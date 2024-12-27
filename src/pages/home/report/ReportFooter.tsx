@@ -45,9 +45,6 @@ type ReportFooterProps = {
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Whether to show educational tooltip in workspace chat for first-time user */
-    workspaceTooltip: OnyxEntry<OnyxTypes.WorkspaceTooltip>;
-
     /** Whether the chat is empty */
     isEmptyChat?: boolean;
 
@@ -103,7 +100,7 @@ function ReportFooter({
             }
         },
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
@@ -238,7 +235,6 @@ export default memo(
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        prevProps.workspaceTooltip?.shouldShow === nextProps.workspaceTooltip?.shouldShow &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
