@@ -159,17 +159,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param shouldUseSecure should we use the secure server
  */
 function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
-    if (command === 'RequestMoney') {
-        console.debug('[dev] 1. data:', data);
-        console.debug('[dev] 2. initiatedOffline:', initiatedOffline);
-    }
-
     return prepareRequestPayload(data, initiatedOffline).then((formData) => {
-        if (command === 'RequestMoney') {
-            console.debug('[dev] 3. formData:', formData);
-            console.debug("[dev] 4. formData.getAll('receipt'):", formData.getAll('receipt'));
-        }
-
         const url = ApiUtils.getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
 
