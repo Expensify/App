@@ -1303,16 +1303,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /*
-     * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
-     */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
-        if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
-        }
-        return {width};
-    },
-
-    /*
      * Returns the actual maxHeight of the auto-growing markdown text input.
      */
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
