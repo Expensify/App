@@ -87,7 +87,7 @@ const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
     });
 });
 
-function setNativeMarksObserver(enabled = false): void {
+function setNativeMarksObserverEnabled(enabled = false): void {
     if (!enabled) {
         nativeMarksObserver.disconnect();
         return;
@@ -117,7 +117,7 @@ const customMarksObserver = new PerformanceObserver((list: PerformanceObserverEn
     });
 });
 
-function setCustomMarksObserver(enabled = false): void {
+function setCustomMarksObserverEnabled(enabled = false): void {
     if (!enabled) {
         customMarksObserver.disconnect();
         return;
@@ -239,14 +239,14 @@ function withRenderTrace({id}: WrappedComponentConfig) {
 
 function enableMonitoring() {
     setResourceLoggingEnabled(true);
-    setNativeMarksObserver(true);
-    setCustomMarksObserver(true);
+    setNativeMarksObserverEnabled(true);
+    setCustomMarksObserverEnabled(true);
 }
 
 function disableMonitoring() {
     setResourceLoggingEnabled(false);
-    setNativeMarksObserver(false);
-    setCustomMarksObserver(false);
+    setNativeMarksObserverEnabled(false);
+    setCustomMarksObserverEnabled(false);
 }
 
 export default {
