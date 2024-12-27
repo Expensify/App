@@ -39,9 +39,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [activeTooltips, setActiveTooltips] = useState<Set<ProductTrainingTooltipName>>(new Set());
 
-    useEffect(() => {
-        console.log('activeTooltips', activeTooltips);
-    }, [activeTooltips]);
     const unregisterTooltip = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             setActiveTooltips((prev) => {
