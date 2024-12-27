@@ -364,6 +364,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             >
                 <HeaderWithBackButton
                     icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {

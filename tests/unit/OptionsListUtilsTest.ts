@@ -987,14 +987,51 @@ describe('OptionsListUtils', () => {
                     expect(filteredResults.recentReports.at(0)?.text).toBe('The Flash');
                 });
         });
+
+        it('should filter out duplicated entries by login', () => {
+            const login = 'brucebanner@expensify.com';
+
+            // Duplicate personalDetails entries and reassign to OPTIONS
+            OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, '');
+            const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
+
+            // There should be 2 unique login entries
+            expect(filteredOptions.personalDetails.length).toBe(2);
+            expect(matchingEntries.length).toBe(1);
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
-        it('should not allow to create option if email is an email of current user', () => {
+        const VALID_EMAIL = 'valid@email.com';
+        it('should allow to create optimistic personal detail option if email is valid', () => {
+            const currentUserEmail = 'tonystark@expensify.com';
             const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: OPTIONS.personalDetails,
-                currentUserOption: null,
+                searchValue: VALID_EMAIL,
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as ReportUtils.OptionData,
+                // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
+                // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
+                // This is a performance optimization.
+                personalDetailsOptions: [],
+                recentReportOptions: [],
+            });
+
+            expect(canCreate).toBe(true);
+        });
+
+        it('should not allow to create option if email is an email of current user', () => {
+            const currentUserEmail = 'tonystark@expensify.com';
+            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
+                searchValue: currentUserEmail,
+                recentReportOptions: [],
+                personalDetailsOptions: [],
+                currentUserOption: {
+                    login: currentUserEmail,
+                } as ReportUtils.OptionData,
             });
 
             expect(canCreate).toBe(false);
