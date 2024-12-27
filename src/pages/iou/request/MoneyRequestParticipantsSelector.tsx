@@ -158,7 +158,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
+            participants.map((participant) => ({...participant, reportID: participant.reportID})) as ReportUtils.OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
