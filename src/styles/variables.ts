@@ -271,6 +271,7 @@ export default {
     minimalTopBarOffset: -26,
     searchHeaderHeight: 80,
     searchListContentMarginTop: 116,
+    searchTopBarZIndex: 9,
 
     h20: 20,
     h28: 28,
